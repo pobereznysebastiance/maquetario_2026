@@ -1,0 +1,64 @@
+{
+  "name": "maquetario",
+  "productName": "Maquetario",
+  "version": "3.24.0",
+  "description": "Maquetario · Maquetación y diseño de libros",
+  "author": "Sebastián Poberezny",
+  "private": true,
+  "main": "dist/main.cjs",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs && electron . --dev",
+    "start": "electron .",
+    "self-test": "node scripts/build.mjs && electron . --self-test",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node --test \"test/*.test.ts\"",
+    "dist": "node scripts/build.mjs && electron-builder"
+  },
+  "devDependencies": {
+    "@maquetario/license": "*",
+    "@types/node": "^26.6.6",
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  },
+  "maquetario": {
+    "licenseMode": "off"
+  },
+  "build": {
+    "appId": "com.motiova.maquetario",
+    "productName": "Maquetario",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../LibroStudio/v3/app",
+        "to": "renderer"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "../LibroStudio/v3/app/maquetario.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.graphics-design",
+      "hardenedRuntime": true
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Graphics"
+    }
+  }
+}

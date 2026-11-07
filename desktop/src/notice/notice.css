@@ -1,0 +1,158 @@
+/* Aviso de sistema de Maquetario. Misma identidad que el instalador:
+   fondo petróleo, verde agua, filete dorado, DM Sans. */
+@font-face { font-family: 'DM Sans'; src: url('fonts/DM-Sans-400.ttf') format('truetype'); font-weight: 400; }
+@font-face { font-family: 'DM Sans'; src: url('fonts/DM-Sans-600.ttf') format('truetype'); font-weight: 600; }
+@font-face { font-family: 'DM Sans'; src: url('fonts/DM-Sans-700.ttf') format('truetype'); font-weight: 700; }
+
+:root {
+  --color-surface: #10212a;
+  --color-surface-raised: #142a33;
+  --color-art: #0c1a21;
+  --color-line: rgb(112 180 165 / 0.32);
+  --color-text: #f2f4ee;
+  --color-text-muted: #a9bab9;
+  --color-text-subtle: #7f9493;
+  --color-accent: #3cd1bb;
+  --color-accent-hover: #5adcc8;
+  --color-on-accent: #0d2f2a;
+  --color-gold: #e4b16c;
+
+  --font-ui: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+  --text-eyebrow: 11px;
+  --text-title: 22px;
+  --text-body: 14.5px;
+  --text-detail: 12.5px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-control: 7px;
+  --art-width: 232px;
+  --control-height: 36px;
+  --duration: 140ms;
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  overflow: hidden;
+}
+
+.notice {
+  display: grid;
+  grid-template-columns: var(--art-width) 1fr;
+  height: 100%;
+  border: 1px solid var(--color-line);
+}
+
+/* La ilustración también sirve para mover la ventana (no tiene barra de título). */
+.notice-art {
+  -webkit-app-region: drag;
+  background: var(--color-art) url('brand-art.jpg') center top / cover no-repeat;
+  border-right: 1px solid var(--color-line);
+}
+
+.notice-body {
+  -webkit-app-region: drag;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-8) var(--space-8) var(--space-6);
+  background: linear-gradient(180deg, var(--color-surface-raised), var(--color-surface) 70%);
+}
+
+.notice-eyebrow {
+  font-size: var(--text-eyebrow);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+.notice-title {
+  margin-top: var(--space-3);
+  font-size: var(--text-title);
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+/* Filete dorado, como debajo del logotipo del instalador. */
+.notice-title::after {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 2px;
+  margin-top: var(--space-4);
+  background: var(--color-gold);
+  opacity: 0.85;
+}
+
+.notice-message {
+  margin-top: var(--space-4);
+  line-height: 1.55;
+  color: var(--color-text-muted);
+  max-width: 44ch;
+  user-select: text;
+}
+
+.notice-detail {
+  margin-top: var(--space-3);
+  font-size: var(--text-detail);
+  line-height: 1.5;
+  color: var(--color-text-subtle);
+  user-select: text;
+  overflow-wrap: anywhere;
+}
+
+.notice-actions {
+  -webkit-app-region: no-drag;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-6);
+}
+
+.button {
+  height: var(--control-height);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  font: 600 13.5px/1 var(--font-ui);
+  cursor: pointer;
+  transition: background-color var(--duration) ease, border-color var(--duration) ease;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+.button-primary {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+.button-primary:hover { background: var(--color-accent-hover); }
+
+.button-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border-color: rgb(255 255 255 / 0.18);
+}
+.button-secondary:hover { border-color: rgb(255 255 255 / 0.34); }
+
+@media (prefers-reduced-motion: reduce) {
+  .button { transition: none; }
+}

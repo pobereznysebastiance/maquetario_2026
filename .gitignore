@@ -16,3 +16,9 @@ BrowserData*/
 *.mqt
 *.maquetario
 *.user
+
+# Node / Electron
+node_modules/
+/desktop/dist/
+/desktop/release/
+/packages/license/dev-keys/
