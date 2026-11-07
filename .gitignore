@@ -1,0 +1,18 @@
+# Descargas, compilación y salida local
+/LibroStudio/v3/vendor/
+/LibroStudio/v3/installer-tools/
+/LibroStudio/v3/bundle/
+/LibroStudio/v3/bundle.zip
+/Maquetario/*
+!/Maquetario/Servicio-aula/
+/Maquetario/Servicio-aula/.runtime/
+
+# Configuración local y proyectos del usuario
+.env
+.env.*
+maquetario-aula.json
+aula.dat
+BrowserData*/
+*.mqt
+*.maquetario
+*.user
