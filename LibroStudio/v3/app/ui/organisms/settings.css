@@ -1,0 +1,99 @@
+/* Organismo: Configuración. Secciones de arriba hacia abajo, una fila por preferencia:
+   etiqueta (y ayuda) a la izquierda, control a la derecha. Sin tarjetas anidadas. */
+.settings-modal {
+  --settings-width: 560px;
+  --settings-control-width: 180px;
+  width: min(var(--settings-width), 92vw);
+  max-width: none;
+}
+.settings-modal .modal-actions button[value='cancel'] {
+  display: none;
+}
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding-block: var(--space-xl) var(--space-lg);
+  border-top: var(--border-width) solid var(--line-subtle);
+}
+.settings-section:first-child {
+  padding-top: var(--space-xs);
+  border-top: 0;
+}
+
+.settings-section-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--type-lg);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+}
+
+.settings-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-lg);
+  min-height: var(--control-md);
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+}
+
+.settings-row-control select {
+  min-width: var(--settings-control-width);
+}
+
+.settings-help,
+.settings-note {
+  margin: var(--space-3xs) 0 0;
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  line-height: var(--leading-text);
+  max-width: 52ch;
+}
+.settings-note {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+}
+
+.settings-value {
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+}
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.settings-list-item {
+  overflow: hidden;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  background: var(--surface-field);
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-section > .btn {
+  align-self: flex-start;
+}
+
+.settings-about {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  line-height: var(--leading-text);
+}

@@ -1,0 +1,129 @@
+/* Organismo: contenido del inspector. Se lee de arriba hacia abajo:
+   sección (título) → grupo (subtítulo) → filas (etiqueta | control).
+   Secciones planas separadas por una línea; nada de tarjetas dentro de tarjetas,
+   bordes de color a la izquierda ni subtítulos dorados compitiendo con los títulos. */
+#inspectorContent .section {
+  padding: var(--space-xl) var(--space-lg) var(--space-xl);
+  border: 0;
+  border-top: var(--border-width) solid var(--line-subtle);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+#inspectorContent .section:first-child {
+  border-top: 0;
+}
+
+#inspectorContent .section-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: 0 0 var(--space-lg);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-primary);
+  font-size: var(--type-lg);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: 0;
+}
+#inspectorContent .section-heading .icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  color: var(--text-tertiary);
+}
+
+/* Subtítulo de grupo: más aire arriba que abajo, mismo color que el texto secundario. */
+#inspectorContent .sub-label {
+  margin: var(--space-xl) 0 var(--space-xs);
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+}
+
+/* Fila: etiqueta a la izquierda, control a la derecha, alto de control constante. */
+#inspectorContent .field-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: var(--space-md);
+  min-height: var(--control-md);
+  margin: 0 0 var(--space-xs);
+}
+#inspectorContent .field-row > label,
+#inspectorContent .field-label,
+#inspectorContent .check-line {
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-ui);
+}
+
+#inspectorContent .field-row > :is(input, select, .unit-wrap) {
+  width: 100%;
+  max-width: none;
+}
+
+/* Pares (dos campos lado a lado con su etiqueta debajo). */
+#inspectorContent .pair {
+  margin: 0 0 var(--space-sm);
+}
+#inspectorContent .pair label {
+  margin-top: var(--space-2xs);
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+}
+
+/* Unidad dentro del campo (mm, %). */
+#inspectorContent .unit {
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+}
+
+/* Control segmentado (p. ej. "A los márgenes | Al borde de página"). */
+#inspectorContent .segmented {
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-field);
+  overflow: hidden;
+}
+#inspectorContent .segmented button {
+  min-height: var(--control-md);
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  font-weight: var(--weight-medium);
+}
+#inspectorContent .segmented button:hover:not(.active) {
+  background: var(--surface-control);
+  color: var(--text-primary);
+}
+#inspectorContent .segmented button.active {
+  background: var(--surface-selected-strong);
+  border-color: transparent;
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+/* Ayuda "?" junto a títulos: discreta. */
+#inspectorContent .help {
+  color: var(--text-tertiary);
+}
+
+/* Grupos opcionales (líneas de cornisa, titulillo…): planos, separados por una línea. */
+#inspectorContent .rule-settings {
+  margin: 0;
+  padding: var(--space-md) 0;
+  border: 0;
+  border-top: var(--border-width) solid var(--line-subtle);
+  border-radius: 0;
+  background: transparent;
+}
+#inspectorContent .rule-settings .field-row {
+  margin: var(--space-xs) 0 0;
+}

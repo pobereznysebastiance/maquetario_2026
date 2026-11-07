@@ -85,6 +85,16 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     await capture('novela.png');
     return writePdf('El atlas de las casas vacias.pdf', 'window.prepareNovelPdf()', A5, 350);
   });
+  await step('capturas de interfaz', async () => {
+    await exec(session, "showTab('design')");
+    await delay(250);
+    await capture('inspector-diseno.png');
+    await exec(session, "showTab('book')");
+    await exec(session, 'openSettings()');
+    await delay(400);
+    await capture('configuracion.png');
+    await exec(session, "document.querySelector('#modal').close()");
+  });
   await step('PDF de cubierta', async () => {
     await exec(session, 'window.prepareCoverProof()');
     await delay(300);

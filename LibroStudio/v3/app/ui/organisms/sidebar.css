@@ -1,0 +1,48 @@
+/* Organismo: paneles laterales (herramientas y páginas a la izquierda, inspector a la derecha)
+   y marco del centro. Material de barra lateral: vidrio denso, legible con brillo bajo. */
+.leftpanel,
+.inspector {
+  background: var(--ambient-chrome), var(--material-sidebar);
+  backdrop-filter: var(--material-blur-sidebar);
+  box-shadow: none;
+}
+
+/* El centro no es vidrio: enmarca la mesa de trabajo, que es sólida. */
+.center {
+  background: var(--surface-canvas);
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+/* Pestañas del inspector: subrayado en verde agua para la activa, sin fondos. */
+.inspector .tabs {
+  background: transparent;
+  border-bottom: var(--border-width) solid var(--line-subtle);
+}
+.inspector .tab {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
+  box-shadow: inset 0 calc(-1 * var(--space-3xs)) 0 transparent;
+  transition: color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+}
+.inspector .tab:hover {
+  background: transparent;
+  color: var(--text-primary);
+}
+.inspector .tab.active {
+  background: transparent;
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+  box-shadow: inset 0 calc(-1 * var(--space-3xs)) 0 var(--accent);
+}
+.inspector .tab .icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  color: var(--text-tertiary);
+}
+.inspector .tab.active .icon {
+  color: var(--accent);
+}

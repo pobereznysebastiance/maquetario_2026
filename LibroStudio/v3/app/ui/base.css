@@ -1,7 +1,10 @@
 /* Base: sólo lo que es de todo el documento.
    Ojo: por estar en una capa superior a "legacy", una regla de elemento acá
    (button, input…) pisaría todos los estilos viejos. Por eso no hay ninguna. */
-html,
+html {
+  background: var(--surface-window);
+}
+
 body {
   background: var(--surface-window);
   color: var(--text-primary);

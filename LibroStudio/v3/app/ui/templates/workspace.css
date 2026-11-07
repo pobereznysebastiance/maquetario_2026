@@ -1,0 +1,21 @@
+/* Plantilla del espacio de trabajo: herramientas | página | inspector.
+   Los paneles van pegados entre sí y al borde, separados por una línea (como las barras
+   laterales de macOS), en vez de tarjetas flotantes con huecos. Las columnas siguen
+   definidas en legacy (varían según el ancho de la ventana). */
+.app-layout {
+  gap: 0;
+  padding: 0;
+}
+
+.leftpanel,
+.inspector,
+.center {
+  border: 0;
+  border-radius: 0;
+}
+.leftpanel {
+  border-right: var(--border-width) solid var(--line-subtle);
+}
+.inspector {
+  border-left: var(--border-width) solid var(--line-subtle);
+}

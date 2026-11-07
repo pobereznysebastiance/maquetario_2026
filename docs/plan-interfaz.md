@@ -74,7 +74,13 @@ El lienzo (la mesa de trabajo alrededor de la página) es sólido y neutro, para
 
 En cada etapa: autoprueba completa, capturas en notebook (1366×768), monitor grande (2560×1440) y Retina, y revisión de impeccable.
 
+## Avance
+
+- **Hecho**: tokens y capas, base, átomos (botón, campo, ícono), control automático (`npm run lint:design`), ventana con Mica/vibrancy y barra de título integrada, barra superior, paneles laterales pegados al borde, inspector (secciones de arriba hacia abajo, sin tarjetas anidadas), Configuración (cuenta, idioma, tamaño de la interfaz, carpetas de fuentes, acerca de), avisos de sistema.
+- **Pendiente**: tira de páginas y herramientas, barra de estado y plantillas, diálogo/modal único (hoy usa legacy, con etiqueta superior vacía y cruz como carácter), menús y tostadas, paneles específicos (fuentes, salida, cubierta, legibilidad, asistente, tutorial, bienvenida), vaciar legacy.
+- **Transitorio a resolver en la etapa 2**: el idioma cambia por la cadena de `onchange` de `#language` (oculto); Configuración pasa por `setLanguage()` para que el reemplazo se haga en un solo lugar.
+
 ## Decisiones abiertas
 
-- Translucidez real del sistema operativo (Mica en Windows, vibrancy en macOS) o vidrio dibujado sólo con CSS.
+- ~~Translucidez real del sistema~~ → decidido: Mica en Windows 11 y vibrancy en macOS; color sólido donde no existe.
 - Tema claro: hoy la app es sólo oscura. El sistema queda preparado para un tema claro, pero no está pedido.

@@ -78,14 +78,6 @@
   --selection: rgb(54 206 185 / 0.35);
 
   /* ── Tipografía de interfaz ──────────────────────────────── */
-  --font-ui: var(--font-dm-sans);
-  --type-2xs: 10px;
-  --type-xs: 11px;
-  --type-sm: 12px;
-  --type-md: 13px;
-  --type-lg: 15px;
-  --type-xl: 18px;
-  --type-2xl: 22px;
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
@@ -140,6 +132,24 @@
   --layer-popover: 100;
   --layer-modal: 200;
   --layer-toast: 300;
+}
+
+/* Escala tipográfica de la interfaz. Vive en body (no en :root) para que el modo Grande,
+   que se activa con body.ui-large, la recalcule. Nunca afecta al libro. */
+body {
+  /* Escala de la interfaz: Configuración → Tamaño de la interfaz → Grande (body.ui-large). */
+  --ui-scale: 1;
+  --font-ui: var(--font-dm-sans);
+  --type-2xs: calc(10px * var(--ui-scale));
+  --type-xs: calc(11px * var(--ui-scale));
+  --type-sm: calc(12px * var(--ui-scale));
+  --type-md: calc(13px * var(--ui-scale));
+  --type-lg: calc(16px * var(--ui-scale)); /* títulos de sección: mínimo de legibilidad del aula */
+  --type-xl: calc(18px * var(--ui-scale));
+  --type-2xl: calc(22px * var(--ui-scale));
+}
+body.ui-large {
+  --ui-scale: 1.15;
 }
 
 /* Material del sistema operativo activo: la ventana deja ver Mica (Windows 11) o vibrancy (macOS). */

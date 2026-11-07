@@ -38,4 +38,8 @@
 @import url('atoms/button.css') layer(atoms);
 @import url('atoms/field.css') layer(atoms);
 @import url('organisms/topbar.css') layer(organisms);
+@import url('organisms/settings.css') layer(organisms);
+@import url('organisms/sidebar.css') layer(organisms);
+@import url('organisms/inspector.css') layer(organisms);
 @import url('templates/window.css') layer(templates);
+@import url('templates/workspace.css') layer(templates);
