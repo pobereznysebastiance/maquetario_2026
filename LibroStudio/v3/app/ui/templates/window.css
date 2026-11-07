@@ -1,0 +1,33 @@
+/* Plantilla de ventana: cómo se apoya la interfaz en la ventana del sistema.
+   Decide lugares, no aspecto: el aspecto de cada zona está en su organismo.
+   - Deja lugar a los botones de la ventana: derecha en Windows, semáforos a la izquierda en macOS.
+   - Con barra de título integrada, la barra superior mueve la ventana; sus controles no. */
+:root {
+  --window-controls-right: 0px;
+  --window-controls-left: 0px;
+}
+:root[data-window-controls='overlay-right'] {
+  /* Minimizar, maximizar y cerrar de Windows. */
+  --window-controls-right: 138px;
+}
+:root[data-window-controls='inset-left'] {
+  /* Semáforos de macOS. */
+  --window-controls-left: 78px;
+}
+
+.topbar {
+  padding-inline: calc(var(--space-lg) + var(--window-controls-left)) calc(var(--space-lg) + var(--window-controls-right));
+}
+
+:root[data-window-controls] .topbar {
+  -webkit-app-region: drag;
+}
+:root[data-window-controls] .topbar :is(button, select, input, a, label, [role='button'], [tabindex]) {
+  -webkit-app-region: no-drag;
+}
+
+/* Mesa de trabajo: casi neutra (un ambiente muy suave) y sin desenfoques encima,
+   para juzgar el color real del libro y para que mover y hacer zoom no cueste. */
+.workarea {
+  background: var(--ambient-canvas);
+}

@@ -1,0 +1,45 @@
+/* Átomo: campo (texto, número, selector, área de texto) en el marco de la app.
+   Alcance acotado a las zonas de interfaz: nunca toca el contenido del libro
+   (#spread, #printRoot) ni controles especiales (rango, color, casillas). */
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog)
+  :is(input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']), select, textarea) {
+  min-height: var(--control-sm);
+  padding: 0 var(--space-sm);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-field);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--type-sm);
+  transition: border-color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
+}
+
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog) textarea {
+  padding: var(--space-xs) var(--space-sm);
+  line-height: var(--leading-text);
+}
+
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog)
+  :is(input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']), select, textarea):hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background-color: var(--surface-field-hover);
+}
+
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog)
+  :is(input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']), select, textarea):focus-visible {
+  border-color: var(--accent);
+  outline-offset: 0;
+}
+
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog) ::placeholder {
+  color: var(--text-tertiary);
+}
+
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog) :is(input, select, textarea):disabled {
+  opacity: var(--opacity-disabled);
+}
+
+/* Casillas y deslizadores toman el color de acción. */
+:is(input[type='checkbox'], input[type='radio'], input[type='range']) {
+  accent-color: var(--accent);
+}

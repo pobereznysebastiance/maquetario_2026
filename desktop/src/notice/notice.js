@@ -11,7 +11,6 @@
   const byId = (id) => document.getElementById(id);
   document.documentElement.lang = data.lang || 'es';
   document.title = data.title || 'Maquetario';
-  byId('eyebrow').textContent = data.eyebrow || 'Maquetario';
   byId('title').textContent = data.title || '';
   byId('message').textContent = data.message || '';
   if (data.detail) {

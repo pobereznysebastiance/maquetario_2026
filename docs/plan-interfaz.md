@@ -1,0 +1,80 @@
+# Plan de interfaz: sistema de diseño de Maquetario
+
+Etapa 3 del plan general (ver `arquitectura.md`). Contexto de producto en `/PRODUCT.md`.
+
+## Diagnóstico (medido sobre `LibroStudio/v3/app`, 23 hojas de estilo, 98 KB)
+
+| Medida | Hoy | Meta |
+|---|---|---|
+| Colores escritos a mano en CSS | 974 usos, **633 distintos** | 0 fuera de los tokens |
+| Colores escritos en JS | 61 | 0 |
+| Estilos inline desde JS (`style=`, `.style.x=`) | 98 | Sólo geometría del documento (posición y tamaño de lo que el usuario dibuja) |
+| Sombras distintas | 56 | 3 niveles de elevación |
+| Radios distintos | 31 | 3 |
+| Tamaños de letra distintos | 34 | 6 en la escala de interfaz |
+| Desenfoques (`backdrop-filter`) | 5 valores sueltos | 3 materiales |
+| `!important` | 70 | 0 (las capas de cascada lo vuelven innecesario) |
+| Variables CSS definidas | 19, con `:root` redefinido en 4 archivos | Un solo origen de tokens |
+| Archivos que redefinen `.btn` | **15** (29 reglas) | 1 componente |
+
+La causa es estructural: cada función nueva trajo su hoja de estilos y pisó a la anterior (`studio.css` → `maquetario.css` → `glass.css` → `crystal.css`). El "glass" actual son capas de degradés y desenfoques sumados encima, no un material definido. Por eso se ve genérico: no hay un sistema que decida, hay acumulación.
+
+## Principios
+
+1. **La página manda.** El papel es contenido del usuario: nunca translúcido, nunca teñido. El vidrio es para lo que rodea al libro.
+2. **Vidrio como material, no como efecto.** Pocos materiales con nombre, cada uno con su función (ver abajo), igual que en macOS. Nada de brillos, halos ni degradés decorativos.
+3. **Un componente por concepto.** Un botón, un campo, un panel. Las variantes son modificadores del mismo componente, no copias.
+4. **Tokens o nada.** Ningún valor visual fuera de `ui/tokens`. Un control automático lo hace cumplir.
+5. **Identidad del instalador.** Petróleo, verde agua, filete dorado, DM Sans, el isotipo. El dorado es acento escaso (foco, estado activo, filetes), no relleno.
+
+## Arquitectura
+
+```
+LibroStudio/v3/app/ui/
+  tokens/
+    primitives.css     Rampas de color (petróleo, verde agua, dorado, neutros), escalas crudas.
+    semantic.css       Lo que usan los componentes: --surface-*, --text-*, --accent-*, --focus,
+                       --danger, --material-*, --elevation-*, --radius-*, --space-*, --type-*, --motion-*.
+  base.css             Reset, tipografía de interfaz, foco visible, barras de desplazamiento.
+  atoms/               button, icon-button, input, select, checkbox, switch, slider,
+                       segmented, badge, kbd, divider, icon, spinner.
+  molecules/           field (etiqueta + control + ayuda), tool-item (ícono + nombre + atajo),
+                       tab, menu-item, toast, tooltip, section-header, number-stepper.
+  organisms/           toolbar, tool-rail, inspector, page-strip, modal/sheet, popover,
+                       status-bar, notice, welcome.
+  templates/           workspace (grilla de la ventana), sheet (diálogos).
+  index.css            Orden de capas: @layer legacy, tokens, base, atoms, molecules, organisms, templates.
+  components.js        Funciones que arman el HTML de cada componente (ui.button({...})),
+                       para dejar de concatenar clases y estilos a mano en cada módulo.
+```
+
+- **Capas de cascada (`@layer`).** El CSS actual entra entero en la capa `legacy`, la de menor prioridad. Todo lo nuevo gana sin `!important`, y se puede migrar pantalla por pantalla sin romper el resto: cuando una pieza ya no usa nada de `legacy`, esa regla se borra.
+- **Mismos nombres al pasar a React.** Los componentes React de la etapa 2/3 van a usar estos mismos tokens y clases: lo que se hace ahora no se tira.
+- **Control automático.** `npm test` incluye un chequeo que falla si aparece un color, sombra, radio o tamaño de letra literal fuera de `ui/tokens`. El contador de `legacy` tiene que bajar en cada entrega.
+
+## Materiales (el vidrio)
+
+| Material | Dónde | Comportamiento |
+|---|---|---|
+| `--material-window` | Fondo de la ventana | En macOS, translucidez real del sistema (`vibrancy`); en Windows 11, Mica (`backgroundMaterial`). Sin soporte, color petróleo sólido. |
+| `--material-sidebar` | Herramientas, páginas, inspector | Vidrio denso, poco desenfoque, legible con brillo bajo. |
+| `--material-bar` | Barra superior y de estado | Vidrio más liviano, borde inferior de luz de 1 px. |
+| `--material-popover` | Menús, tooltips, selectores | El más opaco: tiene que leerse sobre cualquier fondo. |
+| `--material-sheet` | Diálogos | Opaco con velo detrás; nunca vidrio sobre vidrio. |
+
+El lienzo (la mesa de trabajo alrededor de la página) es sólido y neutro, para que el color del libro se juzgue bien. El vidrio nunca queda detrás de la página.
+
+## Orden de trabajo
+
+1. **Base**: tokens, capas, `base.css`, control automático. Botón, campo e ícono como primeros átomos. Translucidez real de la ventana en Electron.
+2. **Marco de trabajo**: barra superior, barra de herramientas, tira de páginas, inspector y barra de estado. Es lo que se ve el 100 % del tiempo.
+3. **Diálogos y avisos**: modal/sheet único, avisos, tostadas, menús.
+4. **Paneles específicos**: fuentes, salida/PDF, cubierta, legibilidad, asistente, tutorial, bienvenida.
+5. **Limpieza**: borrar `legacy` pieza por pieza hasta vaciarla; `glass.css` y `crystal.css` desaparecen.
+
+En cada etapa: autoprueba completa, capturas en notebook (1366×768), monitor grande (2560×1440) y Retina, y revisión de impeccable.
+
+## Decisiones abiertas
+
+- Translucidez real del sistema operativo (Mica en Windows, vibrancy en macOS) o vidrio dibujado sólo con CSS.
+- Tema claro: hoy la app es sólo oscura. El sistema queda preparado para un tema claro, pero no está pedido.

@@ -27,4 +27,11 @@
     },
   };
   window.MaquetarioHost = Object.freeze(host);
+
+  // El sistema de diseño se acomoda a la ventana: material translúcido y lugar de los botones.
+  const root = document.documentElement;
+  root.dataset.host = kind;
+  root.dataset.platform = host.platform;
+  root.dataset.material = electron ? electron.material : 'none';
+  if (electron) root.dataset.windowControls = electron.windowControls;
 })();

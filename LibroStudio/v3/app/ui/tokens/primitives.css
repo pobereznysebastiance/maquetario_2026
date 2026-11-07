@@ -1,0 +1,57 @@
+/* Primitivos: los valores crudos de la identidad de Maquetario.
+   Los componentes NO usan estos nombres: usan los semánticos de semantic.css.
+   Origen: instalador de Sebastián Poberezny (petróleo, verde agua, filete dorado). */
+:root {
+  /* Petróleo: fondos y superficies */
+  --petrol-950: #0b171c;
+  --petrol-900: #0f1e25;
+  --petrol-850: #13242b;
+  --petrol-800: #17272d;
+  --petrol-750: #1b2f36;
+  --petrol-700: #223a42;
+  --petrol-600: #2c4851;
+  --petrol-500: #3b5962;
+
+  /* Verde agua: acción principal y selección */
+  --teal-300: #8fe6d9;
+  --teal-400: #55d8c5;
+  --teal-500: #36ceb9;
+  --teal-600: #22ae9b;
+  --teal-900: #0d2f2a;
+
+  /* Dorado: filete, foco, estado activo. Escaso por definición. */
+  --gold-300: #efcd9c;
+  --gold-400: #e4b16c;
+  --gold-500: #cf9650;
+
+  /* Papel: texto sobre petróleo, tintado hacia el verde */
+  --paper-50: #f4f5ee;
+  --paper-200: #d6e0dc;
+  --paper-300: #b8c9c6;
+  --paper-400: #93aaa8;
+  --paper-500: #6f8787;
+
+  /* Estados */
+  --red-400: #f2806f;
+  --red-900: #2e0f0b;
+  --amber-400: #eab65a;
+
+  /* Mesa de trabajo: neutra a propósito, para juzgar bien el color del libro */
+  --table-900: #15191b;
+  --table-800: #1b2023;
+
+  /* Escalas crudas */
+  --size-2: 2px;
+  --size-4: 4px;
+  --size-6: 6px;
+  --size-8: 8px;
+  --size-10: 10px;
+  --size-12: 12px;
+  --size-16: 16px;
+  --size-20: 20px;
+  --size-24: 24px;
+  --size-32: 32px;
+  --size-40: 40px;
+
+  --font-dm-sans: 'DM Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}

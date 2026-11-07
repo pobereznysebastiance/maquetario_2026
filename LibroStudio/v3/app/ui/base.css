@@ -1,0 +1,46 @@
+/* Base: sólo lo que es de todo el documento.
+   Ojo: por estar en una capa superior a "legacy", una regla de elemento acá
+   (button, input…) pisaría todos los estilos viejos. Por eso no hay ninguna. */
+html,
+body {
+  background: var(--surface-window);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--type-sm);
+  line-height: var(--leading-ui);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--selection);
+  color: var(--text-primary);
+}
+
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+* {
+  caret-color: var(--accent);
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+::-webkit-scrollbar {
+  width: var(--size-10);
+  height: var(--size-10);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-default);
+  border: var(--space-3xs) solid transparent;
+  border-radius: var(--radius-pill);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--line-strong);
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

@@ -5,8 +5,15 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 type Reply = { id: string; result?: unknown; error?: string | null };
 
+const argument = (name: string): string | undefined =>
+  process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3);
+
 contextBridge.exposeInMainWorld('maquetarioNative', {
   platform: process.platform,
+  /** Material de la ventana: "mica", "vibrancy" o "none". */
+  material: argument('maquetario-material') ?? 'none',
+  /** Botones de la ventana: "overlay-right" (Windows/Linux) o "inset-left" (macOS). */
+  windowControls: argument('maquetario-controls') ?? 'overlay-right',
   postMessage(message: unknown): void {
     ipcRenderer.send('host:message', message);
   },

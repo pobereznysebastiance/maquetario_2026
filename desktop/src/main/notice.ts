@@ -11,8 +11,6 @@ export interface NoticeButton {
 }
 
 export interface NoticeOptions {
-  /** Línea chica en dorado, p. ej. "Licencia". */
-  eyebrow?: string;
   title: string;
   message: string;
   /** Texto técnico opcional (motivo, ruta), en gris. */
@@ -52,7 +50,6 @@ export function showNotice(options: NoticeOptions): Promise<string | null> {
   });
   const payload = encodeURIComponent(
     JSON.stringify({
-      eyebrow: options.eyebrow,
       title: options.title,
       message: options.message,
       detail: options.detail,

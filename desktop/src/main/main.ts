@@ -9,6 +9,7 @@ import { captureNotice, showNotice, type NoticeOptions } from './notice.ts';
 import { handleScheme, registerScheme } from './protocol.ts';
 import { runSelfTest } from './selftest.ts';
 import { createSession, exec, type Session } from './session.ts';
+import { windowChromeOptions } from './window-chrome.ts';
 
 app.setName('Maquetario');
 registerScheme();
@@ -19,7 +20,6 @@ if (!isSelfTest && !app.requestSingleInstanceLock()) app.quit();
 let main: Session | null = null;
 
 const LICENSE_NOTICE = (message: string): NoticeOptions => ({
-  eyebrow: 'Licencia',
   title: 'Maquetario necesita una licencia activa',
   message,
 });
@@ -54,17 +54,20 @@ function lockDown(): void {
 }
 
 function createWindow(): Session {
+  const chrome = windowChromeOptions();
   const win = new BrowserWindow({
     width: 1536,
     height: 1024,
     minWidth: 1120,
     minHeight: 760,
-    backgroundColor: '#181B22',
+    ...chrome.options,
     title: 'Maquetario · Maquetación y Diseño de Libros',
     icon: join(rendererDir(), 'maquetario.ico'),
     show: false,
     webPreferences: {
       preload: join(__dirname, 'preload.cjs'),
+      // La interfaz necesita saber qué material y qué botones de ventana hay para acomodarse.
+      additionalArguments: [`--maquetario-material=${chrome.material}`, `--maquetario-controls=${chrome.controls}`],
       contextIsolation: true,
       sandbox: true,
       nodeIntegration: false,
@@ -99,7 +102,6 @@ function createWindow(): Session {
   win.webContents.on('did-fail-load', (_event, code, description, url) => {
     if (!url.startsWith(`${APP_ORIGIN}/`)) return;
     void showNotice({
-      eyebrow: 'Error al abrir',
       title: 'Maquetario no pudo iniciar',
       message: 'No se pudo cargar el editor. Reinstalá Maquetario desde Motiova; tus proyectos no se modificaron.',
       detail: `${description} (${code})`,
@@ -125,7 +127,6 @@ function onClose(session: Session, event: Electron.Event): void {
     session.closePromptShown = false;
     void showNotice({
       parent: session.win,
-      eyebrow: 'Tu trabajo',
       title: 'Tu trabajo sigue abierto',
       message: 'Guardá la publicación antes de cerrar Maquetario.',
     });

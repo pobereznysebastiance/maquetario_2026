@@ -1,0 +1,28 @@
+/* Organismo: barra superior (marca, acciones de archivo, salida).
+   Material de barra: vidrio liviano con el canto de luz arriba y una línea abajo. */
+.topbar {
+  background: var(--ambient-chrome), var(--material-bar);
+  backdrop-filter: var(--material-blur-bar);
+  border: 0;
+  border-bottom: var(--border-width) solid var(--line-subtle);
+  border-radius: 0;
+  box-shadow: var(--material-edge);
+  z-index: var(--layer-chrome);
+}
+
+/* Las etiquetas de las acciones nunca se parten en dos líneas. */
+.topbar .tool-action {
+  white-space: nowrap;
+}
+
+.topbar #language {
+  min-width: max-content;
+}
+
+/* Asistente editorial: un botón secundario más; el destello dorado es la única marca. */
+.topbar .assistant-entry svg {
+  width: var(--icon-md);
+  height: var(--icon-md);
+  fill: var(--text-mark);
+  flex-shrink: 0;
+}
