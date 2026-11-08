@@ -1,4 +1,0 @@
-.spread.spread-vertical { flex-direction: column; }
-.thumbs-vertical .thumb-pages { align-items: center; flex-direction: column; height: 122px; }
-.thumbs-vertical .thumb-paper { flex: 0 0 56px; width: 40px; }
-#spread .artwork-drop-target { outline: 3px solid #3CD1BB; outline-offset: -3px; }

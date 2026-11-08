@@ -43,14 +43,15 @@ LibroStudio/v3/app/ui/
   organisms/           toolbar, tool-rail, inspector, page-strip, modal/sheet, popover,
                        status-bar, notice, welcome.
   templates/           workspace (grilla de la ventana), sheet (diálogos).
-  index.css            Orden de capas: @layer legacy, tokens, base, atoms, molecules, organisms, templates.
+  book/                Lo que dibuja el libro: página y objetos, selección, miniaturas, mesa, impresión.
+  index.css            Orden de capas: @layer book, tokens, base, atoms, molecules, organisms, templates.
   components.js        Funciones que arman el HTML de cada componente (ui.button({...})),
                        para dejar de concatenar clases y estilos a mano en cada módulo.
 ```
 
-- **Capas de cascada (`@layer`).** El CSS actual entra entero en la capa `legacy`, la de menor prioridad. Todo lo nuevo gana sin `!important`, y se puede migrar pantalla por pantalla sin romper el resto: cuando una pieza ya no usa nada de `legacy`, esa regla se borra.
+- **Capas de cascada (`@layer`).** El CSS viejo entró entero en una capa `legacy`, la de menor prioridad, y se migró pantalla por pantalla. Desde el 8-nov `legacy` no existe: en su lugar está `book`, con lo que dibuja el libro, y la interfaz le gana siempre sin `!important`.
 - **Mismos nombres al pasar a React.** Los componentes React de la etapa 2/3 van a usar estos mismos tokens y clases: lo que se hace ahora no se tira.
-- **Control automático.** `npm test` incluye un chequeo que falla si aparece un color, sombra, radio o tamaño de letra literal fuera de `ui/tokens`. El contador de `legacy` tiene que bajar en cada entrega.
+- **Control automático.** `npm test` incluye un chequeo que falla si aparece un color, sombra, radio o tamaño de letra literal fuera de `ui/tokens`. También falla si aparece una hoja `.css` fuera de `ui/`.
 
 ## Materiales (el vidrio)
 
@@ -70,7 +71,7 @@ El lienzo (la mesa de trabajo alrededor de la página) es sólido y neutro, para
 2. **Marco de trabajo**: barra superior, barra de herramientas, tira de páginas, inspector y barra de estado. Es lo que se ve el 100 % del tiempo.
 3. **Diálogos y avisos**: modal/sheet único, avisos, tostadas, menús.
 4. **Paneles específicos**: fuentes, salida/PDF, cubierta, legibilidad, asistente, tutorial, bienvenida.
-5. **Limpieza**: borrar `legacy` pieza por pieza hasta vaciarla; `glass.css` y `crystal.css` desaparecen.
+5. **Limpieza** (hecha el 8-nov): `legacy` vaciada; `glass.css`, `crystal.css` y las otras 19 hojas ya no existen.
 
 En cada etapa: autoprueba completa, capturas en notebook (1366×768), monitor grande (2560×1440) y Retina, y revisión de impeccable.
 

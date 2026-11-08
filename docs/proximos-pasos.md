@@ -35,67 +35,37 @@ Al cerrar la conversión, los PDF y los JSON de verificación de la autoprueba s
 
 Sigue (etapa 2 de `arquitectura.md`): sacar del build de producción las pruebas que todavía viven dentro de módulos de la app (`output.js`, `shapes.js`, `layout-tools.js`…), pasándolas a archivos `*-tests.js`; después TypeScript y módulos.
 
-## 2. Vaciar la capa legacy
+## 2. Vaciar la capa legacy (hecho)
 
-**Estado (8-nov, fin del día):** la interfaz ya no tiene nada en legacy. Quedan **18,5 KB en 21 hojas, 97 colores** (eran 98,9 KB y 965 colores al empezar): lo que dibuja el libro en el editor (pliego, página, objetos, tiradores, guías, imán, figuras, miniaturas, página activa, vista continua), la impresión (`@media print`, `#printRoot`, hojas de la vista previa), `@font-face` de DM Sans, las variables de `:root` que usa eso, y `@media` viejas ya anuladas por `ui/`. `npm run lint:design` informa la deuda que queda.
+**Estado (8-nov):** no queda CSS fuera de `ui/`. Eran 21 hojas, 98,9 KB y 965 colores sueltos. La interfaz está en sus capas (tokens → base → átomos → moléculas → organismos → plantillas) y lo que dibuja el libro está en `ui/book/`, en la capa `book`, la más baja:
 
-Criterio: cuando una pieza ya está en su organismo de `ui/`, borrar sus reglas de las hojas viejas.
+| Hoja | Qué tiene |
+|---|---|
+| `book/page.css` | pliego, página, objetos (texto, marco, imagen), elementos automáticos, índice, párrafos, figuras |
+| `book/selection.css` | selección y multiselección, rótulo, desborde, tiradores, imán, página activa, zona que recibe una imagen |
+| `book/thumbs.css` | miniaturas de la tira de páginas y de las plantillas |
+| `book/canvas.css` | mesa (desplazamiento, mano), pliego vertical, vista continua, vista previa |
+| `book/print.css` | `#printRoot`, pliegos de salida, ficha de medidas y todo el `@media print` |
 
-### Método
+Los colores del libro son tokens de valor exacto en `ui/tokens/book.css` (`--book-*`), aparte del tema de la interfaz. `@font-face` de DM Sans en `ui/tokens/fonts.css`. El orden de las hojas de `book/` importa: reproduce el de las hojas viejas donde dos reglas de igual peso se pisan (por ejemplo, el texto en edición se desplaza aunque esté seleccionado).
 
-1. Servir la interfaz (`node scripts/serve-ui.cjs LibroStudio/v3/app 5179`, o la configuración `interfaz` del panel de navegador), cargar `scripts/legacy-probe.js` con `window.LEGACY_FILES = [...]` y recorrer los estados: bienvenida, sin documento, cada pestaña, con selección, multiselección, cambios sin guardar, vista continua, diálogos, tutorial, pantalla angosta.
-2. `legacyProbe('estado')` en cada uno; `legacyReport()` da las candidatas a muertas.
-3. `legacyConfirm('estado', candidatas)` en cada estado: borra de a una sin reponer, así los duplicados entre hojas no pasan como muertos. Lo que devuelve el último estado se borra con `node scripts/prune-css.cjs LibroStudio/v3/app lista.json` (antes, `--contar` tiene que coincidir con el CSSOM).
-4. Para migrar una pieza: `legacyProps('estado')` dice qué declaración exacta de cada regla sigue pesando; sólo esas pasan a `ui/`, con tokens.
-5. Guardar las capturas de la autoprueba antes, correr `npm run self-test` y comparar con `npx electron scripts/compare-captures.cjs <antes> <después> <salida>` (`UMBRAL=4` para lo fino). PDF y JSON de verificación tienen que salir idénticos.
+Verificado al mudar: `style-snapshot` idéntico con las hojas viejas y con `book/` (a 1366 × 768 y 1150 × 700, sin filtrar ruido), capturas del lienzo iguales y los 7 PDF y 7 JSON de la autoprueba idénticos (`node scripts/compare-outputs.mjs <antes> <después>`).
 
-**Lo que la sonda no ve** (y la autoprueba sí encontró): el estado real de la barra superior en Electron (controles de ventana), elementos dentro de algo oculto (sus estilos cambian pero no se ven), anchos de barra de desplazamiento, y formas cortas con `var()` (`border-radius: var(--radius-lg)`, `border-top: 1px solid var(--line)`): el CSSOM deja vacías sus propiedades largas. `legacyProps` ya recorre las declaraciones como están escritas, pero conviene revisar en vivo las formas cortas con `var()` de lo que se borra (así se perdieron las esquinas y la perilla del interruptor, y se recuperaron). `prune-css.cjs` nunca borra `html`, `body`, `:root`, `*`, `@font-face`, `@media`, impresión ni `::-webkit-*`.
+`npm run lint:design` ahora también falla si aparece una hoja `.css` fuera de `ui/`.
 
-**Sobre la app de escritorio** (lo que la sonda en el navegador no ve): levantar con `cd desktop && node scripts/build.mjs && npx electron . --dev --remote-debugging-port=9333` y usar `node scripts/app-cdp.mjs` (`eval`, `evalfile`, `shot`, `click`, `key`). Fija la vista en 1536 × 1024 a escala 1 en cada llamada, así las fotos de `style-snapshot` no dependen de la ventana. Para comparar: sacar dos fotos de base sin el cambio (la diferencia entre ellas es el ruido: foco, animaciones) y recién ahí la foto con el cambio.
+### Cómo verificar un cambio de estilos
 
-**Antes de borrar o migrar, siempre:** (1) emular 1536 × 1024 en el panel del navegador (a 1024 px se activan las reglas @media (max-width:1250px) y tapan a las de base: así se perdió el tamaño del título de la bienvenida); (2) abrir los paneles que arrancan plegados (plantillas con #toggleGridStrip, recorrido con #toggleWorkflow): con el panel de plantillas plegado su regla base parecía muerta y se borró; (3) comparar con `scripts/style-snapshot.js` antes y después (`styleSnapshot` / `styleDiff`), no sólo con las capturas de la autoprueba, que no cubren esos estados.
+1. Levantar la app de escritorio: `cd desktop && node scripts/build.mjs && npx electron . --dev --no-throttle --remote-debugging-port=9333`, y manejarla con `node scripts/app-cdp.mjs` (`eval`, `evalfile`, `shot`, `click`, `key`). La vista queda fija (1536 × 1024 o `APP_CDP_SIZE`), así las fotos no dependen de la ventana.
+2. `scripts/style-snapshot.js` (`styleSnapshot` / `styleDiff`) antes y después, en 1536 × 1024 y en `APP_CDP_SIZE=1366x768` (entran `max-height: 850px` y `max-width: 1350px`); para lo angosto, también 1150 × 700. Sacar dos fotos de base: lo que cambia entre ellas es ruido (foco, animaciones, recientes).
+3. Si la comparación da diferencias raras (pestaña activa, foco), volver un momento al estado anterior y sacar la foto en la misma sesión: el estado de la app también se mueve entre corridas.
+4. Para lo que dibuja el libro: `npm run self-test` antes y después y `node scripts/compare-outputs.mjs`; los PDF tienen que salir idénticos.
 
-**Al portar, las @media también** (encontrado en la tanda del 8-nov): una regla de `ui/` le gana a cualquier `@media` vieja, así que la variante de pantalla baja o angosta de lo portado se pierde (el glosario se estiraba, la bienvenida perdía su título compacto). Portar la `@media` junto con la regla base, cambiando las variables locales. Para encontrarlas: cruzar las `@media` de legacy con las reglas de `ui/` de igual selector y propiedad. Y comparar `style-snapshot` en dos tamaños: `APP_CDP_SIZE=1366x768` (entran `max-height: 850px` y `max-width: 1350px`) además de 1536 × 1024.
-
-**La sonda no ve lo que se dibuja tarde** (lista del glosario) ni lo dinámico (`:hover`): antes de borrar, leer el texto original de cada regla y confirmar que cada declaración que no se porta la cubre `ui/`. `style-snapshot` ahora recorre también glosario, cerrar sin guardar, modo foco e interfaz grande.
-
-**Capturas de la autoprueba:** su tamaño depende de la ventana real; si cambia la pantalla o su escala durante la corrida, salen de tamaños distintos y no se pueden comparar. Ahí vale `style-snapshot` (la vista la fija `app-cdp`).
-
-Cuidado al migrar una regla de varios selectores: la sonda la marca efectiva si pesa en uno solo. Pasar los demás a una capa de `ui/` les gana a otros organismos (pasó con `.tool#indexTool`). Portar selector por selector.
-
-### Hecho
-
-- `glass.css` (145 → 11 reglas) y `crystal.css` (47 → 9): queda sólo lo que dibuja el libro en el editor (papel, selección, página activa, imán, figuras, sombra del pliego), la impresión y el aviso flotante.
-- Organismos nuevos: `organisms/book-route.css` (ruta del libro y barra del documento) y `organisms/structure.css` (estructura y revisión previa). Lo demás se sumó a barra superior, herramientas, inspector (alineación, capas, índice, color de figura), campos, interruptor, diálogos (salida, glifos, armador, figuras), bienvenida, tutorial y ventana.
-- Barrido de reglas muertas en las otras 21 hojas: 158 reglas menos.
-- `readability.css` (130 → 56 reglas) y `studio.css` (192 → 111) migradas por pieza: armazón de barra, panel izquierdo, tira de páginas, área central y reglas del lienzo, inspector, interruptor, campos con unidad, diálogos, cubierta, tutorial, bienvenida y aviso. Molécula nueva `panel-resizer.css`. Medidas de componentes como tokens en `semantic.css`.
-- En `studio.css` queda a propósito: lo que dibuja el libro (pliego, página, objetos, guías, grilla, elementos automáticos, miniaturas, `#printRoot`) y los resets de elemento (`*`, `html`, `body`, `button`, `input`, `select`, `svg.icon`), que en una capa de `ui/` le ganarían a todo lo viejo; se mueven a `base.css` cuando legacy esté vacío.
-- Cambios visuales buscados: colores de tokens (dorado `--text-mark`, verde agua `--accent`, superficies `--surface-*`), alineación activa con contorno verde agua en lugar de relleno lleno, interruptor dorado liso (sin degradé), estructura un poco más compacta.
-
-### Hecho el 8-nov (segunda tanda)
-
-- App revisada abierta en Electron con plantillas y recorrido desplegados: sin roturas salvo lo de abajo.
-- Selectores: el valor largo pasaba por debajo de la flecha. Átomo `ui/select.js` (cada selector recibe su `<button><selectedcontent>`) y regla base de campos con el filtro de tipos en `:where` (pisaba el lugar de la flecha).
-- Diálogos: `ui/dialog.js` con `dialogVariant(clase)` y `onDialogClose(fn)`. El `close` llega tarde y, al saltar de un diálogo a otro, borraba la clase del nuevo (Preparar PDF y Cubierta quedaban en 540 px). Ningún módulo escribe ya `$('#modal').addEventListener('close', …)`.
-- Diálogos apaisados: tamaños en `organisms/dialog.css` con tokens (820 px por defecto; cada variante el suyo). Configuración en dos columnas sin desplazamiento; Cubierta en dos columnas (zona a la izquierda, medidas a la derecha), de 2040 a 1248 px de alto.
-- Avisos con tipo: `toast(mensaje, 'success' | 'info' | 'warning' | 'error')`, color e ícono por tipo; las 44 llamadas pasan el suyo. La regla vieja de `#toast` en `glass.css` se borró sin cambio visible.
-- `scripts/app-cdp.mjs` para medir y capturar sobre la app de escritorio.
-
-### Hecho el 8-nov (tandas 3 a 5)
-
-- Interfaz migrada por completo: workspace, page-priority, editorial-learning, canvas-navigation, revisión de salida, asistente, paneles del inspector, pestañas por categoría, buscador y biblioteca de fuentes, glifos, pauta tipográfica, cubierta, ficha de medidas, galería de grillas, atajos, recientes, tutorial, barra superior y átomos (campo de color, campo con unidad, interruptor, tecla `kbd`). Barrido de 81 reglas muertas. `fonts.css` y `category-design.css` quedaron vacías y se quitaron.
-- Reinicio de elementos (`*`, `html/body`, botones y campos) a `base.css`.
-- Escultura oculta de la bienvenida y `.welcome-eyebrow`: fuera.
-- Pauta tipográfica: el interlineado ya no muestra decimales de más (19,6 pt).
-- `scripts/app-cdp.mjs`: `APP_CDP_SIZE` y `APP_CDP_TIMEOUT`. Electron en desarrollo con `--no-throttle` para que la sonda no se frene con la ventana minimizada (de 50 minutos a 3).
-- `style-snapshot.js` recorre además: glosario, cerrar sin guardar, foco, interfaz grande, asistente, buscador de fuentes, glifos, pauta tipográfica, galería, atajos, ficha de medidas, recientes y sin documento.
-
-**Errores que se repitieron y cómo evitarlos:** (1) portar declaraciones que en legacy ya no pesaban (`ui/` les ganaba) las hace ganar y cambia la interfaz: portar sólo lo que marca `legacyProps`, y por texto sólo lo que la sonda no recorre; (2) `width: 100%` en grillas dentro de flex y `background: none` en botones a veces no salen en `legacyProps` pero hacen falta: revisar el texto original; (3) formas cortas (`border:`) que pisan el `border-color` que el organismo ya tenía: usar propiedades largas.
+**Lecciones de la migración:** portar sólo las declaraciones que de verdad pesaban (portar una anulada la hace ganar y cambia la interfaz); revisar `width: 100%` y `background: none`, que las herramientas no ven; usar propiedades largas en vez de `border:` cuando el organismo ya tiene `border-color`; y portar las `@media` junto con su regla, porque una regla de `ui/` le gana a cualquier `@media` de una capa más baja.
 
 ### Para retomar (orden sugerido)
 
-1. **Lo que dibuja el libro y la impresión** (lo último de legacy): pasarlo a su propia hoja de `ui/` (por ejemplo `ui/book/`), en una capa del mismo lugar que hoy ocupa legacy (debajo de `tokens`), con los colores del papel, guías y selección como tokens de valor exacto. Verificar con la autoprueba: los PDF y JSON de verificación tienen que salir idénticos, y comparar capturas del editor (el lienzo no lo cubre `style-snapshot`). Con legacy vacío, sacar la capa y los `:root` viejos.
-2. Diálogos que todavía son columnas largas: Configuración del libro (formatos a la izquierda y campos a la derecha), glosario. En Cubierta, "Imagen de esta zona / Quitar imagen" aparece dos veces (arriba y abajo de la zona): dejar una.
+1. Diálogos que todavía son columnas largas: Configuración del libro (formatos a la izquierda y campos a la derecha), glosario. En Cubierta, "Imagen de esta zona / Quitar imagen" aparece dos veces (arriba y abajo de la zona): dejar una.
+2. Bajar los 107 estilos en línea desde JS (`lint:design` los cuenta): la mayoría son posiciones del libro, que se quedan; los de la interfaz pasan a clases.
 3. Después: etapa 2 de `arquitectura.md` (pruebas fuera del build, TypeScript y módulos).
 
 ## 3. Experiencia de uso

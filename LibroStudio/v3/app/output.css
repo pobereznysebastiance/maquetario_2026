@@ -1,2 +1,0 @@
-.output-sheet{position:relative;background:white;overflow:hidden}.print-artwork .objects{position:absolute;inset:0}.print-artwork .paper-object.frame{display:none}
-@media print{.output-sheet{position:relative;overflow:hidden;break-after:page}.output-sheet:last-child{break-after:auto}.print-artwork{break-after:auto!important;page-break-after:auto!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}.print-artwork .paper-object.frame{display:none}.output-guides,.crop-marks{display:block!important}}

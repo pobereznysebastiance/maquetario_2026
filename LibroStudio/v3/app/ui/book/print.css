@@ -1,0 +1,153 @@
+/* Libro: impresión y salida (PDF, pliegos de imprenta, cubierta).
+   Al imprimir sólo queda #printRoot: una .print-page por página, sin nada de la edición. */
+
+#printRoot {
+  display: none;
+}
+
+/* ── Pliego de salida en pantalla (marcas de corte y sangrado) ── */
+.output-sheet {
+  position: relative;
+  overflow: hidden;
+  background: var(--book-print-paper);
+}
+.print-artwork .objects {
+  position: absolute;
+  inset: 0;
+}
+.print-artwork .paper-object.frame {
+  display: none;
+}
+.cover-artwork {
+  flex-shrink: 0;
+}
+/* Ficha de medidas: la cubierta como hoja sobre la mesa. */
+#coverSheetPreview .print-page {
+  --proof-shadow-y: 4px;
+  --proof-shadow-blur: 18px;
+  background: var(--book-print-paper);
+  box-shadow: 0 var(--proof-shadow-y) var(--proof-shadow-blur) var(--book-shadow-proof);
+}
+
+@media print {
+  @page {
+    margin: 0;
+  }
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: var(--book-print-paper) !important;
+  }
+  body > * {
+    display: none !important;
+  }
+  #printRoot {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* ── Páginas ── */
+  .print-page {
+    position: relative;
+    overflow: hidden;
+    background: var(--book-print-paper) !important;
+    color: var(--book-print-ink);
+    break-after: page;
+    page-break-after: always;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .print-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+  .print-page .paper-object {
+    outline: none !important;
+    pointer-events: none !important;
+  }
+  .print-page .frame {
+    display: none;
+  }
+  .print-page .auto-element {
+    color: var(--book-print-ink);
+  }
+  .print-page .text-content {
+    overflow: hidden !important;
+  }
+  .print-page .guides,
+  .print-page .resize-handle,
+  .print-page .object-badge,
+  .print-page .overflow-mark {
+    display: none !important;
+  }
+  .print-page .auto-header.rule {
+    padding-bottom: 1mm;
+    border-bottom: 0.15mm solid var(--book-rule);
+  }
+  .toc-paper-row i {
+    border-bottom: 0.15mm dotted currentColor;
+  }
+
+  /* ── Pliegos de salida ── */
+  .output-sheet {
+    position: relative;
+    overflow: hidden;
+    break-after: page;
+  }
+  .output-sheet:last-child {
+    break-after: auto;
+  }
+  .print-artwork {
+    break-after: auto !important;
+    page-break-after: auto !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .output-guides,
+  .crop-marks {
+    display: block !important;
+  }
+
+  /* ── Color exacto en párrafos, cubierta y figuras ── */
+  .mqt-paragraph,
+  .cover-artwork {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .paper-object.multi-selected {
+    outline: none !important;
+  }
+  .editorial-shape {
+    display: block !important;
+    background: transparent !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .editorial-shape-svg {
+    display: block !important;
+  }
+
+  /* ── Nada de la edición ni de la interfaz ── */
+  .frame-handle,
+  .snap-indicator,
+  .page-active-badge,
+  .active-page-notice,
+  .shape-draw-ghost,
+  .page-exception-mark,
+  #canvasSurface,
+  #welcomeScreen,
+  .tutorial-card,
+  #emptyCanvas,
+  #activePageStatus,
+  .book-route,
+  .panel-resizer,
+  .term-help,
+  .route-step-number,
+  #fontBrowser,
+  .output-review-layout,
+  .glyph-real-modal {
+    display: none !important;
+  }
+}

@@ -1,0 +1,214 @@
+/* Libro: lo que se dibuja sobre el papel al editar (selección, tiradores, rótulo del objeto,
+   desborde, imán, página activa). No sale en la vista previa ni en la impresión. */
+
+/* ── Selección ── */
+.paper-object.selected {
+  z-index: 7;
+  overflow: visible !important;
+  outline: var(--book-line) solid var(--book-selection);
+}
+.paper-object.multi-selected {
+  overflow: visible !important;
+  outline: var(--book-line) dashed var(--book-multi-selection);
+}
+
+/* Rótulo con el tipo de objeto, arriba a la izquierda. */
+.object-badge {
+  --object-badge-top: -18px;
+  --object-badge-left: -1px;
+  --object-badge-size: 8px;
+  --object-badge-pad-y: 2px;
+  --object-badge-pad-x: 5px;
+  --object-badge-leading: 12px;
+  --object-badge-tracking: 0.2px;
+  position: absolute;
+  top: var(--object-badge-top);
+  left: var(--object-badge-left);
+  padding: var(--object-badge-pad-y) var(--object-badge-pad-x);
+  background: var(--book-badge);
+  color: var(--book-badge-text);
+  font: var(--object-badge-size) var(--book-font-badge);
+  line-height: var(--object-badge-leading);
+  letter-spacing: var(--object-badge-tracking);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Marca de texto que no entra en el marco. */
+.overflow-mark {
+  --overflow-mark-size: 11px;
+  --overflow-mark-leading: 9px;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+  width: var(--overflow-mark-size);
+  height: var(--overflow-mark-size);
+  border: var(--book-line) solid var(--book-overflow-line);
+  background: var(--book-overflow-fill);
+  color: var(--book-overflow-text);
+  font: bold var(--overflow-mark-size) Arial;
+  line-height: var(--overflow-mark-leading);
+  text-align: center;
+  pointer-events: none;
+}
+
+/* ── Tiradores del marco ── */
+.paper-object > .frame-handle {
+  --frame-handle-size: 7px;
+  --frame-handle-ring: 0.5px;
+  position: absolute;
+  right: auto;
+  bottom: auto;
+  z-index: 12;
+  width: var(--frame-handle-size);
+  height: var(--frame-handle-size);
+  border: var(--book-line) solid var(--book-handle-line);
+  border-radius: 0;
+  background: var(--book-handle-fill);
+  box-shadow: 0 0 0 var(--frame-handle-ring) var(--book-handle-fill);
+  transform: translate(-50%, -50%);
+  touch-action: none;
+}
+/* Zona de agarre más grande que el cuadrado visible. */
+.frame-handle:before {
+  --frame-handle-reach: -5px;
+  content: '';
+  position: absolute;
+  inset: var(--frame-handle-reach);
+}
+.frame-handle:hover {
+  border-color: var(--book-handle-line);
+  background: var(--book-handle-hover);
+}
+.paper-object > .handle-nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+.paper-object > .handle-n {
+  top: 0;
+  left: 50%;
+  cursor: ns-resize;
+}
+.paper-object > .handle-ne {
+  top: 0;
+  left: 100%;
+  cursor: nesw-resize;
+}
+.paper-object > .handle-e {
+  top: 50%;
+  left: 100%;
+  cursor: ew-resize;
+}
+.paper-object > .handle-se {
+  top: 100%;
+  left: 100%;
+  cursor: nwse-resize;
+}
+.paper-object > .handle-s {
+  top: 100%;
+  left: 50%;
+  cursor: ns-resize;
+}
+.paper-object > .handle-sw {
+  top: 100%;
+  left: 0;
+  cursor: nesw-resize;
+}
+.paper-object > .handle-w {
+  top: 50%;
+  left: 0;
+  cursor: ew-resize;
+}
+.paper-object:not(.selected) > .resize-handle,
+.paper-object:not(.selected) > .object-badge {
+  display: none;
+}
+/* Con tiradores, la marca de desborde y el rótulo se corren para no taparlos. */
+.paper-object.selected > .overflow-mark {
+  --overflow-mark-offset: 11px;
+  right: var(--overflow-mark-offset);
+  bottom: var(--overflow-mark-offset);
+}
+.paper-object.selected > .object-badge {
+  --object-badge-selected-top: -20px;
+  --object-badge-selected-left: 7px;
+  top: var(--object-badge-selected-top);
+  left: var(--object-badge-selected-left);
+}
+
+/* ── Imán ── */
+.snap-indicator {
+  position: absolute;
+  z-index: 15;
+  pointer-events: none;
+}
+.snap-indicator.x {
+  top: 0;
+  bottom: 0;
+  border-left: var(--book-line) solid var(--book-snap);
+}
+.snap-indicator.y {
+  right: 0;
+  left: 0;
+  border-top: var(--book-line) solid var(--book-snap);
+}
+
+/* ── Página activa ── */
+.page-active-badge {
+  --page-active-badge-top: 5px;
+  --page-active-badge-left: 9px;
+  --page-active-badge-size: 9px;
+  --page-active-badge-pad-y: 3px;
+  --page-active-badge-pad-x: 6px;
+  --page-active-badge-radius: 3px;
+  display: none;
+  position: absolute;
+  top: var(--page-active-badge-top);
+  left: var(--page-active-badge-left);
+  z-index: 16;
+  padding: var(--page-active-badge-pad-y) var(--page-active-badge-pad-x);
+  border-radius: var(--page-active-badge-radius);
+  background: var(--book-page-active-badge);
+  color: var(--book-page-active-badge-text);
+  font: var(--page-active-badge-size) var(--book-font-mark-fallback);
+  pointer-events: none;
+}
+#spread .page.is-page-active:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  border: var(--book-line-bold) solid var(--book-page-active);
+  pointer-events: none;
+}
+#spread .page.is-page-active > .page-active-badge {
+  display: block;
+}
+
+/* ── Figuras: fantasma al dibujar y selección ── */
+.shape-draw-ghost {
+  position: absolute;
+  z-index: 30;
+  outline: var(--book-line) dashed var(--book-shape-ghost);
+  opacity: 0.8;
+  pointer-events: none;
+}
+.editorial-shape.selected {
+  z-index: auto !important;
+  overflow: visible !important;
+}
+.editorial-shape > .frame-handle {
+  opacity: 1;
+}
+.editorial-shape > .object-badge {
+  opacity: 1;
+}
+
+/* ── Imagen arrastrada sobre una zona que la recibe ── */
+#spread .artwork-drop-target {
+  --drop-target-line: 3px;
+  outline: var(--drop-target-line) solid var(--book-drop-target);
+  outline-offset: calc(var(--drop-target-line) * -1);
+}

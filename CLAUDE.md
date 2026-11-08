@@ -13,7 +13,8 @@ Leer `docs/proximos-pasos.md` (hoja de ruta), `docs/arquitectura.md` (estructura
 - Sistema de diseño: ningún color ni medida suelta en `LibroStudio/v3/app/ui/` (lo controla `npm run lint:design`). Componentes por capas (tokens → átomos → moléculas → organismos → plantillas); el marcado de componentes sale de `ui/components.js`.
 - Nada que parezca generado por IA: sin etiquetas chicas en mayúsculas sobre títulos, sin degradés decorativos, sin bordes laterales de color, sin tarjetas anidadas. Tipografía con los roles de macOS (tokens `--type-*`). Revisar con impeccable por grupos.
 - No reemplazar funciones globales a mano: usar `extend()`, `decorateInspector()` o `registerInspectorPanel()`.
-- No tocar lo que dibuja el libro (página, impresión, miniaturas) al cambiar la interfaz.
+- No tocar lo que dibuja el libro (página, impresión, miniaturas) al cambiar la interfaz: vive en `ui/book/` (capa `book`, la más baja) con sus colores en `ui/tokens/book.css`. Si se toca, los PDF de `npm run self-test` tienen que salir idénticos (`node scripts/compare-outputs.mjs <antes> <después>`).
+- Ningún `.css` fuera de `ui/` (`lint:design` falla).
 
 ## Comandos
 

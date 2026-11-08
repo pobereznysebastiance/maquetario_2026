@@ -1,0 +1,77 @@
+/* Tokens del libro: lo que dibuja la página en el editor, en las miniaturas y en la impresión.
+   No dependen del tema de la interfaz: cambiar la app no cambia cómo se ve el libro.
+   Valores exactos de las hojas anteriores (los PDF tienen que salir idénticos). */
+:root {
+  /* ── Papel y tinta ── */
+  --book-paper: #fafaf5;
+  --book-paper-thumb: #faf9f6;
+  --book-paper-mini: #f8f6f2;
+  --book-ink: #191a1d;
+  --book-ink-text: #1c1d20;
+  --book-ink-thumb: #202126;
+  --book-page-edge: #00000012;
+  --book-rule: #797b80;
+
+  /* ── Pliego sobre la mesa ── */
+  --book-spread: #c5c8d0;
+  --book-spread-halo: #8b98a43d;
+  --book-spread-halo-priority: #d5f4e316;
+  --book-spread-glow: #39c5ae08;
+  --book-shadow: #0005;
+  --book-shadow-strong: #0006;
+  --book-shadow-proof: #0008;
+
+  /* ── Marcos, imágenes y textos en edición ── */
+  --book-frame-line: #aaaeb5;
+  --book-frame-fill: #f3f2ef;
+  --book-frame-text: #9a9da5;
+  --book-editing-wash: #fff9;
+  --book-overflow-line: #e36f6f;
+  --book-overflow-text: #c54848;
+  --book-overflow-fill: white;
+
+  /* ── Selección, tiradores e imán ── */
+  --book-selection: #2eb9ac;
+  --book-multi-selection: #dbb16e;
+  --book-badge: #2ea99a;
+  --book-badge-text: #f7f7f2;
+  --book-handle-fill: #f7f7f2;
+  --book-handle-line: #2448d8;
+  --book-handle-hover: #c9e548;
+  --book-snap: #d6af72;
+  --book-shape-ghost: #33adaa;
+  --book-drop-target: #3cd1bb;
+
+  /* ── Página activa y excepciones ── */
+  --book-page-active-line: #2448d825;
+  --book-page-active: #e2b36f;
+  --book-page-active-badge: #e4b16c;
+  --book-page-active-badge-text: #173b3c;
+  --book-exception-fill: #173d3dee;
+  --book-exception-line: #e4b16c66;
+  --book-exception-text: #f4d4a2;
+
+  /* ── Miniaturas (tira de páginas y plantillas) ── */
+  --book-thumb-well: #151922;
+  --book-thumb-well-line: #454b58;
+  --book-thumb-grid-line: #9edee5;
+  --book-thumb-grid-column: #b5e8ec;
+  --book-thumb-text-line: #85817a66;
+  --book-mini-column: #abe0e8;
+  --book-mini-line: #94949477;
+  --book-thumb-active: #c9e548;
+
+  /* ── Impresión ── */
+  --book-print-paper: white;
+  --book-print-ink: black;
+
+  /* ── Tipografías del dibujo ── */
+  --book-font-serif: Georgia, serif;
+  --book-font-badge: 'DM Sans', 'Segoe UI', sans-serif;
+  --book-font-mark: 'DM Sans';
+  --book-font-mark-fallback: 'DM Sans', sans-serif;
+
+  /* ── Geometría ── */
+  --book-line: 1px;
+  --book-line-bold: 2px;
+}

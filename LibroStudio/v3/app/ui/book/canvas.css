@@ -1,0 +1,99 @@
+/* Libro: la mesa donde se mueve el pliego (desplazamiento, mano, vista continua) y la vista previa,
+   que quita todo lo que no sale impreso. */
+
+/* ── Mesa de trabajo ── */
+#spreadStage {
+  --stage-inset-top: 18px;
+  --stage-inset-bottom: 32px;
+  --stage-inset-left: 18px;
+  display: block !important;
+  position: absolute;
+  inset: var(--stage-inset-top) 0 var(--stage-inset-bottom) var(--stage-inset-left);
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  overflow: auto;
+  scroll-behavior: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-x pan-y;
+}
+.page-priority #spreadStage {
+  --stage-inset-bottom: 24px;
+}
+#canvasSurface {
+  position: relative;
+  flex-shrink: 0;
+  min-width: 100%;
+  min-height: 100%;
+}
+#canvasSurface > .spread {
+  position: absolute;
+}
+
+/* Mano (barra espaciadora o herramienta): arrastra la mesa en vez de los objetos. */
+.canvas-hand #spreadStage,
+.canvas-hand #spreadStage .page,
+.canvas-hand #spreadStage .paper-object,
+.canvas-hand #spreadStage .frame-handle {
+  cursor: grab !important;
+}
+.canvas-panning #spreadStage,
+.canvas-panning #spreadStage * {
+  cursor: grabbing !important;
+  user-select: none !important;
+}
+.canvas-hand #spread {
+  touch-action: none;
+}
+
+/* ── Pliego vertical y vista continua ── */
+.spread.spread-vertical {
+  flex-direction: column;
+}
+.spread.canvas-continuous {
+  --continuous-gap: 38px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--continuous-gap);
+  background: transparent;
+  box-shadow: none;
+}
+.continuous-row {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--book-line-bold);
+}
+.continuous-row-vertical {
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.continuous-row .page {
+  flex-shrink: 0;
+}
+
+/* ── Vista previa: el libro como sale impreso ── */
+.preview-mode .guides,
+.preview-mode .object-badge,
+.preview-mode .resize-handle,
+.preview-mode .overflow-mark {
+  display: none;
+}
+.preview-mode .paper-object {
+  outline: none !important;
+  pointer-events: none;
+}
+.preview-mode .frame {
+  border: none;
+  background: none;
+  color: transparent;
+}
+.preview-mode .frame-handle,
+.preview-mode .page-active-badge {
+  display: none !important;
+}
+.preview-mode #spread .page.is-page-active:after {
+  display: none;
+}

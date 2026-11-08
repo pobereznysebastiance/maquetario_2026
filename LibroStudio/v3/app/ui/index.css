@@ -1,36 +1,22 @@
 /* Punto de entrada de estilos de Maquetario.
-   Orden de prioridad (de menor a mayor): legacy < tokens < base < atoms < molecules < organisms < templates.
-   Todo el CSS anterior vive en "legacy": lo nuevo le gana sin !important, sin importar la especificidad.
-   Para migrar una pieza: se escribe en su capa y se borra la regla equivalente de legacy.
-   (Excepción a tener en cuenta: un !important de legacy sí le gana a las capas nuevas.) */
-@layer legacy, tokens, base, atoms, molecules, organisms, templates;
+   Orden de prioridad (de menor a mayor): book < tokens < base < atoms < molecules < organisms < templates.
+   "book" es lo que dibuja el libro (página, objetos, miniaturas, impresión): va abajo de todo para que
+   ninguna regla de la interfaz dependa de él, y la interfaz no lo toca (ver CLAUDE.md).
+   Un !important de "book" le gana a las capas de la interfaz: se usa sólo en la impresión y en la mesa. */
+@layer book, tokens, base, atoms, molecules, organisms, templates;
 
-/* Legacy, en el orden original de index.html. Se vacía de a poco. */
-@import url('../studio.css') layer(legacy);
-@import url('../editorial.css') layer(legacy);
-@import url('../maquetario.css') layer(legacy);
-@import url('../output.css') layer(legacy);
-@import url('../frame-handles.css') layer(legacy);
-@import url('../workspace.css') layer(legacy);
-@import url('../review.css') layer(legacy);
-@import url('../glass.css') layer(legacy);
-@import url('../publications.css') layer(legacy);
-@import url('../readability.css') layer(legacy);
-@import url('../editorial-learning.css') layer(legacy);
-@import url('../font-browser.css') layer(legacy);
-@import url('../output-review.css') layer(legacy);
-@import url('../master-refinement.css') layer(legacy);
-@import url('../page-priority.css') layer(legacy);
-@import url('../crystal.css') layer(legacy);
-@import url('../editorial-assistant.css') layer(legacy);
-@import url('../canvas-navigation.css') layer(legacy);
-@import url('../test-feedback.css') layer(legacy);
-@import url('../package-proof.css') layer(legacy);
-@import url('../document-view.css') layer(legacy);
+/* Libro (el orden importa: reproduce el de las hojas anteriores) */
+@import url('book/page.css') layer(book);
+@import url('book/selection.css') layer(book);
+@import url('book/thumbs.css') layer(book);
+@import url('book/canvas.css') layer(book);
+@import url('book/print.css') layer(book);
 
 /* Sistema de diseño */
+@import url('tokens/fonts.css') layer(tokens);
 @import url('tokens/primitives.css') layer(tokens);
 @import url('tokens/semantic.css') layer(tokens);
+@import url('tokens/book.css') layer(tokens);
 @import url('base.css') layer(base);
 @import url('atoms/icon.css') layer(atoms);
 @import url('atoms/button.css') layer(atoms);

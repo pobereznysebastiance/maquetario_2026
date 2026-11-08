@@ -1,2 +1,0 @@
-:root{--ui:1;--bar-height:82px}body.ui-large{--ui:1.15}.ui-large .topbar{--bar-height:92px}
-@media print{body{--ui:1}.book-route{display:none!important}}@media print{.panel-resizer{display:none!important}}

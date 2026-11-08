@@ -13,7 +13,7 @@
 // Mientras dura cada llamada la vista se fija en 1536 × 1024 a escala 1 (como pide el método de
 // docs/proximos-pasos.md), sin importar el tamaño de la ventana ni la escala de la pantalla.
 // APP_CDP_SIZE=1920x1020 usa otra medida (la de la autoprueba); APP_CDP_SIZE=0 lo desactiva. Con la ventana minimizada Chromium no dibuja: las capturas esperan.
-// APP_CDP_TIMEOUT: segundos de espera (60 por defecto; la sonda legacy en hojas grandes tarda más).
+// APP_CDP_TIMEOUT: segundos de espera (60 por defecto; style-snapshot recorre muchos estados y tarda más).
 import { readFileSync, writeFileSync } from 'node:fs'
 
 const port = process.env.APP_CDP_PORT || 9333

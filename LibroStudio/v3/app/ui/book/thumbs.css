@@ -1,0 +1,131 @@
+/* Libro: miniaturas. Cada página de la tira lateral y cada página de las tarjetas de plantillas. */
+
+/* ── Tira de páginas ── */
+.thumb-pages {
+  --thumb-pages-height: 91px;
+  --thumb-pages-pad: 3px;
+  display: flex;
+  justify-content: center;
+  gap: var(--book-line-bold);
+  height: var(--thumb-pages-height);
+  padding: var(--thumb-pages-pad);
+  overflow: hidden;
+  border: var(--book-line) solid var(--book-thumb-well-line);
+  border-radius: var(--book-line-bold);
+  background: var(--book-thumb-well);
+}
+.thumb-paper {
+  --thumb-paper-width: 65px;
+  --thumb-paper-height: 85px;
+  --thumb-paper-shadow-y: 2px;
+  --thumb-paper-shadow-blur: 3px;
+  position: relative;
+  width: var(--thumb-paper-width);
+  height: var(--thumb-paper-height);
+  overflow: hidden;
+  background: var(--book-paper-thumb);
+  color: var(--book-ink-thumb);
+  box-shadow: 0 var(--thumb-paper-shadow-y) var(--thumb-paper-shadow-blur) var(--book-shadow-strong);
+}
+.thumb-grid {
+  position: absolute;
+  inset: 12%;
+  border: var(--book-line) solid var(--book-thumb-grid-line);
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 30%,
+    var(--book-thumb-grid-column) 31%,
+    transparent 32%
+  );
+  opacity: 0.6;
+}
+.thumb-lines {
+  --thumb-line-gap: 2px;
+  --thumb-line-end: 2.3px;
+  position: absolute;
+  top: 28%;
+  right: 17%;
+  left: 17%;
+  height: 55%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent var(--thumb-line-gap),
+    var(--book-thumb-text-line) var(--thumb-line-gap),
+    var(--book-thumb-text-line) var(--thumb-line-end)
+  );
+}
+.thumb-head {
+  --thumb-head-size: 4px;
+  position: absolute;
+  top: 13%;
+  left: 15%;
+  font: bold var(--thumb-head-size) Georgia;
+}
+.thumb-paper.thumb-page-active {
+  outline: var(--book-line-bold) solid var(--book-thumb-active);
+  outline-offset: calc(var(--book-line-bold) * -1);
+}
+
+/* ── Páginas de las tarjetas de plantillas ── */
+.mini-page {
+  --mini-page-width: 42px;
+  --mini-page-height: 59px;
+  --mini-page-pad-y: 8px;
+  --mini-page-pad-x: 5px;
+  --mini-page-shadow-blur: 5px;
+  display: flex;
+  gap: var(--book-line-bold);
+  width: var(--mini-page-width);
+  height: var(--mini-page-height);
+  padding: var(--mini-page-pad-y) var(--mini-page-pad-x);
+  background: var(--book-paper-mini);
+  box-shadow: 0 var(--book-line) var(--mini-page-shadow-blur) var(--book-shadow);
+}
+.mini-col {
+  flex: 1;
+  border: var(--book-line) solid var(--book-mini-column);
+  opacity: 0.85;
+}
+.template:nth-child(n + 2) .mini-col {
+  --mini-line-gap: 3px;
+  border: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    var(--book-mini-line) 0,
+    var(--book-mini-line) var(--book-line),
+    transparent var(--book-line),
+    transparent var(--mini-line-gap)
+  );
+}
+
+@media (max-width: 1350px) {
+  .thumb-pages {
+    --thumb-pages-height: 84px;
+  }
+  .thumb-paper {
+    --thumb-paper-width: 59px;
+    --thumb-paper-height: 78px;
+  }
+}
+@media (max-height: 850px) {
+  .mini-page {
+    --mini-page-width: 34px;
+    --mini-page-height: 47px;
+  }
+}
+
+/* Tira vertical: las dos páginas del pliego, una debajo de la otra. */
+.thumbs-vertical .thumb-pages {
+  --thumb-pages-vertical-height: 122px;
+  flex-direction: column;
+  align-items: center;
+  height: var(--thumb-pages-vertical-height);
+}
+.thumbs-vertical .thumb-paper {
+  --thumb-paper-vertical-basis: 56px;
+  --thumb-paper-vertical-width: 40px;
+  flex: 0 0 var(--thumb-paper-vertical-basis);
+  width: var(--thumb-paper-vertical-width);
+}

@@ -236,3 +236,8 @@ body[data-rulers='hidden'] #spreadStage {
     flex-wrap: wrap;
   }
 }
+
+/* Vista previa: la ayuda del lienzo no se muestra (migrado de studio.css). */
+.preview-mode .canvas-hint {
+  visibility: hidden;
+}

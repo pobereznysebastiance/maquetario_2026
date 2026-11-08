@@ -1,0 +1,21 @@
+/* Tipografía de la interfaz, empaquetada con la app (sin red). */
+@font-face {
+  font-family: DM Sans;
+  src: url('../../fonts/DM-Sans-400.ttf');
+  font-weight: 400;
+}
+@font-face {
+  font-family: DM Sans;
+  src: url('../../fonts/DM-Sans-500.ttf');
+  font-weight: 500;
+}
+@font-face {
+  font-family: DM Sans;
+  src: url('../../fonts/DM-Sans-600.ttf');
+  font-weight: 600;
+}
+@font-face {
+  font-family: DM Sans;
+  src: url('../../fonts/DM-Sans-700.ttf');
+  font-weight: 700;
+}

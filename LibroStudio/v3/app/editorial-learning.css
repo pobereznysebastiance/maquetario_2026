@@ -1,2 +1,0 @@
-
-/* The footer owns a bounded flex area: labels must never escape into status text. */@media print{.term-help,.route-step-number{display:none!important}}

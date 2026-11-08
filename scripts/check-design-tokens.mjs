@@ -2,7 +2,7 @@
 // 1. Falla si una hoja de ui/ (fuera de ui/tokens) usa un color, o una medida en px
 //    en una propiedad común, en vez de un token. Definir una variable (--x: 12px) sí se permite
 //    para geometría local; los colores sólo pueden nacer en ui/tokens.
-// 2. Informa cuánto CSS queda en la capa legacy, para ver que baja con cada entrega.
+// 2. Falla si vuelve a aparecer una hoja suelta fuera de ui/ (la capa legacy ya se vació).
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
@@ -38,14 +38,8 @@ for (const file of walk(ui)) {
   });
 }
 
-const legacyFiles = readdirSync(app).filter((f) => f.endsWith('.css'));
-const legacyBytes = legacyFiles.reduce((sum, f) => sum + statSync(join(app, f)).size, 0);
-const legacyColors = legacyFiles.reduce(
-  (sum, f) => sum + (readFileSync(join(app, f), 'utf8').match(/#[0-9a-f]{3,8}\b|rgba?\(/gi) ?? []).length,
-  0,
-);
-
-console.log(`Legacy: ${legacyFiles.length} hojas, ${(legacyBytes / 1024).toFixed(1)} KB, ${legacyColors} colores literales.`);
+const looseSheets = readdirSync(app).filter((f) => f.endsWith('.css'));
+for (const f of looseSheets) problems.push(`${f}  hoja fuera de ui/ (cada estilo va en su capa: book, tokens, base, átomos…)`);
 if (problems.length) {
   console.error(`\n${problems.length} valores sueltos en el sistema de diseño:\n  ${problems.join('\n  ')}`);
   process.exit(1);
@@ -55,7 +49,6 @@ console.log('Sistema de diseño: sin valores sueltos.');
 // ── Deuda de "alambre" (informativa: tiene que bajar en cada entrega) ──
 const appJs = readdirSync(app).filter((f) => f.endsWith('.js') && f !== 'pdf-lib.min.js' && f !== 'sample-image.js');
 const allJs = appJs.map((f) => readFileSync(join(app, f), 'utf8')).join('\n');
-const legacyCss = legacyFiles.map((f) => readFileSync(join(app, f), 'utf8')).join('\n');
 const count = (text, re) => (text.match(re) ?? []).length;
 const debt = {
   'funciones globales reemplazadas a mano (sin extend)': count(
@@ -66,8 +59,6 @@ const debt = {
   // antes/después/resultado/ruta va con extend.before/after/result/instead o con los registros.
   'envolturas extend() escritas a mano': count(allJs, /\bextend\('\w+',\s*\w+\s*=>/g),
   'cadenas de onchange sobre #language': count(allJs, /\$\('#language'\)\.onchange\s*=\s*function/g),
-  'anchos fijos en px en el CSS legacy (width/min-width)': count(legacyCss, /(?:^|[;{\s])(?:min-)?width:\s*\d+px/g),
-  '!important en el CSS legacy': count(legacyCss, /!important/g),
   'estilos inline desde JS (style= / .style.x=)': count(allJs, /style="|\.style\.[a-zA-Z]+\s*=/g),
 };
 console.log('\nDeuda pendiente (tiene que bajar):');
