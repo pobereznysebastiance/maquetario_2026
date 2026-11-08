@@ -135,8 +135,7 @@
       `</div>`;
 
     modal(t('title'), body, () => true, t('done'), '');
-    $('#modal').classList.add('settings-modal');
-    $('#modal').addEventListener('close', () => $('#modal').classList.remove('settings-modal'), { once: true });
+    dialogVariant('settings-modal');
     icons();
 
     const languageSelect = $('#settingsLanguage');

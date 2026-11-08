@@ -112,8 +112,7 @@ function editorialRulesDialog() {
     }
     return true;
   },bw('Listo','Done','Pronto'));
-  $('#modal').classList.add('editorial-rules-dialog');
-  $('#modal').addEventListener('close',()=>$('#modal').classList.remove('editorial-rules-dialog'),{once:true});
+  dialogVariant('editorial-rules-dialog');
 }
 
 decorateInspector(()=>{
