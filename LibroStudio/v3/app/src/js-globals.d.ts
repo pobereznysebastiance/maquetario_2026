@@ -2,7 +2,6 @@
 // las fuentes de src/. Sólo los ve el chequeo estricto de src/: en el chequeo del JS se ven las
 // definiciones reales. Cuando un archivo pasa a src/, sus globales salen de acá.
 import type { Book, BookObject, LibroModelApi } from './model.ts';
-import type { NovelSample } from './novel-sample.ts';
 
 declare global {
   // ── studio.js ──
@@ -34,7 +33,6 @@ declare global {
   function nativeCall(action: string, payload?: Record<string, unknown>): Promise<any>;
 
   // ── book-workflow.js: texto en el idioma de la interfaz ──
-  const bw: (es: string, en: string, pt: string) => string;
 
   // ── paragraphs.js ──
 
@@ -50,11 +48,6 @@ declare global {
   // ── welcome.js ──
 
   // ── book-workflow.js ──
-  function goToBookPage(index: number): void;
-  function composeNovel(data: NovelSample): Book;
-  function installNovel(b: Book): void;
-  /** Revisión del libro: objetos fuera de la página y cajas de texto desbordadas. */
-  function preflightBook(): { page: number; kind: 'bounds' | 'overflow' }[];
 
   // ── paragraphs.js ──
 
@@ -73,8 +66,6 @@ declare global {
 
   function settingsNew(isNew?: boolean): void;
   function download(blob: Blob, name: string): void;
-
-  function bookBuilder(sample?: boolean): void;
 
   // ── studio.js ──
   /** Hay una salida o un paquete en curso. */
@@ -183,8 +174,6 @@ declare global {
   /** La pantalla de bienvenida está a la vista. */
 
   // ── book-workflow.js ──
-  /** Dibuja el recorrido del libro (los cinco pasos de la barra del documento). */
-  function renderBookRoute(): void;
 
   // ── studio.js ──
   /** Familias tipográficas disponibles (las del sistema, o unas básicas). */
@@ -199,6 +188,10 @@ declare global {
   // ── print-proof.js ──
 
   // ── fonts.js ──
+
+  // ── studio.js ──
+  /** Escribe un valor del libro por ruta con puntos ('header.rule', 'folio.ruleWidth'…). */
+  function set(path: string, value: unknown): void;
 }
 
 export {};

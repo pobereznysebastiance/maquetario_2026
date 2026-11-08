@@ -1,13 +1,54 @@
-'use strict';
+// Ruta del libro y armador de novelas. Pone la barra "Tu libro, paso a paso" bajo la barra del
+// documento, la pestaña Libro (estructura: ir al comienzo de cada parte), los controles de
+// misceláneas y líneas en Diseño, el armador de novelas (manuscrito con # por capítulo → libro A5
+// con preliminares, índice y estilos, medido con el mismo motor de párrafos que el editor y el PDF)
+// y la revisión del libro completo. También define bw(es, en, pt), el texto en el idioma de la
+// interfaz que usa casi toda la app: por eso este archivo carga antes que los que lo llaman.
+//
+// renderBookRoute es global y otros archivos la extienden por nombre (publications.js,
+// editorial-learning.js): dentro de este archivo se llama por globalThis, para que corra con sus
+// extensiones como cuando este archivo era un script común.
+//
+// Fuente TypeScript: se compila a build/book-workflow.js (desktop/scripts/build.mjs).
+import type { Book, BookObject, Page } from './model.ts';
+import type { NovelSample } from './novel-sample.ts';
+
+/** Datos del armador de novelas: título, autoría y manuscrito; lo demás es opcional. */
+export type NovelData = Pick<NovelSample, 'title' | 'author' | 'source'> & Partial<NovelSample>;
+
+/** Una parte del manuscrito: el título de su "# Título" y sus párrafos. */
+export interface ManuscriptPart {
+  title: string;
+  paragraphs: string[];
+}
+
+/** Estilo de párrafo vinculado a un párrafo de la caja (paragraphMap). */
+interface ParagraphRef {
+  styleId: string;
+  overrides: Record<string, number>;
+}
+
+/** Caja de texto del armador: siempre tiene su paragraphMap. */
+type NovelTextObject = BookObject & { paragraphMap: ParagraphRef[] };
+
+/** Un problema de la revisión del libro: página (desde 0) y tipo. */
+export interface PreflightIssue {
+  page: number;
+  kind: 'bounds' | 'overflow';
+}
+
 // Labels are kept separate from document content: changing language never translates a manuscript.
-const bw = (es, en, pt) => [es, en, pt][{ es: 0, en: 1, pt: 2 }[LibroI18n.language] || 0];
-const titleOfPart = (p) =>
+const bw = (es: string, en: string, pt: string): string =>
+  [es, en, pt][{ es: 0, en: 1, pt: 2 }[LibroI18n.language] || 0];
+// Se publica enseguida (ver el final del archivo): los archivos que cargan después lo usan.
+globalThis.bw = bw;
+const titleOfPart = (p: Page): string =>
   p.partName || p.section || bw('Página sin título', 'Untitled page', 'Página sem título');
 const workflowRoute = document.createElement('nav');
 workflowRoute.className = 'book-route';
 workflowRoute.setAttribute('aria-label', 'Libro');
 $('.documentbar').after(workflowRoute);
-function renderBookRoute() {
+function renderBookRoute(): void {
   workflowRoute.innerHTML = `<strong>${bw('TU LIBRO, PASO A PASO', 'YOUR BOOK, STEP BY STEP', 'SEU LIVRO, PASSO A PASSO')}</strong><span class="route-spacer"></span><button id="buildBook">① ${bw('Armar libro', 'Build book', 'Montar livro')}</button><button id="structureBook">② ${bw('Estructura', 'Structure', 'Estrutura')}</button><button id="reviewBook">③ ${bw('Revisar libro', 'Check book', 'Revisar livro')}</button><button id="outputBook">④ PDF / ${bw('Imprimir', 'Print', 'Imprimir')}</button>`;
   $('#buildBook').onclick = () => bookBuilder();
   $('#structureBook').onclick = () => showTab('structure');
@@ -20,7 +61,7 @@ structureTab.dataset.tab = 'structure';
 structureTab.setAttribute('role', 'tab');
 structureTab.onclick = () => showTab('structure');
 $('.tabs').prepend(structureTab);
-function structurePanel() {
+function structurePanel(): void {
   const h = $('#inspectorContent'),
     items = book.pages
       .map((p, i) => ({ p, i }))
@@ -33,7 +74,7 @@ function structurePanel() {
   $('#structureBuild').onclick = () => bookBuilder();
   $$('[data-go-part]').forEach((b) => (b.onclick = () => goToBookPage(Number(b.dataset.goPart))));
 }
-function goToBookPage(index) {
+function goToBookPage(index: number): void {
   finishEditing();
   active = index;
   spread = Math.floor(index / (book.facing ? 2 : 1)) * (book.facing ? 2 : 1);
@@ -48,7 +89,7 @@ decorateInspector(() => {
 extend.after(
   'render',
   function (full = true) {
-    renderBookRoute();
+    globalThis.renderBookRoute();
     structureTab.textContent = bw('Libro', 'Book', 'Livro');
   },
   'book-workflow',
@@ -81,10 +122,10 @@ extend.result(
 );
 extend.result(
   'paper',
-  function (page, i, px, print = false) {
+  function (page: HTMLElement, i: number, px: number, print = false) {
     for (const o of book.pages[i].objects)
       if (o.decoration === 'line') {
-        const el = page.querySelector(`[data-id="${o.id}"]`);
+        const el = page.querySelector<HTMLElement>(`[data-id="${o.id}"]`);
         if (el) {
           el.classList.remove('frame');
           el.style.background = 'transparent';
@@ -106,7 +147,7 @@ extend.result(
   },
   'book-workflow',
 );
-function ruleControls() {
+function ruleControls(): void {
   const h = $('#inspectorContent'),
     box = document.createElement('section');
   box.className = 'section';
@@ -156,7 +197,7 @@ function ruleControls() {
     )}<button id="insertFreeRule" class="btn wide">+ ${bw('Insertar línea libre en esta página', 'Insert a free rule on this page', 'Inserir linha livre nesta página')}</button>`;
   const sections = h.querySelectorAll(':scope>.section');
   (sections[1] || h.firstChild)?.before(box);
-  box.querySelectorAll('[data-rule]').forEach(
+  box.querySelectorAll<HTMLInputElement>('[data-rule]').forEach(
     (el) =>
       (el.onchange = () => {
         if (
@@ -171,7 +212,7 @@ function ruleControls() {
         commit(
           () =>
             set(
-              el.dataset.rule,
+              el.dataset.rule!,
               el.type === 'checkbox'
                 ? el.checked
                 : el.type === 'number'
@@ -201,9 +242,9 @@ function ruleControls() {
     }, false);
 }
 // Layout is measured with the very same paragraph renderer used by the editor and PDF.
-function measureBookText(b, o) {
+function measureBookText(b: Book, o: BookObject): boolean {
   const prior = book;
-  let page;
+  let page: HTMLElement | undefined;
   try {
     book = b;
     const p = M.page();
@@ -218,7 +259,7 @@ function measureBookText(b, o) {
       visibility: 'hidden',
     });
     document.body.append(page);
-    const t = page.querySelector('.text-content');
+    const t = page.querySelector('.text-content')!;
     return t.scrollHeight <= t.clientHeight + 1;
   } finally {
     page?.remove();
@@ -226,16 +267,24 @@ function measureBookText(b, o) {
     book = prior;
   }
 }
-function novelText(b, text, x, y, w, h, style = 'body') {
-  const o = M.text(text, x, y, w, h, 11);
+function novelText(
+  b: Book,
+  text: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  style = 'body',
+): NovelTextObject {
+  const o = M.text(text, x, y, w, h, 11) as NovelTextObject;
   o.leading = 15;
   o.color = '#29252A';
   o.paragraphMap = text.split('\n').map(() => ({ styleId: style, overrides: {} }));
   return o;
 }
-function manuscriptParts(source) {
-  const parts = [];
-  let current = null;
+function manuscriptParts(source: string): ManuscriptPart[] {
+  const parts: ManuscriptPart[] = [];
+  let current: ManuscriptPart | null = null;
   for (const line of source.replace(/\r/g, '').split('\n')) {
     if (/^#\s+/.test(line)) {
       current = { title: line.replace(/^#\s+/, '').trim(), paragraphs: [] };
@@ -250,7 +299,7 @@ function manuscriptParts(source) {
   }
   return parts.filter((p) => p.paragraphs.length);
 }
-function composeNovel(data) {
+function composeNovel(data: NovelData): Book {
   const parts = manuscriptParts(data.source);
   if (!parts.length)
     throw Error(
@@ -322,7 +371,7 @@ function composeNovel(data) {
       },
     },
   ];
-  const front = (label, content, y = 65, size = 18) => {
+  const front = (label: string, content: string, y = 65, size = 18): Page => {
     const p = M.page();
     p.partName = label;
     p.hideHeader = p.hideTitle = p.hideFolio = true;
@@ -354,7 +403,7 @@ function composeNovel(data) {
   if (data.dedication)
     front(bw('Dedicatoria', 'Dedication', 'Dedicatória'), data.dedication, 80, 12);
   if (data.epigraph) front(bw('Epígrafe', 'Epigraph', 'Epígrafe'), data.epigraph, 70, 12);
-  let tocPage;
+  let tocPage: Page;
   if (data.toc) {
     tocPage = front(bw('Índice', 'Contents', 'Sumário'), '');
     const o = M.text('', 23, 28, 102, 155, 11);
@@ -368,11 +417,11 @@ function composeNovel(data) {
     includeHeadings: false,
     entries: [],
   };
-  const startPart = (part) => {
+  const startPart = (part: ManuscriptPart): Page => {
     const p = M.page();
     p.partName = p.section = part.title;
     b.pages.push(p);
-    b.toc.entries.push({ id: M.uid(), label: part.title, pageId: p.id });
+    b.toc!.entries.push({ id: M.uid(), label: part.title, pageId: p.id });
     const heading = novelText(b, part.title, 23, 35, 102, 33, 'chapter');
     p.objects = [heading];
     return p;
@@ -385,8 +434,8 @@ function composeNovel(data) {
     while (queue.length) {
       const y = first ? 76 : 22,
         h = 210 - 22 - y - 1,
-        texts = [],
-        maps = [];
+        texts: string[] = [],
+        maps: ParagraphRef[] = [];
       while (queue.length) {
         const para = queue[0],
           candidate = novelText(b, [...texts, para].join('\n'), 23, y, 102, h);
@@ -396,7 +445,7 @@ function composeNovel(data) {
         ];
         if (measureBookText(b, candidate)) {
           texts.push(para);
-          maps.push(candidate.paragraphMap.at(-1));
+          maps.push(candidate.paragraphMap.at(-1)!);
           queue.shift();
           continuation = false;
           continue;
@@ -457,7 +506,7 @@ function composeNovel(data) {
     front(bw('Blanco final', 'Final blank', 'Branco final'), '');
   return M.validate(b);
 }
-function installNovel(b) {
+function installNovel(b: Book): void {
   finishEditing();
   commit(() => {
     book = b;
@@ -471,24 +520,26 @@ function installNovel(b) {
   if (native) nativeCall('newProject').catch(() => {});
   showTab('structure');
 }
-function bookBuilder(sample = false) {
+function bookBuilder(sample = false): void {
   const run = () => {
     hideWelcome();
     dialogVariant('book-builder');
-    const d = sample ? novelSample() : { title: '', author: '', source: '' };
+    const d: NovelData = sample ? novelSample() : { title: '', author: '', source: '' };
     modal(
       bw(
         'Dale estructura a tu novela',
         'Give your novel a structure',
         'Dê estrutura ao seu romance',
       ),
-      `<div class="builder-steps"><span>1 · ${bw('Datos', 'Details', 'Dados')}</span><span>2 · ${bw('Partes y manuscrito', 'Parts and manuscript', 'Partes e manuscrito')}</span><span>3 · ${bw('Crear y revisar', 'Create and review', 'Criar e revisar')}</span></div><p class="builder-intro">${bw('Prepará todas las partes en un solo lugar. El manuscrito se distribuye según el espacio real de las páginas A5 y queda editable, con estilos vinculados.', 'Prepare every part in one place. The manuscript is distributed using real A5 page space and remains editable with linked styles.', 'Prepare todas as partes em um lugar. O manuscrito é distribuído pelo espaço real das páginas A5 e fica editável, com estilos vinculados.')}</p><div class="modal-grid">${control(bw('Título', 'Title', 'Título'), 'novelTitle', d.title, 'text', '', '')}${control(bw('Autor/a', 'Author', 'Autor/a'), 'novelAuthor', d.author, 'text', '', '')}</div><div class="builder-parts"><label class="check-line"><input id="novelToc" type="checkbox" checked>${bw('Índice automático', 'Automatic contents', 'Sumário automático')}</label><label class="check-line"><input id="novelBlanks" type="checkbox" checked>${bw('Blancos de cortesía', 'Blank versos', 'Versos em branco')}</label><label class="check-line"><input id="novelRule" type="checkbox">${bw('Línea en cornisas', 'Header rules', 'Linhas nos cabeçalhos')}</label></div><details><summary>${bw('Dedicatoria, epígrafe, legales y cierre', 'Dedication, epigraph, copyright and closing', 'Dedicatória, epígrafe, créditos e encerramento')}</summary>${[
-        ['dedication', bw('Dedicatoria', 'Dedication', 'Dedicatória')],
-        ['epigraph', bw('Epígrafe', 'Epigraph', 'Epígrafe')],
-        ['legal', bw('Legales', 'Copyright', 'Créditos')],
-        ['thanks', bw('Agradecimientos', 'Acknowledgements', 'Agradecimentos')],
-        ['colophon', bw('Colofón', 'Colophon', 'Colofão')],
-      ]
+      `<div class="builder-steps"><span>1 · ${bw('Datos', 'Details', 'Dados')}</span><span>2 · ${bw('Partes y manuscrito', 'Parts and manuscript', 'Partes e manuscrito')}</span><span>3 · ${bw('Crear y revisar', 'Create and review', 'Criar e revisar')}</span></div><p class="builder-intro">${bw('Prepará todas las partes en un solo lugar. El manuscrito se distribuye según el espacio real de las páginas A5 y queda editable, con estilos vinculados.', 'Prepare every part in one place. The manuscript is distributed using real A5 page space and remains editable with linked styles.', 'Prepare todas as partes em um lugar. O manuscrito é distribuído pelo espaço real das páginas A5 e fica editável, com estilos vinculados.')}</p><div class="modal-grid">${control(bw('Título', 'Title', 'Título'), 'novelTitle', d.title, 'text', '', '')}${control(bw('Autor/a', 'Author', 'Autor/a'), 'novelAuthor', d.author, 'text', '', '')}</div><div class="builder-parts"><label class="check-line"><input id="novelToc" type="checkbox" checked>${bw('Índice automático', 'Automatic contents', 'Sumário automático')}</label><label class="check-line"><input id="novelBlanks" type="checkbox" checked>${bw('Blancos de cortesía', 'Blank versos', 'Versos em branco')}</label><label class="check-line"><input id="novelRule" type="checkbox">${bw('Línea en cornisas', 'Header rules', 'Linhas nos cabeçalhos')}</label></div><details><summary>${bw('Dedicatoria, epígrafe, legales y cierre', 'Dedication, epigraph, copyright and closing', 'Dedicatória, epígrafe, créditos e encerramento')}</summary>${(
+        [
+          ['dedication', bw('Dedicatoria', 'Dedication', 'Dedicatória')],
+          ['epigraph', bw('Epígrafe', 'Epigraph', 'Epígrafe')],
+          ['legal', bw('Legales', 'Copyright', 'Créditos')],
+          ['thanks', bw('Agradecimientos', 'Acknowledgements', 'Agradecimentos')],
+          ['colophon', bw('Colofón', 'Colophon', 'Colofão')],
+        ] as const
+      )
         .map(
           ([key, label]) =>
             `<label class="builder-label" for="novel-${key}">${label}</label><textarea id="novel-${key}" class="builder-short">${esc(d[key] || '')}</textarea>`,
@@ -497,7 +548,7 @@ function bookBuilder(sample = false) {
           '',
         )}</details><label class="builder-label" for="novelSource">${bw('Manuscrito · empezá cada capítulo con # Título', 'Manuscript · begin each chapter with # Title', 'Manuscrito · inicie cada capítulo com # Título')}</label><textarea id="novelSource" class="builder-source" placeholder="# Capítulo 1&#10;Primer párrafo…&#10;&#10;# Capítulo 2&#10;…">${esc(d.source)}</textarea><button type="button" id="novelSample" class="quiet">${bw('Cargar novela de prueba', 'Load test novel', 'Carregar romance de teste')} ↗</button><p class="help">${bw('Crea un libro nuevo; el proyecto actual se conserva hasta confirmar. No hay reflujo automático entre cajas después de editar. Revisar libro detecta texto sobrante en todas las páginas.', 'Creates a new book; the current project stays until you confirm. Frames do not automatically reflow after editing. Check book finds overset text on all pages.', 'Cria um livro novo; o projeto atual fica até confirmar. As caixas não redistribuem texto após editar. Revisar livro detecta texto excedente em todas as páginas.')}</p>`,
       async () => {
-        const data = {
+        const data: NovelData = {
           title: $('#novelTitle').value.trim(),
           author: $('#novelAuthor').value.trim(),
           source: $('#novelSource').value,
@@ -505,7 +556,7 @@ function bookBuilder(sample = false) {
           blanks: $('#novelBlanks').checked,
           rule: $('#novelRule').checked,
         };
-        for (const key of ['dedication', 'epigraph', 'legal', 'thanks', 'colophon'])
+        for (const key of ['dedication', 'epigraph', 'legal', 'thanks', 'colophon'] as const)
           data[key] = $('#novel-' + key).value.trim();
         if (!data.title || data.title.length > 250 || data.author.length > 250)
           throw Error(
@@ -541,7 +592,7 @@ function bookBuilder(sample = false) {
       $('#novelTitle').value = s.title;
       $('#novelAuthor').value = s.author;
       $('#novelSource').value = s.source;
-      for (const key of ['dedication', 'epigraph', 'legal', 'thanks', 'colophon'])
+      for (const key of ['dedication', 'epigraph', 'legal', 'thanks', 'colophon'] as const)
         $('#novel-' + key).value = s[key] || '';
     };
   };
@@ -549,12 +600,12 @@ function bookBuilder(sample = false) {
     confirmChanges(run);
   } else run();
 }
-function preflightBook() {
+function preflightBook(): PreflightIssue[] {
   finishEditing();
-  const issues = [],
+  const issues: PreflightIssue[] = [],
     prior = book;
   for (let i = 0; i < book.pages.length; i++) {
-    let p;
+    let p: HTMLElement | undefined;
     try {
       p = paper(i, 96 / 25.4, true);
       Object.assign(p.style, {
@@ -581,7 +632,7 @@ function preflightBook() {
   }
   return issues;
 }
-function preflightDialog() {
+function preflightDialog(): void {
   if (!hasDocument) {
     settings(true);
     return;
@@ -606,7 +657,7 @@ function preflightDialog() {
 }
 extend.result(
   'showWelcome',
-  async function (pending) {
+  async function (pending: Promise<void>) {
     await pending;
     if ($('#welcomeNew')) {
       const b = document.createElement('button');
@@ -619,6 +670,30 @@ extend.result(
   },
   'book-workflow',
 );
-window.showWelcome = showWelcome;
-renderBookRoute();
+// Publicado a propósito. bw: casi toda la interfaz. renderBookRoute: la extienden publications.js
+// y editorial-learning.js, y la llama tests/learning-tests.js. goToBookPage: editorial-assistant,
+// book-proof y cover-measurements. composeNovel, installNovel y preflightBook: book-proof y sus
+// pruebas (installNovel también scripts/style-snapshot.js). bookBuilder: cover-measurements.
+// manuscriptParts: tests/book-proof-tests.js.
+declare global {
+  /** Texto en el idioma de la interfaz (castellano, inglés, portugués). */
+  var bw: (es: string, en: string, pt: string) => string;
+  var renderBookRoute: () => void;
+  var goToBookPage: (index: number) => void;
+  var composeNovel: (data: NovelData) => Book;
+  var installNovel: (b: Book) => void;
+  /** Revisión del libro: objetos fuera de la página y cajas de texto desbordadas. */
+  var preflightBook: () => PreflightIssue[];
+  var bookBuilder: (sample?: boolean) => void;
+  var manuscriptParts: (source: string) => ManuscriptPart[];
+}
+globalThis.renderBookRoute = renderBookRoute;
+globalThis.goToBookPage = goToBookPage;
+globalThis.composeNovel = composeNovel;
+globalThis.installNovel = installNovel;
+globalThis.preflightBook = preflightBook;
+globalThis.bookBuilder = bookBuilder;
+globalThis.manuscriptParts = manuscriptParts;
+globalThis.showWelcome = showWelcome;
+globalThis.renderBookRoute();
 structureTab.textContent = bw('Libro', 'Book', 'Livro');
