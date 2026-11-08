@@ -9,7 +9,7 @@ body {
   background: var(--surface-window);
   color: var(--text-primary);
   font-family: var(--font-ui);
-  font-size: var(--type-sm);
+  font-size: var(--type-callout);
   line-height: var(--leading-ui);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

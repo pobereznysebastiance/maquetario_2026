@@ -5,7 +5,7 @@
   gap: var(--space-sm);
   min-height: var(--control-sm);
   color: var(--text-secondary);
-  font-size: var(--type-sm);
+  font-size: var(--type-callout);
   cursor: pointer;
 }
 .check-item:has(input:disabled) {

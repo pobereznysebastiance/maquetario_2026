@@ -29,12 +29,12 @@
   min-width: 0;
 }
 .action-item-title {
-  font-size: var(--type-md);
+  font-size: var(--type-body);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
 }
 .action-item-description {
   color: var(--text-secondary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
   line-height: var(--leading-text);
 }

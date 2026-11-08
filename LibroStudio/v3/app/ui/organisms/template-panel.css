@@ -7,12 +7,12 @@
   gap: var(--space-sm);
   padding: 0 var(--space-md);
   color: var(--text-secondary);
-  font-size: var(--type-sm);
+  font-size: var(--type-callout);
 }
 .template {
   border-radius: var(--radius-md);
   color: var(--text-tertiary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
 }
 .template:hover {
   color: var(--text-primary);

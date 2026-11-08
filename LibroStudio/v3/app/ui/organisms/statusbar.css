@@ -7,7 +7,7 @@
   border-top: var(--border-width) solid var(--line-subtle);
   background: transparent;
   color: var(--text-tertiary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

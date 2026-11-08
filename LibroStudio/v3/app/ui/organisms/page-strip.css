@@ -3,7 +3,7 @@
   padding: var(--space-md) var(--space-md) var(--space-xs);
   border-top: var(--border-width) solid var(--line-subtle);
   color: var(--text-primary);
-  font-size: var(--type-md);
+  font-size: var(--type-body);
   font-weight: var(--weight-semibold);
 }
 .thumbnails {
@@ -29,7 +29,7 @@
   box-shadow: none;
 }
 .thumb small {
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
   font-variant-numeric: tabular-nums;
 }
 .thumb-paper.thumb-page-active {
@@ -42,5 +42,5 @@
   padding: var(--space-xs) var(--space-md);
   border-top: var(--border-width) solid var(--line-subtle);
   color: var(--text-tertiary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
 }

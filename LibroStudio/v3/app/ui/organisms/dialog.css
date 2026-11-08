@@ -31,10 +31,10 @@ dialog .modal-header .eyebrow,
 dialog .modal-header h1 {
   margin: 0;
   color: var(--text-primary);
-  font-size: var(--type-xl);
+  font-size: var(--type-title2);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
-  letter-spacing: 0;
+  letter-spacing: var(--tracking-title);
 }
 dialog .modal-header .icon-btn {
   color: var(--text-tertiary);
@@ -46,7 +46,7 @@ dialog .modal-header .icon-btn:hover {
 #modalBody {
   padding: var(--space-xl);
   color: var(--text-secondary);
-  font-size: var(--type-sm);
+  font-size: var(--type-callout);
   line-height: var(--leading-text);
 }
 
@@ -73,14 +73,14 @@ dialog .modal-actions {
 .confirm-title {
   margin: 0;
   color: var(--text-primary);
-  font-size: var(--type-lg);
+  font-size: var(--type-title3);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
 }
 .confirm-message {
   margin: 0;
   color: var(--text-secondary);
-  font-size: var(--type-sm);
+  font-size: var(--type-callout);
   line-height: var(--leading-text);
 }
 .confirm-actions {

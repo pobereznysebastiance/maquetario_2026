@@ -17,14 +17,15 @@
 #emptyCanvas h2 {
   margin: var(--space-lg) 0 var(--space-sm);
   color: var(--text-primary);
-  font-size: var(--type-2xl);
+  font-size: var(--type-title1);
   font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-large);
   line-height: var(--leading-tight);
 }
 #emptyCanvas p {
   margin: 0 0 var(--space-xl);
   color: var(--text-secondary);
-  font-size: var(--type-md);
+  font-size: var(--type-body);
   line-height: var(--leading-text);
 }
 #emptyCanvas button {

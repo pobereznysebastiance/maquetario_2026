@@ -17,7 +17,7 @@
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-secondary);
-  font-size: var(--type-sm);
+  font-size: var(--type-callout);
   font-weight: var(--weight-medium);
   box-shadow: none;
   transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
@@ -51,7 +51,7 @@
 .tool .shortcut {
   margin-left: auto;
   color: var(--text-disabled);
-  font-size: var(--type-2xs);
+  font-size: var(--type-caption2);
   font-variant-numeric: tabular-nums;
 }
 .tool.active .shortcut {

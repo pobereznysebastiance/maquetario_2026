@@ -10,7 +10,7 @@
   background-color: var(--surface-field);
   color: var(--text-primary);
   font-family: var(--font-ui);
-  font-size: var(--type-sm);
+  font-size: var(--type-callout);
   transition: border-color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
 }
 

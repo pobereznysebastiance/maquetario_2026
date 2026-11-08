@@ -16,7 +16,7 @@
   border-radius: var(--radius-sm);
   background: var(--surface-field);
   color: var(--text-secondary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
 }
 #welcomeLanguage:hover {
   border-color: var(--line-strong);
@@ -27,7 +27,7 @@
 .welcome-links-title {
   margin: var(--space-2xl) 0 var(--space-sm);
   color: var(--text-tertiary);
-  font-size: var(--type-sm);
+  font-size: var(--type-callout);
   font-weight: var(--weight-semibold);
 }
 .welcome-links {

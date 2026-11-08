@@ -22,7 +22,7 @@
   padding-block: var(--space-xl) var(--space-lg);
   border-top: var(--border-width) solid var(--line-subtle);
 }
-.settings-section:first-child {
+.settings > .settings-section:first-child {
   padding-top: var(--space-xs);
   border-top: 0;
 }
@@ -30,7 +30,7 @@
 .settings-section-title {
   margin: 0;
   color: var(--text-primary);
-  font-size: var(--type-lg);
+  font-size: var(--type-headline);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
 }
@@ -39,14 +39,14 @@
 .settings-note {
   margin: var(--space-3xs) 0 0;
   color: var(--text-tertiary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
   line-height: var(--leading-text);
   max-width: 52ch;
 }
 .settings-note {
   margin: 0;
   color: var(--text-secondary);
-  font-size: var(--type-sm);
+  font-size: var(--type-callout);
 }
 
 .settings-value {
@@ -68,7 +68,7 @@
   border-radius: var(--radius-sm);
   background: var(--surface-field);
   color: var(--text-secondary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -79,7 +79,7 @@
 .settings-about {
   margin: 0;
   color: var(--text-tertiary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
   line-height: var(--leading-text);
 }
 
@@ -98,6 +98,6 @@
 .settings-checklist-title {
   margin: 0 0 var(--space-xs);
   color: var(--text-tertiary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
   font-weight: var(--weight-semibold);
 }

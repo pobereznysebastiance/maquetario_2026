@@ -8,12 +8,12 @@
   gap: var(--space-lg);
   min-height: var(--control-md);
   color: var(--text-secondary);
-  font-size: var(--type-sm);
+  font-size: var(--type-callout);
 }
 .setting-row-help {
   margin: var(--space-3xs) 0 0;
   color: var(--text-tertiary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
   line-height: var(--leading-text);
   max-width: 52ch;
 }

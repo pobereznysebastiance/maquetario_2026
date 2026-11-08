@@ -30,10 +30,10 @@
   background: transparent;
   box-shadow: none;
   color: var(--text-primary);
-  font-size: var(--type-lg);
+  font-size: var(--type-title2);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
-  letter-spacing: 0;
+  letter-spacing: var(--tracking-title);
 }
 #inspectorContent .section-heading .icon {
   width: var(--icon-sm);
@@ -45,7 +45,7 @@
 #inspectorContent .sub-label {
   margin: var(--space-xl) 0 var(--space-xs);
   color: var(--text-secondary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
 }
@@ -68,7 +68,7 @@
 #inspectorContent .field-label,
 #inspectorContent .check-line {
   color: var(--text-secondary);
-  font-size: var(--type-sm);
+  font-size: var(--type-callout);
   font-weight: var(--weight-regular);
   line-height: var(--leading-ui);
 }
@@ -85,13 +85,13 @@
 #inspectorContent .pair label {
   margin-top: var(--space-2xs);
   color: var(--text-tertiary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
 }
 
 /* Unidad dentro del campo (mm, %). */
 #inspectorContent .unit {
   color: var(--text-tertiary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
 }
 
 /* Control segmentado (p. ej. "A los márgenes | Al borde de página"). */
@@ -106,7 +106,7 @@
   border: 0;
   background: transparent;
   color: var(--text-secondary);
-  font-size: var(--type-sm);
+  font-size: var(--type-callout);
   font-weight: var(--weight-medium);
 }
 #inspectorContent .segmented button:hover:not(.active) {

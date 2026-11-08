@@ -149,19 +149,37 @@
   --layer-toast: 300;
 }
 
-/* Escala tipográfica de la interfaz. Vive en body (no en :root) para que el modo Grande,
-   que se activa con body.ui-large, la recalcule. Nunca afecta al libro. */
+/* Escala tipográfica de la interfaz, con los roles de la de macOS (Human Interface Guidelines).
+   Los componentes usan el ROL (qué es el texto), no un tamaño.
+   Vive en body (no en :root) para que el modo Grande (body.ui-large) la recalcule. Nunca afecta al libro. */
 body {
   /* Escala de la interfaz: Configuración → Tamaño de la interfaz → Grande (body.ui-large). */
   --ui-scale: 1;
   --font-ui: var(--font-dm-sans);
-  --type-2xs: calc(10px * var(--ui-scale));
-  --type-xs: calc(11px * var(--ui-scale));
-  --type-sm: calc(12px * var(--ui-scale));
-  --type-md: calc(13px * var(--ui-scale));
-  --type-lg: calc(16px * var(--ui-scale)); /* títulos de sección: mínimo de legibilidad del aula */
-  --type-xl: calc(18px * var(--ui-scale));
-  --type-2xl: calc(22px * var(--ui-scale));
+
+  --type-caption2: calc(10px * var(--ui-scale)); /* sólo atajos de teclado */
+  --type-footnote: calc(11px * var(--ui-scale)); /* ayudas, unidades, texto secundario; mínimo legible */
+  --type-callout: calc(12px * var(--ui-scale)); /* etiquetas de campos, filas, controles compactos */
+  --type-body: calc(13px * var(--ui-scale)); /* texto y controles principales */
+  --type-headline: calc(13px * var(--ui-scale)); /* subtítulos (con --weight-semibold) */
+  --type-title3: calc(15px * var(--ui-scale)); /* título de confirmación */
+  --type-title2: calc(17px * var(--ui-scale)); /* títulos de sección y de diálogo (mínimo del aula: 16) */
+  --type-title1: calc(22px * var(--ui-scale)); /* estados vacíos */
+  --type-large-title: calc(26px * var(--ui-scale)); /* portadas internas */
+
+  /* Como SF Pro: los títulos grandes se cierran un poco; el texto chico se abre apenas. */
+  --tracking-title: -0.012em;
+  --tracking-large: -0.02em;
+  --tracking-small: 0.01em;
+
+  /* Nombres anteriores, apuntando al rol equivalente (los usan legacy y piezas ya migradas). */
+  --type-2xs: var(--type-caption2);
+  --type-xs: var(--type-footnote);
+  --type-sm: var(--type-callout);
+  --type-md: var(--type-body);
+  --type-lg: var(--type-title2);
+  --type-xl: var(--type-title2);
+  --type-2xl: var(--type-title1);
 }
 body.ui-large {
   --ui-scale: 1.15;

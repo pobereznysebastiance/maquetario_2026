@@ -33,10 +33,10 @@
   min-width: 0;
 }
 .menu-item-title {
-  font-size: var(--type-sm);
+  font-size: var(--type-callout);
   font-weight: var(--weight-semibold);
 }
 .menu-item-description {
   color: var(--text-tertiary);
-  font-size: var(--type-xs);
+  font-size: var(--type-footnote);
 }
