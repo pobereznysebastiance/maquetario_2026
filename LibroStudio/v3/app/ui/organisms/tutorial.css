@@ -153,3 +153,11 @@
   stroke: var(--accent-hover);
   stroke-width: var(--focus-ring-width);
 }
+
+/* ── Migrado de workspace.css: en pantalla baja la tarjeta se desplaza adentro ── */
+@media (max-height: 850px) {
+  .tutorial-card {
+    --tutorial-card-room: 125px;
+    max-height: calc(100vh - var(--tutorial-card-room));
+  }
+}

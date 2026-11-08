@@ -43,3 +43,10 @@
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
+
+/* ── Migrado de canvas-navigation.css: hasta 1350 px el zoom va sin deslizador ── */
+@media (max-width: 1350px) {
+  .zoom #zoom {
+    display: none;
+  }
+}

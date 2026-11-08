@@ -1,2 +1,2 @@
 
-/* The footer owns a bounded flex area: labels must never escape into status text. */@media(max-width:1250px){.book-route{gap:3px}.book-route button{font-size:var(--type-sm);padding:4px}.route-step-number{min-width:25px;height:25px;font-size:var(--type-lg)}}@media(max-height:850px){.template-heading{flex-basis:41px;min-height:41px}.template-art{flex-basis:64px}.glossary-layout nav{max-height:320px}}@media(max-width:700px){.glossary-layout{grid-template-columns:1fr}.glossary-layout nav{max-height:170px;border:0}.glossary-filters{flex-wrap:wrap}}@media print{.term-help,.route-step-number{display:none!important}}
+/* The footer owns a bounded flex area: labels must never escape into status text. */@media print{.term-help,.route-step-number{display:none!important}}

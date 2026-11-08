@@ -216,3 +216,41 @@
     --language-max: 85px;
   }
 }
+
+/* ── Migrado de readability.css, output.css, editorial-assistant.css y page-priority.css:
+   barra superior hasta 1350 px y hasta 1180 px ── */
+@media (max-width: 1350px) {
+  .tool-action {
+    --tool-action-min: 47px;
+    min-width: var(--tool-action-min);
+  }
+  .tool-action#saveAs {
+    --tool-action-min: 74px;
+  }
+  .topright #language {
+    --topright-language: 65px;
+    width: var(--topright-language);
+  }
+  .brand small {
+    display: none;
+  }
+  .brand strong {
+    font-size: var(--type-2xl);
+  }
+  .assistant-entry {
+    --assistant-entry-min: 110px;
+    min-width: var(--assistant-entry-min);
+  }
+  .assistant-entry span {
+    --assistant-entry-label: 85px;
+    max-width: var(--assistant-entry-label);
+    line-height: 1.2;
+    white-space: normal;
+  }
+}
+@media (max-width: 1180px) {
+  .topright {
+    flex: 1;
+    justify-content: flex-end;
+  }
+}

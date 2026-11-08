@@ -205,3 +205,34 @@ body[data-rulers='hidden'] #spreadStage {
 .ui-large .inspector {
   min-width: 0;
 }
+
+/* ── Migrado de test-feedback.css: interfaz grande agranda las zonas (no el libro) ── */
+@media screen {
+  .ui-large
+    :is(
+      .topbar > *,
+      .tools,
+      .pages-heading,
+      .thumbnails,
+      .left-bottom,
+      .tabs,
+      .inspector-content,
+      .inspector-foot,
+      .documentbar,
+      .canvas-hint,
+      .template-heading,
+      .templates,
+      .statusbar,
+      .tutorial-card,
+      #toast,
+      .welcome-header,
+      .welcome-copy,
+      .welcome-footer,
+      dialog
+    ) {
+    zoom: 1.13;
+  }
+  .ui-large :is(.documentbar, .template-heading) {
+    flex-wrap: wrap;
+  }
+}

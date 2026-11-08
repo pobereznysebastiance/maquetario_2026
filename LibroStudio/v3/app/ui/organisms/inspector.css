@@ -694,3 +694,20 @@
   font-size: var(--type-xs);
   font-weight: var(--weight-regular);
 }
+
+/* ── Migrado de readability.css, studio.css y workspace.css: inspector en pantalla baja o angosta ── */
+@media (max-height: 850px) {
+  .section {
+    --section-pad-compact: 14px;
+    padding: var(--section-pad-compact);
+  }
+  .section-heading {
+    --section-heading-gap-compact: 10px;
+    margin-bottom: var(--section-heading-gap-compact);
+  }
+}
+@media (max-width: 1250px) {
+  .tabs .tab {
+    font-size: var(--type-xs);
+  }
+}

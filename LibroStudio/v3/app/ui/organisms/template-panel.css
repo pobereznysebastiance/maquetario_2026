@@ -178,3 +178,25 @@
     --fullscreen-label-max: 66px;
   }
 }
+
+/* ── Migrado de canvas-navigation.css y readability.css ── */
+@media (max-width: 1350px) {
+  .template-heading > span {
+    --template-heading-gap: 7px;
+    gap: var(--template-heading-gap);
+  }
+  .template-heading #gridLibrary {
+    padding-right: var(--space-xs);
+    padding-left: var(--space-xs);
+    font-size: var(--type-sm);
+  }
+  .template-panel {
+    padding-bottom: var(--space-sm);
+  }
+}
+@media (max-height: 850px) {
+  .template-heading {
+    --template-heading-compact: 41px;
+    height: var(--template-heading-compact);
+  }
+}
