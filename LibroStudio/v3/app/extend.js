@@ -40,6 +40,20 @@
     recompose(entry);
   }
 
+  // El caso más común: correr fn después de la función, con los mismos argumentos.
+  // Devuelve lo que devolvía la función; lo que devuelva fn se descarta.
+  extend.after = (name, fn, origin = '') =>
+    extend(
+      name,
+      (previous) =>
+        function (...args) {
+          const result = previous.apply(this, args);
+          fn.apply(this, args);
+          return result;
+        },
+      origin,
+    );
+
   extend.around = function (name, factory, origin = '') {
     const entry = entryFor(name);
     entry.arounds.push({ factory, origin });

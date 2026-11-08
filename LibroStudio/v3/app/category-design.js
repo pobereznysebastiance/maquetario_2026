@@ -80,7 +80,7 @@ document.addEventListener('keydown',event=>{
 },true);
 new ResizeObserver(()=>{closeCategoryMenu();refreshCategoryTabs();}).observe(categoryTabs);
 extend('showTab',tabBeforeCategoryDesign=>function(name){ tabBeforeCategoryDesign(name);refreshCategoryTabs(); },'category-design');
-extend('render',renderBeforeCategoryDesign=>function(full=true){ renderBeforeCategoryDesign(full);refreshCategoryTabs(); },'category-design');
+extend.after('render',function(full=true){refreshCategoryTabs(); },'category-design');
 document.addEventListener('maquetario:language',()=>{refreshCategoryTabs();});
 for (const [selector,name] of [['[data-tool="folio"]','folio'],['[data-tool="header"]','header'],
   ['[data-tool="grid"]','grid'],['#coverTool','book'],['#indexTool','index'],['#layersTool','layers']]) {

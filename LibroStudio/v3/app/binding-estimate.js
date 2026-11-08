@@ -1,7 +1,6 @@
 'use strict';
 
-extend('coverEditor',coverBeforeBindingEstimate=>function(){
-  coverBeforeBindingEstimate();
+extend.after('coverEditor',function(){
   const spine = $('[data-cover-size="spine"]');
   if (!spine) return;
   const estimate = document.createElement('details');

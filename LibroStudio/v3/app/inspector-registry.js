@@ -5,16 +5,7 @@
 // Por fuera de todo, inspector() conserva el scroll y los <details> abiertos una sola vez.
 (function () {
   'use strict';
-  window.decorateInspector = (fn, origin = '') =>
-    extend(
-      'inspector',
-      (previous) =>
-        function () {
-          previous();
-          fn();
-        },
-      origin,
-    );
+  window.decorateInspector = (fn, origin = '') => extend.after('inspector', fn, origin);
   // Una pestaña con panel propio dibuja ese panel en lugar del contenido base del inspector.
   window.registerInspectorPanel = (panelTab, render, origin = '') =>
     extend(

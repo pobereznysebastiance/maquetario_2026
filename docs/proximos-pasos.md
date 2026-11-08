@@ -16,7 +16,9 @@ Commits en castellano, sin líneas de autoría de IA.
 
 Las 17 extensiones de `inspector` pasan por el registro (`inspector-registry.js`): `decorateInspector`, `registerInspectorPanel` (Estructura, Objeto, Capas) y `pauseInspectorWhile` (ajuste en vivo de maestras). El scroll y los `<details>` abiertos se conservan una sola vez, por fuera de toda la cadena (`extend.around`). Ningún módulo llama `extend('inspector', …)` directamente.
 
-Siguiente, con el mismo enfoque: `render` (6), `paper` (5), `prepareOutput` (4), `coverEditor` (4) y `autoElement` (4); después las 14 de `runIntegrationTests` a un registro de pruebas. Ver qué módulo extiende cada función con `MaquetarioExtensions.list()`. Autoprueba después de cada función convertida.
+`render` (7) y `coverEditor` (7) también están hechos: todas sus cadenas sólo agregaban algo después, y pasaron a `extend.after(nombre, fn, 'módulo')`.
+
+Siguiente: `paper` (7), `prepareOutput` (4) y `autoElement` (5). Dibujan el libro (página, impresión, miniaturas): revisar cada cadena a mano, porque no todas son "después", y comparar los PDF de la autoprueba antes y después. Luego las 14 de `runIntegrationTests` a un registro de pruebas. Ver qué módulo extiende cada función con `MaquetarioExtensions.list()`. Autoprueba después de cada función convertida.
 
 ## 2. Vaciar la capa legacy
 

@@ -47,8 +47,7 @@ extend('modal',unitsModal=>function(...args){
   unitsModal(...args);
   if ($('#modal').open && !$('#pageUnits')) adaptLengthControls($('#modalBody'));
 },'document-units');
-extend('coverEditor',unitsCover=>function(){
-  unitsCover();
+extend.after('coverEditor',function(){
   if ($('#coverPreview')) adaptLengthControls($('#modalBody'));
 },'document-units');
 

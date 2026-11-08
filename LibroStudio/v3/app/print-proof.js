@@ -5,8 +5,7 @@ function coverFontFamily() {
   return face ? '"MQT_'+face.id+'",Georgia,serif' : 'Georgia,serif';
 }
 
-extend('coverEditor',coverControlsBeforeWrap=>function(){
-  coverControlsBeforeWrap();
+extend.after('coverEditor',function(){
   const fields = $('[data-cover-size="spine"]')?.closest('.cover-fields');
   if (!fields) return;
   const controls = document.createElement('section');

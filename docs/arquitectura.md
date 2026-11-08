@@ -182,7 +182,7 @@ Diseño (en `inspector-registry.js`, cargado justo después de `studio.js`):
 - `pauseInspectorWhile(cond)`: mientras `cond()` sea verdadera, `inspector()` no redibuja (master-refinement, durante el ajuste en vivo de maestras).
 - Una envoltura externa (`extend.around`, siempre por fuera de la cadena) guarda y restaura el scroll y los `<details>` abiertos una sola vez, con claves estables (`inspectorDetailKey`: campo, id o título). La base ya no lo hace por posición.
 
-Cada cadena es una línea de registro; ningún módulo reasigna `inspector`. Sigue el mismo enfoque para `render` (6), `paper` (5), `prepareOutput` (4), `coverEditor` (4) y `autoElement` (4). Las 14 de `runIntegrationTests` pasan a un registro de pruebas (`registerIntegrationTest`).
+Cada cadena es una línea de registro; ningún módulo reasigna `inspector`. `render` (7) y `coverEditor` (7) usan `extend.after(nombre, fn)`, que corre fn después de la función con los mismos argumentos. Faltan `paper` (7), `prepareOutput` (4) y `autoElement` (5), que dibujan el libro. Las 14 de `runIntegrationTests` pasan a un registro de pruebas (`registerIntegrationTest`).
 
 Criterio de aceptación: autoprueba completa en verde, contador de reemplazos de funciones globales en baja en `npm run lint:design`.
 
