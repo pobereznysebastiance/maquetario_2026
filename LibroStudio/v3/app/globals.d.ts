@@ -32,11 +32,9 @@ declare var fontOutputReady: any;
 declare var shapeOutputReady: any;
 declare var maquetarioSelfTest: boolean;
 declare var maquetarioTestsReady: true | 'missing' | undefined;
-declare var showHandlePreview: any;
 declare var prepareBlankCreatePreview: any;
 declare var prepareGlassShapePreview: any;
 declare var prepareObjectOrganizationPreview: any;
-declare var prepareRealGlyphPreview: any;
 
 interface Navigator {
   windowControlsOverlay?: any;

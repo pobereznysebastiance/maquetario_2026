@@ -1,9 +1,28 @@
-'use strict';
-let panelSizes = {};
+// Separadores para cambiar el ancho de los paneles laterales y la altura de las plantillas
+// (arrastre, teclado y doble clic para restablecer). Las medidas se recuerdan en localStorage.
+// También acomoda las acciones de imagen del editor de cubierta.
+//
+// panelSizes, applyPanelSizes y beginPanelResize son globales: las pruebas cambian panelSizes y
+// vuelven a aplicar, focus-layout.js extiende applyPanelSizes y page-priority.ts extiende
+// beginPanelResize. Por eso las llamadas que corren después de cargar pasan por globalThis
+// (así incluyen esas extensiones, como cuando eran funciones globales).
+//
+// Fuente TypeScript: se compila a build/panel-resize.js (desktop/scripts/build.mjs).
+
+declare global {
+  /** Medidas elegidas (px): left, right y templates. Vacío = las de la hoja de estilos. */
+  var panelSizes: Record<string, number>;
+  /** Aplica panelSizes a la grilla de la app y a la altura de las plantillas. */
+  var applyPanelSizes: () => void;
+  /** Empieza a arrastrar un separador (kind: 'left', 'right' o 'templates'). */
+  var beginPanelResize: (event: PointerEvent, kind: string, handle: HTMLElement) => void;
+}
+
+globalThis.panelSizes = {};
 try {
   panelSizes = JSON.parse(localStorage.getItem('maquetario-panels') || '{}');
 } catch {}
-function applyPanelSizes() {
+function applyPanelSizes(): void {
   const layout = $('.app-layout'),
     available = layout.clientWidth,
     gap = 18;
@@ -27,7 +46,8 @@ function applyPanelSizes() {
       ) + 'px';
   requestAnimationFrame(renderPages);
 }
-function beginPanelResize(event, kind, handle) {
+globalThis.applyPanelSizes = applyPanelSizes;
+function beginPanelResize(event: PointerEvent, kind: string, handle: HTMLElement): void {
   if (event.button !== 0) return;
   event.preventDefault();
   finishEditing();
@@ -50,9 +70,9 @@ function beginPanelResize(event, kind, handle) {
       panelSizes.left = start.left;
     }
     if (kind === 'templates') panelSizes.templates = start.templates - (e.clientY - start.y);
-    applyPanelSizes();
+    globalThis.applyPanelSizes();
   };
-  const end = (e) => {
+  const end = (e: PointerEvent) => {
     if (handle.hasPointerCapture(e.pointerId)) handle.releasePointerCapture(e.pointerId);
     handle.onpointermove = null;
     document.body.classList.remove('panel-resizing');
@@ -61,6 +81,7 @@ function beginPanelResize(event, kind, handle) {
   handle.onpointerup = end;
   handle.onpointercancel = end;
 }
+globalThis.beginPanelResize = beginPanelResize;
 for (const [kind, parent, label] of [
   [
     'left',
@@ -96,7 +117,7 @@ for (const [kind, parent, label] of [
       'Drag to resize; double-click to reset',
       'Arraste para ajustar; clique duplo para redefinir',
     );
-  handle.onpointerdown = (e) => beginPanelResize(e, kind, handle);
+  handle.onpointerdown = (e) => globalThis.beginPanelResize(e, kind, handle);
   handle.ondblclick = () => {
     if (kind === 'templates') {
       delete panelSizes.templates;
@@ -106,7 +127,7 @@ for (const [kind, parent, label] of [
       delete panelSizes.right;
     }
     localStorage.setItem('maquetario-panels', JSON.stringify(panelSizes));
-    applyPanelSizes();
+    globalThis.applyPanelSizes();
   };
   handle.onkeydown = (e) => {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
@@ -122,11 +143,13 @@ for (const [kind, parent, label] of [
         ? step
         : -step;
     }
-    applyPanelSizes();
+    globalThis.applyPanelSizes();
     localStorage.setItem('maquetario-panels', JSON.stringify(panelSizes));
   };
   $(parent).append(handle);
 }
+// Como antes: el oyente se queda con la función tal como está al cargar (sin las extensiones
+// que se registren después).
 window.addEventListener('resize', applyPanelSizes);
 applyPanelSizes();
 extend.after(
@@ -140,7 +163,7 @@ extend.after(
     /* Un solo par de botones de imagen: los de la zona pasan a la barra de la vista. */ const add =
       $('#coverImage');
     add.innerHTML = `${icon('image')}${bw('Agregar / cambiar imagen', 'Add / replace image', 'Adicionar / trocar imagem')}`;
-    bar.querySelector('strong').after(add, $('#coverRemoveImage'));
+    bar.querySelector('strong')!.after(add, $('#coverRemoveImage'));
     updateCoverPreview();
   },
   'panel-resize',
@@ -152,3 +175,5 @@ extend.after(
   },
   'panel-resize',
 );
+
+export {};

@@ -1,4 +1,21 @@
-'use strict';
+// Categorías del inspector: íconos en las pestañas y, cuando no entran, un menú "Más categorías"
+// con las que quedaron ocultas. También renueva los íconos de algunas herramientas.
+//
+// refreshCategoryTabs, closeCategoryMenu, moreCategories y categoryMenu son globales porque los
+// usa la prueba de tests/category-tests.js.
+//
+// Fuente TypeScript: se compila a build/category-design.js (desktop/scripts/build.mjs).
+
+declare global {
+  /** Muestra las pestañas que entran y pasa el resto al menú "Más categorías". */
+  var refreshCategoryTabs: () => void;
+  /** Cierra el menú de categorías ocultas. */
+  var closeCategoryMenu: () => void;
+  /** Botón "Más categorías" al final de las pestañas. */
+  var moreCategories: HTMLButtonElement;
+  /** Menú con las categorías que no entran en las pestañas. */
+  var categoryMenu: HTMLDivElement;
+}
 
 Object.assign(paths, {
   folio:
@@ -15,7 +32,7 @@ Object.assign(paths, {
     'M5 5h11a2 2 0 0 1 2 2v13H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z M7 2h12a2 2 0 0 1 2 2v13 M7 10h7 M7 14h5',
   more: 'M6 9l6 6 6-6',
 });
-const categoryIcons = {
+const categoryIcons: Record<string, string> = {
   structure: 'book',
   design: 'grid',
   text: 'text',
@@ -36,20 +53,23 @@ const categoryMenu = document.createElement('div');
 categoryMenu.id = 'categoryMenu';
 categoryMenu.hidden = true;
 document.body.append(categoryMenu);
+globalThis.moreCategories = moreCategories;
+globalThis.categoryMenu = categoryMenu;
 
-function closeCategoryMenu() {
+function closeCategoryMenu(): void {
   categoryMenu.hidden = true;
   moreCategories.setAttribute('aria-expanded', 'false');
 }
-function categoryName(button) {
+globalThis.closeCategoryMenu = closeCategoryMenu;
+function categoryName(button: HTMLElement): string {
   return button.textContent.trim();
 }
-function refreshCategoryTabs() {
-  const tabs = [...categoryTabs.querySelectorAll('.tab')];
+function refreshCategoryTabs(): void {
+  const tabs = [...categoryTabs.querySelectorAll<HTMLElement>('.tab')];
   for (const button of tabs) {
     button.hidden = false;
     if (!button.querySelector('svg'))
-      button.insertAdjacentHTML('afterbegin', icon(categoryIcons[button.dataset.tab] || 'pages'));
+      button.insertAdjacentHTML('afterbegin', icon(categoryIcons[button.dataset.tab!] || 'pages'));
   }
   const space = categoryTabs.clientWidth;
   const widths = tabs.map((button) => button.getBoundingClientRect().width);
@@ -68,22 +88,23 @@ function refreshCategoryTabs() {
   moreCategories.setAttribute('aria-label', moreCategories.title);
   if (!overflows) closeCategoryMenu();
 }
+globalThis.refreshCategoryTabs = refreshCategoryTabs;
 moreCategories.onclick = () => {
   if (!categoryMenu.hidden) {
     closeCategoryMenu();
     return;
   }
   categoryMenu.replaceChildren();
-  for (const button of categoryTabs.querySelectorAll('.tab[hidden]')) {
+  for (const button of categoryTabs.querySelectorAll<HTMLElement>('.tab[hidden]')) {
     const option = document.createElement('button');
     option.type = 'button';
     option.className = button.dataset.tab === tab ? 'active' : '';
     option.innerHTML =
-      icon(categoryIcons[button.dataset.tab] || 'pages') +
+      icon(categoryIcons[button.dataset.tab!] || 'pages') +
       `<span>${esc(categoryName(button))}</span>`;
     option.onclick = () => {
       closeCategoryMenu();
-      showTab(button.dataset.tab);
+      showTab(button.dataset.tab!);
       moreCategories.focus();
     };
     categoryMenu.append(option);
@@ -102,8 +123,8 @@ document.addEventListener(
   (event) => {
     if (
       !categoryMenu.hidden &&
-      !categoryMenu.contains(event.target) &&
-      !moreCategories.contains(event.target)
+      !categoryMenu.contains(event.target as Node | null) &&
+      !moreCategories.contains(event.target as Node | null)
     )
       closeCategoryMenu();
   },
@@ -126,7 +147,7 @@ new ResizeObserver(() => {
 }).observe(categoryTabs);
 extend.after(
   'showTab',
-  function (name) {
+  function (name: string) {
     refreshCategoryTabs();
   },
   'category-design',
@@ -156,3 +177,5 @@ for (const [selector, name] of [
   }
 }
 refreshCategoryTabs();
+
+export {};

@@ -1,8 +1,34 @@
-'use strict';
+// Ocho controladores (esquinas y bordes) para redimensionar la caja seleccionada. Reemplaza
+// objectDown y moveObject de studio.js para arrastrar desde cualquier controlador, y Escape o
+// pointercancel devuelven la caja a su lugar. Los controladores no se imprimen.
+//
+// frameDirections y frameGeometry son globales porque los usa tests/frame-handles-tests.js;
+// showHandlePreview lo llama la autoprueba (desktop/src/main/selftest.ts).
+//
+// Fuente TypeScript: se compila a build/frame-handles.js (desktop/scripts/build.mjs).
+
+import type { BookObject, Rect } from './model.ts';
+
+declare global {
+  /** Direcciones de los controladores: esquinas y bordes (nw, n, ne, e, se, s, sw, w). */
+  var frameDirections: string[];
+  /** Caja resultante de arrastrar el controlador direction (dx, dy en mm), dentro de bounds. */
+  var frameGeometry: (
+    start: Rect,
+    direction: string,
+    dx: number,
+    dy: number,
+    bounds: { width: number; height: number },
+  ) => Rect;
+  /** Autoprueba: deja seleccionada una caja de texto con sus controladores visibles. */
+  var showHandlePreview: () => void;
+}
+
 const frameDirections = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
-function frameHandleLabel(direction) {
+globalThis.frameDirections = frameDirections;
+function frameHandleLabel(direction: string): string {
   const lang = globalThis.LibroI18n?.language || 'es';
-  const names = {
+  const names: Record<string, Record<string, string>> = {
     es: {
       nw: 'Esquina superior izquierda',
       n: 'Borde superior',
@@ -36,7 +62,7 @@ function frameHandleLabel(direction) {
   };
   return names[lang][direction];
 }
-function addFrameHandles(el, o, index) {
+function addFrameHandles(el: HTMLElement, o: BookObject, index: number): void {
   el.querySelectorAll(':scope > .resize-handle').forEach((handle) => handle.remove());
   for (const direction of frameDirections) {
     const handle = document.createElement('span');
@@ -49,7 +75,13 @@ function addFrameHandles(el, o, index) {
     el.append(handle);
   }
 }
-function frameGeometry(start, direction, dx, dy, bounds) {
+function frameGeometry(
+  start: Rect,
+  direction: string,
+  dx: number,
+  dy: number,
+  bounds: { width: number; height: number },
+): Rect {
   const min = Math.min(3, bounds.width, bounds.height);
   let left = start.x,
     right = start.x + start.w,
@@ -63,13 +95,14 @@ function frameGeometry(start, direction, dx, dy, bounds) {
     bottom = Math.min(bounds.height, Math.max(top + min, start.y + start.h + dy));
   return { x: left, y: top, w: right - left, h: bottom - top };
 }
+globalThis.frameGeometry = frameGeometry;
 extend.result(
   'paper',
-  function (page, index, px, print = false) {
+  function (page: HTMLElement, index: number, px: number, print = false) {
     if (!print) {
       for (const o of book.pages[index].objects) {
         if (o.id !== selected) continue;
-        const el = page.querySelector(`[data-id="${o.id}"]`);
+        const el = page.querySelector<HTMLElement>(`[data-id="${o.id}"]`);
         if (el) addFrameHandles(el, o, index);
       }
     }
@@ -79,7 +112,13 @@ extend.result(
 );
 extend.replace(
   'objectDown',
-  function (e, o, index, el, resize = false) {
+  function (
+    e: PointerEvent,
+    o: BookObject,
+    index: number,
+    el: HTMLElement,
+    resize: boolean | string = false,
+  ) {
     if (preview || busy || e.button !== 0) return;
     const direction = resize === true ? 'se' : resize;
     if (editing === el && !direction) return;
@@ -124,7 +163,7 @@ extend.replace(
 );
 extend.replace(
   'moveObject',
-  function (e) {
+  function (e: PointerEvent) {
     if (!drag) return;
     const d = drag,
       o = d.o,
@@ -134,7 +173,7 @@ extend.replace(
     if (d.resize)
       Object.assign(
         o,
-        frameGeometry(d, d.resize, dx, dy, { width: book.width, height: book.height }),
+        frameGeometry(d, d.resize as string, dx, dy, { width: book.width, height: book.height }),
       );
     else {
       o.x = Math.max(0, Math.min(book.width - o.w, d.x + dx));
@@ -151,7 +190,7 @@ extend.replace(
   },
   'frame-handles',
 );
-function cancelFrameDrag(e) {
+function cancelFrameDrag(e: PointerEvent): void {
   if (!drag) return;
   const d = drag;
   Object.assign(d.o, { x: d.x, y: d.y, w: d.w, h: d.h });
@@ -169,7 +208,7 @@ extend.before(
   },
   'frame-handles',
 );
-window.showHandlePreview = function () {
+globalThis.showHandlePreview = function () {
   active = spread = 0;
   selected = book.pages[0].objects.filter((o) => o.type === 'text').slice(-1)[0].id;
   showTab('text');

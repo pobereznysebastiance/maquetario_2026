@@ -13,14 +13,6 @@ interface GuideLesson {
   action: string;
 }
 
-/** Cara tipográfica tal como la manda el anfitrión (desktop/src/main/fonts/opentype.ts → FontFace). */
-interface NativeFontFace {
-  id: string;
-  family: string;
-  style: string;
-  [key: string]: any;
-}
-
 /** Opciones del diálogo de salida (output.js → outputConfigFromDialog). */
 interface OutputDialogConfig {
   mode: string;
@@ -127,7 +119,6 @@ declare global {
   function paragraphPatch(values: Record<string, unknown>): void;
 
   // ── panel-resize.js ──
-  function applyPanelSizes(): void;
 
   // ── font-browser.js ──
   const fontBrowser: HTMLDialogElement;
@@ -256,7 +247,75 @@ declare global {
   /** Carpetas de fuentes agregadas por el usuario. */
   var fontFolders: string[];
   function obtainFonts(action?: string): Promise<void>;
+
+  /** Una cara de fuente del catálogo nativo (fonts.js). */
+  interface NativeFontFace {
+    id: string;
+    family: string;
+    style: string;
+    weight: number;
+    italic: boolean;
+    axes: { tag: string; normal: number; min: number; max: number }[];
+    instances: { name: string }[];
+    [extra: string]: any;
+  }
+
+  /** Arrastre en curso de una caja (studio.js; frame-handles lo arma con resize = dirección). */
+  interface ObjectDrag {
+    o: BookObject;
+    el: HTMLElement;
+    startX: number;
+    startY: number;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    /** false: mover; true o una dirección (nw, n, ne…): redimensionar. */
+    resize: boolean | string;
+    moved: boolean;
+  }
+
+  // ── studio.js ──
+  /** Trazos SVG de los íconos, por nombre. */
+  const paths: Record<string, string>;
+  var scale: number;
+  var drag: ObjectDrag | null;
+  function chooseImage(target: Record<string, unknown>): void;
+  function objectDown(
+    e: PointerEvent,
+    o: BookObject,
+    i: number,
+    el: HTMLElement,
+    resize?: boolean | string,
+  ): void;
+  function moveObject(e: PointerEvent): void;
+  function upObject(e: PointerEvent): void;
+  function inspector(): void;
+  function updateStatus(): void;
+  function checkOverflow(): void;
+
+  // ── fonts.js ──
+  var nativeFaces: NativeFontFace[];
+  function chooseDefaultFace(family: string): NativeFontFace | undefined;
+  function ensureFace(face: NativeFontFace | undefined): Promise<unknown>;
+  function variations(face: NativeFontFace): Record<string, number>;
+
+  // ── paragraphs.js ──
+  /** Párrafo elegido en el inspector (index -1: todo el cuadro). */
+  var paragraphScope: { id: string | null; index: number };
+  var paragraphOperation: boolean;
+  function paragraphMeta(
+    o: BookObject,
+    index: number,
+  ): { styleId: string | null; overrides: Record<string, any> };
+  function currentParagraph(o: BookObject): number;
+
+  function browserCurrentVariant():
+    | { key: string; label: string; face: NativeFontFace; instance: { name: string } | null }
+    | undefined;
 }
+
+export {};
 
 export {};
 
