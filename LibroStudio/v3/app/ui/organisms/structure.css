@@ -6,7 +6,7 @@
   gap: var(--space-sm);
   width: 100%;
   margin: var(--space-xs) 0;
-  padding: var(--space-sm);
+  padding: calc(var(--space-sm) + var(--space-3xs));
   border: var(--border-width) solid var(--line-default);
   border-radius: var(--radius-lg);
   background: transparent;
@@ -33,7 +33,7 @@
 }
 .structure-summary {
   color: var(--text-secondary);
-  font-size: var(--type-xs);
+  font-size: var(--type-md);
   line-height: var(--leading-text);
 }
 

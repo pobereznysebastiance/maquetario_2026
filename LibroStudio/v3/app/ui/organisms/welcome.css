@@ -83,7 +83,6 @@
 }
 /* Tamaños de texto de la bienvenida. */
 .welcome-intro,
-.welcome-actions .btn,
 .welcome-section-title h2 {
   font-size: var(--type-lg);
 }

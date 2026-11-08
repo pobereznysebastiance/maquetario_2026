@@ -53,3 +53,23 @@
     opacity var(--duration-base) var(--ease-out),
     transform var(--duration-base) var(--ease-out);
 }
+
+/* Aviso del sistema: siempre en el mismo lugar (arriba al centro, debajo de la barra) y con el
+   verde agua de la marca, para que se note sin salir de la paleta. Oculto hasta que llega un aviso. */
+#toast {
+  top: calc(var(--topbar-height) + var(--space-sm));
+  bottom: auto;
+  padding: var(--space-sm) var(--space-lg);
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-size: var(--type-body);
+  font-weight: var(--weight-semibold);
+  box-shadow: var(--elevation-3);
+  opacity: 0;
+  transform: translate(-50%, calc(-1 * var(--space-sm)));
+}
+#toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}

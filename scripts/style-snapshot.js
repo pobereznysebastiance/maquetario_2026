@@ -26,8 +26,8 @@
     ['plegado', () => { document.body.classList.add('templates-collapsed', 'workflow-collapsed'); }],
     ['desplegado', () => { document.body.classList.remove('templates-collapsed', 'workflow-collapsed'); }],
     // Abiertos con sus propios botones (la app los arranca plegados: sin estos estados no se ve su CSS).
-    ['plantillas abiertas', () => { document.body.classList.add('templates-collapsed'); $('#toggleGridStrip')?.click(); }],
-    ['recorrido abierto', () => { document.body.classList.add('workflow-collapsed'); $('#toggleWorkflow')?.click(); }],
+    ['plantillas abiertas', () => { for (let i = 0; i < 2 && document.body.classList.contains('templates-collapsed'); i++) $('#toggleGridStrip')?.click(); }],
+    ['recorrido abierto', () => { for (let i = 0; i < 2 && document.body.classList.contains('workflow-collapsed'); i++) $('#toggleWorkflow')?.click(); }],
     ['configuración', () => { close(); settingsNew(false); }], ['salida', () => { close(); outputDialog('pdf'); }],
     ['cubierta', () => { close(); coverEditor(); }], ['tutorial', () => { close(); startTutorial(0); }],
   ];

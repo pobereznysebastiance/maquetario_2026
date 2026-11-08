@@ -62,6 +62,14 @@ Cuidado al migrar una regla de varios selectores: la sonda la marca efectiva si 
 - En `studio.css` queda a propósito: lo que dibuja el libro (pliego, página, objetos, guías, grilla, elementos automáticos, miniaturas, `#printRoot`) y los resets de elemento (`*`, `html`, `body`, `button`, `input`, `select`, `svg.icon`), que en una capa de `ui/` le ganarían a todo lo viejo; se mueven a `base.css` cuando legacy esté vacío.
 - Cambios visuales buscados: colores de tokens (dorado `--text-mark`, verde agua `--accent`, superficies `--surface-*`), alineación activa con contorno verde agua en lugar de relleno lleno, interruptor dorado liso (sin degradé), estructura un poco más compacta.
 
+### Para retomar (orden sugerido)
+
+1. Mirar la app abierta, con plantillas y recorrido desplegados, por si quedó algo roto que las pruebas no cubren (avisar y corregir primero).
+2. Rehacer la tanda guardada en  (workspace, page-priority, editorial-learning, canvas-navigation) con el método completo: panel del navegador a 1536 × 1024,  antes de tocar nada (con  limpio), migrar,  y  filtrando cambios estructurales. No aplicar el stash tal cual: sirve de borrador.
+3. Al portar una regla, buscar antes si una regla vieja más específica le ganaba (en  la portada pasa a ganar siempre). Así se agrandaron los botones de la bienvenida y la ayuda de fuentes, y el diálogo de salida pasó a dos columnas; ya corregido.
+4. Seguir con las hojas restantes de a una o dos por tanda.
+5. Avisos del sistema: hoy hay un solo estilo (verde agua, arriba al centro). Si hace falta distinguir error y advertencia, sumar variantes con --status-error y --status-warning y que toast() reciba el tipo.
+
 ### Queda
 
 - Tanda guardada en `git stash` ("tanda workspace/page-priority/editorial-learning/canvas-navigation sin terminar"): migración de esas cuatro hojas hecha con la sonda a 1024 px y sin paneles abiertos. Rehacerla midiendo a 1536 px con los paneles abiertos y comparando con style-snapshot; no aplicarla tal cual.

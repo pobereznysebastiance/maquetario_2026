@@ -169,3 +169,7 @@ dialog .modal-actions {
 .inline-error {
   line-height: var(--leading-ui);
 }
+/* La revisión de salida tiene sus opciones en una sola columna. */
+.output-review-options .modal-grid {
+  grid-template-columns: 1fr;
+}

@@ -10,3 +10,7 @@
   background: var(--surface-selected);
   box-shadow: none;
 }
+
+.font-library .help {
+  font-size: var(--type-xs);
+}
