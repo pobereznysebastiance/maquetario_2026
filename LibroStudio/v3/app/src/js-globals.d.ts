@@ -27,6 +27,10 @@ declare global {
   function commit(fn: () => void, full?: boolean): void;
   function finishEditing(): void;
   function renderPages(): void;
+  /** Si la interfaz corre dentro de la app de escritorio (pasa a true cuando el anfitrión responde a "ready"). */
+  var native: boolean;
+  /** Pedido al proceso principal de Electron; rechaza fuera de la app de escritorio. */
+  function nativeCall(action: string, payload?: Record<string, unknown>): Promise<any>;
 
   // ── review-workspace.js ──
   var hasDocument: boolean;

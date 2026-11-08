@@ -51,7 +51,8 @@ await Promise.all([
 ]);
 
 // Interfaz: las fuentes TypeScript (LibroStudio/v3/app/src) se compilan a app/build, que carga
-// index.html. Cada archivo es por ahora un script que publica su global (como los .js de al lado).
+// index.html. Cada archivo de src/ (sin subcarpetas) es un script que publica su global, como los
+// .js de al lado; las subcarpetas (src/data/…) son módulos que esos scripts importan.
 const ui = join(root, '../LibroStudio/v3/app');
 rmSync(join(ui, 'build'), { recursive: true, force: true });
 await build({

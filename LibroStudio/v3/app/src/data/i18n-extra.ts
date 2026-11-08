@@ -1,5 +1,11 @@
-'use strict';
-globalThis.LibroExtraTranslations = [
+// Traducciones adicionales de la interfaz (es, en, pt): textos que se sumaron después de la
+// tabla principal de i18n.ts. Las importa i18n.ts y las agrega a su diccionario.
+// Módulo de datos: lo importa src/i18n.ts y viaja dentro de build/i18n.js (no se carga solo).
+
+/** Un texto de la interfaz en castellano (la clave), inglés y portugués. */
+export type TranslationRow = [es: string, en: string, pt: string];
+
+export const extraTranslations: TranslationRow[] = [
   ['Imprimir', 'Print', 'Imprimir'],
   [
     'Variables: {book} libro · {section} sección',

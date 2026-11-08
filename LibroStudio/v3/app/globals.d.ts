@@ -16,7 +16,6 @@ declare var dialogVariant: (name: string) => void;
 declare var onDialogClose: (fn: () => void) => void;
 
 // ── Modelo, idioma y anfitrión ──
-declare var LibroI18n: any;
 declare var setLanguage: any;
 declare var MaquetarioWorkspace: any;
 declare var maquetarioUpdateAvailable: any;
