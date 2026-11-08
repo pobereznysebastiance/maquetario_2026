@@ -100,7 +100,7 @@ Observaciones en `docs/evaluacion-uso.md` (13 puntos). Las más visibles: la eti
 - **Para probar contra Motiova local:** levantar Motiova (`localhost:5183` y `localhost:8010`, con la clave dev: `npm run license:dev-keys`) y `npm run dev`; la app apunta ahí en desarrollo.
 - **Para la versión a la venta:** confirmar las URLs de producción en `desktop/package.json → maquetario.motiova` (hoy `https://motiova.com` y `https://api.motiova.com/api/v1`), poner `licenseMode: "enforce"`, sumar la clave pública de producción que mande Motiova, y entregar versión + notas + un instalador firmado por sistema.
 - Firma de código: certificado de Windows (Azure Trusted Signing u OV/EV) y Apple Developer. Definir quién los gestiona y avisar a Motiova.
-- Launcher: más adelante, con los mismos endpoints.
+- Launcher y descargable único: **después de terminar las 4 etapas de `arquitectura.md`** (decisión del 8-nov). Usa los mismos endpoints; el plan está en `arquitectura.md` → distribución.
 
 ## Decisiones cerradas
 

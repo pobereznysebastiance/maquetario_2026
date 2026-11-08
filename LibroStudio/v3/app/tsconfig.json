@@ -15,5 +15,5 @@
     "allowImportingTsExtensions": true
   },
   "include": ["*.js", "ui/*.js", "globals.d.ts", "src/**/*.ts"],
-  "exclude": ["pdf-lib.min.js", "sample-image.js", "tests", "src/js-globals.d.ts"]
+  "exclude": ["pdf-lib.min.js", "sample-image.js", "tests", "src/js-globals*.d.ts"]
 }
