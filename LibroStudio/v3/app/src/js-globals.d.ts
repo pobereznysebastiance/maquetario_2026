@@ -29,6 +29,7 @@ interface OutputDialogConfig {
 import type { Book, BookObject, LibroModelApi } from './model.ts';
 import type { NovelSample } from './novel-sample.ts';
 import type { CoverDesign, CoverGeometryPart } from './cover-measurements.ts';
+import type { CanvasAnchor } from './continuous-canvas.ts';
 
 declare global {
   // ── studio.js ──
@@ -85,7 +86,6 @@ declare global {
   function saveProject(): Promise<boolean>;
 
   // ── welcome.js ──
-  function hideWelcome(): void;
 
   // ── tutorial.js ──
   const guideLessons: GuideLesson[];
@@ -161,7 +161,6 @@ declare global {
   /** Si el evento viene de un campo de texto (input, textarea, select o contenteditable). */
   function canvasInputTarget(target: EventTarget | null): boolean;
 
-  function showWelcome(): Promise<void>;
   function bookBuilder(sample?: boolean): void;
 
   // ── studio.js ──
@@ -206,7 +205,6 @@ declare global {
   function validateCover(c: Record<string, any>): void;
 
   // ── print-proof.js ──
-  function coverSheetDialog(destination: string): void;
 
   /** Avisa al anfitrión si hay cambios sin guardar y actualiza el indicador. */
   function syncNative(): void;
@@ -241,7 +239,6 @@ declare global {
   function icons(): void;
 
   // ── welcome.js ──
-  var welcomeVisible: boolean;
 
   // ── fonts.js ──
   /** Carpetas de fuentes agregadas por el usuario. */
@@ -313,6 +310,56 @@ declare global {
   function browserCurrentVariant():
     | { key: string; label: string; face: NativeFontFace; instance: { name: string } | null }
     | undefined;
+
+  var zoom: number;
+  /** Copias del libro (JSON) para deshacer y rehacer. */
+  var undoStack: string[];
+  var redoStack: string[];
+  function verticalSpread(): boolean;
+  /** Dibuja la página i a px píxeles por milímetro. */
+  function paper(i: number, px: number, print?: boolean): HTMLElement;
+  /** Pregunta qué hacer con los cambios sin guardar y, si corresponde, sigue con proceed. */
+  function confirmChanges(proceed: () => unknown): void;
+  function openBook(): void;
+  function command(name: string): void;
+  function recoveryDb(): Promise<IDBDatabase>;
+
+  // ── canvas-navigation.js ──
+  var canvasStage: HTMLElement;
+  var canvasSurface: HTMLDivElement;
+  var canvasSpreadKey: string;
+  var canvasPadding: number;
+  function handEnabled(): boolean;
+  function updateCanvasCursor(): void;
+  function canvasAnchor(clientX: number, clientY: number): CanvasAnchor;
+  function restoreCanvasAnchor(anchor: CanvasAnchor): void;
+  function updateCanvasZoomDisplay(): void;
+
+  // ── fonts.js ──
+  function ensureBookFonts(): Promise<unknown>;
+
+  function startTutorial(index?: number): void;
+
+  // ── project-package.js ──
+
+  // ── review-workspace.js ──
+  var rw: () => Record<string, string>;
+  /** Ids de los objetos seleccionados con Shift + clic. */
+  var multiSelection: Set<string>;
+  /** Referencia de la alineación de objetos: 'margins' | 'page' | 'selection'. */
+  var objectAlignReference: string;
+  function updateActivePage(): void;
+  function alignSelection(axis: string): void;
+
+  // ── layout-tools.js ──
+  function updateSnapButton(): void;
+
+  // ── output.js ──
+  var ow: () => Record<string, string>;
+  function readPrinters(): Promise<void>;
+  function sendOutput(destination: string, config: Record<string, any>): Promise<void>;
+
+  function coverOverflow(c: any): boolean;
 }
 
 export {};

@@ -1,11 +1,27 @@
-'use strict';
+// Pestaña "Objeto" del inspector: geometría, alineación, distribución, orden y bloqueo del
+// elemento seleccionado. Saca de Diseño, Texto y Capas lo que ahora vive acá y lleva los atajos
+// de herramientas (grilla, foliado, cornisa) a su sección por nombre, no por posición.
+//
+// distributeObjects es global porque la usa tests/inspector-organization-tests.js;
+// prepareObjectOrganizationPreview, porque la llama la autoprueba (desktop/src/main/selftest.ts).
+//
+// Fuente TypeScript: se compila a build/inspector-organization.js (desktop/scripts/build.mjs).
+import type { BookObject } from './model.ts';
+
+declare global {
+  /** Iguala los espacios entre tres o más objetos seleccionados, conservando los extremos. */
+  var distributeObjects: (axis: 'x' | 'y') => void;
+  /** Prepara la captura de la pestaña Objeto (autoprueba). */
+  var prepareObjectOrganizationPreview: () => void;
+}
+
 const objectTab = document.createElement('button');
 objectTab.className = 'tab';
 objectTab.dataset.tab = 'object';
 objectTab.setAttribute('role', 'tab');
 objectTab.onclick = () => showTab('object');
 $('[data-tab="text"]').after(objectTab);
-function editableObjectSelection() {
+function editableObjectSelection(): BookObject[] {
   return book.pages[active].objects.filter(
     (o) =>
       (multiSelection.size ? multiSelection.has(o.id) : selected === o.id) &&
@@ -13,14 +29,14 @@ function editableObjectSelection() {
       !o.hidden,
   );
 }
-function distributeObjects(axis) {
+function distributeObjects(axis: 'x' | 'y'): void {
   const objects = editableObjectSelection();
   if (objects.length < 3) return;
   const horizontal = axis === 'x',
     size = horizontal ? 'w' : 'h',
     sorted = objects.slice().sort((a, b) => a[axis] - b[axis]);
   const start = sorted[0][axis],
-    end = sorted.at(-1)[axis] + sorted.at(-1)[size],
+    end = sorted.at(-1)![axis] + sorted.at(-1)![size],
     total = sorted.reduce((n, o) => n + o[size], 0),
     gap = (end - start - total) / (sorted.length - 1);
   commit(() => {
@@ -31,7 +47,8 @@ function distributeObjects(axis) {
     }
   }, false);
 }
-function objectInspector() {
+globalThis.distributeObjects = distributeObjects;
+function objectInspector(): void {
   const host = $('#inspectorContent'),
     scroll = host.scrollTop,
     o = selectObject(),
@@ -54,12 +71,14 @@ function objectInspector() {
             .map(
               (key, i) =>
                 `<div><label for="object-${key}">${bw(
-                  ...[
-                    ['Posición X', 'X position', 'Posição X'],
-                    ['Posición Y', 'Y position', 'Posição Y'],
-                    ['Ancho', 'Width', 'Largura'],
-                    ['Alto', 'Height', 'Altura'],
-                  ][i],
+                  ...(
+                    [
+                      ['Posición X', 'X position', 'Posição X'],
+                      ['Posición Y', 'Y position', 'Posição Y'],
+                      ['Ancho', 'Width', 'Largura'],
+                      ['Alto', 'Height', 'Altura'],
+                    ] as [string, string, string][]
+                  )[i],
                 )} · mm</label><input id="object-${key}" data-object-geometry="${key}" type="number" min="${key === 'w' || key === 'h' ? 1 : 0}" max="${key === 'x' || key === 'w' ? book.width : book.height}" step="0.5" value="${Number(o[key].toFixed(2))}" ${locked ? 'disabled' : ''}></div>`,
             )
             .join('')}</div>`
@@ -96,21 +115,22 @@ function objectInspector() {
     );
   host.scrollTop = scroll;
   $('#alignReference').value = objectAlignReference;
-  $('#alignReference').onchange = (e) => (objectAlignReference = e.target.value);
+  $('#alignReference').onchange = (e: Event) =>
+    (objectAlignReference = (e.target as HTMLSelectElement).value);
   host
-    .querySelectorAll('[data-object-align]')
-    .forEach((b) => (b.onclick = () => alignSelection(b.dataset.objectAlign)));
+    .querySelectorAll<HTMLElement>('[data-object-align]')
+    .forEach((b) => (b.onclick = () => alignSelection(b.dataset.objectAlign!)));
   host
-    .querySelectorAll('[data-distribute]')
-    .forEach((b) => (b.onclick = () => distributeObjects(b.dataset.distribute)));
+    .querySelectorAll<HTMLElement>('[data-distribute]')
+    .forEach((b) => (b.onclick = () => distributeObjects(b.dataset.distribute as 'x' | 'y')));
   host
-    .querySelectorAll('[data-object-command]')
-    .forEach((b) => (b.onclick = () => command(b.dataset.objectCommand)));
-  host.querySelectorAll('[data-object-geometry]').forEach(
+    .querySelectorAll<HTMLElement>('[data-object-command]')
+    .forEach((b) => (b.onclick = () => command(b.dataset.objectCommand!)));
+  host.querySelectorAll<HTMLInputElement>('[data-object-geometry]').forEach(
     (input) =>
       (input.onchange = () => {
         const value = Number(input.value),
-          key = input.dataset.objectGeometry;
+          key = input.dataset.objectGeometry!;
         if (
           !o ||
           o.locked ||
@@ -136,8 +156,10 @@ function objectInspector() {
   );
   if ($('#objectGoText')) $('#objectGoText').onclick = () => showTab('text');
   if (o) {
-    $('#objectLocked').onchange = (e) => commit(() => (o.locked = e.target.checked), false);
-    $('#objectHidden').onchange = (e) => commit(() => (o.hidden = e.target.checked), false);
+    $('#objectLocked').onchange = (e: Event) =>
+      commit(() => (o.locked = (e.target as HTMLInputElement).checked), false);
+    $('#objectHidden').onchange = (e: Event) =>
+      commit(() => (o.hidden = (e.target as HTMLInputElement).checked), false);
   }
   updateActivePage();
   updateSnapButton();
@@ -168,7 +190,7 @@ decorateInspector(() => {
   }
   organizationLabels();
 }, 'inspector-organization');
-function organizationLabels() {
+function organizationLabels(): void {
   objectTab.textContent = bw('Objeto', 'Object', 'Objeto');
   for (const name of ['text', 'box']) {
     const b = $(`[data-tool="${name}"]`);
@@ -183,11 +205,11 @@ function organizationLabels() {
     }
   }
 }
-// Tool shortcuts find sections by identity instead of a brittle numeric position.
+// Los atajos de herramientas buscan su sección por nombre, no por una posición numérica frágil.
 extend.instead(
   'setTool',
-  (name) => ['grid', 'folio', 'header'].includes(name),
-  function (name) {
+  (name: string) => ['grid', 'folio', 'header'].includes(name),
+  function (name: 'grid' | 'folio' | 'header') {
     finishEditing();
     showTab('design');
     const key = { grid: 'Grilla', folio: 'Foliado', header: 'Cornisa' }[name];
@@ -201,14 +223,14 @@ extend.instead(
 );
 extend.after(
   'setTool',
-  function (name) {
+  function (name: string) {
     if (name === 'image' || name === 'frame') showTab('object');
   },
   'inspector-organization',
 );
 extend.before(
   'objectDown',
-  function (e, o) {
+  function (e: PointerEvent, o: BookObject) {
     if (o.type !== 'text' && tab === 'text' && !o.locked) showTab('object');
   },
   'inspector-organization',
@@ -229,7 +251,7 @@ if (alignLesson) {
 }
 organizationLabels();
 inspector();
-window.prepareObjectOrganizationPreview = function () {
+globalThis.prepareObjectOrganizationPreview = function () {
   hideWelcome();
   if ($('#modal').open) $('#modal').close();
   if (fontBrowser.open) fontBrowser.close();

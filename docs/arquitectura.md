@@ -182,7 +182,7 @@ Las 127 cadenas en las que un módulo reemplazaba una función global (`const an
 | Archivo | Tipo | Qué hace |
 |---|---|---|
 | book-workflow.js | ruta | pestaña `structure` → `structurePanel()`; en `design`, además `ruleControls()` |
-| inspector-organization.js | ruta | pestaña `object` → `objectInspector()`; reorganiza `design` |
+| src/inspector-organization.ts | ruta | pestaña `object` → `objectInspector()`; reorganiza `design` |
 | src/master-refinement.ts | envoltura | si `liveMasterAdjustment`, no redibuja; conserva scroll y `<details>` abiertos |
 | editorial-learning.js | decorador | `decorateGlossaryHints()` |
 | font-browser.js | decorador | `decorateFontBrowsers(#inspectorContent)` |

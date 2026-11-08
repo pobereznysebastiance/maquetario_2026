@@ -34,7 +34,6 @@ declare var maquetarioSelfTest: boolean;
 declare var maquetarioTestsReady: true | 'missing' | undefined;
 declare var prepareBlankCreatePreview: any;
 declare var prepareGlassShapePreview: any;
-declare var prepareObjectOrganizationPreview: any;
 
 interface Navigator {
   windowControlsOverlay?: any;

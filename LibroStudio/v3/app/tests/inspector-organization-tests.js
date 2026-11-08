@@ -1,4 +1,4 @@
-// Pruebas de inspector-organization.js: sólo se cargan en la autoprueba (test-loader.js), no van en el instalador.
+// Pruebas de src/inspector-organization.ts: sólo se cargan en la autoprueba (test-loader.js), no van en el instalador.
 
 registerIntegrationTest(function (r) {
   const prior = M.clone(book),

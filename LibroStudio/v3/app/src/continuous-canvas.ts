@@ -1,15 +1,55 @@
-'use strict';
+// Vista continua del lienzo: todas las páginas en una sola columna que se recorre con la rueda.
+// Sólo se dibujan las filas cercanas a la vista; al desplazarse se marca la página visible.
+// El botón "Continuo" va junto a "Ajustar" y el estado se recuerda en localStorage.
+//
+// continuousCanvas, continuousRows y continuousKey viven en globalThis porque la prueba de
+// tests/document-view-tests.js los lee y los asigna.
+//
+// Fuente TypeScript: se compila a build/continuous-canvas.js (desktop/scripts/build.mjs).
 
-let continuousCanvas = localStorage.getItem('maquetario-continuous') === 'true';
-let continuousRows = [],
-  visibleRowFrame = 0,
-  continuousKey = '',
-  continuousSpread = -1;
+/** Una fila de la vista continua: un pliego (una o dos páginas) con su posición en el lienzo. */
+export interface ContinuousRow {
+  element: HTMLElement;
+  /** Índice de la primera página de la fila. */
+  start: number;
+  count: number;
+  height: number;
+  /** Distancia desde el borde superior del pliego, en píxeles de pantalla. */
+  offset: number;
+}
+
+/**
+ * Ancla del zoom (canvasAnchor de canvas-navigation.js): punto del pliego, en mm, bajo un punto de
+ * la pantalla. En la vista continua, y es relativa a la fila que empieza en la página row.
+ * Vive acá hasta que canvas-navigation.js pase a TypeScript.
+ */
+export interface CanvasAnchor {
+  x: number;
+  y: number;
+  clientX: number;
+  clientY: number;
+  row?: number;
+}
+
+declare global {
+  /** Vista continua activa. */
+  var continuousCanvas: boolean;
+  /** Filas dibujadas en la vista continua (vacío fuera de ella). */
+  var continuousRows: ContinuousRow[];
+  /** Clave del último armado; vacía obliga a volver a centrar en el pliego actual. */
+  var continuousKey: string;
+}
+
+globalThis.continuousCanvas = localStorage.getItem('maquetario-continuous') === 'true';
+globalThis.continuousRows = [];
+let visibleRowFrame = 0;
+globalThis.continuousKey = '';
+let continuousSpread = -1;
 const canvasGap = 38;
 // En la vista continua, el ancla del zoom se guarda relativa a su fila de páginas.
 extend.result(
   'canvasAnchor',
-  (anchor) => {
+  (anchor: CanvasAnchor) => {
     if (continuousCanvas && continuousRows.length) {
       const position = anchor.y * scale;
       const row = continuousRows.findLast((item) => item.offset <= position) || continuousRows[0];
@@ -23,7 +63,7 @@ extend.result(
 extend(
   'restoreCanvasAnchor',
   (restore) =>
-    function (anchor) {
+    function (anchor: CanvasAnchor) {
       const row = continuousCanvas && continuousRows.find((item) => item.start === anchor.row);
       return restore(row ? { ...anchor, y: anchor.y + row.offset / scale } : anchor);
     },
@@ -35,7 +75,7 @@ continuousButton.id = 'continuousCanvas';
 continuousButton.className = 'quiet';
 $('#fitZoom').before(continuousButton);
 
-function labelContinuousCanvas() {
+function labelContinuousCanvas(): void {
   continuousButton.textContent = bw('Continuo', 'Continuous', 'Contínuo');
   continuousButton.title = bw(
     'Recorrer todas las páginas con la rueda',
@@ -54,7 +94,7 @@ continuousButton.onclick = () => {
   labelContinuousCanvas();
 };
 
-function paintContinuousRows() {
+function paintContinuousRows(): void {
   const top = canvasStage.scrollTop,
     bottom = top + canvasStage.clientHeight;
   for (const row of continuousRows) {
@@ -68,7 +108,7 @@ function paintContinuousRows() {
   requestAnimationFrame(checkOverflow);
 }
 
-function markVisiblePage() {
+function markVisiblePage(): void {
   const center = canvasStage.scrollTop + canvasStage.clientHeight / 2 - canvasPadding;
   const visible = continuousRows.findLast((row) => row.offset <= center) || continuousRows[0];
   if (!visible || visible.start === spread || editing || drag || selected) return;
@@ -100,10 +140,10 @@ canvasStage.addEventListener(
 );
 canvasStage.addEventListener(
   'pointerdown',
-  (event) => {
+  (event: PointerEvent) => {
     if (!continuousCanvas || canvasUnavailable() || event.button !== 0 || handEnabled() || preview)
       return;
-    const page = event.target.closest('#spread .page');
+    const page = (event.target as Element).closest<HTMLElement>('#spread .page');
     if (page)
       spread =
         Math.floor(Number(page.dataset.page) / (book.facing ? 2 : 1)) * (book.facing ? 2 : 1);
