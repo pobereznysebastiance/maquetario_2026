@@ -47,7 +47,20 @@ async function serveFont(pathname: string): Promise<Response> {
   }
 }
 
-async function serveFile(root: string, pathname: string): Promise<Response> {
+/** Política de contenido también como cabecera (además del meta del HTML): defensa en profundidad. */
+const APP_CSP = [
+  "default-src 'self' data: blob:",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data: https://fonts.maquetario.local",
+  "connect-src 'none'",
+  "object-src 'none'",
+  "frame-src 'none'",
+  "base-uri 'self'",
+].join('; ');
+
+async function serveFile(root: string, pathname: string, csp?: string): Promise<Response> {
   // Nunca servir algo fuera de la carpeta indicada.
   const file = normalize(join(root, pathname === '/' ? 'index.html' : pathname));
   if (!file.startsWith(root + sep)) return notFound();
@@ -57,6 +70,8 @@ async function serveFile(root: string, pathname: string): Promise<Response> {
         'Content-Type': MIME[extname(file).toLowerCase()] ?? 'application/octet-stream',
         // Archivos locales: leer siempre la versión actual (si no, Ctrl+R muestra CSS viejo).
         'Cache-Control': 'no-store',
+        'X-Content-Type-Options': 'nosniff',
+        ...(csp && extname(file).toLowerCase() === '.html' ? { 'Content-Security-Policy': csp } : {}),
       },
     });
   } catch {
@@ -72,6 +87,6 @@ export function handleScheme(): void {
     if (!root) return notFound();
     const pathname = decodeURIComponent(url.pathname);
     if (url.host === 'app' && pathname.startsWith(FONT_ROUTE)) return serveFont(url.pathname);
-    return serveFile(root, pathname);
+    return serveFile(root, pathname, url.host === 'app' ? APP_CSP : undefined);
   });
 }

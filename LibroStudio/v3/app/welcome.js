@@ -8,7 +8,7 @@ async function openRecentProject(record){const run=async()=>{try{const result=aw
 offerRecovery=async function(){try{const db=await recoveryDb(),request=db.transaction('books','readonly').objectStore('books').get('last');request.onsuccess=()=>{db.close();if(request.result)try{recoveryCopy=M.validate(JSON.parse(request.result));if(welcomeVisible)showWelcome();}catch{}};}catch{}};
 const brandHome=$('.brand');brandHome.style.cursor='pointer';brandHome.title=ww().home;brandHome.onclick=()=>showWelcome();
 const helpButton=document.createElement('button');helpButton.className='quiet';helpButton.id='tutorialButton';helpButton.innerHTML=icon('help')+'<span>'+ww().tutorial+'</span>';helpButton.onclick=()=>startTutorial();$('.documentbar').append(helpButton);
-const welcomeLanguageBefore=$('#language').onchange;$('#language').onchange=function(){welcomeLanguageBefore();helpButton.innerHTML=icon('help')+'<span>'+ww().tutorial+'</span>';};
+document.addEventListener('maquetario:language',()=>{helpButton.innerHTML=icon('help')+'<span>'+ww().tutorial+'</span>';});
 document.addEventListener('keydown',e=>{if(welcomeVisible&&e.ctrlKey&&['p','s','z','y'].includes(e.key.toLowerCase())){e.preventDefault();e.stopImmediatePropagation();}},true);
 window.showWelcome=showWelcome;window.hideWelcome=hideWelcome;
 const recentSave=saveProject;saveProject=async function(){const saved=await recentSave();if(saved&&native)try{welcomeInfo=await nativeCall('appInfo');}catch{}return saved;};window.saveProject=saveProject;

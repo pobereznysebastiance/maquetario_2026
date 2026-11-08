@@ -2,7 +2,7 @@
 import { app, BrowserWindow, Menu, session as electronSession, type MenuItemConstructorOptions } from 'electron';
 import { join } from 'node:path';
 import { attachBridge } from './bridge.ts';
-import { APP_ORIGIN, argValue, isDev, isSelfTest, rendererDir } from './env.ts';
+import { APP_ORIGIN, argValue, isDev, isSelfTest, NOTICE_ORIGIN, rendererDir } from './env.ts';
 import { warmFontCatalog } from './fonts/catalog.ts';
 import { checkLicense, licenseBlocks, licenseMessage } from './license.ts';
 import { captureNotice, showNotice, type NoticeOptions } from './notice.ts';
@@ -12,6 +12,8 @@ import { createSession, exec, type Session } from './session.ts';
 import { windowChromeOptions } from './window-chrome.ts';
 
 app.setName('Maquetario');
+// Todas las páginas (editor y avisos) corren aisladas, sin depender de configurarlo en cada ventana.
+app.enableSandbox();
 // La autoprueba usa su propio perfil (como BrowserData-selftest en la versión C#): ni hereda las
 // preferencias de quien usa la app, ni comparte el perfil de Chromium con una ventana abierta.
 if (isSelfTest) app.setPath('userData', `${app.getPath('userData')}-autoprueba`);
@@ -49,8 +51,15 @@ function lockDown(): void {
   ses.setPermissionCheckHandler(() => false);
   app.on('web-contents-created', (_event, contents) => {
     contents.setWindowOpenHandler(() => ({ action: 'deny' }));
+    const allowed = (url: string) => url.startsWith(`${APP_ORIGIN}/`) || url.startsWith(`${NOTICE_ORIGIN}/`);
     contents.on('will-navigate', (event, url) => {
-      if (!url.startsWith(`${APP_ORIGIN}/`)) event.preventDefault();
+      if (!allowed(url)) event.preventDefault();
+    });
+    contents.on('will-redirect', (event, url) => {
+      if (!allowed(url)) event.preventDefault();
+    });
+    contents.on('will-frame-navigate', (details) => {
+      if (!allowed(details.url)) details.preventDefault();
     });
     contents.on('will-attach-webview', (event) => event.preventDefault());
   });

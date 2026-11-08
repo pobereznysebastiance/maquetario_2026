@@ -78,5 +78,4 @@ function labelPackageButton() {
   packageButton.title = bw('Empaquetar proyecto','Package project','Empacotar projeto');
 }
 labelPackageButton();
-const languageBeforePackage = $('#language').onchange;
-$('#language').onchange = function(event) { languageBeforePackage.call(this,event);labelPackageButton(); };
+document.addEventListener('maquetario:language',()=>{labelPackageButton();});

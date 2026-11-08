@@ -83,8 +83,7 @@ const tabBeforeCategoryDesign = showTab;
 showTab = function(name) { tabBeforeCategoryDesign(name);refreshCategoryTabs(); };
 const renderBeforeCategoryDesign = render;
 render = function(full=true) { renderBeforeCategoryDesign(full);refreshCategoryTabs(); };
-const languageBeforeCategoryDesign = $('#language').onchange;
-$('#language').onchange = function(event) { languageBeforeCategoryDesign.call(this,event);refreshCategoryTabs(); };
+document.addEventListener('maquetario:language',()=>{refreshCategoryTabs();});
 for (const [selector,name] of [['[data-tool="folio"]','folio'],['[data-tool="header"]','header'],
   ['[data-tool="grid"]','grid'],['#coverTool','book'],['#indexTool','index'],['#layersTool','layers']]) {
   const previous = $(selector)?.querySelector('svg');
