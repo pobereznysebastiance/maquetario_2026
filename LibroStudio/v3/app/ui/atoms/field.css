@@ -167,3 +167,21 @@ textarea {
   transform: translateY(-50%);
   pointer-events: none;
 }
+
+/* Campo con unidad: sin las flechas del navegador, que se montaban sobre la unidad.
+   El valor se cambia igual con las flechas del teclado. */
+.unit-wrap input[type='number'] {
+  appearance: textfield;
+}
+.unit-wrap input[type='number']::-webkit-inner-spin-button,
+.unit-wrap input[type='number']::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+/* Selector en una fila: un valor largo se corta con puntos suspensivos en vez de ocupar varias líneas. */
+.field-row select {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

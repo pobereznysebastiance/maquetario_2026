@@ -180,6 +180,13 @@
   --resizer-grip-thin: 3px;
   --template-card-width: 136px;
   --grid-mini-width: 47px; /* miniatura de página en las plantillas de grilla */
+  --grid-mini-height: 66px;
+  --template-column: 142px;
+  --template-art-height: 82px;
+  --template-art-min: 35px;
+  --template-panel-height: 174px;
+  --template-panel-min: 165px;
+  --template-heading-height: 44px;
   --tutorial-card-width: 420px;
   --dialog-builder-width: 760px;
   --builder-source-height: 190px;

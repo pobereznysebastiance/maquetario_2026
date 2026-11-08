@@ -81,3 +81,71 @@
   border: 0;
   background: none;
 }
+
+/* ── Panel de plantillas desplegado ──
+   Encabezado fijo arriba; debajo, una fila de tarjetas que se desplaza en horizontal.
+   (La regla base de la fila se había perdido: con el panel plegado no se veía.) */
+.template-panel {
+  display: flex;
+  flex-direction: column;
+  height: var(--template-panel-height);
+  min-height: var(--template-panel-min);
+  overflow: hidden;
+}
+.template-heading {
+  flex: 0 0 var(--template-heading-height);
+  min-height: var(--template-heading-height);
+  font-size: var(--type-md);
+}
+.templates {
+  display: flex;
+  flex: 1 1 0;
+  align-items: stretch;
+  gap: var(--space-md);
+  height: auto;
+  min-height: 0;
+  padding: 0 0 var(--space-sm);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
+}
+.template {
+  display: flex;
+  flex: 0 0 var(--template-column);
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 0;
+  overflow: hidden;
+  font-size: var(--type-sm);
+  line-height: var(--leading-ui);
+  text-align: left;
+}
+.template-art {
+  display: flex;
+  flex: 0 1 var(--template-art-height);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3xs);
+  width: var(--template-card-width);
+  height: auto;
+  min-height: var(--template-art-min);
+  margin-bottom: var(--space-2xs);
+  padding: var(--space-xs);
+  overflow: hidden;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-sm);
+}
+.grid-mini-page {
+  flex-shrink: 0;
+  height: var(--grid-mini-height);
+  max-height: 100%;
+}
+.grid-mini-page i {
+  min-width: 0;
+  min-height: 0;
+}
+.template-dimensions {
+  display: block;
+  flex-shrink: 0;
+  line-height: var(--leading-ui);
+}

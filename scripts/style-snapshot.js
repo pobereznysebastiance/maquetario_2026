@@ -1,0 +1,63 @@
+// Foto de estilos calculados de la interfaz, para comparar antes y después de mover CSS.
+//
+// Uso (en la consola de la interfaz servida con scripts/serve-ui.cjs):
+//   await styleSnapshot('antes')   → guarda en localStorage una foto por estado
+//   (cambiar el CSS, recargar, volver a cargar este archivo)
+//   await styleSnapshot('despues'); styleDiff('antes', 'despues')  → lista de [estado, elemento, propiedad, antes, después]
+//
+// Los estados recorren la bienvenida, el editor con sus pestañas, la selección, el tutorial, diálogos y
+// paneles plegados. Lo que dibuja el libro (#spread, #printRoot, miniaturas) queda afuera: no lo toca la interfaz.
+(() => {
+  const PROPS = ['display', 'position', 'top', 'right', 'bottom', 'left', 'width', 'height', 'min-height', 'max-width',
+    'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+    'gap', 'flex-grow', 'flex-shrink', 'flex-basis', 'flex-direction', 'flex-wrap', 'align-items', 'justify-content', 'grid-template-columns',
+    'font-size', 'font-weight', 'line-height', 'letter-spacing', 'white-space', 'text-align', 'color', 'background-color', 'background-image',
+    'border-top-width', 'border-top-color', 'border-bottom-width', 'border-bottom-color', 'border-left-width', 'border-left-color',
+    'border-top-left-radius', 'box-shadow', 'opacity', 'visibility', 'overflow-x', 'overflow-y', 'z-index', 'cursor', 'outline-color', 'outline-style'];
+  const SKIP = '#spread, #spread *, #printRoot, #printRoot *, .thumb-pages, .thumb-pages *, script, style, svg *';
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const close = () => { try { $('#modal')?.open && $('#modal').close(); } catch {} try { closeTutorial(); } catch {} };
+  const sel = (type) => { const o = book.pages.flatMap((p) => p.objects).find((o) => o.type === type); active = book.pages.findIndex((p) => p.objects.includes(o)); selected = o.id; render(true); };
+  const STATES = [
+    ['bienvenida', () => { close(); showWelcome(); }],
+    ['editor', async () => { close(); try { await installNovel(); } catch {} hideWelcome(); hasDocument = true; selected = null; render(true); }],
+    ['estructura', () => showTab('structure')], ['diseño', () => showTab('design')], ['texto', () => { sel('text'); showTab('text'); }],
+    ['objeto', () => showTab('object')], ['capas', () => showTab('layers')], ['páginas', () => showTab('pages')],
+    ['plegado', () => { document.body.classList.add('templates-collapsed', 'workflow-collapsed'); }],
+    ['desplegado', () => { document.body.classList.remove('templates-collapsed', 'workflow-collapsed'); }],
+    // Abiertos con sus propios botones (la app los arranca plegados: sin estos estados no se ve su CSS).
+    ['plantillas abiertas', () => { document.body.classList.add('templates-collapsed'); $('#toggleGridStrip')?.click(); }],
+    ['recorrido abierto', () => { document.body.classList.add('workflow-collapsed'); $('#toggleWorkflow')?.click(); }],
+    ['configuración', () => { close(); settingsNew(false); }], ['salida', () => { close(); outputDialog('pdf'); }],
+    ['cubierta', () => { close(); coverEditor(); }], ['tutorial', () => { close(); startTutorial(0); }],
+  ];
+  // Ruta estable de un elemento: id o etiqueta.clases con su posición entre hermanos.
+  const key = (el) => { const parts = []; for (let e = el; e && e !== document.body; e = e.parentElement) { if (e.id) { parts.unshift('#' + e.id); break; } const i = [...(e.parentElement?.children || [])].indexOf(e); parts.unshift(e.tagName.toLowerCase() + (e.classList.length ? '.' + [...e.classList].sort().join('.') : '') + ':' + i); } return parts.join('>'); };
+  window.styleSnapshot = async (name) => {
+    const shot = {};
+    for (const [label, fn] of STATES) {
+      await fn(); await wait(250);
+      const rows = {};
+      for (const el of document.body.querySelectorAll('*')) {
+        if (el.matches(SKIP)) continue;
+        const cs = getComputedStyle(el);
+        rows[key(el)] = PROPS.map((p) => cs.getPropertyValue(p)).join('|');
+      }
+      shot[label] = rows;
+    }
+    close();
+    localStorage.setItem('styleSnapshot:' + name, JSON.stringify(shot));
+    return Object.fromEntries(Object.entries(shot).map(([k, v]) => [k, Object.keys(v).length]));
+  };
+  window.styleDiff = (a, b, limit = 400) => {
+    const A = JSON.parse(localStorage.getItem('styleSnapshot:' + a)), B = JSON.parse(localStorage.getItem('styleSnapshot:' + b)), out = [];
+    for (const state of Object.keys(A)) for (const [el, va] of Object.entries(A[state])) {
+      const vb = B[state]?.[el];
+      if (vb === undefined || vb === va) continue;
+      const pa = va.split('|'), pb = vb.split('|');
+      PROPS.forEach((p, i) => { if (pa[i] !== pb[i]) out.push([state, el, p, pa[i], pb[i]]); });
+    }
+    return out.slice(0, limit);
+  };
+  return 'styleSnapshot listo';
+})();

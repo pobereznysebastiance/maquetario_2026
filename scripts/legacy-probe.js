@@ -25,7 +25,8 @@
     for (const s of document.styleSheets) try {
       for (const r of s.cssRules) if (r instanceof CSSImportRule && r.styleSheet) {
         const name = r.href.split('/').pop();
-        if (FILES.includes(name)) out[name] = r.styleSheet;
+        // Sólo las hojas viejas (importadas como ../nombre.css): ui/templates/workspace.css se llama igual que la vieja.
+        if (FILES.includes(name) && r.href.startsWith('../')) out[name] = r.styleSheet;
       }
     } catch {}
     return out;
