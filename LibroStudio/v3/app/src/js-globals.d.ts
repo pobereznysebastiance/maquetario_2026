@@ -37,11 +37,6 @@ declare global {
   const bw: (es: string, en: string, pt: string) => string;
 
   // ── paragraphs.js ──
-  /** Palabras de la interfaz de párrafos en el idioma actual (l, r, c, j: alineaciones). */
-  const pw: () => Record<string, string>;
-  const paragraphKeys: string[];
-  /** Formato efectivo de un párrafo: base del objeto + estilo + ajustes locales. */
-  function paragraphFormat(b: Book, o: BookObject, index: number): Record<string, any>;
 
   // ── studio.js ──
   /** Índice de la página activa. */
@@ -62,7 +57,6 @@ declare global {
   function preflightBook(): { page: number; kind: 'bounds' | 'overflow' }[];
 
   // ── paragraphs.js ──
-  function paragraphPatch(values: Record<string, unknown>): void;
 
   // ── panel-resize.js ──
 
@@ -160,14 +154,6 @@ declare global {
   function checkOverflow(): void;
 
   // ── paragraphs.js ──
-  /** Párrafo elegido en el inspector (index -1: todo el cuadro). */
-  var paragraphScope: { id: string | null; index: number };
-  var paragraphOperation: boolean;
-  function paragraphMeta(
-    o: BookObject,
-    index: number,
-  ): { styleId: string | null; overrides: Record<string, any> };
-  function currentParagraph(o: BookObject): number;
 
   var zoom: number;
   /** Copias del libro (JSON) para deshacer y rehacer. */
@@ -211,6 +197,8 @@ declare global {
   // ── output.js ──
 
   // ── print-proof.js ──
+
+  // ── fonts.js ──
 }
 
 export {};

@@ -1,4 +1,83 @@
+// Párrafos: formato por párrafo dentro de una caja de texto (base del objeto + estilo de párrafo
+// + ajustes locales), estilos de párrafo del libro, panel "Párrafo y estilos" del inspector y
+// dibujo de cada párrafo en la página (con separación silábica de hyphenation-controls).
+//
+// Globales (los usan archivos de src/, el JS, tests/review-tests.js y book-workflow.js):
+// pw, paragraphKeys, paragraphFormat, paragraphMeta, paragraphPatch, applyParagraphStyle,
+// currentParagraph y syncParagraphMap. paragraphScope y paragraphOperation viven en globalThis
+// porque otros archivos los asignan.
+//
+// Fuente TypeScript: se compila a build/paragraphs.js (desktop/scripts/build.mjs).
 'use strict';
+import type { Book, BookObject } from './model.ts';
+
+/** Formato de un párrafo: font, size, leading, align, sangrías, espacios… (ver paragraphKeys). */
+export type ParagraphFormat = Record<string, any>;
+
+/** Párrafo de una caja (o.paragraphMap[i]): estilo vinculado y ajustes locales. */
+export interface ParagraphMeta {
+  styleId: string | null;
+  overrides: ParagraphFormat;
+}
+
+/** Estilo de párrafo del libro (book.paragraphStyles). */
+export interface ParagraphStyle {
+  id: string;
+  name: string;
+  properties: ParagraphFormat;
+}
+
+/** Instancia con nombre de una fuente variable (fonts.js). */
+type FontInstance = { name: string; [extra: string]: any };
+
+/** Eje de una fuente variable, como lo muestra el panel. */
+interface FontAxis {
+  tag: string;
+  name?: string;
+  normal: number;
+  min: number;
+  max: number;
+}
+
+/** Cara del catálogo de fuentes, con lo que usa este archivo (fonts.js: NativeFontFace). */
+interface CatalogFace {
+  id: string;
+  family: string;
+  style: string;
+  weight: number;
+  italic: boolean;
+  axes: FontAxis[];
+  instances: FontInstance[];
+  [extra: string]: any;
+}
+
+declare global {
+  /** Palabras del panel de párrafos en el idioma actual (l, r, c, j: alineaciones). */
+  var pw: () => ParagraphWords;
+  /** Propiedades que puede tener un párrafo (las que se copian del objeto y del estilo). */
+  var paragraphKeys: string[];
+  /** Párrafo elegido en el inspector (index -1: todo el cuadro). */
+  var paragraphScope: { id: string | null; index: number };
+  /** Mientras es true, commit no copia los cambios del objeto a los párrafos. */
+  var paragraphOperation: boolean;
+  /** Formato efectivo de un párrafo: base del objeto + estilo + ajustes locales. */
+  var paragraphFormat: (b: Book, o: BookObject, index: number) => ParagraphFormat;
+  /** Datos del párrafo index (los crea si no existen). */
+  var paragraphMeta: (o: BookObject, index: number) => ParagraphMeta;
+  /** Ajustes locales sobre los párrafos elegidos de la caja seleccionada. */
+  var paragraphPatch: (values: ParagraphFormat) => void;
+  /** Vincula los párrafos elegidos a un estilo; null los desvincula conservando el formato. */
+  var applyParagraphStyle: (id: string | null) => void;
+  /** Párrafo elegido en el inspector, o 0. */
+  var currentParagraph: (o: BookObject) => number;
+  /** Mantiene los estilos de los párrafos que no cambiaron al editar el texto. */
+  var syncParagraphMap: (
+    oldText: string,
+    newText: string,
+    map: ParagraphMeta[] | undefined,
+  ) => ParagraphMeta[];
+}
+
 const paragraphWords = {
   es: {
     panel: 'Párrafo y estilos',
@@ -109,8 +188,10 @@ const paragraphWords = {
     base: 'Texto base',
   },
 };
-const pw = () => paragraphWords[LibroI18n.language || 'es'];
-const paragraphKeys = [
+export type ParagraphWords = (typeof paragraphWords)['es'];
+const pw = (): ParagraphWords => paragraphWords[LibroI18n.language || 'es'];
+globalThis.pw = pw;
+const paragraphKeys: string[] = [
   'font',
   'fontFaceId',
   'fontStyleName',
@@ -133,10 +214,17 @@ const paragraphKeys = [
   'spaceBefore',
   'spaceAfter',
 ];
-let paragraphScope = { id: null, index: -1 },
-  paragraphOperation = false,
-  directParagraphChange = null;
-function paragraphBase(o) {
+globalThis.paragraphKeys = paragraphKeys;
+globalThis.paragraphScope = { id: null, index: -1 };
+globalThis.paragraphOperation = false;
+/** Último cambio de un control del inspector sobre la caja (lo aplica el próximo commit). */
+let directParagraphChange: {
+  id: string;
+  key: string;
+  value: string | number;
+  time: number;
+} | null = null;
+function paragraphBase(o: BookObject): ParagraphFormat {
   return {
     font: o.font,
     size: o.size,
@@ -156,22 +244,24 @@ function paragraphBase(o) {
     ),
   };
 }
-function paragraphFormat(b, o, index) {
+function paragraphFormat(b: Book, o: BookObject, index: number): ParagraphFormat {
   const meta = o.paragraphMap?.[index] || {},
-    style = (b.paragraphStyles || []).find((s) => s.id === meta.styleId);
+    style = (b.paragraphStyles || []).find((s: ParagraphStyle) => s.id === meta.styleId);
   return { ...paragraphBase(o), ...(style?.properties || {}), ...(meta.overrides || {}) };
 }
-function paragraphIndices(o) {
+globalThis.paragraphFormat = paragraphFormat;
+function paragraphIndices(o: BookObject): number[] {
   return paragraphScope.id === o.id && paragraphScope.index >= 0
     ? [Math.min(paragraphScope.index, o.text.split('\n').length - 1)]
-    : o.text.split('\n').map((_, i) => i);
+    : o.text.split('\n').map((_: string, i: number) => i);
 }
-function paragraphMeta(o, index) {
+function paragraphMeta(o: BookObject, index: number): ParagraphMeta {
   if (!o.paragraphMap) o.paragraphMap = [];
   if (!o.paragraphMap[index]) o.paragraphMap[index] = { styleId: null, overrides: {} };
   return o.paragraphMap[index];
 }
-function paragraphPatch(values) {
+globalThis.paragraphMeta = paragraphMeta;
+function paragraphPatch(values: ParagraphFormat): void {
   const o = selectObject();
   if (!o || o.type !== 'text' || o.toc || o.locked) return;
   paragraphOperation = true;
@@ -186,18 +276,20 @@ function paragraphPatch(values) {
     paragraphOperation = false;
   }
 }
+globalThis.paragraphPatch = paragraphPatch;
 extend(
   'commit',
   (paragraphCommit) =>
-    function (fn, full = true) {
-      const o = selectObject(),
+    function (fn: () => void, full = true) {
+      // Si no hay objeto, before es null y el callback sale antes de usar o.
+      const o = selectObject() as BookObject,
         before = o?.type === 'text' ? M.clone(o) : null,
         pending = directParagraphChange;
       directParagraphChange = null;
       paragraphCommit(() => {
         fn();
         if (paragraphOperation || !before || !book.pages.some((p) => p.objects.includes(o))) return;
-        const values = {};
+        const values: ParagraphFormat = {};
         for (const key of paragraphKeys) {
           if (JSON.stringify(before[key]) !== JSON.stringify(o[key]) && o[key] !== undefined)
             values[key] = M.clone(o[key]);
@@ -226,18 +318,22 @@ extend(
 document.addEventListener(
   'change',
   (e) => {
-    const key = e.target.dataset.object;
+    // Sólo interesa si el control tiene data-object (paragraphKeys no incluye undefined).
+    const key = (e.target as HTMLInputElement).dataset.object as string;
     if (paragraphKeys.includes(key) && selectObject())
       directParagraphChange = {
-        id: selectObject().id,
+        id: selectObject()!.id,
         key,
-        value: e.target.type === 'number' ? Number(e.target.value) : e.target.value,
+        value:
+          (e.target as HTMLInputElement).type === 'number'
+            ? Number((e.target as HTMLInputElement).value)
+            : (e.target as HTMLInputElement).value,
         time: Date.now(),
       };
   },
   true,
 );
-function applyParagraphStyle(id) {
+function applyParagraphStyle(id: string | null): void {
   const o = selectObject();
   if (!o || o.type !== 'text' || o.locked || o.toc) return;
   paragraphOperation = true;
@@ -258,12 +354,14 @@ function applyParagraphStyle(id) {
     paragraphOperation = false;
   }
 }
-function currentParagraph(o) {
+globalThis.applyParagraphStyle = applyParagraphStyle;
+function currentParagraph(o: BookObject): number {
   return paragraphScope.id === o.id && paragraphScope.index >= 0
     ? Math.min(paragraphScope.index, o.text.split('\n').length - 1)
     : 0;
 }
-function styleDialog(existing) {
+globalThis.currentParagraph = currentParagraph;
+function styleDialog(existing: ParagraphStyle | null | undefined): void {
   const o = selectObject();
   if (!o || o.type !== 'text' || o.locked) return;
   const w = pw(),
@@ -290,7 +388,8 @@ function styleDialog(existing) {
       if (!name) throw Error(w.styleRequired);
       if (
         (book.paragraphStyles || []).some(
-          (s) => s.name.toLocaleLowerCase() === name.toLocaleLowerCase() && s.id !== existing?.id,
+          (s: ParagraphStyle) =>
+            s.name.toLocaleLowerCase() === name.toLocaleLowerCase() && s.id !== existing?.id,
         )
       )
         throw Error(w.styleExists);
@@ -304,7 +403,7 @@ function styleDialog(existing) {
       const font = $('#paragraphStyleFont').value,
         face = chooseDefaultFace(font);
       if (face) await ensureFace(face);
-      let props = {
+      let props: ParagraphFormat = {
         ...properties,
         font,
         size: Number($('#paragraphStyleSize').value),
@@ -355,7 +454,7 @@ function styleDialog(existing) {
     existing ? w.edit : w.new,
   );
 }
-function paragraphControls() {
+function paragraphControls(): void {
   const o = selectObject(),
     w = pw(),
     host = $('#inspectorContent');
@@ -372,16 +471,16 @@ function paragraphControls() {
     props = formats[0],
     styleIds = indices.map((i) => o.paragraphMap?.[i]?.styleId || ''),
     singleStyle = styleIds.every((id) => id === styleIds[0]) ? styleIds[0] : 'mixed',
-    style = (book.paragraphStyles || []).find((s) => s.id === singleStyle);
+    style = (book.paragraphStyles || []).find((s: ParagraphStyle) => s.id === singleStyle);
   sectionNode.innerHTML = `<div class="section-heading">¶ ${w.panel}</div><div class="field-row"><label>${w.scope}</label><select id="paragraphScope"><option value="-1">${w.all}</option>${o.text
     .split('\n')
     .map(
-      (text, i) =>
+      (text: string, i: number) =>
         `<option value="${i}" ${paragraphScope.index === i ? 'selected' : ''}>${w.paragraph} ${i + 1} · ${esc(text.slice(0, 25) || '—')}</option>`,
     )
     .join(
       '',
-    )}</select></div><div class="field-row"><label>${w.style}</label><select id="paragraphStyle"><option value="">${w.none}</option>${singleStyle === 'mixed' ? `<option value="mixed" selected disabled>${w.mixed}</option>` : ''}${(book.paragraphStyles || []).map((s) => `<option value="${s.id}" ${singleStyle === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></div><div class="paragraph-align">${[
+    )}</select></div><div class="field-row"><label>${w.style}</label><select id="paragraphStyle"><option value="">${w.none}</option>${singleStyle === 'mixed' ? `<option value="mixed" selected disabled>${w.mixed}</option>` : ''}${(book.paragraphStyles || []).map((s: ParagraphStyle) => `<option value="${s.id}" ${singleStyle === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></div><div class="paragraph-align">${[
     ['left', w.l],
     ['center', w.c],
     ['right', w.r],
@@ -420,24 +519,25 @@ function paragraphControls() {
   bindParagraphHyphenation(o, formats);
   $('#paragraphScope').value = paragraphScope.index;
   $('#paragraphScope').onchange = (e) => {
-    paragraphScope = { id: o.id, index: Number(e.target.value) };
+    paragraphScope = { id: o.id, index: Number((e.target as HTMLSelectElement).value) };
     inspector();
   };
   $('#paragraphStyle').value = singleStyle;
-  $('#paragraphStyle').onchange = (e) => applyParagraphStyle(e.target.value);
+  $('#paragraphStyle').onchange = (e) => applyParagraphStyle((e.target as HTMLSelectElement).value);
   sectionNode
-    .querySelectorAll('[data-paragraph-align]')
+    .querySelectorAll<HTMLElement>('[data-paragraph-align]')
     .forEach((b) => (b.onclick = () => paragraphPatch({ align: b.dataset.paragraphAlign })));
-  sectionNode.querySelectorAll('[data-paragraph]').forEach(
+  sectionNode.querySelectorAll<HTMLInputElement>('[data-paragraph]').forEach(
     (input) =>
       (input.onchange = () => {
         const value = Number(input.value);
         if (Number.isFinite(value) && value >= Number(input.min) && value <= Number(input.max))
-          paragraphPatch({ [input.dataset.paragraph]: value });
+          paragraphPatch({ [input.dataset.paragraph!]: value });
         else inspector();
       }),
   );
-  $('#paragraphLastAlign').onchange = (e) => paragraphPatch({ lastAlign: e.target.value });
+  $('#paragraphLastAlign').onchange = (e) =>
+    paragraphPatch({ lastAlign: (e.target as HTMLSelectElement).value });
   $('#newParagraphStyle').onclick = () => styleDialog(null);
   $('#editParagraphStyle').onclick = () => styleDialog(style);
   $('#redefineParagraphStyle').title = w.redefine;
@@ -465,16 +565,20 @@ function paragraphControls() {
   };
   $('#detachParagraphStyle').onclick = () => applyParagraphStyle(null);
   if (o.locked)
-    sectionNode.querySelectorAll('input,select,button').forEach((el) => (el.disabled = true));
+    sectionNode
+      .querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLButtonElement>(
+        'input,select,button',
+      )
+      .forEach((el) => (el.disabled = true));
   for (const key of ['font', 'size', 'leading', 'color']) {
-    const el = host.querySelector(`[data-object="${key}"]`);
+    const el = host.querySelector<UIElement>(`[data-object="${key}"]`);
     if (el && props[key] !== undefined)
       el.value = typeof props[key] === 'number' ? Number(props[key].toFixed(2)) : props[key];
   }
-  const face = selectedFace(props),
-    variant = host.querySelector('#fontVariant');
+  const face = selectedFace(props) as CatalogFace | undefined,
+    variant = host.querySelector<HTMLSelectElement>('#fontVariant');
   if (variant && face) {
-    const variants = [];
+    const variants: [string, string][] = [];
     for (const f of familyFaces(props.font)) {
       variants.push([f.id, f.style]);
       f.instances.forEach((i, index) => variants.push([f.id + '@' + index, i.name]));
@@ -485,13 +589,13 @@ function paragraphControls() {
     const named = face.instances.findIndex((i) => i.name === props.fontStyleName);
     variant.value = face.id + (named >= 0 ? '@' + named : '');
     variant.onchange = async (e) => {
-      const [id, inst] = e.target.value.split('@'),
+      const [id, inst] = (e.target as HTMLSelectElement).value.split('@'),
         f = nativeFaces.find((f) => f.id === id);
       if (f) await applyFace(o, f, inst !== undefined ? f.instances[Number(inst)] : null);
     };
   }
   host
-    .querySelectorAll('[data-align]')
+    .querySelectorAll<HTMLElement>('[data-align]')
     .forEach((el) => el.classList.toggle('active', el.dataset.align === props.align));
 }
 decorateInspector(() => {
@@ -500,7 +604,7 @@ decorateInspector(() => {
 extend(
   'applyFace',
   (faceBeforeParagraphs) =>
-    async function (o, face, instance) {
+    async function (o: BookObject, face: CatalogFace, instance: FontInstance | null) {
       await ensureFace(face);
       if (
         o === selectObject() &&
@@ -522,11 +626,15 @@ extend(
     },
   'paragraphs',
 );
-function syncParagraphMap(oldText, newText, map) {
+function syncParagraphMap(
+  oldText: string,
+  newText: string,
+  map: ParagraphMeta[] | undefined,
+): ParagraphMeta[] {
   const a = oldText.split('\n'),
     b = newText.split('\n'),
     old = map || [],
-    out = [];
+    out: ParagraphMeta[] = [];
   let prefix = 0;
   while (prefix < a.length && prefix < b.length && a[prefix] === b[prefix]) {
     out[prefix] = M.clone(old[prefix] || { styleId: null, overrides: {} });
@@ -550,21 +658,23 @@ function syncParagraphMap(oldText, newText, map) {
     );
   return out;
 }
+globalThis.syncParagraphMap = syncParagraphMap;
 extend.result(
   'paper',
-  function (page, index, px, print = false) {
+  function (page: HTMLElement, index: number, px: number, print = false) {
     for (const o of book.pages[index].objects) {
       if (o.type !== 'text' || o.toc) continue;
       const el = page.querySelector(`[data-id="${o.id}"]`),
-        content = el?.querySelector('.text-content');
+        content = el?.querySelector<HTMLElement>('.text-content');
       if (!content) continue;
       content.replaceChildren();
-      o.text.split('\n').forEach((line, i) => {
+      o.text.split('\n').forEach((line: string, i: number) => {
         const f = paragraphFormat(book, o, i),
-          face = selectedFace(f),
+          face = selectedFace(f) as CatalogFace | undefined,
           p = document.createElement('div');
         p.className = 'mqt-paragraph';
-        p.dataset.paragraphIndex = i;
+        // dataset convierte el número en texto (igual que antes).
+        p.dataset.paragraphIndex = i as unknown as string;
         setHyphenatedText(p, line, f);
         Object.assign(p.style, {
           fontFamily:
@@ -609,7 +719,7 @@ extend.result(
         );
         content.addEventListener('paste', (e) => {
           e.preventDefault();
-          document.execCommand('insertText', false, e.clipboardData.getData('text/plain'));
+          document.execCommand('insertText', false, e.clipboardData!.getData('text/plain'));
         });
       }
     }
@@ -619,14 +729,14 @@ extend.result(
 );
 extend.result(
   'ensureBookFonts',
-  async function (pending) {
+  async function (pending: Promise<unknown>) {
     await pending;
-    const wanted = new Map();
+    const wanted = new Map<string, CatalogFace>();
     for (const p of book.pages)
       for (const o of p.objects)
         if (o.type === 'text' && !o.toc)
           for (let i = 0; i < o.text.split('\n').length; i++) {
-            const f = selectedFace(paragraphFormat(book, o, i));
+            const f = selectedFace(paragraphFormat(book, o, i)) as CatalogFace | undefined;
             if (f) wanted.set(f.id, f);
           }
     await Promise.all([...wanted.values()].map((f) => ensureFace(f).catch(() => {})));
@@ -650,11 +760,12 @@ extend(
 document.addEventListener('selectionchange', () => {
   if (!editing) return;
   const anchor = window.getSelection()?.anchorNode,
-    element = anchor?.nodeType === 1 ? anchor : anchor?.parentElement,
-    paragraph = element?.closest('.mqt-paragraph');
+    element = (anchor?.nodeType === 1 ? anchor : anchor?.parentElement) as
+      Element | null | undefined,
+    paragraph = element?.closest<HTMLElement>('.mqt-paragraph');
   if (paragraph && editing.contains(paragraph)) {
     const index = Number(paragraph.dataset.paragraphIndex),
-      id = editing.dataset.id;
+      id = editing.dataset.id!;
     if (paragraphScope.id !== id || paragraphScope.index !== index) {
       paragraphScope = { id, index };
       queueMicrotask(() => {
@@ -668,7 +779,7 @@ decorateInspector(() => {
   const o = selectObject();
   if (!o || o.type !== 'text' || o.toc) return;
   const props = paragraphFormat(book, o, currentParagraph(o)),
-    face = selectedFace(props),
+    face = selectedFace(props) as CatalogFace | undefined,
     variant = $('#fontVariant'),
     block = variant?.closest('.font-variant-block'),
     specimen = $('#fontSpecimen');
@@ -679,18 +790,18 @@ decorateInspector(() => {
   if (face.axes.length) {
     const holder = document.createElement('div');
     holder.className = 'paragraph-variable-axes';
-    holder.innerHTML = `<div class="sub-label">${fw().axes}</div>${face.axes.map((a) => `<div class="font-axis"><div><label>${esc(a.name || a.tag)} <span>${a.tag}</span></label><output>${Number(props.fontAxes?.[a.tag] ?? a.normal).toFixed(1)}</output></div><input type="range" data-paragraph-axis="${a.tag}" min="${a.min}" max="${a.max}" step="${a.tag === 'wght' ? 1 : 0.1}" value="${props.fontAxes?.[a.tag] ?? a.normal}" ${o.locked ? 'disabled' : ''}></div>`).join('')}`;
+    holder.innerHTML = `<div class="sub-label">${fw().axes}</div>${face.axes.map((a: FontAxis) => `<div class="font-axis"><div><label>${esc(a.name || a.tag)} <span>${a.tag}</span></label><output>${Number(props.fontAxes?.[a.tag] ?? a.normal).toFixed(1)}</output></div><input type="range" data-paragraph-axis="${a.tag}" min="${a.min}" max="${a.max}" step="${a.tag === 'wght' ? 1 : 0.1}" value="${props.fontAxes?.[a.tag] ?? a.normal}" ${o.locked ? 'disabled' : ''}></div>`).join('')}`;
     block.insertBefore(holder, specimen);
     holder.querySelectorAll('input').forEach((input) => {
       input.oninput = () =>
-        (input.previousElementSibling.querySelector('output').textContent = Number(
+        (input.previousElementSibling!.querySelector('output')!.textContent = Number(
           input.value,
         ).toFixed(1));
       input.onchange = () => {
         const axes = {
           ...variations(face),
           ...(props.fontAxes || {}),
-          [input.dataset.paragraphAxis]: Number(input.value),
+          [input.dataset.paragraphAxis!]: Number(input.value),
         };
         paragraphPatch({
           fontAxes: axes,
