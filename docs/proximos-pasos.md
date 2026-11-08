@@ -12,13 +12,11 @@ npm run self-test   # 25+ pasos sobre la app real; capturas en %APPDATA%\Maqueta
 
 Commits en castellano, sin líneas de autoría de IA.
 
-## 1. Inspector como registro de paneles y decoradores
+## 1. Inspector como registro (hecho) → seguir con las otras funciones
 
-Diseño y relevamiento completo en `docs/arquitectura.md` → "Próximo paso de arquitectura". Las 17 extensiones de `inspector` ya pasan por `extend()` (`LibroStudio/v3/app/extend.js`). Pasos:
+Las 17 extensiones de `inspector` pasan por el registro (`inspector-registry.js`): `decorateInspector`, `registerInspectorPanel` (Estructura, Objeto, Capas) y `pauseInspectorWhile` (ajuste en vivo de maestras). El scroll y los `<details>` abiertos se conservan una sola vez, por fuera de toda la cadena (`extend.around`). Ningún módulo llama `extend('inspector', …)` directamente.
 
-1. Hecho: `decorateInspector(fn)` y `registerInspectorPanel(tab, render)` en `inspector-registry.js`; 14 de las 17 extensiones convertidas (decoradores y la pestaña Estructura). **Faltan 3**: pestaña Objeto (`inspector-organization.js`), pestaña Capas (`layout-tools.js`) y la envoltura de `master-refinement.js` (pausa durante el ajuste en vivo + conservar scroll y `<details>`).
-2. Convertir una extensión por vez, de las más simples a las más complejas: decoradores puros (editorial-learning, font-browser, font-glyphs, shapes, document-units) → decoradores por pestaña (paragraphs ×2, page-exceptions, review-workspace, fonts, folio-position, editorial-rules) → rutas (book-workflow: `structure`; inspector-organization: `object`) → envoltura (master-refinement).
-3. Autoprueba después de cada grupo. Ver el orden con `MaquetarioExtensions.list().inspector`.
+Siguiente, con el mismo enfoque: `render` (6), `paper` (5), `prepareOutput` (4), `coverEditor` (4) y `autoElement` (4); después las 14 de `runIntegrationTests` a un registro de pruebas. Ver qué módulo extiende cada función con `MaquetarioExtensions.list()`. Autoprueba después de cada función convertida.
 
 ## 2. Vaciar la capa legacy
 

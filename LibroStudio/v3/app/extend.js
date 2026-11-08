@@ -7,27 +7,53 @@
 // - ninguna pieza reasigna la función global: la instala este registro una sola vez;
 // - la lista de extensiones de cada función se puede consultar (MaquetarioExtensions.list());
 // - es el paso previo para convertir las extensiones en paneles y decoradores con nombre.
+//
+// extend.around(name, factory, origin) envuelve la cadena completa y queda siempre por fuera,
+// aunque se registren extensiones después. Sus fábricas se vuelven a llamar cada vez que la
+// cadena cambia, así que no deben tener efectos al construirse.
 (function () {
   'use strict';
   const registry = new Map();
 
-  function extend(name, factory, origin = '') {
+  function entryFor(name) {
     let entry = registry.get(name);
     if (!entry) {
       const base = window[name];
       if (typeof base !== 'function') throw new Error(`extend: "${name}" no es una función global`);
-      entry = { base, factories: [], composed: base };
+      entry = { base, factories: [], arounds: [], inner: base, composed: base };
       registry.set(name, entry);
       window[name] = function (...args) {
         return entry.composed.apply(this, args);
       };
     }
-    entry.factories.push({ factory, origin });
-    entry.composed = factory(entry.composed);
+    return entry;
   }
+
+  function recompose(entry) {
+    entry.composed = entry.arounds.reduce((fn, a) => a.factory(fn), entry.inner);
+  }
+
+  function extend(name, factory, origin = '') {
+    const entry = entryFor(name);
+    entry.factories.push({ factory, origin });
+    entry.inner = factory(entry.inner);
+    recompose(entry);
+  }
+
+  extend.around = function (name, factory, origin = '') {
+    const entry = entryFor(name);
+    entry.arounds.push({ factory, origin });
+    recompose(entry);
+  };
 
   window.extend = extend;
   window.MaquetarioExtensions = Object.freeze({
-    list: () => Object.fromEntries([...registry].map(([name, e]) => [name, e.factories.map((f) => f.origin)])),
+    list: () =>
+      Object.fromEntries(
+        [...registry].map(([name, e]) => [
+          name,
+          [...e.factories.map((f) => f.origin), ...e.arounds.map((a) => `${a.origin} (envoltura)`)],
+        ]),
+      ),
   });
 })();

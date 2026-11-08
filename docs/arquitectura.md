@@ -157,7 +157,7 @@ Sin firma, Windows muestra "editor desconocido" (SmartScreen) y macOS bloquea la
 
 Las 127 cadenas en las que un módulo reemplazaba una función global (`const anterior = f; f = function () {…}`) se convirtieron a `extend('f', anterior => function () {…}, 'módulo')` (`LibroStudio/v3/app/extend.js`). El orden de ejecución es el mismo; ninguna pieza reasigna funciones globales y `MaquetarioExtensions.list()` muestra qué módulo extiende cada función. `npm run lint:design` cuenta los reemplazos hechos a mano para que no vuelvan.
 
-## Próximo paso de arquitectura: el inspector como registro
+## El inspector como registro (hecho)
 
 `inspector()` es la función más reemplazada por otros módulos (12 veces; el patrón completo aparece 127 veces, ver `npm run lint:design`). Relevamiento de las 12 cadenas:
 
@@ -175,13 +175,14 @@ Las 127 cadenas en las que un módulo reemplazaba una función global (`const an
 | shapes.js | decorador | `shapeAppearance()` |
 | tutorial.js | decorador | bloquea controles si el objeto está bloqueado |
 
-Diseño propuesto (en `studio.js`, junto a `inspector()`):
+Diseño (en `inspector-registry.js`, cargado justo después de `studio.js`):
 
 - `registerInspectorPanel(tab, render)`: una pestaña con panel propio reemplaza el contenido base (estructura, objeto).
 - `decorateInspector(fn, { tab })`: corre después del contenido base, en orden de registro (el mismo orden que hoy).
-- `inspector()` guarda y restaura scroll y `<details>` abiertos una sola vez (hoy lo hacen la base y master-refinement) y respeta una guarda `inspectorPaused()` para el ajuste en vivo de maestras.
+- `pauseInspectorWhile(cond)`: mientras `cond()` sea verdadera, `inspector()` no redibuja (master-refinement, durante el ajuste en vivo de maestras).
+- Una envoltura externa (`extend.around`, siempre por fuera de la cadena) guarda y restaura el scroll y los `<details>` abiertos una sola vez, con claves estables (`inspectorDetailKey`: campo, id o título). La base ya no lo hace por posición.
 
-Cada cadena se convierte en una línea de registro; ningún módulo reasigna `inspector`. Mismo enfoque después para `render` (6), `paper` (5), `prepareOutput` (4), `coverEditor` (4) y `autoElement` (4). Las 14 de `runIntegrationTests` pasan a un registro de pruebas (`registerIntegrationTest`).
+Cada cadena es una línea de registro; ningún módulo reasigna `inspector`. Sigue el mismo enfoque para `render` (6), `paper` (5), `prepareOutput` (4), `coverEditor` (4) y `autoElement` (4). Las 14 de `runIntegrationTests` pasan a un registro de pruebas (`registerIntegrationTest`).
 
 Criterio de aceptación: autoprueba completa en verde, contador de reemplazos de funciones globales en baja en `npm run lint:design`.
 
