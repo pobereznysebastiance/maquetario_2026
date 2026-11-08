@@ -4,10 +4,6 @@ body :is(.btn,.tool,.icon-btn,.format-option,.tool-action,button.quiet,input:not
   border-radius: var(--control-radius);
 }
 body .close-publication-modal { border-radius:var(--radius-lg); }
-.section-heading { font-weight: 650; letter-spacing: -.015em; }
-.section-heading .icon { color: #83dbca; }
-.field-row label { font-weight: 450; }
-.sub-label { color: #e9c08a; font-weight: 600; }
 body .inspector .tabs { overflow: hidden; align-items: stretch; }
 .tabs .tab {
   flex: 0 0 auto;
@@ -19,9 +15,6 @@ body .inspector .tabs { overflow: hidden; align-items: stretch; }
   font-weight: 500;
   white-space: nowrap;
 }
-.tabs .tab.active { font-weight: 650; }
-.tabs .tab .icon { width: 14px; height: 14px; color: #81c5bd; }
-.tabs .tab.active .icon { color: #ecc18a; }
 .tabs .tab[hidden],#moreCategories[hidden],#categoryMenu[hidden] { display: none; }
 #moreCategories { margin-left: auto; flex: 0 0 36px; border: 0; background: #122b31; color: #b3e6df; }
 #moreCategories.active { color: #f0c086; box-shadow: inset 0 -2px #e5b46e; }

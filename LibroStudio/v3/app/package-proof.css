@@ -6,7 +6,6 @@
   border: 1px solid #68B3AA44;
   border-radius:var(--radius-md);
 }
-.hyphenation-controls select { width: 100%; }
 .mqt-paragraph { overflow-wrap: normal; word-break: normal; }
 .cover-tabs button[hidden] { display: none; }
 .cover-sheet-dialog { width: min(940px, 94vw); }

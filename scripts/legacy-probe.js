@@ -56,7 +56,9 @@
         if (new RegExp(DYNAMIC.source).test(selectors)) { state.dynamic.add(key); continue; }
         const isRoot = /^:root|^body\b|^html\b/.test(selectors);
         const pairs = isRoot ? [...document.querySelectorAll('*')].slice(0, 4000).map((e) => [e, null]) : targets(rule);
-        const props = isRoot ? ROOT_PROPS : [...new Set(flat(rule).flatMap((r) => [...r.style]))].filter((p) => !p.startsWith('--'));
+        // En html/body/:root también cuentan sus propias propiedades (márgenes, fuente base…), no sólo colores.
+        const own = [...new Set(flat(rule).flatMap((r) => [...r.style]))].filter((p) => !p.startsWith('--'));
+        const props = isRoot ? [...new Set(ROOT_PROPS.concat(own, ['font-size', 'font-family', 'line-height', 'margin-top', 'margin-left', 'padding-top', 'width', 'height']))] : own;
         if (!pairs.length || !props.length) continue;
         tested++; state.tested.add(key);
         const before = snapshot(pairs, props);
@@ -107,6 +109,35 @@
     // Para scripts/prune-css.cjs:
     groups.clavesMuertas = JSON.stringify(groups.muertas.map((r) => r.split(' ')[0]));
     return groups;
+  };
+  // Confirmación acumulativa: legacyProbe prueba cada regla sola, y dos reglas duplicadas en hojas
+  // distintas parecen muertas por separado aunque no lo estén juntas. legacyConfirm('estado', claves)
+  // las borra de a una SIN reponerlas (de la última a la primera en cada hoja, para no correr índices):
+  // si borrar una cambia algo con las anteriores ya borradas, se repone y queda como necesaria.
+  // Al final repone todo. Devuelve las claves que siguen siendo borrables en este estado; correrlo
+  // en cada estado pasándole lo que devolvió el anterior.
+  window.legacyConfirm = (label, keys) => {
+    const found = sheets(), removed = [], needed = [];
+    const ordered = [...keys].sort((a, b) => {
+      const [fa, ia] = a.split('#'), [fb, ib] = b.split('#');
+      return fa === fb ? Number(ib) - Number(ia) : FILES.indexOf(fa) - FILES.indexOf(fb);
+    });
+    for (const key of ordered) {
+      const [file, i] = key.split('#'), sheet = found[file], index = Number(i), rule = sheet.cssRules[index];
+      const text = rule.cssText, selectors = flat(rule).map((r) => r.selectorText).join(',');
+      const isRoot = /^:root|^body\b|^html\b/.test(selectors);
+      const pairs = isRoot ? [...document.querySelectorAll('*')].slice(0, 4000).map((e) => [e, null]) : targets(rule);
+      const own = [...new Set(flat(rule).flatMap((r) => [...r.style]))].filter((p) => !p.startsWith('--'));
+      const props = isRoot ? [...new Set(ROOT_PROPS.concat(own))] : own;
+      const before = pairs.length && props.length ? snapshot(pairs, props) : [];
+      sheet.deleteRule(index);
+      const after = pairs.length && props.length ? snapshot(pairs, props) : [];
+      if (before.some((v, k) => v !== after[k])) { sheet.insertRule(text, index); needed.push(key); }
+      else removed.push([sheet, index, text]);
+    }
+    for (const [sheet, index, text] of removed.reverse()) sheet.insertRule(text, index);
+    window.__legacyNeeded = (window.__legacyNeeded || []).concat(needed.map((k) => k + ' (' + label + ')'));
+    return keys.filter((k) => !needed.includes(k));
   };
   return 'sonda lista para ' + FILES.join(', ');
 })();
