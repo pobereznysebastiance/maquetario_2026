@@ -48,7 +48,8 @@
         "to": "renderer",
         "filter": [
           "**/*",
-          "!**/*-tests.js"
+          "!**/*-tests.js",
+          "!tests/**"
         ]
       }
     ],

@@ -33,7 +33,7 @@ Quedan **13 envolturas de verdad** con `extend(f, anterior => …)`: miran el es
 
 Al cerrar la conversión, los PDF y los JSON de verificación de la autoprueba salieron idénticos a los de antes, y las capturas difieren como mucho en 1/255 por canal (suavizado del renderizado).
 
-Sigue (etapa 2 de `arquitectura.md`): sacar del build de producción las pruebas que todavía viven dentro de módulos de la app (`output.js`, `shapes.js`, `layout-tools.js`…), pasándolas a archivos `*-tests.js`; después TypeScript y módulos.
+Etapa 2 en marcha: ver "Etapa 2" más abajo.
 
 ## 2. Vaciar la capa legacy (hecho)
 
@@ -65,8 +65,20 @@ Verificado al mudar: `style-snapshot` idéntico con las hojas viejas y con `book
 ### Para retomar (orden sugerido)
 
 1. ~~Diálogos que eran columnas largas~~ (hecho el 8-nov): Configuración del libro y Crear una publicación en dos columnas (tamaños de página y nota de medidas a la izquierda, datos a la derecha; de 820 × 747 a 1040 × 564, entra sin desplazamiento en 1150 × 700); glosario de 930 × 737 a 1100 × 649 con una sola acción ("Volver al editor"); en Cubierta queda un solo par de botones de imagen.
-2. Bajar los 107 estilos en línea desde JS (`lint:design` los cuenta): la mayoría son posiciones del libro, que se quedan; los de la interfaz pasan a clases.
-3. Después: etapa 2 de `arquitectura.md` (pruebas fuera del build, TypeScript y módulos).
+2. Bajar los estilos en línea desde JS (`lint:design` los cuenta; 99 al sacar las pruebas): la mayoría son posiciones del libro, que se quedan; los de la interfaz (punto de guardado, contornos de la cubierta, guías de salida, cursor de figuras) pasan a clases.
+3. Etapa 2: sigue abajo.
+
+## Etapa 2: TypeScript y módulos
+
+**Hecho (8-nov):**
+
+1. **Formato.** Todo el código con prettier (`.prettierrc.json`: comillas simples, punto y coma, 100 columnas; fuera: pdf-lib, imagen de muestra y separación silábica, que son de terceros). La app pasó de 3357 líneas casi ilegibles a 16 454. `npm test` incluye `format:check`; `npm run format` formatea. `node scripts/check-same-code.mjs HEAD <archivos>` prueba que un cambio de formato no cambió el código (minifica antes y después y compara).
+2. **Pruebas fuera del instalador.** Todas en `LibroStudio/v3/app/tests/` (30 archivos): las 13 que ya eran aparte y 17 que vivían dentro de módulos (`studio`, `editorial`, `i18n`, `output`, `fonts`, `shapes`…), incluidas las bases `runIntegrationTests` y `runFontIntegrationTests`. `test-loader.js` las carga sólo en la autoprueba, en el mismo orden de registro (`verificacion.json` salió idéntico). `desktop/package.json → build.files` excluye `tests/**`. En el programa instalado, la autoprueba omite los 11 pasos que dependen de ellas (probado escondiendo `tests/`).
+
+**Sigue:**
+
+3. **Tipos sin reescribir.** `tsconfig` para la app con `allowJs` + `checkJs` y un `globals.d.ts` con lo que comparten los scripts (`book`, `M`, `render`, `$`, `extend`, `bw`…). Primero en modo informe (cuántos errores por archivo), después archivo por archivo con `// @ts-check`.
+4. **Pasar a `.ts` y a módulos**, empezando por lo que no toca la pantalla: el modelo `M` (`model.js`), `editorial-rules.js`, `document-units.js`. Al final, `import` en lugar de globales y esbuild arma un solo archivo.
 
 ## 3. Experiencia de uso
 

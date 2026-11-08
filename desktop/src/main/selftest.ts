@@ -97,7 +97,8 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   await delay(500);
   // Las confirmaciones (confirm.js) no esperan respuesta durante la autoprueba.
   await exec(session, 'window.maquetarioSelfTest = true');
-  // Las pruebas de la interfaz se cargan aparte (test-loader.js); el paquete distribuido no las trae.
+  // Las pruebas de la interfaz se cargan aparte (test-loader.js, desde tests/); el paquete distribuido
+  // no las trae, y los pasos que las usan (testStep) se omiten.
   const loaderDone = await waitFor(session, 'window.maquetarioTestsReady !== undefined', 150, 100);
   const testsIncluded = loaderDone && (await exec(session, 'window.maquetarioTestsReady')) === true;
   if (!testsIncluded)
@@ -108,7 +109,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     if (testsIncluded) return step(name, work);
     results.push({ step: name, ok: true, skipped: true, detail: 'omitido: paquete sin pruebas' });
   };
-  await step('interfaz: pruebas de integración', () =>
+  await testStep('interfaz: pruebas de integración', () =>
     uiSuite(
       'verificacion.json',
       '(()=>{try{return window.runIntegrationTests()}catch(e){return JSON.stringify({ok:false,error:e.stack})}})()',
@@ -116,7 +117,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   );
   await step('guardar sobre un archivo existente', () => checkProjectSaving(session));
   await step('proyectos recientes', () => checkRecents());
-  await step('fuentes del sistema', () =>
+  await testStep('fuentes del sistema', () =>
     uiSuite(
       'verificacion-fuentes.json',
       'window.runFontIntegrationTests().catch(e=>({ok:false,error:e.message}))',
@@ -133,7 +134,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   await step('PDF del índice', () =>
     writePdf('prueba-indice.pdf', 'window.prepareIndexPrint()', A5, 200),
   );
-  await step('PDF con marcas de corte', () =>
+  await testStep('PDF con marcas de corte', () =>
     writePdf(
       'prueba-marcas.pdf',
       'window.prepareMarkedOutputTest()',
@@ -141,7 +142,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
       300,
     ),
   );
-  await step('PDF tipográfico', async () => {
+  await testStep('PDF tipográfico', async () => {
     await exec(session, 'window.prepareFontPdfTest()');
     return writePdf('prueba-fuentes.pdf', 'void 0', A5, 200);
   });
@@ -321,7 +322,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
       'window.runNavigationTests().catch(e=>({ok:false,error:e.stack}))',
     ),
   );
-  await step('avisos', () =>
+  await testStep('avisos', () =>
     uiSuite(
       'verificacion-avisos.json',
       'window.runNoticeTests().catch(e=>({ok:false,error:e.stack}))',
