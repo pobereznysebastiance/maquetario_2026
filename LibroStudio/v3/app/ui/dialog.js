@@ -1,8 +1,9 @@
 // Diálogo general (#modal): variantes y limpieza al cerrar.
-// El evento "close" llega tarde (en otra vuelta del navegador). Si un diálogo se cierra y enseguida se
-// abre otro, el "close" atrasado del primero disparaba la limpieza que acababa de registrar el segundo:
-// le sacaba su clase (Preparar PDF y Cubierta quedaban angostos) o sus botones. Acá cada limpieza queda
-// atada a la apertura en la que se registró y corre sólo cuando se cierra esa apertura.
+// El evento "close" llega tarde (en otra tarea) y, con el hilo ocupado (vista previa del PDF) o la
+// ventana sin foco, puede tardar segundos. Si un diálogo se cierra y enseguida se abre otro, el
+// "close" atrasado del primero disparaba la limpieza del segundo (le sacaba su clase o sus botones),
+// o la limpieza no corría a tiempo y las clases se acumulaban. Acá la limpieza corre en
+// "beforetoggle", que es sincrónico: dentro del mismo close(), antes de que se abra otro diálogo.
 //
 //   dialogVariant('output-modal')        → clase del diálogo mientras dure esta apertura
 //   onDialogClose(() => actions.remove()) → algo que deshacer al cerrar esta apertura
@@ -11,17 +12,16 @@
 
   const dialog = document.getElementById('modal');
   let opened = 0;
-  let closed = 0;
   let pending = [];
 
-  // "beforetoggle" es sincrónico: la apertura queda contada antes de que el módulo registre nada.
   dialog.addEventListener('beforetoggle', (event) => {
-    if (event.newState === 'open') opened += 1;
-  });
-  dialog.addEventListener('close', () => {
-    closed += 1;
-    const due = pending.filter((task) => task.opening <= closed);
-    pending = pending.filter((task) => task.opening > closed);
+    if (event.newState === 'open') {
+      opened += 1;
+      return;
+    }
+    // Se cierra la apertura actual: corre lo registrado para ella (y para cualquier anterior).
+    const due = pending.filter((task) => task.opening <= opened);
+    pending = pending.filter((task) => task.opening > opened);
     due.forEach((task) => task.fn());
   });
 
