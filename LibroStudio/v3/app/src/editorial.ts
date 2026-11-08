@@ -32,7 +32,7 @@ function tocPanel(): string {
     section(
       'Índice del libro',
       'pages',
-      `<p class="help">Generá una tabla de contenidos con secciones, títulos marcados y entradas propias. Los folios se actualizan automáticamente.</p><div class="sub-label">Título del índice</div><input id="tocTitle" class="field-full" maxlength="250" value="${esc(config.title)}"><label class="check-line"><input id="tocSections" type="checkbox" ${config.includeSections ? 'checked' : ''}> Incluir comienzos de sección</label><label class="check-line"><input id="tocHeadings" type="checkbox" ${config.includeHeadings ? 'checked' : ''}> Incluir títulos marcados</label><button class="btn wide" id="markHeading" ${!o || o.type !== 'text' || o.toc ? 'disabled' : ''}>${o?.heading ? 'Quitar título del índice' : 'Marcar texto como título'}</button><button class="btn wide primary" id="insertToc">${icon('plus')} Colocar índice en página activa</button><p class="help">La tabla se actualiza también en el PDF. Si el contenido no entra, ampliá la caja o reducí el cuerpo.</p>`,
+      `<p class="help">Generá una tabla de contenidos con secciones, títulos marcados y entradas propias. Los folios se actualizan automáticamente.</p><div class="sub-label" id="tocTitleLabel">Título del índice</div><input id="tocTitle" aria-labelledby="tocTitleLabel" class="field-full" maxlength="250" value="${esc(config.title)}"><label class="check-line"><input id="tocSections" type="checkbox" ${config.includeSections ? 'checked' : ''}> Incluir comienzos de sección</label><label class="check-line"><input id="tocHeadings" type="checkbox" ${config.includeHeadings ? 'checked' : ''}> Incluir títulos marcados</label><button class="btn wide" id="markHeading" ${!o || o.type !== 'text' || o.toc ? 'disabled' : ''}>${o?.heading ? 'Quitar título del índice' : 'Marcar texto como título'}</button><button class="btn wide primary" id="insertToc">${icon('plus')} Colocar índice en página activa</button><p class="help">La tabla se actualiza también en el PDF. Si el contenido no entra, ampliá la caja o reducí el cuerpo.</p>`,
     ) +
     section(
       'Entradas del índice',
@@ -292,5 +292,4 @@ globalThis.prepareIndexPrint = function () {
   preparePrint();
   book = original;
 };
-$('.version').textContent = 'v3.24';
 render(true);

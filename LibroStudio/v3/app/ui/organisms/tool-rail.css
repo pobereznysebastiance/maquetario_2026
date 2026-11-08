@@ -50,12 +50,13 @@
 }
 .tool .shortcut {
   margin-left: auto;
-  color: var(--text-disabled);
+  /* Terciario: ≥4,5:1 a 10 px (el deshabilitado daba 4,2:1). */
+  color: var(--text-tertiary);
   font-size: var(--type-caption2);
   font-variant-numeric: tabular-nums;
 }
 .tool.active .shortcut {
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 /* Herramientas que abren vistas (índice, capas, cubierta): separadas por una línea. */

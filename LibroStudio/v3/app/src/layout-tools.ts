@@ -42,7 +42,8 @@ const layoutWords: Record<string, Record<string, string>> = {
   es: {
     layers: 'Capas',
     snap: 'Imán',
-    snapHint: 'Ajuste magnético a grilla, márgenes y guías. Alt lo suspende mientras arrastrás.',
+    snapHint:
+      'Imán: al mover o cambiar el tamaño de un objeto, sus bordes se ajustan a la grilla, los márgenes y las guías. Mantené Alt mientras arrastrás para moverlo libremente.',
     show: 'Mostrar / ocultar',
     lock: 'Bloquear / desbloquear',
     up: 'Subir',
@@ -56,7 +57,8 @@ const layoutWords: Record<string, Record<string, string>> = {
   en: {
     layers: 'Layers',
     snap: 'Snap',
-    snapHint: 'Snap to grids, margins and guides. Hold Alt while dragging to bypass snapping.',
+    snapHint:
+      'Snap: when you move or resize an object, its edges snap to the grid, margins and guides. Hold Alt while dragging to move it freely.',
     show: 'Show / hide',
     lock: 'Lock / unlock',
     up: 'Move up',
@@ -70,7 +72,8 @@ const layoutWords: Record<string, Record<string, string>> = {
   pt: {
     layers: 'Camadas',
     snap: 'Ímã',
-    snapHint: 'Ajuste magnético à grade, margens e guias. Segure Alt ao arrastar para desativar.',
+    snapHint:
+      'Ímã: ao mover ou redimensionar um objeto, as bordas se ajustam à grade, às margens e às guias. Segure Alt ao arrastar para movê-lo livremente.',
     show: 'Mostrar / ocultar',
     lock: 'Bloquear / desbloquear',
     up: 'Subir',

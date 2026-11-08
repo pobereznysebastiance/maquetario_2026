@@ -79,9 +79,9 @@ lesson(
     'Este percurso passa por todas as seções. Use seu livro atual: o tutorial abre painéis e destaca controles; você decide o que alterar. Pule para um tema pelo seletor ou continue com as setas. O progresso fica salvo neste computador.',
   ],
   [
-    'Empezá con el ejemplo o con un proyecto propio. No hace falta terminar el recorrido de una vez.',
-    'Start with the example or your own project. You can pause and resume at any time.',
-    'Comece pelo exemplo ou por seu projeto. Você pode pausar e retomar a qualquer momento.',
+    'Empezá con el ejemplo o con un libro propio. No hace falta terminar el recorrido de una vez.',
+    'Start with the example or your own book. You can pause and resume at any time.',
+    'Comece pelo exemplo ou por seu livro. Você pode pausar e retomar a qualquer momento.',
   ],
 );
 lesson(
@@ -137,9 +137,9 @@ lesson(
   'grid',
   'design',
   '[data-bind="grid.cols"]',
-  ['4. Construir la retícula', '4. Build the grid', '4. Construa a grade'],
+  ['4. Construir la grilla', '4. Build the grid', '4. Construa a grade'],
   [
-    'Columnas divide el ancho y Filas divide el alto. El medianil horizontal separa columnas; el vertical separa filas. Ajustar a los márgenes limita los módulos al área útil; ajustar al borde usa toda la página. La retícula orienta tu composición, pero no divide automáticamente el contenido de una caja de texto.',
+    'Columnas divide el ancho y Filas divide el alto. El medianil horizontal separa columnas; el vertical separa filas. Ajustar a los márgenes limita los módulos al área útil; ajustar al borde usa toda la página. La grilla orienta tu composición, pero no divide automáticamente el contenido de una caja de texto.',
     'Columns divide width and rows divide height. Horizontal gutters separate columns; vertical gutters separate rows. Fit to margins uses the content area; fit to page uses the full page. The grid guides your layout but does not automatically split text into columns.',
     'Colunas dividem a largura e linhas dividem a altura. O espaçamento horizontal separa colunas; o vertical separa linhas. Ajustar às margens usa a área útil; ajustar à página usa toda a folha. A grade orienta a composição, mas não divide automaticamente o texto de uma caixa.',
   ],
@@ -155,7 +155,7 @@ lesson(
   '#inspectorContent',
   ['5. Agregar guías particulares', '5. Add individual guides', '5. Adicione guias individuais'],
   [
-    'En Grilla, abrí Guías individuales y elegí Agregar guía. Indicá orientación y distancia desde el borde superior o izquierdo. Se aplica a todas las páginas y sirve para alinear elementos que no coinciden con la retícula. Quitá una guía con la cruz de su fila.',
+    'En Grilla, abrí Guías individuales y elegí Agregar guía. Indicá orientación y distancia desde el borde superior o izquierdo. Se aplica a todas las páginas y sirve para alinear elementos que no coinciden con la grilla. Quitá una guía con la cruz de su fila.',
     'In Grid, expand Individual guides and choose Add guide. Set orientation and distance from the top or left edge. The guide applies to every page and helps align elements outside the regular grid. Remove one with the cross beside it.',
     'Em Grade, abra Guias individuais e Adicionar guia. Informe a orientação e a distância da borda superior ou esquerda. A guia vale para todas as páginas e ajuda a alinhar elementos fora da grade. Remova pela cruz da linha.',
   ],
@@ -203,9 +203,9 @@ lesson(
   '#snapButton',
   ['8. Alinear con el imán', '8. Align with snapping', '8. Alinhe com o ímã'],
   [
-    'Activá Imán en la barra del documento. Al mover o redimensionar, los bordes cercanos encajan en márgenes, guías y límites de módulos, incluidos ambos lados del medianil. La tolerancia se mide en pantalla para conservar una sensación similar con distintos niveles de zoom. Alt suspende el ajuste mientras arrastrás.',
-    'Enable Snap in the document bar. Nearby frame edges snap to margins, guides and module boundaries, including both sides of gutters. Tolerance is measured on screen for consistent behavior at different zoom levels. Hold Alt while dragging to bypass it.',
-    'Ative Ímã na barra do documento. As bordas próximas se ajustam às margens, guias e limites dos módulos, incluindo os dois lados dos espaçamentos. A tolerância é medida na tela para funcionar bem em diferentes níveis de zoom. Segure Alt ao arrastar para suspender o ajuste.',
+    'Activá Imán en la barra que está sobre el lienzo. Al mover o redimensionar, los bordes cercanos encajan en márgenes, guías y límites de módulos, incluidos ambos lados del medianil. La tolerancia se mide en pantalla para conservar una sensación similar con distintos niveles de zoom. Alt suspende el ajuste mientras arrastrás.',
+    'Enable Snap in the bar above the canvas. Nearby frame edges snap to margins, guides and module boundaries, including both sides of gutters. Tolerance is measured on screen for consistent behavior at different zoom levels. Hold Alt while dragging to bypass it.',
+    'Ative Ímã na barra acima da tela. As bordas próximas se ajustam às margens, guias e limites dos módulos, incluindo os dois lados dos espaçamentos. A tolerância é medida na tela para funcionar bem em diferentes níveis de zoom. Segure Alt ao arrastar para suspender o ajuste.',
   ],
   [
     'Acercá un borde a una línea celeste. Compará el movimiento con Imán activado y con Alt presionado.',
@@ -457,7 +457,7 @@ lesson(
   '#templates',
   ['23. Comparar plantillas', '23. Compare templates', '23. Compare modelos'],
   [
-    'Las plantillas de la franja inferior cambian la cantidad de filas y columnas de la retícula. No rediseñan ni mueven automáticamente los objetos que ya colocaste. Usalas como estructuras para experimentar y luego ajustá cada caja. Deshacer permite volver a la propuesta anterior.',
+    'Las plantillas de la franja inferior cambian la cantidad de filas y columnas de la grilla. No rediseñan ni mueven automáticamente los objetos que ya colocaste. Usalas como estructuras para experimentar y luego ajustá cada caja. Deshacer permite volver a la propuesta anterior.',
     'Bottom templates change grid rows and columns. They do not automatically redesign or move existing objects. Use them as structures for experimentation, then adjust frames individually. Undo returns to the previous design.',
     'Os modelos inferiores alteram linhas e colunas da grade. Eles não redesenham nem movem objetos existentes automaticamente. Use como estrutura para experimentar e ajuste cada caixa. Desfazer retorna à proposta anterior.',
   ],

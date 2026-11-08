@@ -56,9 +56,9 @@ const text = {
   ],
   connect: ['Conectar con Motiova', 'Connect with Motiova', 'Conectar com o Motiova'],
   connecting: [
-    'Seguí en el navegador: entrá a tu cuenta de Motiova y tocá Conectar.',
+    'Seguí en el navegador: entrá a tu cuenta de Motiova y hacé clic en Conectar.',
     'Continue in your browser: sign in to Motiova and click Connect.',
-    'Continue no navegador: entre na sua conta Motiova e toque em Conectar.',
+    'Continue no navegador: entre na sua conta Motiova e clique em Conectar.',
   ],
   cancel: ['Cancelar', 'Cancel', 'Cancelar'],
   connected: [
@@ -142,7 +142,7 @@ const text = {
   workspace: ['Espacio de trabajo', 'Workspace', 'Espaço de trabalho'],
   workspaceMode: ['Espacio activo', 'Active workspace', 'Espaço ativo'],
   workspaceHelp: [
-    'Tocá cualquier casilla para armar tu espacio Personalizado. El libro no cambia.',
+    'Marcá cualquier casilla para armar tu espacio Personalizado. El libro no cambia.',
     'Tick any box to build your Custom workspace. The book does not change.',
     'Marque qualquer caixa para montar seu espaço Personalizado. O livro não muda.',
   ],
@@ -364,7 +364,7 @@ async function openSettings(focusSection?: string): Promise<void> {
     section(t('fonts'), `<p class="settings-help">${t('fontsHelp')}</p>${foldersBody()}`) +
     section(
       t('about'),
-      `<p class="settings-about">Maquetario ${esc((info && info.version) || '')}<br>${t('createdBy')} ${esc((info && info.creator) || 'Sebastián Poberezny')}</p>`,
+      `<p class="settings-about">Maquetario ${info && info.version ? 'v' + esc(info.version) : ''}<br>${t('createdBy')} ${esc((info && info.creator) || 'Sebastián Poberezny')}</p>`,
     ) +
     `</div>`;
 

@@ -430,7 +430,7 @@ function validate(input: any): Book {
     !['margins', 'page'].includes(g.fit) ||
     !validateGrid(b)
   )
-    throw Error('La retícula no cabe en la página.');
+    throw Error('La grilla no cabe en la página.');
   for (const type of AUTO_TYPES) {
     const c = b[type];
     if (

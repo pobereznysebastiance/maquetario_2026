@@ -92,7 +92,7 @@ const editorialTerms: EditorialTerm[] = [
     'layout',
     ['Módulo', 'Module', 'Módulo'],
     [
-      'Unidad rectangular formada por la intersección de columnas y filas de la retícula.',
+      'Unidad rectangular formada por la intersección de columnas y filas de la grilla.',
       'A rectangular unit formed by intersecting grid columns and rows.',
       'Unidade retangular formada pelo encontro de colunas e linhas da grade.',
     ],
@@ -124,12 +124,12 @@ const editorialTerms: EditorialTerm[] = [
     'layout',
     ['Folio y foliado', 'Folio and pagination', 'Fólio e paginação'],
     [
-      'El folio es el número de página; el foliado es el sistema que lo asigna y presenta a lo largo de la publicación.',
+      'El folio es el número de página; el foliado es el sistema que lo asigna y presenta a lo largo del libro.',
       'A folio is a page number; pagination is the system for assigning and presenting page numbers.',
       'O fólio é o número da página; a paginação é o sistema que o atribui e apresenta.',
     ],
     [
-      'Ocultá el folio de una portada sin quitar esa página del documento.',
+      'Ocultá el folio de una portada sin quitar esa página del libro.',
       'Hide a title-page folio without removing the page.',
       'Oculte o fólio da folha de rosto sem remover a página.',
     ],
@@ -496,9 +496,9 @@ function renderGlossary(): void {
       if (!hasDocument) {
         toast(
           bw(
-            'Creá o abrí una publicación para usar las herramientas.',
-            'Create or open a publication to use the tools.',
-            'Crie ou abra uma publicação para usar as ferramentas.',
+            'Creá o abrí un libro para usar las herramientas.',
+            'Create or open a book to use the tools.',
+            'Crie ou abra um livro para usar as ferramentas.',
           ),
           'info',
         );

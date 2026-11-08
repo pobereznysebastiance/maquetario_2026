@@ -242,10 +242,10 @@ function section(
   enabled: string | null = null,
   badge = '',
 ): string {
-  return `<section class="section" data-section="${esc(title)}" data-key="${key}"><div class="section-heading">${icon(key)}<span>${title}</span>${badge ? `<span class="tiny">${badge}</span>` : ''}${enabled !== null ? toggle(enabled) : ''}</div>${body}</section>`;
+  return `<section class="section" data-section="${esc(title)}" data-key="${key}"><div class="section-heading">${icon(key)}<span${enabled !== null ? ` id="switchLabel-${enabled}"` : ''}>${title}</span>${badge ? `<span class="tiny">${badge}</span>` : ''}${enabled !== null ? toggle(enabled) : ''}</div>${body}</section>`;
 }
 function toggle(path: string): string {
-  return `<label class="switch"><input type="checkbox" data-bind="${path}" ${get(path) ? 'checked' : ''} aria-label="Activar ${esc(path.split('.')[0])}"><span></span></label>`;
+  return `<label class="switch"><input type="checkbox" data-bind="${path}" ${get(path) ? 'checked' : ''} aria-labelledby="switchLabel-${path}"><span></span></label>`;
 }
 function documentUnit(): 'mm' | 'cm' {
   return book.measurementUnit === 'cm' ? 'cm' : 'mm';
@@ -411,14 +411,14 @@ function inspector(): void {
     const p = book.pages[active];
     host.innerHTML =
       section(
-        'Documento',
+        'Libro',
         'pages',
         `<div class="page-info">${icon('pages')}<div><strong>${book.pages.length}</strong><small>páginas · ${displayDimensions(book.width, book.height)}</small></div></div><button class="btn wide" data-command="settings">${icon('settings')} Formato y configuración</button><div class="page-action"><button class="btn" data-command="addPage">${icon('plus')} Agregar</button><button class="btn" data-command="duplicate">Duplicar</button></div>`,
       ) +
       section(
         'Página ' + (active + 1),
         'file',
-        `<div class="sub-label">Comenzar sección en esta página</div><input class="field-full" id="pageSection" maxlength="250" value="${esc(p.section)}" placeholder="Ej.: Capítulo 2"><p class="help">La sección se mantiene en las páginas siguientes hasta el próximo comienzo.</p><label class="check-line"><input data-page="hideHeader" type="checkbox" ${p.hideHeader ? 'checked' : ''}> Ocultar cornisa en esta página</label><label class="check-line"><input data-page="hideTitle" type="checkbox" ${p.hideTitle ? 'checked' : ''}> Ocultar titulillo en esta página</label><label class="check-line"><input data-page="hideFolio" type="checkbox" ${p.hideFolio ? 'checked' : ''}> Ocultar folio en esta página</label><div class="page-action"><button class="btn" data-command="earlier" ${active === 0 ? 'disabled' : ''}>← Antes</button><button class="btn" data-command="later" ${active === book.pages.length - 1 ? 'disabled' : ''}>Después →</button></div><button class="btn wide danger" data-command="deletePage" ${book.pages.length === 1 ? 'disabled' : ''}>${icon('trash')} Eliminar página</button>`,
+        `<div class="sub-label" id="pageSectionLabel">Comenzar sección en esta página</div><input class="field-full" id="pageSection" aria-labelledby="pageSectionLabel" maxlength="250" value="${esc(p.section)}" placeholder="Ej.: Capítulo 2"><p class="help">La sección se mantiene en las páginas siguientes hasta el próximo comienzo.</p><label class="check-line"><input data-page="hideHeader" type="checkbox" ${p.hideHeader ? 'checked' : ''}> Ocultar cornisa en esta página</label><label class="check-line"><input data-page="hideTitle" type="checkbox" ${p.hideTitle ? 'checked' : ''}> Ocultar titulillo en esta página</label><label class="check-line"><input data-page="hideFolio" type="checkbox" ${p.hideFolio ? 'checked' : ''}> Ocultar folio en esta página</label><div class="page-action"><button class="btn" data-command="earlier" ${active === 0 ? 'disabled' : ''}>← Antes</button><button class="btn" data-command="later" ${active === book.pages.length - 1 ? 'disabled' : ''}>Después →</button></div><button class="btn wide danger" data-command="deletePage" ${book.pages.length === 1 ? 'disabled' : ''}>${icon('trash')} Eliminar página</button>`,
       ) +
       section(
         'Elementos automáticos',
@@ -543,7 +543,7 @@ function renderTemplates(): void {
             book.grid.gapY = 0;
           }
         }, true);
-        toast('Retícula aplicada. Tus objetos conservan su posición.');
+        toast('Grilla aplicada. Tus objetos conservan su posición.');
       }),
   );
 }
@@ -1101,7 +1101,7 @@ function settingsNew(isNew = true): void {
       )
       .join(
         '',
-      )}</div><div class="notice">Medidas reales, sin depender del tamaño de tu pantalla. ${isNew ? 'El libro comienza con páginas vacías y elementos automáticos.' : 'Al cambiar el formato, los objetos se conservan y se ajustan al área de la página. Podés deshacer el cambio.'}</div></section><section class="book-setup-fields"><div class="modal-grid">${control('Título del libro', 'newTitle', isNew ? 'Mi libro' : book.title, 'text', '', '', true)}<div class="control full"><label>Unidad de medida</label><select id="pageUnits"><option value="mm">Milímetros (mm)</option><option value="cm">Centímetros (cm)</option></select></div>${control('Ancho · mm', 'newWidth', book.width, 'number', 60, 420)}${control('Alto · mm', 'newHeight', book.height, 'number', 60, 594)}<div class="control"><label>Orientación</label><select id="orientation"><option value="portrait">Vertical</option><option value="landscape" ${book.width > book.height ? 'selected' : ''}>Horizontal</option></select></div>${isNew ? control('Cantidad de páginas', 'newCount', 8, 'number', 1, 200) : '<div class="control"><label>Formato</label><input id="formatName" readonly value="' + esc(format) + '"></div>'}<div class="control full"><label for="spreadArrangement">${bw('Disposición de páginas', 'Page arrangement', 'Disposição das páginas')}</label><select id="spreadArrangement"><option value="single" ${!book.facing ? 'selected' : ''}>${bw('Página individual', 'Single pages', 'Páginas individuais')}</option><option value="horizontal" ${book.facing && !verticalSpread() ? 'selected' : ''}>${bw('Pliego horizontal · lado a lado', 'Horizontal spread · side by side', 'Dupla horizontal · lado a lado')}</option><option value="vertical" ${verticalSpread() ? 'selected' : ''}>${bw('Pliego vertical · tipo almanaque', 'Vertical spread · calendar style', 'Dupla vertical · tipo calendário')}</option></select></div></div></section></div>`,
+      )}</div><div class="notice">Medidas reales, sin depender del tamaño de tu pantalla. ${isNew ? 'El libro comienza con páginas vacías y elementos automáticos.' : 'Al cambiar el formato, los objetos se conservan y se ajustan al área de la página. Podés deshacer el cambio.'}</div></section><section class="book-setup-fields"><div class="modal-grid">${control('Título del libro', 'newTitle', isNew ? 'Mi libro' : book.title, 'text', '', '', true)}<div class="control full"><label>Unidad de medida</label><select id="pageUnits"><option value="mm">Milímetros (mm)</option><option value="cm">Centímetros (cm)</option></select></div>${control('Ancho · mm', 'newWidth', book.width, 'number', 60, 420)}${control('Alto · mm', 'newHeight', book.height, 'number', 60, 594)}<div class="control"><label>Orientación</label><select id="orientation"><option value="portrait">Vertical</option><option value="landscape" ${book.width > book.height ? 'selected' : ''}>Horizontal</option></select></div>${isNew ? control('Cantidad de páginas', 'newCount', 8, 'number', 1, 200) : '<div class="control"><label for="formatName">Formato</label><input id="formatName" readonly value="' + esc(format) + '"></div>'}<div class="control full"><label for="spreadArrangement">${bw('Disposición de páginas', 'Page arrangement', 'Disposição das páginas')}</label><select id="spreadArrangement"><option value="single" ${!book.facing ? 'selected' : ''}>${bw('Página individual', 'Single pages', 'Páginas individuais')}</option><option value="horizontal" ${book.facing && !verticalSpread() ? 'selected' : ''}>${bw('Pliego horizontal · lado a lado', 'Horizontal spread · side by side', 'Dupla horizontal · lado a lado')}</option><option value="vertical" ${verticalSpread() ? 'selected' : ''}>${bw('Pliego vertical · tipo almanaque', 'Vertical spread · calendar style', 'Dupla vertical · tipo calendário')}</option></select></div></div></section></div>`,
     () => {
       const measureUnit = $('#pageUnits').value,
         unit = measureUnit === 'cm' ? 10 : 1,
@@ -1545,15 +1545,21 @@ async function offerRecovery(): Promise<void> {
         const b = M.validate(JSON.parse(req.result));
         modal(
           'Retomá tu último libro',
-          `<p class="help">Hay una copia de recuperación de <b>${esc(b.title)}</b> con ${b.pages.length} páginas en este equipo. Tus archivos guardados no se modifican.</p>`,
+          `<p class="help">${bw(`Hay una copia de recuperación de <b>${esc(b.title)}</b> con ${b.pages.length} páginas en este equipo. Tus archivos guardados no se modifican.`, `There is a recovery copy of <b>${esc(b.title)}</b> with ${b.pages.length} pages on this computer. Your saved files are not changed.`, `Há uma cópia de recuperação de <b>${esc(b.title)}</b> com ${b.pages.length} páginas neste computador. Seus arquivos salvos não são alterados.`)}</p><p class="help">${bw('Si elegís Ahora no, la copia queda guardada en este equipo hasta que crees o edites otro libro.', 'If you choose Not now, the copy stays on this computer until you create or edit another book.', 'Se você escolher Agora não, a cópia fica neste computador até você criar ou editar outro livro.')}</p>`,
           () => {
             book = b;
             dirty = true;
             syncNative();
             render(true);
           },
-          'Recuperar proyecto',
+          'Recuperar libro',
         );
+        // El botón secundario dice la acción; al cerrar vuelve a ser "Cancelar" para los demás diálogos.
+        const cancel = $('#modal .modal-actions button[value="cancel"]');
+        if (cancel) {
+          cancel.textContent = bw('Ahora no', 'Not now', 'Agora não');
+          onDialogClose(() => (cancel.textContent = 'Cancelar'));
+        }
       }
     };
   } catch {}

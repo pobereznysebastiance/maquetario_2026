@@ -161,7 +161,7 @@ function updateCanvasZoomDisplay(): void {
   );
   $('#zoom').setAttribute(
     'aria-label',
-    bw('Zoom del documento · %', 'Document zoom · %', 'Zoom do documento · %'),
+    bw('Zoom del lienzo · %', 'Canvas zoom · %', 'Zoom da tela · %'),
   );
 }
 globalThis.updateCanvasZoomDisplay = updateCanvasZoomDisplay;

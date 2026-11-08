@@ -137,12 +137,8 @@ extend.after(
         '',
       )}</select><p class="help">${bw('Punto de partida editable: formato, cantidad de páginas, márgenes y grilla.', 'Editable starting point: format, page count, margins and grid.', 'Ponto de partida editável: formato, páginas, margens e grade.')}</p>`;
     ($('#modalBody .book-setup-fields') || $('#modalBody')).prepend(box);
-    $('#modalTitle').textContent = bw(
-      'Crear una publicación',
-      'Create a publication',
-      'Criar uma publicação',
-    );
-    $('#modalApply').textContent = bw('Crear documento', 'Create document', 'Criar documento');
+    $('#modalTitle').textContent = bw('Crear un libro', 'Create a book', 'Criar um livro');
+    $('#modalApply').textContent = bw('Crear libro', 'Create book', 'Criar livro');
     $('#publicationType').onchange = () => {
       const p = publicationTypes[$('#publicationType').value];
       const divisor = $('#pageUnits').value === 'cm' ? 10 : 1;
@@ -488,7 +484,7 @@ globalThis.coverEditor = function (): void {
       )
       .join(
         '',
-      )}</div><h3 id="coverRegion"></h3><textarea id="coverText" class="builder-source" maxlength="3000"></textarea><div class="cover-fields"><label>${bw('Tamaño · pt', 'Size · pt', 'Tamanho · pt')}<input id="coverSize" type="number" min="4" max="100"></label><label>${bw('Texto', 'Text', 'Texto')}<input id="coverTextColor" type="color"></label><label>${bw('Distancia superior · mm', 'Top distance · mm', 'Distância superior · mm')}<input id="coverY" type="number" min="0" max="${book.height}"></label><label>${bw('Alineación', 'Alignment', 'Alinhamento')}<select id="coverAlign"><option value="left">${bw('Izquierda', 'Left', 'Esquerda')}</option><option value="center">${bw('Centro', 'Center', 'Centro')}</option><option value="right">${bw('Derecha', 'Right', 'Direita')}</option></select></label></div><div class="page-action"><button type="button" class="btn" id="coverImage">${bw('Imagen de esta zona', 'Image for this area', 'Imagem desta área')}</button><button type="button" class="btn" id="coverRemoveImage">${bw('Quitar imagen', 'Remove image', 'Remover imagem')}</button><button type="button" class="btn" id="coverExport">${bw('Guardar y exportar PDF', 'Save and export PDF', 'Salvar e exportar PDF')}</button></div></div><div class="cover-controls"><p id="coverDimensions" class="help"></p><div class="cover-fields">${(
+      )}</div><h3 id="coverRegion"></h3><textarea id="coverText" aria-labelledby="coverRegion" class="builder-source" maxlength="3000"></textarea><div class="cover-fields"><label>${bw('Tamaño · pt', 'Size · pt', 'Tamanho · pt')}<input id="coverSize" type="number" min="4" max="100"></label><label>${bw('Texto', 'Text', 'Texto')}<input id="coverTextColor" type="color"></label><label>${bw('Distancia superior · mm', 'Top distance · mm', 'Distância superior · mm')}<input id="coverY" type="number" min="0" max="${book.height}"></label><label>${bw('Alineación', 'Alignment', 'Alinhamento')}<select id="coverAlign"><option value="left">${bw('Izquierda', 'Left', 'Esquerda')}</option><option value="center">${bw('Centro', 'Center', 'Centro')}</option><option value="right">${bw('Derecha', 'Right', 'Direita')}</option></select></label></div><div class="page-action"><button type="button" class="btn" id="coverImage">${bw('Imagen de esta zona', 'Image for this area', 'Imagem desta área')}</button><button type="button" class="btn" id="coverRemoveImage">${bw('Quitar imagen', 'Remove image', 'Remover imagem')}</button><button type="button" class="btn" id="coverExport">${bw('Guardar y exportar PDF', 'Save and export PDF', 'Salvar e exportar PDF')}</button></div></div><div class="cover-controls"><p id="coverDimensions" class="help"></p><div class="cover-fields">${(
       [
         ['spine', bw('Lomo · mm', 'Spine · mm', 'Lombada · mm'), 0, 100],
         ['leftFlap', bw('Solapa trasera · mm', 'Back flap · mm', 'Orelha traseira · mm'), 0, 150],

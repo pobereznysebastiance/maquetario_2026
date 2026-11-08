@@ -89,7 +89,7 @@ async function licenseGate(): Promise<boolean> {
     const waiting = openNotice({
       title: 'Seguí en el navegador',
       message:
-        'Entrá a tu cuenta de Motiova y tocá Conectar. Cuando termine, Maquetario se abre solo.',
+        'Entrá a tu cuenta de Motiova y hacé clic en Conectar. Cuando termine, Maquetario se abre solo.',
       buttons: [{ id: 'cancel', label: 'Cancelar' }],
     });
     void waiting.choice.then((choice) => choice === 'cancel' && cancelConnect());
@@ -257,7 +257,7 @@ function onClose(session: Session, event: Electron.Event): void {
     void showNotice({
       parent: session.win,
       title: 'Tu trabajo sigue abierto',
-      message: 'Guardá la publicación antes de cerrar Maquetario.',
+      message: 'Guardá el libro antes de cerrar Maquetario.',
     });
   };
   exec<boolean>(

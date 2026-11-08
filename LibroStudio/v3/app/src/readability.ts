@@ -214,7 +214,7 @@ function applyGridPreset(id: string): void {
     if (!M.validateGrid(book))
       throw Error(
         bw(
-          'La retícula no cabe con estos márgenes.',
+          'La grilla no cabe con estos márgenes.',
           'The grid does not fit these margins.',
           'A grade não cabe nestas margens.',
         ),
@@ -222,17 +222,21 @@ function applyGridPreset(id: string): void {
   }, true);
   toast(
     bw(
-      'Retícula visible aplicada. Los objetos conservan su posición.',
-      'Visible grid applied. Objects keep their positions.',
-      'Grade visível aplicada. Os objetos mantêm a posição.',
+      'Grilla aplicada. Los objetos conservan su posición.',
+      'Grid applied. Objects keep their positions.',
+      'Grade aplicada. Os objetos mantêm a posição.',
     ),
   );
 }
 globalThis.applyGridPreset = applyGridPreset;
+/** "3 columnas · 6 filas", con singular cuando corresponde. */
+const gridSize = (c: number, r: number): string =>
+  `${c} ${c === 1 ? bw('columna', 'column', 'coluna') : bw('columnas', 'columns', 'colunas')} · ` +
+  `${r} ${r === 1 ? bw('fila', 'row', 'linha') : bw('filas', 'rows', 'linhas')}`;
 function gridGallery(): void {
   modal(
-    bw('Biblioteca de retículas', 'Grid library', 'Biblioteca de grades'),
-    `<p class="builder-intro">${bw('Elegí una base y personalizá sus medianiles desde Diseño. Cada miniatura muestra columnas y filas reales.', 'Choose a starting point and customize gutters in Design. Each thumbnail shows actual rows and columns.', 'Escolha uma base e personalize os espaços em Design. Cada miniatura mostra linhas e colunas reais.')}</p><div class="grid-gallery-list">${gridPresets.map((p) => `<button type="button" class="grid-card ${book.grid.cols === p.c && book.grid.rows === p.r ? 'active' : ''}" data-grid-card="${p.id}"><div class="template-art">${gridPresetMini(p)}</div><strong>${bw(...p.name)}</strong><small>${p.c} ${bw('columnas', 'columns', 'colunas')} · ${p.r} ${bw('filas', 'rows', 'linhas')}<br>${bw(...p.use)}</small></button>`).join('')}</div><p class="help">${bw('Bases 2×4, 5×4, 3×6, 6×6 y 4×8: referencia The Vignelli Canon (Vignelli Center, RIT). Las demás son variantes de Maquetario. Son guías de composición; no crean cajas ni modifican el contenido.', '2×4, 5×4, 3×6, 6×6 and 4×8 bases reference The Vignelli Canon (Vignelli Center, RIT). Others are Maquetario variants. These are composition guides; they do not create frames or alter content.', 'Bases 2×4, 5×4, 3×6, 6×6 e 4×8: referência The Vignelli Canon (Vignelli Center, RIT). As demais são variantes do Maquetario. São guias de composição; não criam caixas nem alteram conteúdo.')}</p>`,
+    bw('Biblioteca de grillas', 'Grid library', 'Biblioteca de grades'),
+    `<p class="builder-intro">${bw('Elegí una base y personalizá sus medianiles desde Diseño. Cada miniatura muestra columnas y filas reales.', 'Choose a starting point and customize gutters in Design. Each thumbnail shows actual rows and columns.', 'Escolha uma base e personalize os espaços em Design. Cada miniatura mostra linhas e colunas reais.')}</p><div class="grid-gallery-list">${gridPresets.map((p) => `<button type="button" class="grid-card ${book.grid.cols === p.c && book.grid.rows === p.r ? 'active' : ''}" data-grid-card="${p.id}"><div class="template-art">${gridPresetMini(p)}</div><strong>${bw(...p.name)}</strong><small>${gridSize(p.c, p.r)}<br>${bw(...p.use)}</small></button>`).join('')}</div><p class="help">${bw('Bases 2×4, 5×4, 3×6, 6×6 y 4×8: referencia The Vignelli Canon (Vignelli Center, RIT). Las demás son variantes de Maquetario. Son guías de composición; no crean cajas ni modifican el contenido.', '2×4, 5×4, 3×6, 6×6 and 4×8 bases reference The Vignelli Canon (Vignelli Center, RIT). Others are Maquetario variants. These are composition guides; they do not create frames or alter content.', 'Bases 2×4, 5×4, 3×6, 6×6 e 4×8: referência The Vignelli Canon (Vignelli Center, RIT). As demais são variantes do Maquetario. São guias de composição; não criam caixas nem alteram conteúdo.')}</p>`,
     () => true,
     bw('Cerrar', 'Close', 'Fechar'),
   );
@@ -254,7 +258,7 @@ extend.replace(
     host.innerHTML = gridPresets
       .map(
         (p) =>
-          `<button class="template ${book.grid.cols === p.c && book.grid.rows === p.r ? 'active' : ''}" data-grid-preset="${p.id}" title="${esc(bw(...p.use))}"><div class="template-art">${gridPresetMini(p)}</div>${bw(...p.name)}<span class="template-dimensions">${p.c} ${bw('columnas', 'columns', 'colunas')} · ${p.r} ${bw('filas', 'rows', 'linhas')}</span></button>`,
+          `<button class="template ${book.grid.cols === p.c && book.grid.rows === p.r ? 'active' : ''}" data-grid-preset="${p.id}" title="${esc(bw(...p.use))}"><div class="template-art">${gridPresetMini(p)}</div>${bw(...p.name)}<span class="template-dimensions">${gridSize(p.c, p.r)}</span></button>`,
       )
       .join('');
     $$('[data-grid-preset]').forEach(

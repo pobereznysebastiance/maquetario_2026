@@ -171,7 +171,7 @@ function editorialRulesDialog(): void {
     ${
       rows
         ? `<div class="editorial-rules-table"><table><thead><tr>${headers.map((label) => `<th scope="col">${label}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`
-        : `<p class="help">${bw('Agregá texto al documento para ver sus reglas.', 'Add text to see its rules.', 'Adicione texto para ver as regras.')}</p>`
+        : `<p class="help">${bw('Agregá texto al libro para ver sus reglas.', 'Add text to see its rules.', 'Adicione texto para ver as regras.')}</p>`
     }
     ${
       (book.paragraphStyles || []).length

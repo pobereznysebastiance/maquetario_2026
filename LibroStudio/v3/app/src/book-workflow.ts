@@ -526,11 +526,7 @@ function bookBuilder(sample = false): void {
     dialogVariant('book-builder');
     const d: NovelData = sample ? novelSample() : { title: '', author: '', source: '' };
     modal(
-      bw(
-        'Dale estructura a tu novela',
-        'Give your novel a structure',
-        'Dê estrutura ao seu romance',
-      ),
+      bw('Dale estructura a tu libro', 'Give your book a structure', 'Dê estrutura ao seu livro'),
       `<div class="builder-steps"><span>1 · ${bw('Datos', 'Details', 'Dados')}</span><span>2 · ${bw('Partes y manuscrito', 'Parts and manuscript', 'Partes e manuscrito')}</span><span>3 · ${bw('Crear y revisar', 'Create and review', 'Criar e revisar')}</span></div><p class="builder-intro">${bw('Prepará todas las partes en un solo lugar. El manuscrito se distribuye según el espacio real de las páginas A5 y queda editable, con estilos vinculados.', 'Prepare every part in one place. The manuscript is distributed using real A5 page space and remains editable with linked styles.', 'Prepare todas as partes em um lugar. O manuscrito é distribuído pelo espaço real das páginas A5 e fica editável, com estilos vinculados.')}</p><div class="modal-grid">${control(bw('Título', 'Title', 'Título'), 'novelTitle', d.title, 'text', '', '')}${control(bw('Autor/a', 'Author', 'Autor/a'), 'novelAuthor', d.author, 'text', '', '')}</div><div class="builder-parts"><label class="check-line"><input id="novelToc" type="checkbox" checked>${bw('Índice automático', 'Automatic contents', 'Sumário automático')}</label><label class="check-line"><input id="novelBlanks" type="checkbox" checked>${bw('Blancos de cortesía', 'Blank versos', 'Versos em branco')}</label><label class="check-line"><input id="novelRule" type="checkbox">${bw('Línea en cornisas', 'Header rules', 'Linhas nos cabeçalhos')}</label></div><details><summary>${bw('Dedicatoria, epígrafe, legales y cierre', 'Dedication, epigraph, copyright and closing', 'Dedicatória, epígrafe, créditos e encerramento')}</summary>${(
         [
           ['dedication', bw('Dedicatoria', 'Dedication', 'Dedicatória')],
@@ -581,10 +577,10 @@ function bookBuilder(sample = false): void {
           );
         } finally {
           $('#modalApply').disabled = false;
-          $('#modalApply').textContent = bw('Crear novela', 'Create novel', 'Criar romance');
+          $('#modalApply').textContent = bw('Crear libro', 'Create book', 'Criar livro');
         }
       },
-      bw('Crear novela', 'Create novel', 'Criar romance'),
+      bw('Crear libro', 'Create book', 'Criar livro'),
     );
     $('#novelSample').onclick = () => {
       const s = novelSample();
@@ -662,7 +658,11 @@ extend.result(
       const b = document.createElement('button');
       b.className = 'btn';
       b.id = 'welcomeNovel';
-      b.textContent = bw('Armar una novela', 'Build a novel', 'Montar um romance');
+      b.textContent = bw(
+        'Armar desde un manuscrito',
+        'Build from a manuscript',
+        'Montar a partir de um manuscrito',
+      );
       b.onclick = () => bookBuilder();
       $('.welcome-actions').append(b);
     }

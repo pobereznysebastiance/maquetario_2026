@@ -27,7 +27,7 @@ interface TextSource {
 }
 
 const labels: TranslationRow[] = [
-  ['Maquetación y Diseño de Libros', 'Book Layout & Design', 'Diagramação e Design de Livros'],
+  ['Maquetación y diseño de libros', 'Book layout and design', 'Diagramação e design de livros'],
   ['Nuevo', 'New', 'Novo'],
   ['Abrir', 'Open', 'Abrir'],
   ['Guardar', 'Save', 'Salvar'],
@@ -124,7 +124,7 @@ const labels: TranslationRow[] = [
   ['Ancho', 'Width', 'Largura'],
   ['Alto', 'Height', 'Altura'],
   ['Edición', 'Editing', 'Edição'],
-  ['Documento', 'Document', 'Documento'],
+  ['Libro', 'Book', 'Livro'],
   ['Formato y configuración', 'Format and settings', 'Formato e configuração'],
   ['Agregar', 'Add', 'Adicionar'],
   ['Duplicar', 'Duplicate', 'Duplicar'],
@@ -237,7 +237,7 @@ const labels: TranslationRow[] = [
   ['Guardar y continuar', 'Save and continue', 'Salvar e continuar'],
   ['Continuar sin guardar', 'Continue without saving', 'Continuar sem salvar'],
   ['Retomá tu último libro', 'Resume your last book', 'Retome seu último livro'],
-  ['Recuperar proyecto', 'Recover project', 'Recuperar projeto'],
+  ['Recuperar libro', 'Recover book', 'Recuperar livro'],
   ['Diseñá con intención', 'Design with intention', 'Crie com intenção'],
   ['La grilla ordena el espacio.', 'The grid organizes space.', 'A grade organiza o espaço.'],
   [

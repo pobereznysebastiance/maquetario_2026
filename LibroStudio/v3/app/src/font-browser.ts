@@ -102,9 +102,9 @@ function updateFontBrowserDetail(): void {
       .join(','),
   });
   $('#fontBrowserNotice').textContent = bw(
-    'Explorá sin modificar tu documento. Aplicar confirma la elección.',
-    'Browse without changing your document. Apply confirms your choice.',
-    'Explore sem alterar o documento. Aplicar confirma a escolha.',
+    'Explorá sin modificar tu libro. Aplicar confirma la elección.',
+    'Browse without changing your book. Apply confirms your choice.',
+    'Explore sem alterar o livro. Aplicar confirma a escolha.',
   );
   if (variant)
     ensureFace(variant.face)

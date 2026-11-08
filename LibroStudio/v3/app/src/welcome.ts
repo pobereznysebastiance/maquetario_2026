@@ -117,7 +117,7 @@ async function showWelcome(): Promise<void> {
       welcomeInfo = await nativeCall('appInfo');
     } catch {}
   const w = ww();
-  welcome.innerHTML = `<header class="welcome-header"><div class="welcome-brand"><img src="maquetario.svg" alt=""><strong>Maquetario</strong><span>v${welcomeInfo.version}</span></div></header><div class="welcome-body"><section class="welcome-copy"><h1>${w.headline.replace('\n', '<br>')}</h1><p class="welcome-intro">${w.intro}</p><div class="welcome-actions"><button id="welcomeNew" class="btn primary">${icon('plus')}${w.new}</button><button id="welcomeOpen" class="btn">${icon('folder')}${w.open}</button></div><div class="welcome-links"><button id="welcomeTutorial">${w.learn} ↗</button><button id="welcomeDemo">${w.demo} ↗</button><button id="welcomeResume">${w.resume} ↗</button>${recoveryCopy ? `<button id="welcomeRecover">${w.recover} ↗</button>` : ''}</div><section class="welcome-recents"><div class="welcome-section-title"><h2>${w.recent}</h2></div><div id="recentProjects">${welcomeInfo.recents.length ? welcomeInfo.recents.map((r, i) => `<button class="recent-project ${r.missing ? 'missing' : ''}" data-recent="${i}"><span class="recent-cover">${icon('pages')}</span><span class="recent-details user-content"><strong>${esc(r.name)}</strong><small>${esc(r.path)}</small></span><span class="recent-date">${r.missing ? w.missing : new Date(r.modified).toLocaleDateString(LibroI18n.language === 'pt' ? 'pt-BR' : LibroI18n.language === 'en' ? 'en-US' : 'es-AR')}</span><span class="recent-arrow">↗</span></button>`).join('') : `<div class="recent-empty">${icon('folder')}<p>${w.empty}</p></div>`}</div></section></section><aside class="welcome-art"><img src="assets/welcome-editorial-glass.png" alt="Atelier editorial de páginas y retículas"><div class="art-caption"><span>Maquetario</span><div class="art-swatches"><i></i><i></i><i></i></div></div></aside></div><footer class="welcome-footer"><span>${w.created}</span><span class="welcome-footer-end"><select id="welcomeLanguage" aria-label="Idioma"><option value="es">ES · Español</option><option value="en">EN · English</option><option value="pt">PT · Português</option></select><span>Maquetario ${welcomeInfo.version} · Desktop</span></span></footer>`;
+  welcome.innerHTML = `<header class="welcome-header"><div class="welcome-brand"><img src="maquetario.svg" alt=""><strong>Maquetario</strong><span>v${welcomeInfo.version}</span></div></header><div class="welcome-body"><section class="welcome-copy"><h1>${w.headline.replace('\n', '<br>')}</h1><p class="welcome-intro">${w.intro}</p><div class="welcome-actions"><button id="welcomeNew" class="btn primary">${icon('plus')}${w.new}</button><button id="welcomeOpen" class="btn">${icon('folder')}${w.open}</button></div><div class="welcome-links"><button id="welcomeTutorial">${w.learn} ↗</button><button id="welcomeDemo">${w.demo} ↗</button><button id="welcomeResume">${w.resume} ↗</button>${recoveryCopy ? `<button id="welcomeRecover">${w.recover} ↗</button>` : ''}</div><section class="welcome-recents"><div class="welcome-section-title"><h2>${w.recent}</h2></div><div id="recentProjects">${welcomeInfo.recents.length ? welcomeInfo.recents.map((r, i) => `<button class="recent-project ${r.missing ? 'missing' : ''}" data-recent="${i}"><span class="recent-cover">${icon('pages')}</span><span class="recent-details user-content"><strong>${esc(r.name)}</strong><small>${esc(r.path)}</small></span><span class="recent-date">${r.missing ? w.missing : new Date(r.modified).toLocaleDateString(LibroI18n.language === 'pt' ? 'pt-BR' : LibroI18n.language === 'en' ? 'en-US' : 'es-AR')}</span><span class="recent-arrow">↗</span></button>`).join('') : `<div class="recent-empty">${icon('folder')}<p>${w.empty}</p></div>`}</div></section></section><aside class="welcome-art"><img src="assets/welcome-editorial-glass.png" alt="Atelier editorial de páginas y grillas"><div class="art-caption"><span>Maquetario</span><div class="art-swatches"><i></i><i></i><i></i></div></div></aside></div><footer class="welcome-footer"><span>${w.created}</span><span class="welcome-footer-end"><select id="welcomeLanguage" aria-label="Idioma"><option value="es">ES · Español</option><option value="en">EN · English</option><option value="pt">PT · Português</option></select><span>Maquetario v${welcomeInfo.version}</span></span></footer>`;
   welcomeVisible = true;
   welcome.hidden = false;
   document.body.classList.add('welcome-open');
@@ -160,6 +160,14 @@ async function showWelcome(): Promise<void> {
     globalThis.hideWelcome();
     startTutorial();
   };
+  // Qué pasa con la copia si no se recupera: queda en el equipo hasta el próximo cambio en un libro
+  // (studio.ts → changed() la reemplaza a los 900 ms).
+  if ($('#welcomeRecover') && recoveryCopy)
+    $('#welcomeRecover').title = bw(
+      `Abre la copia de recuperación de «${recoveryCopy.title}» (${recoveryCopy.pages.length} páginas). Si no la recuperás, queda guardada en este equipo hasta que crees o edites otro libro.`,
+      `Opens the recovery copy of “${recoveryCopy.title}” (${recoveryCopy.pages.length} pages). If you don't recover it, it stays on this computer until you create or edit another book.`,
+      `Abre a cópia de recuperação de “${recoveryCopy.title}” (${recoveryCopy.pages.length} páginas). Se você não recuperar, ela fica neste computador até você criar ou editar outro livro.`,
+    );
   if ($('#welcomeRecover'))
     $('#welcomeRecover').onclick = () => {
       globalThis.hideWelcome();
@@ -250,6 +258,8 @@ async function initializeWelcome(): Promise<void> {
   if (!native) return;
   try {
     welcomeInfo = await nativeCall('appInfo');
+    // Versión del panel izquierdo, en el mismo formato que la bienvenida (v3.24.0).
+    $('.version').textContent = 'v' + welcomeInfo.version;
     if (!welcomeInfo.selftest) await globalThis.showWelcome();
   } catch (error) {
     toast((error as Error).message, 'error');

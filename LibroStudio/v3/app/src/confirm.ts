@@ -34,8 +34,9 @@ export interface ConfirmOptions {
 const dialog = document.createElement('dialog');
 dialog.id = 'confirmDialog';
 dialog.className = 'confirm-dialog';
+dialog.setAttribute('aria-labelledby', 'confirmTitle');
 dialog.innerHTML =
-  '<form method="dialog" class="confirm-form"><h2 class="confirm-title"></h2><p class="confirm-message"></p><div class="confirm-actions"></div></form>';
+  '<form method="dialog" class="confirm-form"><h2 class="confirm-title" id="confirmTitle"></h2><p class="confirm-message"></p><div class="confirm-actions"></div></form>';
 document.body.append(dialog);
 
 // Mientras la confirmación está abierta, ni el teclado ni los clics llegan a los atajos de la app

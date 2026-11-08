@@ -43,7 +43,7 @@ export const extraTranslations: TranslationRow[] = [
     'Cada caixa mantém seu próprio texto. O símbolo vermelho + indica excesso: amplie a caixa ou reduza o corpo.',
   ],
   [
-    'Retícula aplicada. Tus objetos conservan su posición.',
+    'Grilla aplicada. Tus objetos conservan su posición.',
     'Grid applied. Your objects keep their positions.',
     'Grade aplicada. Seus objetos mantêm as posições.',
   ],
