@@ -28,7 +28,6 @@ interface TextSource {
 
 const labels: TranslationRow[] = [
   ['Maquetación y Diseño de Libros', 'Book Layout & Design', 'Diagramação e Design de Livros'],
-  ['ESTUDIO EDITORIAL', 'EDITORIAL STUDIO', 'ESTÚDIO EDITORIAL'],
   ['Nuevo', 'New', 'Novo'],
   ['Abrir', 'Open', 'Abrir'],
   ['Guardar', 'Save', 'Salvar'],
@@ -207,7 +206,6 @@ const labels: TranslationRow[] = [
   ['Páginas enfrentadas', 'Facing pages', 'Páginas espelhadas'],
   ['Crear libro', 'Create book', 'Criar livro'],
   ['Aplicar al libro', 'Apply to book', 'Aplicar ao livro'],
-  ['DOCUMENTO', 'DOCUMENT', 'DOCUMENTO'],
   ['Personalizado', 'Custom', 'Personalizado'],
   ['Tu libro, listo para salir', 'Your book, ready to share', 'Seu livro, pronto para sair'],
   ['PDF de lectura', 'Reading PDF', 'PDF de leitura'],
@@ -222,7 +220,6 @@ const labels: TranslationRow[] = [
     'Folha personalizada · tamanho real',
   ],
   ['Generar PDF', 'Create PDF', 'Gerar PDF'],
-  ['EXPORTACIÓN', 'EXPORT', 'EXPORTAÇÃO'],
   ['Preparando tu PDF…', 'Preparing your PDF…', 'Preparando seu PDF…'],
   ['PDF guardado correctamente.', 'PDF saved successfully.', 'PDF salvo com sucesso.'],
   ['Exportación cancelada.', 'Export cancelled.', 'Exportação cancelada.'],

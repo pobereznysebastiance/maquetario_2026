@@ -1031,12 +1031,12 @@ function modal(
   body: string,
   apply: () => unknown,
   label = 'Aplicar',
-  eyebrow = 'MAQUETARIO',
+  // Ya no se muestra (era una etiqueta en mayúsculas sobre el título); queda por la firma.
+  eyebrow = '',
 ): void {
   if (busy) return;
   finishEditing();
   $('#modalTitle').textContent = title;
-  $('#modalEyebrow').textContent = eyebrow;
   $('#modalBody').innerHTML = body;
   $('#modalApply').textContent = label;
   $('#modalApply').onclick = async () => {
@@ -1155,7 +1155,6 @@ function settingsNew(isNew = true): void {
       return true;
     },
     isNew ? 'Crear libro' : 'Aplicar al libro',
-    'DOCUMENTO',
   );
   dialogVariant('book-setup-dialog');
   $$('.format-option').forEach(
@@ -1415,7 +1414,6 @@ function exportDialog(): void {
       return false;
     },
     'Generar PDF',
-    'EXPORTACIÓN',
   );
 }
 function preparePrint(): boolean {

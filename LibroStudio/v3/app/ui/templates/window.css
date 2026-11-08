@@ -29,10 +29,10 @@
   -webkit-app-region: no-drag;
 }
 
-/* Mesa de trabajo: casi neutra (un ambiente muy suave) y sin desenfoques encima,
+/* Mesa de trabajo: sólida y neutra, sin desenfoques encima,
    para juzgar el color real del libro y para que mover y hacer zoom no cueste. */
 .workarea {
-  background: var(--ambient-canvas);
+  background: var(--surface-canvas);
 }
 
 /* Paneles: el contenido no se sale de sus esquinas redondeadas. */

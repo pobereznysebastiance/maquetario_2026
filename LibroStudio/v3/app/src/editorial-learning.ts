@@ -452,7 +452,6 @@ function showGlossary(term = 'grid'): void {
       )}</select></div><div class="glossary-layout"><nav id="glossaryList" aria-label="${bw('Términos', 'Terms', 'Termos')}"></nav><article id="glossaryDefinition"></article></div><p class="help glossary-note">${bw('Glosario educativo. Las convenciones pueden variar según el país y la imprenta. Aprender un concepto no significa que exista una corrección automática para él.', 'Educational glossary. Conventions can vary by country and printer. Learning a concept does not imply automatic correction support.', 'Glossário educativo. Convenções podem variar conforme país e gráfica. Aprender um conceito não implica correção automática.')}</p>`,
     () => true,
     bw('Volver al editor', 'Back to editor', 'Voltar ao editor'),
-    'MAQUETARIO · APRENDER',
   );
   dialogVariant('glossary-modal');
   $('#glossarySearch').oninput = renderGlossary;

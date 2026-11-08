@@ -52,7 +52,6 @@ function showClosePublicationDialog(actions: CloseActions): void {
       }
     },
     bw('Guardar y cerrar', 'Save and close', 'Salvar e fechar'),
-    'MAQUETARIO · ' + bw('TU TRABAJO', 'YOUR WORK', 'SEU TRABALHO'),
   );
   dialogVariant('close-publication-modal');
   const discard = document.createElement('button');

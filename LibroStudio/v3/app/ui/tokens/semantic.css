@@ -5,7 +5,7 @@
 
   /* ── Superficies ─────────────────────────────────────────── */
   /* Fondo de la ventana. Con material del sistema (Mica / vibrancy) es transparente. */
-  --surface-window: var(--ambient-window);
+  --surface-window: var(--petrol-850);
   /* Mesa de trabajo alrededor de la página: siempre sólida y neutra. */
   --surface-canvas: var(--table-900);
   --surface-canvas-ruler: var(--table-800);
@@ -36,18 +36,6 @@
   --material-spotlight: rgb(7 20 29 / 0.8);
   --material-edge: inset 0 1px 0 rgb(255 255 255 / 0.07);
 
-  /* ── Ambiente (degradés de marca) ────────────────────────── */
-  /* Se pintan una sola vez, sobre superficies que no se mueven, sin desenfoque encima.
-     Un degradé es barato; lo caro es recalcular un backdrop-filter sobre algo que cambia. */
-  --ambient-window:
-    radial-gradient(ellipse 60% 50% at 0% 100%, rgb(54 206 185 / 0.1), transparent 70%),
-    radial-gradient(ellipse 50% 40% at 100% 0%, rgb(228 177 108 / 0.06), transparent 70%),
-    var(--petrol-850);
-  --ambient-canvas:
-    radial-gradient(ellipse 70% 60% at 15% 85%, rgb(54 206 185 / 0.05), transparent 70%),
-    var(--table-900);
-  --ambient-chrome: linear-gradient(180deg, rgb(255 255 255 / 0.03), transparent 60%);
-
   /* ── Líneas ──────────────────────────────────────────────── */
   --line-subtle: rgb(214 240 234 / 0.08);
   --line-default: rgb(214 240 234 / 0.14);
@@ -62,6 +50,7 @@
   --text-on-accent: var(--teal-900);
   --text-on-danger: var(--red-900);
   --text-accent: var(--teal-400);
+  /* Dorado: sólo foco y "estás acá" (página activa, paso actual). No es decoración. */
   --text-mark: var(--gold-400);
 
   /* ── Acciones ────────────────────────────────────────────── */

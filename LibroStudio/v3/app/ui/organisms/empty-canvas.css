@@ -1,6 +1,6 @@
 /* Organismo: mesa de trabajo sin documento abierto. */
 #emptyCanvas {
-  background: var(--ambient-canvas);
+  background: var(--surface-canvas);
   color: var(--text-secondary);
 }
 #emptyCanvas > div {

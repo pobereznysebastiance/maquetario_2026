@@ -20,7 +20,7 @@
 /* Número de página de inicio. */
 .structure-item small {
   min-width: var(--number-column);
-  color: var(--text-mark);
+  color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
 }
 /* Cantidad de páginas, a la derecha. */
@@ -56,7 +56,7 @@
   margin-left: var(--space-sm);
   border: 0;
   background: none;
-  color: var(--text-mark);
+  color: var(--text-accent);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }

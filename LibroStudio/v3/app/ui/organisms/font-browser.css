@@ -36,7 +36,7 @@
   white-space: nowrap;
 }
 .font-visual-select:hover {
-  border-color: var(--text-mark);
+  border-color: var(--line-strong);
   background: var(--surface-selected);
 }
 .modal-grid .font-visual-select {
@@ -145,7 +145,7 @@
   --font-large-min: 150px;
   min-height: var(--font-large-min);
   padding: var(--space-md) var(--space-sm);
-  border-top: var(--border-width) solid var(--status-warning-line);
+  border-top: var(--border-width) solid var(--line-default);
   font-size: var(--font-large-size);
   line-height: 1.7;
   overflow-wrap: anywhere;
@@ -190,7 +190,7 @@
   font-size: var(--type-xs);
 }
 .font-axis output {
-  color: var(--text-mark);
+  color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
 .font-axis input {

@@ -501,7 +501,6 @@ globalThis.outputDialog = async function (destination) {
       return false;
     },
     print ? w.send : w.save,
-    print ? 'MAQUETARIO · PRINT' : 'MAQUETARIO · PDF',
   );
   dialogVariant('output-modal');
   $('#modalBody')

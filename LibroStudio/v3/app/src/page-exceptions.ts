@@ -14,7 +14,7 @@ decorateInspector(() => {
   host.querySelectorAll('input[data-page]').forEach((input) => input.closest('label')?.remove());
   const section = document.createElement('section');
   section.className = 'section individual-page-settings';
-  section.innerHTML = `<div class="section-heading active-page-notice">${icon('pages')} <strong>${bw('Página', 'Page', 'Página')} ${active + 1}</strong></div><span class="page-only-tag">${bw('SOLO ESTA PÁGINA', 'THIS PAGE ONLY', 'SOMENTE ESTA PÁGINA')}</span><p class="help">${bw('Elegí qué elementos automáticos aparecen en la página seleccionada. Las demás no se modifican.', 'Choose which automatic elements appear on the selected page. Other pages are unchanged.', 'Escolha quais elementos automáticos aparecem na página selecionada. As demais não mudam.')}</p>${[
+  section.innerHTML = `<div class="section-heading active-page-notice">${icon('pages')} <strong>${bw('Página', 'Page', 'Página')} ${active + 1}</strong></div><span class="page-only-tag">${bw('Solo esta página', 'This page only', 'Somente esta página')}</span><p class="help">${bw('Elegí qué elementos automáticos aparecen en la página seleccionada. Las demás no se modifican.', 'Choose which automatic elements appear on the selected page. Other pages are unchanged.', 'Escolha quais elementos automáticos aparecem na página selecionada. As demais não mudam.')}</p>${[
     [
       'hideFolio',
       bw('Mostrar número de página', 'Show page number', 'Mostrar número da página'),

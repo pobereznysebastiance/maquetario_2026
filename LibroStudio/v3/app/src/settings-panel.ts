@@ -368,7 +368,7 @@ async function openSettings(focusSection?: string): Promise<void> {
     ) +
     `</div>`;
 
-  modal(t('title'), body, () => true, t('done'), '');
+  modal(t('title'), body, () => true, t('done'));
   dialogVariant('settings-modal');
   icons();
   wireAccount();

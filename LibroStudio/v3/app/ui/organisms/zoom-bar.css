@@ -39,7 +39,7 @@
 #canvasZoomValue {
   --zoom-value-min: 43px;
   min-width: var(--zoom-value-min);
-  color: var(--text-mark);
+  color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
   text-align: center;
 }

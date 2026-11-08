@@ -2,7 +2,7 @@
    y marco del centro. Material de barra lateral: vidrio denso, legible con brillo bajo. */
 .leftpanel,
 .inspector {
-  background: var(--ambient-chrome), var(--material-sidebar);
+  background: var(--material-sidebar);
   backdrop-filter: var(--material-blur-sidebar);
   box-shadow: none;
 }

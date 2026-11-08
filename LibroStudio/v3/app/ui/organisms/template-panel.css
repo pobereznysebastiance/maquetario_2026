@@ -62,7 +62,7 @@
   border: var(--border-hairline) solid color-mix(in srgb, var(--accent) 45%, transparent);
 }
 .template-dimensions {
-  color: var(--text-mark);
+  color: var(--text-tertiary);
 }
 .template-panel {
   flex-shrink: 0;

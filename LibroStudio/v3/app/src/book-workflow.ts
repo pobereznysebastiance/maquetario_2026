@@ -585,7 +585,6 @@ function bookBuilder(sample = false): void {
         }
       },
       bw('Crear novela', 'Create novel', 'Criar romance'),
-      'MAQUETARIO · ATELIER',
     );
     $('#novelSample').onclick = () => {
       const s = novelSample();

@@ -1,7 +1,7 @@
 /* Organismo: barra superior (marca, acciones de archivo, salida).
    Material de barra: vidrio liviano con el canto de luz arriba y una línea abajo. */
 .topbar {
-  background: var(--ambient-chrome), var(--material-bar);
+  background: var(--material-bar);
   backdrop-filter: var(--material-blur-bar);
   border: 0;
   border-bottom: var(--border-width) solid var(--line-subtle);
@@ -38,8 +38,7 @@
 }
 
 /* Marca: logotipo y nombre; el subtítulo no entra en una barra de herramientas. */
-.topbar .brand small,
-.topbar .brand .beta {
+.topbar .brand small {
   display: none;
 }
 .topbar .brand strong {
@@ -116,21 +115,6 @@
 .brand small {
   color: var(--text-secondary);
 }
-.beta {
-  border-color: var(--status-warning-line);
-  color: var(--text-mark);
-}
-/* Canto superior del vidrio de la barra. */
-.topbar::before {
-  content: '';
-  position: absolute;
-  top: var(--border-width);
-  right: var(--space-xl);
-  left: var(--space-xl);
-  height: var(--border-width);
-  background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
-  pointer-events: none;
-}
 .brand small,
 .tool-action {
   font-size: var(--type-sm);
@@ -149,13 +133,6 @@
 }
 .brand small {
   margin-top: var(--border-width);
-}
-.beta {
-  padding: var(--space-3xs) var(--space-2xs);
-  border: var(--border-width) solid;
-  border-radius: var(--radius-sm);
-  font-size: var(--type-xs);
-  letter-spacing: var(--tracking-caps);
 }
 .toolbar {
   display: flex;

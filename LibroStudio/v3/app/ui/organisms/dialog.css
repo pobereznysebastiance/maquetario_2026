@@ -63,10 +63,6 @@ dialog .modal-header {
   border-bottom: var(--border-width) solid var(--line-subtle);
   background: transparent;
 }
-dialog .modal-header .eyebrow,
-#modalEyebrow {
-  display: none;
-}
 dialog .modal-header h1 {
   margin: 0;
   color: var(--text-primary);
@@ -135,7 +131,7 @@ dialog .modal-actions {
   border-color: var(--line-subtle);
 }
 .eyebrow {
-  color: var(--text-mark);
+  color: var(--text-tertiary);
 }
 /* La barra de acciones queda a la vista aunque el contenido sea largo. */
 .modal-actions {
@@ -161,7 +157,7 @@ dialog .modal-actions {
   font-size: var(--type-sm);
 }
 .format-option.active strong {
-  color: var(--text-mark);
+  color: var(--text-accent);
 }
 
 /* ── Migrado de studio.css ── */

@@ -112,9 +112,9 @@ textarea {
 select option {
   background: var(--material-sheet);
 }
-/* Interruptor encendido: dorado de la marca, liso. */
+/* Interruptor encendido: el color de acción, liso. */
 .switch input:checked + span {
-  background: var(--text-mark);
+  background: var(--accent);
 }
 input:not([type='range'], [type='checkbox'], [type='file']),
 select,
