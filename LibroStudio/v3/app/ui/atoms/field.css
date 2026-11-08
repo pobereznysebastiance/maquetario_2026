@@ -53,3 +53,45 @@
 :is(input[type='checkbox'], input[type='radio'], input[type='range']) {
   accent-color: var(--accent);
 }
+
+/* Lista desplegable propia (selector personalizable de Chromium): mismo comportamiento,
+   teclado y accesibilidad que el control nativo; el aspecto sale de los tokens
+   (antes, la lista era la del sistema, con selección celeste). */
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer) select,
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer) select::picker(select) {
+  appearance: base-select;
+}
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer) select {
+  display: inline-flex;
+  align-items: center;
+  line-height: var(--leading-tight);
+}
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer) select::picker-icon {
+  display: none;
+}
+select::picker(select) {
+  margin-block: var(--space-2xs);
+  padding: var(--space-2xs);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-md);
+  background: var(--material-popover);
+  color: var(--text-primary);
+  box-shadow: var(--elevation-2);
+}
+select option {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--type-callout);
+}
+select option:hover,
+select option:focus-visible {
+  background: var(--surface-selected);
+  outline: none;
+}
+select option:checked {
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+}
+select option::checkmark {
+  color: var(--accent);
+}

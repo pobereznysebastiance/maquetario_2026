@@ -125,6 +125,14 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     await exec(session, 'openSettings()');
     await delay(400);
     await capture('configuracion.png');
+    // Lista desplegable abierta (clic real: el selector se abre con interacción de la persona).
+    const box = await exec<{ x: number; y: number }>(session, "(()=>{const r=document.querySelector('#settingsLanguage').getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)};})()");
+    session.win.webContents.sendInputEvent({ type: 'mouseDown', x: box.x, y: box.y, button: 'left', clickCount: 1 });
+    session.win.webContents.sendInputEvent({ type: 'mouseUp', x: box.x, y: box.y, button: 'left', clickCount: 1 });
+    await delay(400);
+    await capture('selector-abierto.png');
+    session.win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
+    await delay(150);
     await exec(session, "document.querySelector('#modal').close()");
     // void: executeJavaScript esperaría la promesa, que sólo se resuelve al contestar el diálogo.
     await exec(session, "window.maquetarioSelfTest = false; void confirmAction({ title: '¿Eliminar la página 3?', message: 'La página y sus objetos se quitan del libro. Podés recuperarlos con Deshacer.', confirmLabel: 'Eliminar página', danger: true })");
