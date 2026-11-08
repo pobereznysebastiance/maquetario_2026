@@ -152,12 +152,6 @@ declare global {
   function coverEditor(): void;
   function coverOutputDialog(): void;
 
-  // ── canvas-navigation.js ──
-  /** El lienzo no acepta acciones (bienvenida, sin documento, ocupado o con un diálogo abierto). */
-  function canvasUnavailable(): boolean;
-  /** Si el evento viene de un campo de texto (input, textarea, select o contenteditable). */
-  function canvasInputTarget(target: EventTarget | null): boolean;
-
   function bookBuilder(sample?: boolean): void;
 
   // ── studio.js ──
@@ -321,17 +315,6 @@ declare global {
   function command(name: string): void;
   function recoveryDb(): Promise<IDBDatabase>;
 
-  // ── canvas-navigation.js ──
-  var canvasStage: HTMLElement;
-  var canvasSurface: HTMLDivElement;
-  var canvasSpreadKey: string;
-  var canvasPadding: number;
-  function handEnabled(): boolean;
-  function updateCanvasCursor(): void;
-  function canvasAnchor(clientX: number, clientY: number): CanvasAnchor;
-  function restoreCanvasAnchor(anchor: CanvasAnchor): void;
-  function updateCanvasZoomDisplay(): void;
-
   // ── fonts.js ──
   function ensureBookFonts(): Promise<unknown>;
 
@@ -351,6 +334,11 @@ declare global {
 
   // ── welcome.js ──
   /** Pantalla de bienvenida (#welcomeScreen). */
+
+  function setTool(name: string): void;
+
+  // ── welcome.js ──
+  /** La pantalla de bienvenida está a la vista. */
 }
 
 export {};

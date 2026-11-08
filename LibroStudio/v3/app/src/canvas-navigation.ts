@@ -1,31 +1,92 @@
-'use strict';
-const canvasStage = $('#spreadStage'),
+// Navegación del lienzo: superficie con margen alrededor del pliego, zoom real de pantalla
+// (Ctrl + rueda, Ctrl +/−, Ctrl 0, Ctrl 1), herramienta mano (H, Espacio + arrastrar, botón
+// central) y diálogo de atajos.
+//
+// Globales: los que leen continuous-canvas.js, placed-artwork.ts y las pruebas
+// (tests/navigation-tests.js, tests/document-view-tests.js) se publican con globalThis.
+// - canvasSpreadKey y spaceHand viven en globalThis porque continuous-canvas.js y las pruebas
+//   les asignan valores: este archivo los usa siempre por el global.
+// - canvasAnchor y restoreCanvasAnchor se definen sólo en globalThis: continuous-canvas.js los
+//   extiende por nombre y las llamadas de acá tienen que pasar por esa versión extendida.
+//
+// Fuente TypeScript: se compila a build/canvas-navigation.js (desktop/scripts/build.mjs).
+
+/** Punto del lienzo: posición en el pliego (sin escala) y en la mesa (relativa al visor). */
+export interface CanvasAnchor {
+  x: number;
+  y: number;
+  clientX: number;
+  clientY: number;
+  /** Primera página de la fila (lo agrega la vista continua, continuous-canvas.js). */
+  row?: number;
+}
+
+declare global {
+  /** La mesa que se desplaza (#spreadStage). */
+  var canvasStage: HTMLElement;
+  /** Superficie dentro de la mesa que contiene al pliego, con margen alrededor. */
+  var canvasSurface: HTMLDivElement;
+  /** Margen de la superficie alrededor del pliego, en px. */
+  var canvasPadding: number;
+  /** Pliego dibujado la última vez (vacío: volver a centrar en el próximo dibujo). */
+  var canvasSpreadKey: string;
+  /** Espacio apretado: mano temporal. */
+  var spaceHand: boolean;
+  /** Si el evento viene de un campo de texto (input, textarea, select o contenteditable). */
+  var canvasInputTarget: (target: EventTarget | null) => boolean;
+  /** El lienzo no acepta acciones (bienvenida, sin documento, ocupado o con un diálogo abierto). */
+  var canvasUnavailable: () => boolean;
+  /** La mano está activa (herramienta o Espacio). */
+  var handEnabled: () => boolean;
+  var updateCanvasCursor: () => void;
+  /** Punto del lienzo bajo una posición de pantalla. */
+  var canvasAnchor: (clientX: number, clientY: number) => CanvasAnchor;
+  /** Desplaza la mesa para que el punto vuelva a quedar donde estaba en pantalla. */
+  var restoreCanvasAnchor: (anchor: CanvasAnchor) => void;
+  /** Zoom real de pantalla, en % (100: un milímetro mide un milímetro de pantalla a 96 ppp). */
+  var actualCanvasPercent: () => number;
+  var updateCanvasZoomDisplay: () => void;
+  /** Zoom a un porcentaje real, alrededor de un punto de pantalla (por defecto, el centro). */
+  var zoomCanvasTo: (percent: number, point?: { x: number; y: number } | null) => void;
+  /** Ajustar el pliego a la ventana. */
+  var fitCanvas: () => void;
+  var endCanvasPan: (event?: Event) => void;
+}
+
+const canvasStage: HTMLElement = $('#spreadStage'),
   canvasSurface = document.createElement('div');
+globalThis.canvasStage = canvasStage;
+globalThis.canvasSurface = canvasSurface;
 canvasSurface.id = 'canvasSurface';
 canvasStage.append(canvasSurface);
 canvasSurface.append($('#spread'));
-let canvasSpreadKey = '',
-  spaceHand = false,
-  canvasPan = null,
-  lastCanvasPoint = null;
+globalThis.canvasSpreadKey = '';
+globalThis.spaceHand = false;
+let canvasPan: { pointer: number; x: number; y: number; left: number; top: number } | null = null,
+  lastCanvasPoint: { x: number; y: number } | null = null;
 const canvasPadding = 240;
-function canvasInputTarget(target) {
+globalThis.canvasPadding = canvasPadding;
+function canvasInputTarget(target: EventTarget | null): boolean {
   return (
     target instanceof Element && !!target.closest('input,textarea,select,[contenteditable="true"]')
   );
 }
-function canvasUnavailable() {
+globalThis.canvasInputTarget = canvasInputTarget;
+function canvasUnavailable(): boolean {
   return welcomeVisible || !hasDocument || busy || !!document.querySelector('dialog[open]');
 }
-function handEnabled() {
+globalThis.canvasUnavailable = canvasUnavailable;
+function handEnabled(): boolean {
   return spaceHand || tool === 'hand';
 }
-function updateCanvasCursor() {
+globalThis.handEnabled = handEnabled;
+function updateCanvasCursor(): void {
   document.body.classList.toggle('canvas-hand', handEnabled());
   document.body.classList.toggle('canvas-panning', !!canvasPan);
   $('#handTool')?.classList.toggle('active', tool === 'hand');
 }
-function canvasAnchor(clientX, clientY) {
+globalThis.updateCanvasCursor = updateCanvasCursor;
+globalThis.canvasAnchor = function (clientX: number, clientY: number): CanvasAnchor {
   const rect = $('#spread').getBoundingClientRect(),
     stage = canvasStage.getBoundingClientRect();
   return {
@@ -34,12 +95,12 @@ function canvasAnchor(clientX, clientY) {
     clientX: clientX - stage.left,
     clientY: clientY - stage.top,
   };
-}
-function restoreCanvasAnchor(anchor) {
+};
+globalThis.restoreCanvasAnchor = function (anchor: CanvasAnchor): void {
   const spread = $('#spread');
   canvasStage.scrollLeft = spread.offsetLeft + anchor.x * scale - anchor.clientX;
   canvasStage.scrollTop = spread.offsetTop + anchor.y * scale - anchor.clientY;
-}
+};
 extend(
   'renderPages',
   (pagesBeforeCanvas) =>
@@ -84,10 +145,11 @@ extend(
     },
   'canvas-navigation',
 );
-function actualCanvasPercent() {
+function actualCanvasPercent(): number {
   return (scale / (96 / 25.4)) * 100;
 }
-function updateCanvasZoomDisplay() {
+globalThis.actualCanvasPercent = actualCanvasPercent;
+function updateCanvasZoomDisplay(): void {
   const percent = Math.max(10, Math.min(800, actualCanvasPercent()));
   $('#zoom').value = percent;
   $('#canvasZoomValue').textContent = Math.round(actualCanvasPercent()) + '%';
@@ -102,7 +164,8 @@ function updateCanvasZoomDisplay() {
     bw('Zoom del documento · %', 'Document zoom · %', 'Zoom do documento · %'),
   );
 }
-function zoomCanvasTo(percent, point = null) {
+globalThis.updateCanvasZoomDisplay = updateCanvasZoomDisplay;
+function zoomCanvasTo(percent: number, point: { x: number; y: number } | null = null): void {
   if (canvasUnavailable() || drag || canvasPan) return;
   finishEditing();
   const rect = canvasStage.getBoundingClientRect(),
@@ -118,13 +181,15 @@ function zoomCanvasTo(percent, point = null) {
   restoreCanvasAnchor(anchor);
   updateCanvasZoomDisplay();
 }
-function fitCanvas() {
+globalThis.zoomCanvasTo = zoomCanvasTo;
+function fitCanvas(): void {
   if (canvasUnavailable()) return;
   finishEditing();
   zoom = 1;
   canvasSpreadKey = '';
   renderPages();
 }
+globalThis.fitCanvas = fitCanvas;
 const zoomValue = document.createElement('span');
 zoomValue.id = 'canvasZoomValue';
 zoomValue.setAttribute('aria-live', 'polite');
@@ -132,13 +197,13 @@ $('#fitZoom').before(zoomValue);
 $('#zoom').min = 10;
 $('#zoom').max = 800;
 $('#zoom').step = 1;
-$('#zoom').oninput = (e) => zoomCanvasTo(Number(e.target.value));
+$('#zoom').oninput = (e: Event) => zoomCanvasTo(Number((e.target as HTMLInputElement).value));
 $('#zoomIn').onclick = () => zoomCanvasTo(actualCanvasPercent() * 1.2);
 $('#zoomOut').onclick = () => zoomCanvasTo(actualCanvasPercent() / 1.2);
 $('#fitZoom').onclick = fitCanvas;
 extend.replace(
   'setZoom',
-  function (value) {
+  function (value: number) {
     zoomCanvasTo(value * 100);
   },
   'canvas-navigation',
@@ -165,19 +230,20 @@ handTool.onclick = () => {
 $('[data-tool="select"]').after(handTool);
 extend.after(
   'setTool',
-  function (name) {
+  function (name: string) {
     updateCanvasCursor();
   },
   'canvas-navigation',
 );
-function endCanvasPan(event) {
+function endCanvasPan(event?: Event): void {
   if (!canvasPan) return;
   const pointer = canvasPan.pointer;
   canvasPan = null;
   if (canvasStage.hasPointerCapture(pointer)) canvasStage.releasePointerCapture(pointer);
   updateCanvasCursor();
 }
-function beginCanvasPan(event) {
+globalThis.endCanvasPan = endCanvasPan;
+function beginCanvasPan(event: PointerEvent): void {
   if (canvasUnavailable() || drag || !(event.button === 1 || (event.button === 0 && handEnabled())))
     return;
   event.preventDefault();
@@ -372,7 +438,10 @@ shortcutButton.onclick = () =>
         bw('Desplazamiento horizontal.', 'Horizontal scrolling.', 'Deslocamento horizontal.'),
       ],
     ]
-      .map((row) => `<tr><th>${esc(bw(...row.slice(0, 3)))}</th><td>${row[3]}</td></tr>`)
+      .map(
+        (row) =>
+          `<tr><th>${esc(bw(...(row.slice(0, 3) as [string, string, string])))}</th><td>${row[3]}</td></tr>`,
+      )
       .join(
         '',
       )}</table><p class="help">${bw('Los atajos de navegación no se activan mientras escribís en un campo o editás texto. El 100% usa píxeles de pantalla y no calibra el tamaño físico de tu monitor.', 'Navigation shortcuts do not activate while typing in fields or editing text. 100% uses screen pixels and does not calibrate physical monitor size.', 'Atalhos de navegação não ativam ao digitar em campos ou editar texto. 100% usa pixels de tela e não calibra o tamanho físico do monitor.')}</p>`,
@@ -391,3 +460,5 @@ extend.after(
   'canvas-navigation',
 );
 renderPages();
+
+export {};
