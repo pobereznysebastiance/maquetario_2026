@@ -62,7 +62,15 @@
         "nsis",
         "zip"
       ],
-      "icon": "../LibroStudio/v3/app/maquetario.ico"
+      "icon": "../LibroStudio/v3/app/maquetario.ico",
+      "fileAssociations": [
+        {
+          "ext": "mqt",
+          "name": "Proyecto de Maquetario",
+          "description": "Proyecto de Maquetario",
+          "icon": "../LibroStudio/v3/app/maquetario.ico"
+        }
+      ]
     },
     "nsis": {
       "oneClick": true,
@@ -80,11 +88,28 @@
         "zip"
       ],
       "category": "public.app-category.graphics-design",
-      "hardenedRuntime": true
+      "hardenedRuntime": true,
+      "icon": "assets/icon.png",
+      "fileAssociations": [
+        {
+          "ext": "mqt",
+          "name": "Proyecto de Maquetario",
+          "role": "Editor"
+        }
+      ]
     },
     "linux": {
       "target": "AppImage",
-      "category": "Graphics"
+      "category": "Graphics",
+      "icon": "assets/icon.png",
+      "fileAssociations": [
+        {
+          "ext": "mqt",
+          "name": "Proyecto de Maquetario",
+          "description": "Proyecto de Maquetario",
+          "mimeType": "application/x-maquetario"
+        }
+      ]
     },
     "electronLanguages": [
       "es",

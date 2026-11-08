@@ -14,6 +14,7 @@ import {
 } from '../files.ts';
 import { getPackageFaces, setPackageFonts } from '../fonts/catalog.ts';
 import { licenseSummary } from '../license.ts';
+import { takeRequestedProject } from '../open-file.ts';
 import type { Session } from '../session.ts';
 
 export const PROJECT_VERSION = 3;
@@ -83,6 +84,14 @@ export async function openProject(session: Session) {
   });
   if (picked.canceled || !picked.filePaths[0]) return null;
   const path = picked.filePaths[0];
+  return loaded(session, path, await readProject(path));
+}
+
+/** El proyecto que pidió el sistema (doble clic en un .mqt): la ruta la guarda el proceso principal. */
+export async function openRequested(session: Session) {
+  const path = takeRequestedProject();
+  if (!path) return null;
+  if (!(await exists(path))) throw new Error('El archivo se movió o ya no está disponible.');
   return loaded(session, path, await readProject(path));
 }
 

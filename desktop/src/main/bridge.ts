@@ -16,6 +16,7 @@ import {
   newProject,
   openProject,
   openRecent,
+  openRequested,
   saveProject,
   setDirty,
 } from './handlers/project.ts';
@@ -46,6 +47,8 @@ const handlers: Record<string, Handler> = {
   newProject: (s) => newProject(s),
   open: (s) => openProject(s),
   openRecent: (s, p) => openRecent(s, String(p.path ?? '')),
+  // Proyecto abierto desde el sistema (open-file.ts): sin ruta, la guarda el proceso principal.
+  openRequested: (s) => openRequested(s),
   save: (s, p) => saveProject(s, String(p.json ?? ''), String(p.name ?? ''), false),
   saveAs: (s, p) => saveProject(s, String(p.json ?? ''), String(p.name ?? ''), true),
 

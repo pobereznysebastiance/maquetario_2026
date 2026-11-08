@@ -3,6 +3,7 @@ import {
   app,
   BrowserWindow,
   Menu,
+  screen,
   session as electronSession,
   type MenuItemConstructorOptions,
 } from 'electron';
@@ -22,10 +23,18 @@ import { describeFailure } from '@maquetario/license';
 import { checkLicense, licenseBlocks, licenseMessage } from './license.ts';
 import { cancelConnect, connectAccount, renewAtStartup } from './motiova/desktop.ts';
 import { captureNotice, openNotice, showNotice, type NoticeOptions } from './notice.ts';
+import {
+  hasRequestedProject,
+  OPEN_REQUESTED_SCRIPT,
+  projectPathFromArgv,
+  RENDERER_READY,
+  requestProject,
+} from './open-file.ts';
 import { handleScheme, registerScheme } from './protocol.ts';
 import { runSelfTest } from './selftest.ts';
-import { createSession, exec, type Session } from './session.ts';
+import { createSession, exec, waitFor, type Session } from './session.ts';
 import { windowChromeOptions } from './window-chrome.ts';
+import { windowSize } from './window-size.ts';
 
 app.setName('Maquetario');
 // Todas las páginas (editor y avisos) corren aisladas, sin depender de configurarlo en cada ventana.
@@ -35,10 +44,29 @@ app.enableSandbox();
 if (isSelfTest) app.setPath('userData', `${app.getPath('userData')}-autoprueba`);
 registerScheme();
 
-// Una sola instancia: abrir otro .mqt con la app abierta lo lleva a la ventana existente.
+// Una sola instancia: abrir otro .mqt con la app abierta lo abre en la ventana existente
+// (second-instance, más abajo).
 if (!isSelfTest && !app.requestSingleInstanceLock()) app.quit();
 
 let main: Session | null = null;
+/** La interfaz terminó de arrancar: los proyectos pedidos por el sistema se abren enseguida. */
+let rendererReady = false;
+
+// Proyecto con el que se abrió la app (doble clic en un .mqt en Windows/Linux).
+if (!isSelfTest) {
+  const path = projectPathFromArgv(process.argv, process.cwd());
+  if (path) requestProject(path);
+}
+// macOS: doble clic en un .mqt o arrastrarlo al ícono. Puede llegar antes de ready.
+app.on('open-file', (event, path) => {
+  event.preventDefault();
+  if (isSelfTest) return;
+  requestProject(path);
+  if (main) {
+    showWindow(main);
+    if (rendererReady) void openRequestedProject(main);
+  }
+});
 
 const LICENSE_NOTICE = (message: string): NoticeOptions => ({
   title: 'Maquetario necesita una licencia activa',
@@ -115,15 +143,48 @@ function lockDown(): void {
   });
 }
 
+/** Trae la ventana adelante (segunda instancia, archivo abierto desde el sistema). */
+function showWindow(session: Session): void {
+  if (session.win.isMinimized()) session.win.restore();
+  session.win.focus();
+}
+
+/** Abre en la interfaz el proyecto que pidió el sistema, con la confirmación de siempre. */
+async function openRequestedProject(session: Session): Promise<void> {
+  if (!hasRequestedProject()) return;
+  try {
+    await exec(session, OPEN_REQUESTED_SCRIPT);
+  } catch (error) {
+    console.warn('[abrir proyecto]', error);
+  }
+}
+
+/**
+ * Al arrancar: espera a que la interfaz responda y a que aparezca la bienvenida (si no, la
+ * bienvenida taparía el libro recién abierto); después abre lo que haya pedido el sistema.
+ */
+async function whenRendererReady(session: Session): Promise<void> {
+  await waitFor(session, RENDERER_READY, 300, 100);
+  if (hasRequestedProject()) await waitFor(session, 'globalThis.welcomeVisible===true', 50, 100);
+  rendererReady = true;
+  await openRequestedProject(session);
+}
+
 function createWindow(): Session {
   const chrome = windowChromeOptions();
+  // Que entre en la pantalla donde abre (notebooks de 1366 × 768 o 1920 × 1080 al 150 %).
+  // Centrada en el área de trabajo de esa misma pantalla (sin la barra de tareas).
+  const { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
+  const size = windowSize(workArea);
   const win = new BrowserWindow({
-    width: 1536,
-    height: 1024,
-    minWidth: 1120,
-    minHeight: 760,
+    x: workArea.x + Math.round((workArea.width - size.initial.width) / 2),
+    y: workArea.y + Math.round((workArea.height - size.initial.height) / 2),
+    width: size.initial.width,
+    height: size.initial.height,
+    minWidth: size.minimum.width,
+    minHeight: size.minimum.height,
     ...chrome.options,
-    title: 'Maquetario · Maquetación y Diseño de Libros',
+    title: 'Maquetario · Maquetación y diseño de libros',
     icon: join(rendererDir(), 'maquetario.ico'),
     show: false,
     webPreferences: {
@@ -207,10 +268,14 @@ function onClose(session: Session, event: Electron.Event): void {
     .catch(fallback);
 }
 
-app.on('second-instance', () => {
+app.on('second-instance', (_event, argv, workingDirectory) => {
+  // Doble clic en otro .mqt con la app abierta: la ruta viene en el argv de la segunda instancia.
+  // Se guarda aunque la ventana todavía no exista (aviso de licencia): se abre al arrancar.
+  const path = projectPathFromArgv(argv, workingDirectory);
+  if (path) requestProject(path);
   if (!main) return;
-  if (main.win.isMinimized()) main.win.restore();
-  main.win.focus();
+  showWindow(main);
+  if (path && rendererReady) void openRequestedProject(main);
 });
 
 app.on('window-all-closed', () => app.quit());
@@ -255,6 +320,12 @@ app.whenReady().then(async () => {
             exec(session, `window.maquetarioUpdateAvailable?.(${JSON.stringify(update)})`),
         )
         .catch((error) => console.warn('[motiova]', error));
+    });
+  }
+  if (!isSelfTest) {
+    const session = main;
+    session.win.webContents.once('did-finish-load', () => {
+      void whenRendererReady(session).catch((error) => console.warn('[abrir proyecto]', error));
     });
   }
   if (isSelfTest) {
