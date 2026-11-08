@@ -1,5 +1,86 @@
-'use strict';
-const fontWords = {
+// Fuentes del equipo: catálogo nativo (lo lee el proceso principal), carga de cada cara con
+// FontFace, elección de familia, estilo y ejes variables en el inspector, y aplicación de las
+// caras en la página, los elementos automáticos y la salida. Las caras del paquete del proyecto
+// (portableFontFaces) van antes que las del sistema.
+//
+// Casi todo es global porque lo usan los demás archivos: font-browser.js, paragraphs.js,
+// font-glyphs.ts, project-package.ts, settings-panel.ts, editorial-rules.ts y las pruebas.
+// ensureBookFonts y applyFace las extienden font-browser.js y paragraphs.js por nombre: las
+// llamadas de acá que corren después de cargar pasan por globalThis para incluir esas
+// extensiones. El estado que se lee o se reasigna desde afuera (nativeFaces, portableFontFaces,
+// fontFolders, fontCatalogPromise, fontLoadErrors, fontLibraryReady) vive en globalThis.
+//
+// Fuente TypeScript: se compila a build/fonts.js (desktop/scripts/build.mjs).
+
+import type { BookObject } from './model.ts';
+
+/** Lo que mira selectedFace: un objeto de texto, un formato de párrafo o un elemento automático. */
+interface FontRef {
+  font?: string;
+  fontFaceId?: string;
+  fontStyleName?: string;
+  fontWeight?: number;
+  fontItalic?: boolean;
+  [extra: string]: any;
+}
+
+declare global {
+  /** Instancia con nombre de una fuente variable (coordenadas de sus ejes). */
+  interface NativeFontInstance {
+    name: string;
+    coordinates?: Record<string, number>;
+  }
+
+  /** Una cara de fuente del catálogo nativo. */
+  interface NativeFontFace {
+    id: string;
+    family: string;
+    style: string;
+    weight: number;
+    italic: boolean;
+    axes: { tag: string; name?: string; normal: number; min: number; max: number }[];
+    instances: NativeFontInstance[];
+    [extra: string]: any;
+  }
+
+  /** Textos de la interfaz de fuentes en el idioma actual. */
+  var fw: () => Record<string, string>;
+  /** Catálogo efectivo: caras del paquete del proyecto y después las del sistema. */
+  var nativeFaces: NativeFontFace[];
+  /** Carpetas de fuentes agregadas por el usuario. */
+  var fontFolders: string[];
+  /** Ids de las caras que no se pudieron cargar. */
+  var fontLoadErrors: Set<string>;
+  /** Carga del catálogo de fuentes del sistema (null hasta que arranca). */
+  var fontCatalogPromise: Promise<void> | null;
+  /** Caras que trae el paquete del proyecto abierto (van antes que las del sistema). */
+  var portableFontFaces: NativeFontFace[];
+  /** El catálogo de fuentes ya terminó de cargar (o no hay app de escritorio). */
+  var fontLibraryReady: boolean;
+  /** Rearma nativeFaces y fontList con las caras del paquete y las del sistema. */
+  var updatePortableFontCatalog: () => void;
+  var familyFaces: (family: string | undefined) => NativeFontFace[];
+  /** La cara más cercana a Regular (peso 400, no cursiva) de la familia. */
+  var chooseDefaultFace: (family: string | undefined) => NativeFontFace | undefined;
+  /** La cara guardada en o (id, estilo, instancia o peso) o, si no está, la de la familia. */
+  var selectedFace: (o: FontRef) => NativeFontFace | undefined;
+  /** Valores normales de los ejes variables de la cara. */
+  var variations: (face: NativeFontFace) => Record<string, number>;
+  /** Carga la cara con FontFace (una sola vez por id). */
+  var ensureFace: (face: NativeFontFace | null | undefined) => Promise<FontFace | void>;
+  /** Carga las caras que usa el libro. */
+  var ensureBookFonts: () => Promise<void>;
+  /** Aplica la cara (y la instancia, si hay) al objeto de texto. */
+  var applyFace: (
+    o: BookObject,
+    face: NativeFontFace,
+    instance?: NativeFontInstance | null,
+  ) => Promise<void>;
+  /** Pide el catálogo al proceso principal (fontCatalog, refreshFonts o chooseFontFolder). */
+  var obtainFonts: (action?: string) => Promise<void>;
+}
+
+const fontWords: Record<string, Record<string, string>> = {
   es: {
     library: 'Fuentes de tu equipo',
     folder: 'Agregar carpeta de fuentes',
@@ -68,15 +149,16 @@ const fontWords = {
   },
 };
 const fw = () => fontWords[globalThis.LibroI18n?.language || 'es'];
-let nativeFaces = [],
-  fontFolders = [],
-  fontLoading = true,
-  fontLoadErrors = new Set(),
-  loadedFaces = new Map(),
-  fontCatalogPromise = null;
-let localFontFaces = nativeFaces,
-  portableFontFaces = [];
-function updatePortableFontCatalog() {
+globalThis.fw = fw;
+globalThis.nativeFaces = [];
+globalThis.fontFolders = [];
+let fontLoading = true;
+globalThis.fontLoadErrors = new Set();
+const loadedFaces = new Map<string, Promise<FontFace>>();
+globalThis.fontCatalogPromise = null;
+let localFontFaces: NativeFontFace[] = nativeFaces;
+globalThis.portableFontFaces = [];
+function updatePortableFontCatalog(): void {
   const catalog = new Map(localFontFaces.map((face) => [face.id, face]));
   for (const face of portableFontFaces) catalog.delete(face.id);
   nativeFaces = [...portableFontFaces, ...catalog.values()];
@@ -85,10 +167,12 @@ function updatePortableFontCatalog() {
   );
   if (!fontList.length) fontList = ['Georgia', 'Times New Roman', 'Arial'];
 }
-function familyFaces(family) {
+globalThis.updatePortableFontCatalog = updatePortableFontCatalog;
+function familyFaces(family: string | undefined): NativeFontFace[] {
   return nativeFaces.filter((f) => f.family === family);
 }
-function chooseDefaultFace(family) {
+globalThis.familyFaces = familyFaces;
+function chooseDefaultFace(family: string | undefined): NativeFontFace | undefined {
   return familyFaces(family)
     .slice()
     .sort(
@@ -98,7 +182,8 @@ function chooseDefaultFace(family) {
         (Math.abs(b.weight - 400) + (b.italic ? 1000 : 0)),
     )[0];
 }
-function selectedFace(o) {
+globalThis.chooseDefaultFace = chooseDefaultFace;
+function selectedFace(o: FontRef): NativeFontFace | undefined {
   const family = familyFaces(o.font),
     savedStyle = o.fontStyleName;
   return (
@@ -109,13 +194,15 @@ function selectedFace(o) {
     chooseDefaultFace(o.font)
   );
 }
-function variations(face) {
+globalThis.selectedFace = selectedFace;
+function variations(face: NativeFontFace): Record<string, number> {
   let values = face.axes.map((a) => [a.tag, a.normal]);
   return Object.fromEntries(values);
 }
-function ensureFace(face) {
+globalThis.variations = variations;
+function ensureFace(face: NativeFontFace | null | undefined): Promise<FontFace | void> {
   if (!face) return Promise.resolve();
-  if (loadedFaces.has(face.id)) return loadedFaces.get(face.id);
+  if (loadedFaces.has(face.id)) return loadedFaces.get(face.id)!;
   const promise = (async () => {
     const axis = face.axes.find((a) => a.tag === 'wght'),
       font = new FontFace('MQT_' + face.id, `url("${MaquetarioHost.fontUrl(face.id)}")`, {
@@ -134,8 +221,9 @@ function ensureFace(face) {
   loadedFaces.set(face.id, promise);
   return promise;
 }
-async function ensureBookFonts() {
-  const faces = new Map();
+globalThis.ensureFace = ensureFace;
+async function ensureBookFonts(): Promise<void> {
+  const faces = new Map<string, NativeFontFace>();
   for (const p of book.pages)
     for (const o of p.objects)
       if (o.type === 'text') {
@@ -154,7 +242,12 @@ async function ensureBookFonts() {
   await Promise.all(promises);
   await document.fonts.ready;
 }
-async function applyFace(o, face, instance) {
+globalThis.ensureBookFonts = ensureBookFonts;
+async function applyFace(
+  o: BookObject,
+  face: NativeFontFace,
+  instance?: NativeFontInstance | null,
+): Promise<void> {
   await ensureFace(face);
   commit(() => {
     o.font = face.family;
@@ -167,7 +260,8 @@ async function applyFace(o, face, instance) {
     o.italic = false;
   }, false);
 }
-async function obtainFonts(action = 'fontCatalog') {
+globalThis.applyFace = applyFace;
+async function obtainFonts(action = 'fontCatalog'): Promise<void> {
   if (!native) {
     fontLoading = false;
     return;
@@ -182,28 +276,29 @@ async function obtainFonts(action = 'fontCatalog') {
     fontFolders = result.folders || [];
     fontList = [...new Set(nativeFaces.map((f) => f.family))].sort((a, b) => a.localeCompare(b));
     if (!fontList.length) fontList = ['Georgia', 'Times New Roman', 'Arial'];
-    await ensureBookFonts();
+    await globalThis.ensureBookFonts();
     renderPages();
   } catch (error) {
-    toast(fw().fail + error.message, 'error');
+    toast(fw().fail + (error as Error).message, 'error');
   } finally {
     fontLoading = false;
     inspector();
   }
 }
+globalThis.obtainFonts = obtainFonts;
 decorateInspector(() => {
   if (tab !== 'text' && tab !== 'design') return;
   const host = $('#inspectorContent'),
     o = selectObject(),
     w = fw(),
     face = o?.type === 'text' ? selectedFace(o) : null;
-  const selector = host.querySelector('[data-object="font"]');
+  const selector = host.querySelector<HTMLSelectElement>('[data-object="font"]');
   if (selector) {
     const search = document.createElement('input');
     search.className = 'field-full font-search';
     search.placeholder = w.search;
     search.setAttribute('aria-label', w.search);
-    selector.closest('.field-row').before(search);
+    selector.closest('.field-row')!.before(search);
     search.oninput = () => {
       const filter = search.value.toLocaleLowerCase(),
         matches = fontList.filter((f) => f.toLocaleLowerCase().includes(filter));
@@ -221,7 +316,7 @@ decorateInspector(() => {
         next = chooseDefaultFace(selector.value);
       if (!target) return;
       try {
-        if (next) await applyFace(target, next);
+        if (next) await globalThis.applyFace(target, next);
         else
           commit(() => {
             target.font = selector.value;
@@ -231,12 +326,17 @@ decorateInspector(() => {
             delete target.fontItalic;
           }, false);
       } catch (error) {
-        toast(w.fail + error.message, 'error');
+        toast(w.fail + (error as Error).message, 'error');
       }
     };
     if (o?.type === 'text') {
       const list = familyFaces(o.font),
-        variants = [];
+        variants: {
+          key: string;
+          face: NativeFontFace;
+          label: string;
+          instance: NativeFontInstance | null;
+        }[] = [];
       for (const f of list) {
         variants.push({
           key: f.id,
@@ -256,32 +356,32 @@ decorateInspector(() => {
       const block = document.createElement('div');
       block.className = 'font-variant-block';
       block.innerHTML = `<div class="field-row"><label>${w.weight}</label><select id="fontVariant">${variants.map((v) => `<option value="${v.key}" ${o.fontFaceId === v.face.id && o.fontStyleName === (v.instance?.name || v.face.style) ? 'selected' : ''}>${esc(v.label)}</option>`).join('')}</select></div>${face?.axes.length ? `<div class="sub-label">${w.axes}</div>${face.axes.map((axis) => `<div class="font-axis"><div><label>${esc(axis.name || axis.tag)} <span>${axis.tag}</span></label><output>${Number(o.fontAxes?.[axis.tag] ?? axis.normal).toFixed(1)}</output></div><input type="range" data-axis="${axis.tag}" min="${axis.min}" max="${axis.max}" step="${axis.tag === 'wght' ? 1 : 0.1}" value="${o.fontAxes?.[axis.tag] ?? axis.normal}" aria-label="${esc(axis.name || axis.tag)}"></div>`).join('')}` : ''}${o.fontFaceId && (!nativeFaces.some((f) => f.id === o.fontFaceId) || fontLoadErrors.has(o.fontFaceId)) ? `<p class="font-warning">${w.missing}</p>` : ''}<div class="font-specimen" id="fontSpecimen" style="font-family:${face ? 'MQT_' + face.id : esc(o.font)}">Aa Bb Gg 0123</div>`;
-      selector.closest('.field-row').after(block);
-      $('#fontVariant').onchange = async (e) => {
-        const v = variants.find((v) => v.key === e.target.value);
+      selector.closest('.field-row')!.after(block);
+      $('#fontVariant').onchange = async (e: Event) => {
+        const v = variants.find((v) => v.key === (e.target as HTMLSelectElement).value);
         if (!v) return;
         try {
-          await applyFace(selectObject(), v.face, v.instance);
+          await globalThis.applyFace(selectObject()!, v.face, v.instance);
         } catch (error) {
-          toast(w.fail + error.message, 'error');
+          toast(w.fail + (error as Error).message, 'error');
         }
       };
-      block.querySelectorAll('[data-axis]').forEach((input) => {
+      block.querySelectorAll<HTMLInputElement>('[data-axis]').forEach((input) => {
         input.oninput = () =>
-          (input.previousElementSibling.querySelector('output').textContent = Number(
+          (input.previousElementSibling!.querySelector('output')!.textContent = Number(
             input.value,
           ).toFixed(1));
         input.onchange = () =>
           commit(() => {
-            const target = selectObject();
+            const target = selectObject()!;
             if (!target.fontFaceId && face) {
               target.fontFaceId = face.id;
               target.fontStyleName = face.style;
             }
             target.fontAxes = {
-              ...variations(face),
+              ...variations(face!),
               ...(target.fontAxes || {}),
-              [input.dataset.axis]: Number(input.value),
+              [input.dataset.axis!]: Number(input.value),
             };
             if (input.dataset.axis === 'wght') target.fontWeight = Number(input.value);
           }, false);
@@ -310,10 +410,10 @@ decorateInspector(() => {
 }, 'fonts');
 extend.result(
   'paper',
-  function (result, i, px, print = false) {
+  function (result: HTMLElement, i: number, px: number, print = false) {
     for (const o of book.pages[i].objects) {
       if (o.type !== 'text') continue;
-      const el = result.querySelector(`[data-id="${o.id}"]`),
+      const el = result.querySelector<HTMLElement>(`[data-id="${o.id}"]`),
         face = selectedFace(o);
       if (!el) continue;
       if (face && !fontLoadErrors.has(face.id))
@@ -333,7 +433,7 @@ extend.result(
 );
 extend.result(
   'autoElement',
-  function (result, i, type, px, print = false) {
+  function (result: HTMLElement | null, i: number, type: string, px: number, print = false) {
     const face = chooseDefaultFace(book[type].font);
     if (result && face && !fontLoadErrors.has(face.id))
       result.style.fontFamily = `"MQT_${face.id}", "${book[type].font}"`;
@@ -343,11 +443,11 @@ extend.result(
 );
 extend.result(
   'prepareOutput',
-  function (result, config) {
+  function (result: unknown, config: unknown) {
     window.outputReady = false;
     window.fontOutputReady = false;
     Promise.all([
-      ensureBookFonts(),
+      globalThis.ensureBookFonts(),
       ...[...$('#printRoot').querySelectorAll('img')].map((im) => im.decode().catch(() => {})),
     ]).then(() => {
       window.outputReady = true;
@@ -359,15 +459,17 @@ extend.result(
 );
 extend.after(
   'loadProject',
-  function (content) {
-    ensureBookFonts().then(() => renderPages());
+  function (content: string) {
+    globalThis.ensureBookFonts().then(() => renderPages());
   },
   'fonts',
 );
-window.fontLibraryReady = false;
-async function startFontLibrary() {
+globalThis.fontLibraryReady = false;
+async function startFontLibrary(): Promise<void> {
   for (let n = 0; n < 100 && !native; n++) await new Promise((r) => setTimeout(r, 100));
   if (native) await obtainFonts();
   fontLibraryReady = true;
 }
 fontCatalogPromise = startFontLibrary();
+
+export {};

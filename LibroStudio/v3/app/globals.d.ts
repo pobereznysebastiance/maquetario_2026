@@ -19,7 +19,6 @@ declare var onDialogClose: (fn: () => void) => void;
 declare var chrome: any;
 
 // ── Fuentes y separación silábica ──
-declare var fontLibraryReady: any;
 declare var createHyphenator: any;
 declare var hyphenationPatternsEs: any;
 declare var hyphenationPatternsEnUs: any;

@@ -17,21 +17,9 @@
 // Fuente TypeScript: se compila a build/font-browser.js (desktop/scripts/build.mjs).
 
 /** Instancia con nombre de una fuente variable. */
-export interface UIFontInstance {
-  name: string;
-  coordinates: Record<string, number>;
-}
-
-/** Cara tipográfica del catálogo (lo que manda el anfitrión: desktop/src/main/fonts/opentype.ts → FontFace). */
-export interface UIFontFace {
-  id: string;
-  family: string;
-  style: string;
-  weight: number;
-  italic: boolean;
-  axes: { tag: string; name: string; min: number; max: number; normal: number }[];
-  instances: UIFontInstance[];
-}
+/** Cara tipográfica del catálogo y sus instancias: los tipos son los de fonts.ts (NativeFontFace). */
+export type UIFontInstance = NativeFontInstance;
+export type UIFontFace = NativeFontFace;
 
 /** Una opción de estilo del explorador: una cara, o una instancia de una cara variable. */
 export interface BrowserVariant {

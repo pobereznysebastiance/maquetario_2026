@@ -1,12 +1,10 @@
 // Globales que define el JavaScript de la interfaz (studio.js, paragraphs.js, fonts.js…) y usan
 // las fuentes de src/. Sólo los ve el chequeo estricto de src/: en el chequeo del JS se ven las
 // definiciones reales. Cuando un archivo pasa a src/, sus globales salen de acá.
-
 import type { Book, BookObject, LibroModelApi } from './model.ts';
 import type { NovelSample } from './novel-sample.ts';
 import type { CoverDesign, CoverGeometryPart } from './cover-measurements.ts';
 import type { CanvasAnchor } from './continuous-canvas.ts';
-import type { UIFontFace, UIFontInstance } from './font-browser.ts';
 
 declare global {
   // ── studio.js ──
@@ -46,9 +44,6 @@ declare global {
   const paragraphKeys: string[];
   /** Formato efectivo de un párrafo: base del objeto + estilo + ajustes locales. */
   function paragraphFormat(b: Book, o: BookObject, index: number): Record<string, any>;
-
-  // ── fonts.js ──
-  function selectedFace(o: object): { id?: string; weight?: number; style?: string } | undefined;
 
   // ── studio.js ──
   /** Índice de la página activa. */
@@ -114,13 +109,6 @@ declare global {
   function loadProject(content: string): void;
   function clearPrint(): void;
 
-  // ── fonts.js ──
-  /** Caras que trae el paquete del proyecto abierto (van antes que las del sistema). */
-  var portableFontFaces: NativeFontFace[];
-  function updatePortableFontCatalog(): void;
-  /** Carga del catálogo de fuentes del sistema (null hasta que arranca). */
-  var fontCatalogPromise: Promise<unknown> | null;
-
   /** Lanza un error legible si la cubierta tiene medidas fuera de rango. */
   function validateCover(c: Record<string, any>): void;
 
@@ -160,23 +148,6 @@ declare global {
 
   // ── welcome.js ──
 
-  // ── fonts.js ──
-  /** Carpetas de fuentes agregadas por el usuario. */
-  var fontFolders: string[];
-  function obtainFonts(action?: string): Promise<void>;
-
-  /** Una cara de fuente del catálogo nativo (fonts.js). */
-  interface NativeFontFace {
-    id: string;
-    family: string;
-    style: string;
-    weight: number;
-    italic: boolean;
-    axes: { tag: string; normal: number; min: number; max: number }[];
-    instances: { name: string }[];
-    [extra: string]: any;
-  }
-
   /** Arrastre en curso de una caja (studio.js; frame-handles lo arma con resize = dirección). */
   interface ObjectDrag {
     o: BookObject;
@@ -211,12 +182,6 @@ declare global {
   function updateStatus(): void;
   function checkOverflow(): void;
 
-  // ── fonts.js ──
-  var nativeFaces: NativeFontFace[];
-  function chooseDefaultFace(family: string): NativeFontFace | undefined;
-  function ensureFace(face: NativeFontFace | undefined): Promise<unknown>;
-  function variations(face: NativeFontFace): Record<string, number>;
-
   // ── paragraphs.js ──
   /** Párrafo elegido en el inspector (index -1: todo el cuadro). */
   var paragraphScope: { id: string | null; index: number };
@@ -240,9 +205,6 @@ declare global {
   function command(name: string): void;
   function recoveryDb(): Promise<IDBDatabase>;
 
-  // ── fonts.js ──
-  function ensureBookFonts(): Promise<unknown>;
-
   // ── project-package.js ──
 
   // ── layout-tools.js ──
@@ -264,23 +226,11 @@ declare global {
   /** Dibuja el recorrido del libro (los cinco pasos de la barra del documento). */
   function renderBookRoute(): void;
 
-  /** Ids de las caras que no se pudieron cargar. */
-  var fontLoadErrors: Set<string>;
-
   // ── studio.js ──
   /** Familias tipográficas disponibles (las del sistema, o unas básicas). */
   var fontList: string[];
   /** Valor del libro en una ruta con puntos ('header.font'…). */
   function get(path: string): any;
-
-  /** Palabras de la interfaz de fuentes en el idioma actual. */
-  const fw: () => Record<string, string>;
-  function familyFaces(family: string): UIFontFace[];
-  function applyFace(
-    o: BookObject,
-    face: UIFontFace,
-    instance: UIFontInstance | null,
-  ): Promise<void>;
 
   // ── editorial-learning.js ──
 }

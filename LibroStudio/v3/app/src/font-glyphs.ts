@@ -8,23 +8,19 @@
 //
 // Fuente TypeScript: se compila a build/font-glyphs.js (desktop/scripts/build.mjs).
 
-// Cara de fuente del catálogo nativo (fonts.js). Se toma del tipo de nativeFaces para que sirva
-// en los dos chequeos: el estricto de src/ (js-globals-d.d.ts) y el del JS (fonts.js).
-type CatalogFace = (typeof nativeFaces)[number];
-
 declare global {
   /** Códigos Unicode que tiene la fuente elegida en la paleta. */
   var glyphPoints: number[];
   /** Dibuja la página actual de glifos según búsqueda y filtro. */
   var renderGlyphGrid: () => void;
   /** Abre la paleta de glifos (con initialFace, o la fuente del texto seleccionado). */
-  var showFontGlyphs: (initialFace?: CatalogFace) => Promise<void>;
+  var showFontGlyphs: (initialFace?: NativeFontFace) => Promise<void>;
   /** Autoprueba: abre la paleta de glifos con Georgia. */
   var prepareRealGlyphPreview: () => Promise<void>;
 }
 
 globalThis.glyphPoints = [];
-let glyphFace: CatalogFace | null = null,
+let glyphFace: NativeFontFace | null = null,
   glyphTargetId: string | null = null,
   glyphTargetPage: string | null = null,
   glyphPage = 0,
@@ -107,7 +103,7 @@ async function readGlyphFace(): Promise<void> {
     if ($('#glyphPageInfo')) $('#glyphPageInfo').textContent = (e as Error).message;
   }
 }
-async function showFontGlyphs(initialFace?: CatalogFace): Promise<void> {
+async function showFontGlyphs(initialFace?: NativeFontFace): Promise<void> {
   await fontCatalogPromise;
   if (fontBrowser.open) fontBrowser.close();
   const o = selectObject(),
@@ -115,10 +111,7 @@ async function showFontGlyphs(initialFace?: CatalogFace): Promise<void> {
   glyphTargetId = o?.type === 'text' && !o.toc && !o.locked ? o.id : null;
   glyphTargetPage = book.pages[active].id;
   glyphFace =
-    initialFace ||
-    (f && (selectedFace(f) as CatalogFace | undefined)) ||
-    chooseDefaultFace('Georgia') ||
-    nativeFaces[0];
+    initialFace || (f && selectedFace(f)) || chooseDefaultFace('Georgia') || nativeFaces[0];
   modal(
     bw('Glifos de la tipografía', 'Typeface glyphs', 'Glifos da tipografia'),
     `<p class="builder-intro">${bw('Explorá los caracteres disponibles en el archivo de fuente. Seleccioná uno para ampliarlo y ver su código.', 'Explore characters available in the font file. Select one to enlarge it and see its code.', 'Explore os caracteres disponíveis no arquivo de fonte. Selecione um para ampliar e ver o código.')}</p><div class="glyph-font-controls"><label>${bw('Familia y estilo', 'Family and style', 'Família e estilo')}<select id="glyphFontFace">${nativeFaces.map((face) => `<option value="${face.id}" ${face.id === glyphFace?.id ? 'selected' : ''}>${esc(face.family + ' · ' + face.style)}</option>`).join('')}</select></label><button type="button" class="btn" id="glyphUseCurrent">${bw('Fuente del texto seleccionado', 'Selected text font', 'Fonte do texto selecionado')}</button></div><div class="glyph-filters"><input id="glyphSearch" placeholder="${bw('Buscar carácter o U+…', 'Search character or U+…', 'Buscar caractere ou U+…')}" aria-label="Unicode"><select id="glyphRange"><option value="all">${bw('Todos los caracteres', 'All characters', 'Todos os caracteres')}</option><option value="latin">${bw('Latín y acentos', 'Latin and accents', 'Latim e acentos')}</option><option value="symbols">${bw('Símbolos', 'Symbols', 'Símbolos')}</option><option value="private">${bw('Uso privado · adornos', 'Private use · ornaments', 'Uso privado · ornamentos')}</option></select></div><div class="glyph-view-layout"><div><div id="fontGlyphGrid"></div><div class="glyph-pages"><button type="button" class="btn" id="glyphPrev">‹</button><span id="glyphPageInfo"></span><button type="button" class="btn" id="glyphNext">›</button></div></div><aside><div id="glyphSelectedLarge" class="user-content">Aa</div><p id="glyphSelectedCode"></p><button type="button" class="btn primary" id="glyphInsert" disabled>${bw('Insertar en el párrafo', 'Insert into paragraph', 'Inserir no parágrafo')}</button><p class="help">${glyphTargetId ? bw('Se agrega al final del párrafo elegido —o del cuadro— y aplica a ese párrafo la fuente de esta paleta.', 'Appends to the chosen paragraph—or the frame—and applies this palette font to that paragraph.', 'Adiciona ao fim do parágrafo escolhido—ou da caixa—e aplica a fonte desta paleta ao parágrafo.') : bw('Seleccioná una caja de texto para insertar. Podés explorar sin modificar el documento.', 'Select a text frame to insert. You can browse without changing the document.', 'Selecione uma caixa para inserir. Você pode explorar sem alterar o documento.')}</p></aside></div><p class="help">${bw('Muestra los caracteres Unicode codificados, incluidos los de uso privado. No incluye alternativos OpenType sin código propio ni la activación de funciones estilísticas.', 'Shows encoded Unicode characters, including private-use characters. Does not include unencoded OpenType alternates or stylistic feature activation.', 'Mostra caracteres Unicode codificados, incluindo uso privado. Não inclui alternativos OpenType sem código próprio nem ativação de recursos estilísticos.')}</p>`,
@@ -129,7 +122,7 @@ async function showFontGlyphs(initialFace?: CatalogFace): Promise<void> {
   $('#glyphFontFace').onchange = readGlyphFace;
   $('#glyphUseCurrent').disabled = !f;
   $('#glyphUseCurrent').onclick = () => {
-    const face = f && (selectedFace(f) as CatalogFace | undefined);
+    const face = f && selectedFace(f);
     if (face) {
       $('#glyphFontFace').value = face.id;
       readGlyphFace();

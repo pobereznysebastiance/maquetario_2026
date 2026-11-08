@@ -33,8 +33,7 @@ function packageFontUsage(): Record<string, string> {
   const usage = new Map<string, string>();
   const include = (format: Record<string, any> | undefined) => {
     if (!format?.font) return;
-    // selectedFace devuelve la cara del catálogo de fonts.js, que trae su id.
-    const face = selectedFace(format) as { id?: string; style?: string } | undefined;
+    const face = selectedFace(format);
     const id = face?.id || 'missing:' + format.font + ' ' + (format.fontStyleName || '');
     usage.set(id, format.font + (face?.style ? ' · ' + face.style : ''));
   };
