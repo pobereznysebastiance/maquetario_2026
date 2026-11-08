@@ -1,4 +1,16 @@
-'use strict';
+// Espacio de revisión: pantalla "sin documento", revisión de las caras de salida, página activa,
+// selección múltiple con Shift y alineación de objetos. Extiende al cargar hideWelcome,
+// settingsNew, loadProject, startTutorial, outputPreview, outputDialog, paper, thumbs, objectDown,
+// pageDown, render y updateStatus.
+//
+// Estado compartido: hasDocument, multiSelection, objectAlignReference y reviewFace viven en
+// globalThis (antes eran `let` globales del script) porque otros archivos y las pruebas los leen y
+// los reasignan. Acá se usan siempre por su nombre global, nunca con una copia local.
+//
+// Fuente TypeScript: se compila a build/review-workspace.js (desktop/scripts/build.mjs).
+
+import type { BookObject } from './model.ts';
+
 const reviewText = {
   es: {
     preview: 'Revisar todas las caras',
@@ -97,16 +109,38 @@ const reviewText = {
     done: 'Objetos alinhados.',
   },
 };
-const rw = () => reviewText[LibroI18n.language || 'es'];
-let reviewFace = 0,
-  reviewSignature = '',
-  hasDocument = false,
-  multiSelection = new Set(),
-  objectAlignReference = 'margins';
+export type ReviewWords = (typeof reviewText)['es'];
+
+const rw = (): ReviewWords => reviewText[LibroI18n.language || 'es'];
+
+declare global {
+  /** Textos del espacio de revisión en el idioma actual (los usa inspector-organization.js). */
+  var rw: () => ReviewWords;
+  /** Cara de salida que muestra la revisión (la cambia tests/review-tests.js). */
+  var reviewFace: number;
+  /** Hay un documento abierto (lo leen y lo asignan muchos archivos y las pruebas). */
+  var hasDocument: boolean;
+  /** Ids de los objetos seleccionados con Shift (inspector-organization.js, book-workflow.js, pruebas). */
+  var multiSelection: Set<string>;
+  /** Referencia de "Alinear con": 'margins' | 'page' | 'selection' (inspector-organization.js, pruebas). */
+  var objectAlignReference: string;
+  var refreshEmptyCanvas: () => void;
+  var updateActivePage: () => void;
+  var alignSelection: (axis: string) => void;
+  /** Para capturas: crear un documento desde la pantalla vacía. */
+  var prepareBlankCreatePreview: () => void;
+}
+globalThis.rw = rw;
+
+let reviewSignature = '';
+globalThis.reviewFace = 0;
+globalThis.hasDocument = false;
+globalThis.multiSelection = new Set();
+globalThis.objectAlignReference = 'margins';
 const emptyCanvas = document.createElement('div');
 emptyCanvas.id = 'emptyCanvas';
 $('#workarea').append(emptyCanvas);
-function refreshEmptyCanvas() {
+function refreshEmptyCanvas(): void {
   const w = rw();
   document.body.classList.toggle('no-document', !hasDocument);
   emptyCanvas.hidden = hasDocument;
@@ -118,6 +152,7 @@ function refreshEmptyCanvas() {
   $('#emptyNew').onclick = () => settings(true);
   $('#emptyOpen').onclick = openBook;
 }
+globalThis.refreshEmptyCanvas = refreshEmptyCanvas;
 extend.after(
   'hideWelcome',
   function () {
@@ -132,7 +167,7 @@ extend(
     function (isNew = true) {
       const previous = book;
       settingsBeforeBlank(isNew);
-      const apply = $('#modalApply').onclick;
+      const apply = $('#modalApply').onclick as () => unknown;
       $('#modalApply').onclick = async () => {
         await apply();
         if (book !== previous || (!isNew && !$('#modal').open)) {
@@ -147,7 +182,7 @@ extend(
 );
 extend.after(
   'loadProject',
-  function (content) {
+  function (content: string) {
     hasDocument = true;
     multiSelection.clear();
     refreshEmptyCanvas();
@@ -184,11 +219,11 @@ previousDemo.observe(welcome, { childList: true, subtree: true });
 extend(
   'startTutorial',
   (tutorialBeforeBlank) =>
-    function (index) {
+    function (index?: number) {
       if (!hasDocument) {
         hideWelcome();
         settings(true);
-        const apply = $('#modalApply').onclick;
+        const apply = $('#modalApply').onclick as () => unknown;
         $('#modalApply').onclick = async () => {
           await apply();
           if (hasDocument) tutorialBeforeBlank(index);
@@ -212,10 +247,10 @@ extend(
           reviewFace = 0;
           reviewSignature = signature;
         }
-        const info = prepareOutput(config),
+        const info = prepareOutput(config as unknown as Record<string, unknown>),
           sheets = [...$('#printRoot').querySelectorAll('.output-sheet')];
         reviewFace = Math.max(0, Math.min(reviewFace, sheets.length - 1));
-        const sheet = sheets[reviewFace].cloneNode(true),
+        const sheet = sheets[reviewFace].cloneNode(true) as HTMLElement,
           box = $('#outputPreview'),
           px = 96 / 25.4,
           k = Math.min((box.clientWidth - 10) / (info.width * px), 210 / (info.height * px));
@@ -225,7 +260,7 @@ extend(
         sheet.style.left = (box.clientWidth - info.width * px * k) / 2 + 'px';
         sheet.style.top = (box.clientHeight - info.height * px * k) / 2 + 'px';
         box.replaceChildren(sheet);
-        let controls = $('#reviewFaces');
+        let controls: HTMLElement = $('#reviewFaces');
         if (!controls) {
           controls = document.createElement('div');
           controls.id = 'reviewFaces';
@@ -256,15 +291,15 @@ extend(
           reviewFace = sheets.length - 1;
           outputPreview();
         };
-        $('#reviewFaceInput').onchange = (e) => {
-          reviewFace = Math.floor(Number(e.target.value)) - 1;
+        $('#reviewFaceInput').onchange = (e: Event) => {
+          reviewFace = Math.floor(Number((e.target as HTMLInputElement).value)) - 1;
           if (!Number.isFinite(reviewFace)) reviewFace = 0;
           outputPreview();
         };
         $('#outputError').textContent = '';
         $('#modalApply').disabled = false;
       } catch (error) {
-        $('#outputError').textContent = error.message;
+        $('#outputError').textContent = (error as Error).message;
         $('#modalApply').disabled = true;
       } finally {
         clearPrint();
@@ -282,7 +317,7 @@ extend.before(
 );
 extend.result(
   'paper',
-  function (page, index, px, print = false) {
+  function (page: HTMLElement, index: number, px: number, print = false) {
     if (!print) {
       page.classList.toggle('is-page-active', index === active);
       const badge = document.createElement('span');
@@ -299,7 +334,7 @@ extend.result(
   },
   'review-workspace',
 );
-function updateActivePage() {
+function updateActivePage(): void {
   const w = rw();
   $$('#spread .page').forEach((page) => {
     const chosen = Number(page.dataset.page) === active;
@@ -308,7 +343,7 @@ function updateActivePage() {
   $$('.thumb-paper').forEach((page) =>
     page.classList.toggle('thumb-page-active', Number(page.dataset.individualPage) === active),
   );
-  let badge = $('#activePageStatus');
+  let badge: HTMLElement = $('#activePageStatus');
   if (!badge) {
     badge = document.createElement('span');
     badge.id = 'activePageStatus';
@@ -316,13 +351,14 @@ function updateActivePage() {
   }
   badge.textContent = `${w.active} ${active + 1}`;
 }
+globalThis.updateActivePage = updateActivePage;
 extend.after(
   'thumbs',
   function () {
     let i = 0;
     $$('.thumb-paper').forEach((page) => {
       const index = i++;
-      page.dataset.individualPage = index;
+      page.dataset.individualPage = String(index);
       page.title = rw().active + ' ' + (index + 1);
       page.onclick = (e) => {
         e.stopPropagation();
@@ -341,7 +377,7 @@ extend.after(
 extend(
   'objectDown',
   (objectBeforeMulti) =>
-    function (e, o, index, el, resize = false) {
+    function (e: MouseEvent, o: BookObject, index: number, el: HTMLElement, resize = false) {
       if (e.shiftKey && !resize && !editing && !o.locked && !o.hidden) {
         e.stopPropagation();
         e.preventDefault();
@@ -362,8 +398,8 @@ extend(
 );
 extend.before(
   'pageDown',
-  function (e) {
-    if (!e.target.closest('.paper-object')) multiSelection.clear();
+  function (e: MouseEvent) {
+    if (!(e.target as Element).closest('.paper-object')) multiSelection.clear();
   },
   'review-workspace',
 );
@@ -374,7 +410,7 @@ extend.after(
   },
   'review-workspace',
 );
-function alignSelection(axis) {
+function alignSelection(axis: string): void {
   const objects = book.pages[active].objects.filter(
     (o) =>
       (multiSelection.size ? multiSelection.has(o.id) : o.id === selected) &&
@@ -416,6 +452,7 @@ function alignSelection(axis) {
   }, false);
   toast(rw().done);
 }
+globalThis.alignSelection = alignSelection;
 decorateInspector(() => {
   const w = rw();
   if (tab === 'pages') {
@@ -442,10 +479,11 @@ decorateInspector(() => {
       .join('')}</div><p class="help">${w.tip}</p>`;
     $('#inspectorContent').append(block);
     $('#alignReference').value = objectAlignReference;
-    $('#alignReference').onchange = (e) => (objectAlignReference = e.target.value);
+    $('#alignReference').onchange = (e: Event) =>
+      (objectAlignReference = (e.target as HTMLSelectElement).value);
     block
-      .querySelectorAll('[data-object-align]')
-      .forEach((b) => (b.onclick = () => alignSelection(b.dataset.objectAlign)));
+      .querySelectorAll<HTMLElement>('[data-object-align]')
+      .forEach((b) => (b.onclick = () => alignSelection(b.dataset.objectAlign!)));
   }
   updateActivePage();
 }, 'review-workspace');
@@ -464,7 +502,7 @@ extend.after(
   },
   'review-workspace',
 );
-function activateBlankDocument() {
+function activateBlankDocument(): void {
   const empty = M.create();
   empty.title = { es: 'Mi libro', en: 'My book', pt: 'Meu livro' }[LibroI18n.language];
   empty.chapter = '';
@@ -492,7 +530,7 @@ function activateBlankDocument() {
     } else if (!hasDocument) activateBlankDocument();
   }
 })();
-window.prepareBlankCreatePreview = function () {
+globalThis.prepareBlankCreatePreview = function () {
   hideWelcome();
   activateBlankDocument();
   settings(true);

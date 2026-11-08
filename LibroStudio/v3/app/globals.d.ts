@@ -32,7 +32,6 @@ declare var fontOutputReady: any;
 declare var shapeOutputReady: any;
 declare var maquetarioSelfTest: boolean;
 declare var maquetarioTestsReady: true | 'missing' | undefined;
-declare var prepareBlankCreatePreview: any;
 declare var prepareGlassShapePreview: any;
 
 interface Navigator {

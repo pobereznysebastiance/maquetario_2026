@@ -60,9 +60,6 @@ declare global {
   /** Pedido al proceso principal de Electron; rechaza fuera de la app de escritorio. */
   function nativeCall(action: string, payload?: Record<string, unknown>): Promise<any>;
 
-  // ── review-workspace.js ──
-  var hasDocument: boolean;
-
   // ── book-workflow.js: texto en el idioma de la interfaz ──
   const bw: (es: string, en: string, pt: string) => string;
 
@@ -342,15 +339,6 @@ declare global {
 
   // ── project-package.js ──
 
-  // ── review-workspace.js ──
-  var rw: () => Record<string, string>;
-  /** Ids de los objetos seleccionados con Shift + clic. */
-  var multiSelection: Set<string>;
-  /** Referencia de la alineación de objetos: 'margins' | 'page' | 'selection'. */
-  var objectAlignReference: string;
-  function updateActivePage(): void;
-  function alignSelection(axis: string): void;
-
   // ── layout-tools.js ──
   function updateSnapButton(): void;
 
@@ -360,15 +348,10 @@ declare global {
   function sendOutput(destination: string, config: Record<string, any>): Promise<void>;
 
   function coverOverflow(c: any): boolean;
+
+  // ── welcome.js ──
+  /** Pantalla de bienvenida (#welcomeScreen). */
 }
-
-export {};
-
-export {};
-
-export {};
-
-export {};
 
 export {};
 
