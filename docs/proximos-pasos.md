@@ -37,7 +37,23 @@ Sigue (etapa 2 de `arquitectura.md`): sacar del build de producción las pruebas
 
 ## 2. Vaciar la capa legacy
 
-`npm run lint:design` informa la deuda: 965 colores, 137 anchos fijos, 63 `!important`, 111 estilos desde JS. Criterio: cuando una pieza ya está en su organismo de `ui/`, borrar sus reglas de las hojas viejas. Empezar por `glass.css` y `crystal.css` (capas de "vidrio" ya reemplazadas por los materiales de `ui/tokens/semantic.css`).
+`npm run lint:design` informa la deuda: 811 colores (eran 965), 137 anchos fijos, 63 `!important`, 111 estilos desde JS. Criterio: cuando una pieza ya está en su organismo de `ui/`, borrar sus reglas de las hojas viejas.
+
+**Método** (probado con `glass.css` y `crystal.css`):
+
+1. Servir la interfaz (`node scripts/serve-ui.cjs LibroStudio/v3/app 5179`), pegar `scripts/legacy-probe.js` en la consola y correr `legacyProbe('estado')` en cada estado: bienvenida, sin documento, cada pestaña, con selección, multiselección, diálogos, tutorial, pantalla angosta.
+2. `legacyReport()` separa las reglas en muertas, efectivas, `:hover`/`:focus` sin cubrir y sin probar. Borrar las muertas con `node scripts/prune-css.cjs`.
+3. Guardar las capturas de la autoprueba antes, correr `npm run self-test` y compararlas con `npx electron scripts/compare-captures.cjs <antes> <después> <salida>` (`UMBRAL=4` para lo fino). Lo que la sonda no visitó aparece ahí: devolver esas reglas y repetir hasta que la diferencia máxima sea 1/255 (ruido del renderizado).
+
+**Hecho:** 70 reglas muertas borradas de `glass.css` (145 → 93) y `crystal.css` (47 → 29). Capturas idénticas.
+
+**Queda en esas dos hojas** (122 reglas): unas 80 efectivas que corresponden a piezas sin organismo en `ui/`, y unas 30 sin probar.
+
+- Piezas sin organismo: bienvenida con la escultura de páginas; ruta del libro (`book-route`); estructura (`structure-item`, `structure-summary`); marca y etiqueta de página activa; selección y multiselección de objetos; filas de capas; índice (`toc-entry`); armador de libros (`builder-*`); controles de figuras; interruptor; botones de alineación activos; aviso flotante (`#toast`).
+- `:hover`/`:focus` que `ui/` no fija: `.btn`, `.btn.primary`, foco de campos, `.tool`, `.tool-action`, botones de la ruta y de las solapas de cubierta. Van a `atoms/button.css` y `atoms/field.css`.
+- Sin probar (sus elementos no aparecieron en la sonda): figuras dibujadas, imán, preflight, armador, recientes.
+
+Siguiente: crear los organismos que faltan, revisados con impeccable, y borrar sus reglas de legacy. Después, el mismo método con las otras 21 hojas.
 
 ## 3. Experiencia de uso
 
