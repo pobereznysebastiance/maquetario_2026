@@ -153,6 +153,34 @@ Sin firma, Windows muestra "editor desconocido" (SmartScreen) y macOS bloquea la
 - **macOS**: cuenta de Apple Developer (Developer ID) y notarización. electron-builder firma y notariza con `CSC_LINK` + `APPLE_ID` / `APPLE_APP_SPECIFIC_PASSWORD` / `APPLE_TEAM_ID`.
 - El launcher también va firmado, y verifica que cada versión descargada esté firmada con el mismo certificado antes de abrirla.
 
+## Próximo paso de arquitectura: el inspector como registro
+
+`inspector()` es la función más reemplazada por otros módulos (12 veces; el patrón completo aparece 127 veces, ver `npm run lint:design`). Relevamiento de las 12 cadenas:
+
+| Archivo | Tipo | Qué hace |
+|---|---|---|
+| book-workflow.js | ruta | pestaña `structure` → `structurePanel()`; en `design`, además `ruleControls()` |
+| inspector-organization.js | ruta | pestaña `object` → `objectInspector()`; reorganiza `design` |
+| master-refinement.js | envoltura | si `liveMasterAdjustment`, no redibuja; conserva scroll y `<details>` abiertos |
+| editorial-learning.js | decorador | `decorateGlossaryHints()` |
+| font-browser.js | decorador | `decorateFontBrowsers(#inspectorContent)` |
+| font-glyphs.js | decorador | habilita el botón de glifos |
+| page-exceptions.js | decorador (`pages`) | ajustes de la página activa |
+| paragraphs.js (×2) | decorador (`text`) | controles y detalle de párrafo |
+| review-workspace.js | decorador (`pages`) | aviso de página activa |
+| shapes.js | decorador | `shapeAppearance()` |
+| tutorial.js | decorador | bloquea controles si el objeto está bloqueado |
+
+Diseño propuesto (en `studio.js`, junto a `inspector()`):
+
+- `registerInspectorPanel(tab, render)`: una pestaña con panel propio reemplaza el contenido base (estructura, objeto).
+- `decorateInspector(fn, { tab })`: corre después del contenido base, en orden de registro (el mismo orden que hoy).
+- `inspector()` guarda y restaura scroll y `<details>` abiertos una sola vez (hoy lo hacen la base y master-refinement) y respeta una guarda `inspectorPaused()` para el ajuste en vivo de maestras.
+
+Cada cadena se convierte en una línea de registro; ningún módulo reasigna `inspector`. Mismo enfoque después para `render` (6), `paper` (5), `prepareOutput` (4), `coverEditor` (4) y `autoElement` (4). Las 14 de `runIntegrationTests` pasan a un registro de pruebas (`registerIntegrationTest`).
+
+Criterio de aceptación: autoprueba completa en verde, contador de reemplazos de funciones globales en baja en `npm run lint:design`.
+
 ## Etapas
 
 1. **Electron con la interfaz actual** ← en curso. Funciona en macOS y Linux además de Windows.
