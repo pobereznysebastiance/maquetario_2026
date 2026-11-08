@@ -52,14 +52,18 @@ if (problems.length) {
 console.log('Sistema de diseño: sin valores sueltos.');
 
 // ── Deuda de "alambre" (informativa: tiene que bajar en cada entrega) ──
-// El código propio de la interfaz: los .js de la carpeta y las fuentes TypeScript de src/.
+// El código propio de la interfaz: los .js de la carpeta y las fuentes TypeScript de src/ y de
+// src/global/ (los scripts globales, como studio.ts).
+const tsIn = (dir) =>
+  readdirSync(join(app, dir))
+    .filter((f) => f.endsWith('.ts') && !f.endsWith('.d.ts'))
+    .map((f) => join(dir, f));
 const appJs = [
   ...readdirSync(app).filter(
     (f) => f.endsWith('.js') && f !== 'pdf-lib.min.js' && f !== 'sample-image.js',
   ),
-  ...readdirSync(join(app, 'src'))
-    .filter((f) => f.endsWith('.ts') && !f.endsWith('.d.ts'))
-    .map((f) => join('src', f)),
+  ...tsIn('src'),
+  ...tsIn(join('src', 'global')),
 ];
 // Sin las líneas de comentario: los ejemplos de la documentación no cuentan como deuda.
 const allJs = appJs

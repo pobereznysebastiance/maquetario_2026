@@ -53,21 +53,26 @@ await Promise.all([
 // Interfaz: las fuentes TypeScript (LibroStudio/v3/app/src) se compilan a app/build, que carga
 // index.html. Cada archivo de src/ (sin subcarpetas) es un script que publica su global, como los
 // .js de al lado; las subcarpetas (src/data/…) son módulos que esos scripts importan.
+// Excepción: src/global/*.ts son scripts globales (sin import/export) y se compilan sin
+// envoltorio: esbuild sólo les saca los tipos, así sus let/const/function de nivel superior
+// siguen siendo globales como en un .js clásico (studio.ts: book, render, $…, que otros archivos
+// asignan y extienden por nombre). Van al mismo build/ (build/studio.js): no repetir nombres.
 const ui = join(root, '../LibroStudio/v3/app');
 rmSync(join(ui, 'build'), { recursive: true, force: true });
-await build({
-  entryPoints: readdirSync(join(ui, 'src'))
-    .filter((f) => f.endsWith('.ts') && !f.endsWith('.d.ts'))
-    .map((f) => join(ui, 'src', f)),
+const uiOptions = {
   outdir: join(ui, 'build'),
-  bundle: true,
-  format: 'iife',
   platform: 'browser',
   target: 'chrome140',
   charset: 'utf8',
   sourcemap: 'linked',
   logLevel: 'info',
-});
+};
+const tsIn = (dir) =>
+  readdirSync(dir)
+    .filter((f) => f.endsWith('.ts') && !f.endsWith('.d.ts'))
+    .map((f) => join(dir, f));
+await build({ ...uiOptions, entryPoints: tsIn(join(ui, 'src')), bundle: true, format: 'iife' });
+await build({ ...uiOptions, entryPoints: tsIn(join(ui, 'src/global')), bundle: false });
 
 // Avisos de sistema: página estática + ilustración del instalador + DM Sans de la interfaz.
 const notice = join(root, 'dist/notice');

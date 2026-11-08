@@ -1,10 +1,37 @@
+// Núcleo de la interfaz: estado del libro y del editor, dibujo de páginas, inspector, toolbar,
+// diálogos de formato, guardar/abrir y exportación.
+//
+// Es un script global, no un módulo (sin import/export): sus let/const/function de nivel
+// superior son globales, como en el studio.js original. Otros archivos asignan sus estados
+// (book = …, active = …) y extienden sus funciones por nombre (extend('render', …)), así que
+// tienen que seguir siendo globales con el mismo orden de carga. En TypeScript, sus
+// declaraciones las ven todos los src/*.ts sin declare global.
+// Los tipos del modelo se toman con import('../model.ts').X (en un script no hay import).
+//
+// Fuente TypeScript: se compila sin envoltorio a build/studio.js (desktop/scripts/build.mjs,
+// carpeta src/global/).
 'use strict';
+
+/** Arrastre en curso de una caja (frame-handles lo arma con resize = dirección). */
+interface ObjectDrag {
+  o: import('../model.ts').BookObject;
+  el: HTMLElement;
+  startX: number;
+  startY: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** false: mover; una dirección (nw, n, ne…): redimensionar (objectDown de frame-handles convierte true en "se"). */
+  resize: string | false;
+  moved: boolean;
+}
+
 const M = LibroModel,
-  /** @type {(selector: string) => UIElement} */
-  $ = (s) => document.querySelector(s),
-  /** @type {(selector: string) => UIElement[]} */
-  $$ = (s) => /** @type {UIElement[]} */ ([...document.querySelectorAll(s)]);
-const paths = {
+  $ = (s: string) => document.querySelector(s) as UIElement,
+  $$ = (s: string) => [...document.querySelectorAll(s)] as UIElement[];
+/** Trazos SVG de los íconos, por nombre. */
+const paths: Record<string, string> = {
   file: 'M6 3h8l4 4v14H6z M14 3v5h5',
   folder: 'M3 7h7l2-3h7v5 M2 9h20l-3 12H3z',
   save: 'M4 3h14l3 3v15H3V3z M7 3v6h10V3 M7 21v-8h10v8',
@@ -42,28 +69,44 @@ const paths = {
   help: 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0 M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4 M12 17h.01',
   grip: 'M9 6h.01 M9 12h.01 M9 18h.01 M15 6h.01 M15 12h.01 M15 18h.01',
 };
-function icon(name) {
+function icon(name: string): string {
   return `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[name] || paths.file}"/></svg>`;
 }
-function icons() {
-  $$('[data-icon]').forEach((e) => (e.innerHTML = icon(e.dataset.icon)));
+/** Dibuja los íconos de los [data-icon]. */
+function icons(): void {
+  $$('[data-icon]').forEach((e) => (e.innerHTML = icon(e.dataset.icon!)));
 }
-const esc = (s) =>
+const esc = (s: unknown): string =>
   String(s ?? '').replace(
     /[&<>"']/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+    (c) =>
+      (
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }) as Record<
+          string,
+          string
+        >
+      )[c],
   );
 let book = M.create(),
+  /** Índice de la página activa. */
   active = 0,
+  /** Primera página del pliego visible. */
   spread = 0,
-  selected = null,
+  /** Id del objeto seleccionado. */
+  selected: string | null = null,
+  /** Herramienta activa ('select', 'hand', 'text'…). */
   tool = 'select',
   tab = 'design',
   zoom = 1,
+  /** Escala efectiva del pliego: px de pantalla por mm. */
   scale = 1,
+  /** Vista previa (sin guías ni controles). */
   preview = false,
+  /** Cambios sin guardar. */
   dirty = false,
+  /** Hay una salida o un paquete en curso. */
   busy = false,
+  /** Familias tipográficas disponibles (las del sistema, o unas básicas). */
   fontList = [
     'Georgia',
     'Times New Roman',
@@ -74,16 +117,23 @@ let book = M.create(),
     'Palatino Linotype',
     'Verdana',
   ],
+  /** Si la interfaz corre dentro de la app de escritorio (pasa a true cuando el anfitrión responde a "ready"). */
   native = false,
-  undoStack = [],
-  redoStack = [],
-  pending = new Map(),
-  editing = null,
-  drag = null,
-  toastTimer,
-  recoveryTimer;
+  /** Copias del libro (JSON) para deshacer y rehacer. */
+  undoStack: string[] = [],
+  redoStack: string[] = [],
+  pending = new Map<
+    string,
+    { resolve: (value: unknown) => void; reject: (reason: unknown) => void }
+  >(),
+  /** Elemento de texto que se está editando en el lienzo, o null. */
+  editing: HTMLElement | null = null,
+  drag: ObjectDrag | null = null,
+  toastTimer: number | undefined,
+  recoveryTimer: number | undefined;
 const selectObject = () => book.pages[active]?.objects.find((o) => o.id === selected);
-function nativeCall(action, payload = {}) {
+/** Pedido al proceso principal de Electron; rechaza fuera de la app de escritorio. */
+function nativeCall(action: string, payload: Record<string, unknown> = {}): Promise<any> {
   if (!MaquetarioHost.available)
     return Promise.reject(Error('Esta función requiere la app de escritorio de Maquetario.'));
   if (action === 'newProject' && typeof updatePortableFontCatalog === 'function') {
@@ -104,7 +154,7 @@ MaquetarioHost.onMessage((data) => {
     data.error ? p.reject(Error(data.error)) : p.resolve(data.result);
   }
 });
-function toast(msg, type = 'success') {
+function toast(msg: string, type = 'success'): void {
   const t = $('#toast');
   t.innerHTML = UI.toast({ message: msg, type });
   t.dataset.type = type;
@@ -113,26 +163,29 @@ function toast(msg, type = 'success') {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('visible'), type === 'error' ? 7000 : 4300);
 }
-function syncNative() {
+/** Avisa al anfitrión si hay cambios sin guardar y actualiza el indicador. */
+function syncNative(): void {
   if (native) nativeCall('dirty', { dirty, title: book.title }).catch(() => {});
   $('#savedState').innerHTML =
     `<i style="background:${dirty ? '#c2a87f' : '#7fceaa'}"></i> ${dirty ? 'Cambios sin guardar' : 'Proyecto guardado'}`;
 }
-function snapshot() {
+/** Guarda el estado para deshacer. */
+function snapshot(): void {
   undoStack.push(JSON.stringify(book));
   let sum = undoStack.reduce((a, b) => a + b.length, 0);
   while (undoStack.length > 1 && (sum > 40000000 || undoStack.length > 40))
-    sum -= undoStack.shift().length;
+    sum -= undoStack.shift()!.length;
   redoStack = [];
 }
-function changed() {
+/** Marca cambios sin guardar y programa la copia de recuperación. */
+function changed(): void {
   dirty = true;
   syncNative();
   clearTimeout(recoveryTimer);
   recoveryTimer = setTimeout(() => storeRecovery(), 900);
   updateStatus();
 }
-function commit(fn, full = true) {
+function commit(fn: () => void, full = true): void {
   if (busy) return;
   snapshot();
   try {
@@ -140,68 +193,77 @@ function commit(fn, full = true) {
     changed();
     render(full);
   } catch (error) {
-    book = JSON.parse(undoStack.pop());
-    toast(error.message, 'error');
+    book = JSON.parse(undoStack.pop()!);
+    toast((error as Error).message, 'error');
     render(true);
   }
 }
-function undo() {
+function undo(): void {
   if (busy || !undoStack.length) return;
   finishEditing();
   redoStack.push(JSON.stringify(book));
-  book = JSON.parse(undoStack.pop());
+  book = JSON.parse(undoStack.pop()!);
   selected = null;
   active = Math.min(active, book.pages.length - 1);
   spread = Math.floor(active / (book.facing ? 2 : 1)) * (book.facing ? 2 : 1);
   changed();
   render(true);
 }
-function redo() {
+function redo(): void {
   if (busy || !redoStack.length) return;
   finishEditing();
   undoStack.push(JSON.stringify(book));
-  book = JSON.parse(redoStack.pop());
+  book = JSON.parse(redoStack.pop()!);
   selected = null;
   active = Math.min(active, book.pages.length - 1);
   spread = Math.floor(active / (book.facing ? 2 : 1)) * (book.facing ? 2 : 1);
   changed();
   render(true);
 }
-function section(title, key, body, enabled = null, badge = '') {
+/** Sección del inspector; enabled es la ruta del interruptor, si tiene. */
+function section(
+  title: string,
+  key: string,
+  body: string,
+  enabled: string | null = null,
+  badge = '',
+): string {
   return `<section class="section" data-section="${esc(title)}" data-key="${key}"><div class="section-heading">${icon(key)}<span>${title}</span>${badge ? `<span class="tiny">${badge}</span>` : ''}${enabled !== null ? toggle(enabled) : ''}</div>${body}</section>`;
 }
-function toggle(path) {
+function toggle(path: string): string {
   return `<label class="switch"><input type="checkbox" data-bind="${path}" ${get(path) ? 'checked' : ''} aria-label="Activar ${esc(path.split('.')[0])}"><span></span></label>`;
 }
-function documentUnit() {
+function documentUnit(): 'mm' | 'cm' {
   return book.measurementUnit === 'cm' ? 'cm' : 'mm';
 }
-function displayMeasure(value) {
+function displayMeasure(value: number): string {
   return Number((Number(value) / (documentUnit() === 'cm' ? 10 : 1)).toFixed(4)).toString();
 }
-function displayDimensions(width, height) {
+function displayDimensions(width: number, height: number): string {
   return `${displayMeasure(width)} × ${displayMeasure(height)} ${documentUnit()}`;
 }
 
-function row(label, content) {
+function row(label: string, content: string): string {
   return `<div class="field-row"><label>${label}</label>${content}</div>`;
 }
-function number(path, min = 0, max = 100, step = 0.5, unit = 'mm') {
+function number(path: string, min = 0, max = 100, step = 0.5, unit = 'mm'): string {
   return `<span class="unit-wrap"><input aria-label="${esc(path)}" data-bind="${path}" type="number" min="${min}" max="${max}" step="${step}" value="${get(path)}">${unit ? `<span class="unit">${unit}</span>` : ''}</span>`;
 }
-function options(path, items) {
+function options(path: string, items: string[][]): string {
   return `<select aria-label="${esc(path)}" data-bind="${path}">${items.map(([v, l]) => `<option value="${v}" ${get(path) === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
 }
-function get(path) {
-  return path.split('.').reduce((a, k) => a?.[k], book);
+/** Valor del libro en una ruta con puntos ('header.font'…). */
+function get(path: string): any {
+  return path.split('.').reduce((a: any, k) => a?.[k], book);
 }
-function set(path, value) {
+/** Escribe un valor del libro por ruta con puntos ('header.rule', 'folio.ruleWidth'…). */
+function set(path: string, value: unknown): void {
   let keys = path.split('.'),
-    last = keys.pop(),
-    obj = keys.reduce((a, k) => a[k], book);
+    last = keys.pop()!,
+    obj = keys.reduce((a: any, k) => a[k], book);
   obj[last] = value;
 }
-function pair(label, path1, path2, label1, label2) {
+function pair(label: string, path1: string, path2: string, label1: string, label2: string): string {
   return `${label ? `<div class="sub-label">${label}</div>` : ''}<div class="pair"><div>${number(path1, 0, 150)}<label>${label1}</label></div><div>${number(path2, 0, 150)}<label>${label2}</label></div></div>`;
 }
 const positions = [
@@ -222,7 +284,7 @@ const folioPositions = [
   ['outer', 'Lateral exterior'],
   ['inner', 'Lateral interior'],
 ];
-function masterDetails(type) {
+function masterDetails(type: 'folio' | 'header' | 'titulillo'): string {
   return `<details><summary>Personalizar pares, impares y posición</summary><label class="field-label">Páginas impares</label><input class="field-full" data-bind="${type}.odd" value="${esc(book[type].odd)}" maxlength="1000"><label class="field-label">Páginas pares</label><input class="field-full" data-bind="${type}.even" value="${esc(book[type].even)}" maxlength="1000">${row(
     'Aplicar a',
     options(type + '.scope', [
@@ -245,7 +307,7 @@ function masterDetails(type) {
     ]),
   )}<label class="check-line"><input type="checkbox" data-bind="${type}.vertical" ${book[type].vertical ? 'checked' : ''}> Rotar texto 90°</label>${type === 'header' ? `<label class="check-line"><input type="checkbox" data-bind="header.rule" ${book.header.rule ? 'checked' : ''}> Línea debajo de la cornisa</label>` : ''}<p class="help">Variables: {book} libro · {section} sección<br>{page} folio · {total} total de páginas.<br>Usá | para separar dos extremos.</p></details>`;
 }
-function textControls(compact = false) {
+function textControls(compact = false): string {
   const o = selectObject();
   let disabled = !o || o.type !== 'text';
   let fake =
@@ -262,7 +324,7 @@ function textControls(compact = false) {
         };
   return `${!compact ? (disabled ? '<div class="empty-selection">Seleccioná un cuadro de texto en la página.<br>Hacé doble clic para escribir.</div>' : `<div class="selection-chip">${icon('box')} Cuadro de texto seleccionado</div>`) : ''}${row('Tipo de letra', `<select data-object="font" ${disabled ? 'disabled' : ''}>${fontList.map((f) => `<option ${fake.font === f ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select>`)}${row('Tamaño', `<span class="unit-wrap"><input data-object="size" aria-label="Cuerpo del texto" type="number" min="4" max="150" step=".5" value="${fake.size}" ${disabled ? 'disabled' : ''}><span class="unit">pt</span></span>`)}${row('Interlineado', `<span class="unit-wrap"><input data-object="leading" aria-label="Interlineado" type="number" min="4" max="220" step=".5" value="${fake.leading}" ${disabled ? 'disabled' : ''}><span class="unit">pt</span></span>`)}${row('Alineación', `<div class="alignment">${['left', 'center', 'right', 'justify'].map((a) => `<button data-align="${a}" title="${a}" class="${fake.align === a ? 'active' : ''}" ${disabled ? 'disabled' : ''}>${icon(a)}</button>`).join('')}</div>`)}${!compact ? `<div class="segmented"><button data-style="bold" class="${fake.bold ? 'active' : ''}" ${disabled ? 'disabled' : ''}><b>Negrita</b></button><button data-style="italic" class="${fake.italic ? 'active' : ''}" ${disabled ? 'disabled' : ''}><i>Cursiva</i></button></div>${row('Color', `<input data-object="color" type="color" value="${fake.color}" ${disabled ? 'disabled' : ''}>`)}<button class="btn wide" data-command="editText" ${disabled ? 'disabled' : ''}>${icon('text')} Editar contenido</button>` : ''}`;
 }
-function inspector() {
+function inspector(): void {
   const host = $('#inspectorContent');
   if (tab === 'design')
     host.innerHTML =
@@ -352,13 +414,13 @@ function inspector() {
   }
   bindInspector();
 }
-function bindInspector() {
+function bindInspector(): void {
   const h = $('#inspectorContent');
-  h.querySelectorAll('[data-bind]').forEach((el) =>
+  h.querySelectorAll<UIElement>('[data-bind]').forEach((el) =>
     el.addEventListener('change', () => {
       let value =
         el.type === 'checkbox' ? el.checked : el.type === 'number' ? Number(el.value) : el.value;
-      const key = el.dataset.bind;
+      const key = el.dataset.bind!;
       if (
         el.type === 'number' &&
         (!Number.isFinite(value) || value < Number(el.min) || value > Number(el.max))
@@ -380,10 +442,10 @@ function bindInspector() {
       }, false);
     }),
   );
-  h.querySelectorAll('[data-fit]').forEach(
-    (el) => (el.onclick = () => commit(() => (book.grid.fit = el.dataset.fit), false)),
+  h.querySelectorAll<UIElement>('[data-fit]').forEach(
+    (el) => (el.onclick = () => commit(() => (book.grid.fit = el.dataset.fit!), false)),
   );
-  h.querySelectorAll('[data-object]').forEach(
+  h.querySelectorAll<UIElement>('[data-object]').forEach(
     (el) =>
       (el.onchange = () => {
         const o = selectObject();
@@ -398,8 +460,8 @@ function bindInspector() {
           return;
         }
         commit(() => {
-          o[el.dataset.object] = value;
-          if (['x', 'y', 'w', 'h'].includes(el.dataset.object)) {
+          o[el.dataset.object!] = value;
+          if (['x', 'y', 'w', 'h'].includes(el.dataset.object!)) {
             o.x = Math.max(0, Math.min(o.x, book.width - 3));
             o.y = Math.max(0, Math.min(o.y, book.height - 3));
             o.w = Math.min(o.w, book.width - o.x);
@@ -408,43 +470,44 @@ function bindInspector() {
         }, false);
       }),
   );
-  h.querySelectorAll('[data-align]').forEach(
-    (el) => (el.onclick = () => commit(() => (selectObject().align = el.dataset.align), false)),
+  h.querySelectorAll<UIElement>('[data-align]').forEach(
+    (el) => (el.onclick = () => commit(() => (selectObject()!.align = el.dataset.align!), false)),
   );
-  h.querySelectorAll('[data-style]').forEach(
+  h.querySelectorAll<UIElement>('[data-style]').forEach(
     (el) =>
       (el.onclick = () =>
         commit(() => {
-          const o = selectObject();
-          o[el.dataset.style] = !o[el.dataset.style];
+          const o = selectObject()!;
+          o[el.dataset.style!] = !o[el.dataset.style!];
         }, false)),
   );
-  h.querySelectorAll('[data-command]').forEach(
-    (el) => (el.onclick = () => command(el.dataset.command)),
+  h.querySelectorAll<UIElement>('[data-command]').forEach(
+    (el) => (el.onclick = () => command(el.dataset.command!)),
   );
-  h.querySelectorAll('[data-page]').forEach(
+  h.querySelectorAll<UIElement>('[data-page]').forEach(
     (el) =>
-      (el.onchange = () => commit(() => (book.pages[active][el.dataset.page] = el.checked), false)),
+      (el.onchange = () =>
+        commit(() => (book.pages[active][el.dataset.page!] = el.checked), false)),
   );
   if ($('#pageSection'))
-    $('#pageSection').onchange = (e) =>
-      commit(() => (book.pages[active].section = e.target.value), false);
+    $('#pageSection').onchange = (e: Event) =>
+      commit(() => (book.pages[active].section = (e.target as HTMLInputElement).value), false);
 }
-function templateMini(cols, lines = false) {
+function templateMini(cols: number, lines = false): string {
   return Array.from(
     { length: 2 },
     () =>
       `<div class="mini-page">${Array.from({ length: cols }, () => '<div class="mini-col"></div>').join('')}</div>`,
   ).join('');
 }
-const templates = [
+const templates: [string, number, number][] = [
   ['Libro (3 columnas)', 3, 6],
   ['Revista (2 columnas)', 2, 5],
   ['Folleto (2 columnas)', 2, 3],
   ['Simple (1 columna)', 1, 1],
   ['Cuaderno (1 columna)', 1, 12],
 ];
-function renderTemplates() {
+function renderTemplates(): void {
   const host = $('#templates');
   host.innerHTML =
     templates
@@ -454,7 +517,7 @@ function renderTemplates() {
       )
       .join('') +
     '<div class="template-tip"><strong>ⓘ &nbsp; Diseñá con intención</strong>La grilla ordena el espacio.<br>Tu composición le da carácter.</div>';
-  host.querySelectorAll('[data-template]').forEach(
+  host.querySelectorAll<UIElement>('[data-template]').forEach(
     (el) =>
       (el.onclick = () => {
         const [, cols, rows] = templates[Number(el.dataset.template)];
@@ -470,7 +533,7 @@ function renderTemplates() {
       }),
   );
 }
-function thumbs() {
+function thumbs(): void {
   const host = $('#thumbnails'),
     savedScroll = host.scrollTop;
   host.innerHTML = '';
@@ -492,10 +555,11 @@ function thumbs() {
   }
   host.scrollTop = savedScroll;
 }
-function verticalSpread() {
+/** Pliego en vertical (una página arriba de la otra). */
+function verticalSpread(): boolean {
   return book.facing && book.spreadDirection === 'vertical';
 }
-function calculateScale() {
+function calculateScale(): void {
   const area = $('#spreadStage'),
     availableW = area.clientWidth - 58,
     availableH = area.clientHeight - 56,
@@ -509,7 +573,7 @@ function calculateScale() {
       ),
     ) * zoom;
 }
-function gridSvg(i, px) {
+function gridSvg(i: number, px: number): string {
   const m = M.margins(book, i),
     g = book.grid,
     r = M.gridRect(book, i),
@@ -521,7 +585,12 @@ function gridSvg(i, px) {
       rects += `<rect x="${r.x + c * (cw + g.gapX)}" y="${r.y + row * (rh + g.gapY)}" width="${cw}" height="${rh}"/>`;
   return `<svg class="grid-svg" viewBox="0 0 ${book.width} ${book.height}"><g fill="none" stroke="#65cee3" stroke-width="${0.65 / px}" opacity=".58">${g.enabled ? rects : ''}</g><rect x="${m.left}" y="${book.margins.top}" width="${book.width - m.left - m.right}" height="${book.height - book.margins.top - book.margins.bottom}" fill="none" stroke="#e282d6" stroke-width="${0.7 / px}" opacity=".7"/></svg>`;
 }
-function autoElement(i, type, px, print = false) {
+function autoElement(
+  i: number,
+  type: import('../model.ts').AutoType,
+  px: number,
+  print = false,
+): HTMLElement | null {
   const cfg = M.auto(book, i, type);
   if (!cfg) return null;
   const el = document.createElement('div'),
@@ -581,10 +650,11 @@ function autoElement(i, type, px, print = false) {
   if (type === 'header' && cfg.rule) el.classList.add('rule');
   return el;
 }
-function paper(i, px, print = false) {
+/** Dibuja la página i a px píxeles por milímetro. */
+function paper(i: number, px: number, print = false): HTMLElement {
   const page = document.createElement('div');
   page.className = print ? 'print-page' : 'page' + (active === i ? ' active-page' : '');
-  page.dataset.page = i;
+  page.dataset.page = String(i);
   page.style.width = book.width * px + 'px';
   page.style.height = book.height * px + 'px';
   const objects = document.createElement('div');
@@ -649,7 +719,7 @@ function paper(i, px, print = false) {
     }
     objects.append(el);
   }
-  for (const type of ['header', 'titulillo', 'folio']) {
+  for (const type of ['header', 'titulillo', 'folio'] as const) {
     const auto = autoElement(i, type, px, print);
     if (auto) page.append(auto);
   }
@@ -662,7 +732,7 @@ function paper(i, px, print = false) {
   }
   return page;
 }
-function renderPages() {
+function renderPages(): void {
   calculateScale();
   const host = $('#spread'),
     vertical = verticalSpread();
@@ -686,7 +756,7 @@ function renderPages() {
   ).join('');
   requestAnimationFrame(checkOverflow);
 }
-function render(full = true) {
+function render(full = true): void {
   $('#documentName').textContent = book.title;
   $('#documentFormat').textContent =
     `${book.format === 'Personalizado' ? 'Personalizado' : book.format} · ${displayDimensions(book.width, book.height)}`;
@@ -701,7 +771,7 @@ function render(full = true) {
   }
   updateStatus();
 }
-function updateStatus() {
+function updateStatus(): void {
   $('#statusText').textContent = `Página ${active + 1} de ${book.pages.length}`;
   const o = selectObject();
   $('#selectionText').textContent = o
@@ -710,10 +780,10 @@ function updateStatus() {
   $('#undo').disabled = !undoStack.length;
   $('#redo').disabled = !redoStack.length;
 }
-function checkOverflow() {
+function checkOverflow(): void {
   let count = 0;
   $$('#spread .paper-object.text').forEach((el) => {
-    const t = el.querySelector('.text-content');
+    const t = el.querySelector('.text-content')!;
     el.querySelector('.overflow-mark')?.remove();
     if (t.scrollHeight > t.clientHeight + 2 || t.scrollWidth > t.clientWidth + 2) {
       count++;
@@ -728,28 +798,34 @@ function checkOverflow() {
     ? `${count} caja${count > 1 ? 's' : ''} con texto sobrante`
     : '';
 }
-function startEditing(el) {
+function startEditing(el: HTMLElement): void {
   if (preview || busy) return;
   finishEditing();
   snapshot();
   editing = el;
   el.classList.add('editing');
-  el.querySelector('.text-content').contentEditable = 'true';
-  el.querySelector('.text-content').focus();
+  el.querySelector<HTMLElement>('.text-content')!.contentEditable = 'true';
+  el.querySelector<HTMLElement>('.text-content')!.focus();
   inspector();
 }
-function finishEditing() {
+function finishEditing(): void {
   if (!editing) return;
   const el = editing;
   editing = null;
-  const t = el.querySelector('.text-content');
+  const t = el.querySelector<HTMLElement>('.text-content');
   if (t) {
     t.contentEditable = 'false';
   }
   el.classList.remove('editing');
   checkOverflow();
 }
-function objectDown(e, o, i, el, resize = false) {
+function objectDown(
+  e: PointerEvent,
+  o: import('../model.ts').BookObject,
+  i: number,
+  el: HTMLElement,
+  resize: boolean | string = false,
+): void {
   if (preview || busy || e.button !== 0) return;
   if (editing === el && !resize) return;
   e.stopPropagation();
@@ -771,7 +847,8 @@ function objectDown(e, o, i, el, resize = false) {
     y: o.y,
     w: o.w,
     h: o.h,
-    resize,
+    // Esta versión base la reemplaza frame-handles, que guarda la dirección en lugar de true.
+    resize: resize as string | false,
     moved: false,
   };
   el.setPointerCapture(e.pointerId);
@@ -791,7 +868,7 @@ function objectDown(e, o, i, el, resize = false) {
   updateStatus();
   $$('.tool').forEach((n) => n.classList.toggle('active', n.dataset.tool === tool));
 }
-function moveObject(e) {
+function moveObject(e: PointerEvent): void {
   if (!drag) return;
   let d = drag,
     o = d.o,
@@ -813,7 +890,7 @@ function moveObject(e) {
   });
   updateStatus();
 }
-function upObject(e) {
+function upObject(e: PointerEvent): void {
   if (!drag) return;
   const d = drag;
   drag = null;
@@ -828,8 +905,8 @@ function upObject(e) {
     checkOverflow();
   }
 }
-function pageDown(e, i, el) {
-  if (e.target.closest('.paper-object') || preview || busy || e.button !== 0) return;
+function pageDown(e: PointerEvent, i: number, el: HTMLElement): void {
+  if ((e.target as Element).closest('.paper-object') || preview || busy || e.button !== 0) return;
   finishEditing();
   active = i;
   selected = null;
@@ -870,14 +947,14 @@ function pageDown(e, i, el) {
   } else if (tool === 'image') chooseImage({ pos, page: i });
   else render(false);
 }
-let imageTarget = null;
-function chooseImage(target) {
+let imageTarget: Record<string, any> | null = null;
+function chooseImage(target: Record<string, unknown>): void {
   imageTarget = target;
   $('#imageInput').value = '';
   $('#imageInput').click();
 }
-$('#imageInput').onchange = async (e) => {
-  const file = e.target.files[0],
+$('#imageInput').onchange = async (e: Event) => {
+  const file = (e.target as HTMLInputElement).files![0],
     target = imageTarget;
   if (!file || !target) return;
   try {
@@ -891,7 +968,7 @@ $('#imageInput').onchange = async (e) => {
       const c = document.createElement('canvas');
       c.width = Math.round(img.width * ratio);
       c.height = Math.round(img.height * ratio);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
       const src = c.toDataURL(file.type === 'image/png' ? 'image/png' : 'image/jpeg', 0.92);
       commit(() => {
         let o = target.frame;
@@ -921,24 +998,24 @@ $('#imageInput').onchange = async (e) => {
       URL.revokeObjectURL(url);
     }
   } catch (error) {
-    toast('No se pudo cargar la imagen: ' + error.message, 'error');
+    toast('No se pudo cargar la imagen: ' + (error as Error).message, 'error');
   }
 };
-function showTab(name) {
+function showTab(name: string): void {
   tab = name;
   $$('.tab').forEach((e) => {
     e.classList.toggle('active', e.dataset.tab === tab);
-    e.setAttribute('aria-selected', e.dataset.tab === tab);
+    e.setAttribute('aria-selected', String(e.dataset.tab === tab));
   });
   $('#inspectorContent').scrollTop = 0;
   inspector();
 }
-function setTool(name) {
+function setTool(name: string): void {
   finishEditing();
   if (['grid', 'folio', 'header'].includes(name)) {
     showTab('design');
     const section = [...$('#inspectorContent').querySelectorAll('.section')][
-      { grid: 0, folio: 2, header: 3 }[name]
+      ({ grid: 0, folio: 2, header: 3 } as Record<string, number>)[name]
     ];
     section?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     tool = 'select';
@@ -949,7 +1026,13 @@ function setTool(name) {
   $$('.tool').forEach((e) => e.classList.toggle('active', e.dataset.tool === tool));
   $('#spread').style.cursor = tool === 'select' ? 'default' : 'crosshair';
 }
-function modal(title, body, apply, label = 'Aplicar', eyebrow = 'MAQUETARIO') {
+function modal(
+  title: string,
+  body: string,
+  apply: () => unknown,
+  label = 'Aplicar',
+  eyebrow = 'MAQUETARIO',
+): void {
   if (busy) return;
   finishEditing();
   $('#modalTitle').textContent = title;
@@ -961,28 +1044,37 @@ function modal(title, body, apply, label = 'Aplicar', eyebrow = 'MAQUETARIO') {
       const result = await apply();
       if (result !== false) $('#modal').close();
     } catch (error) {
-      let e = $('#modalBody .inline-error');
+      let e: HTMLElement | null = $('#modalBody .inline-error');
       if (!e) {
         e = document.createElement('p');
         e.className = 'inline-error';
         $('#modalBody').append(e);
       }
-      e.textContent = error.message;
+      e.textContent = (error as Error).message;
     }
   };
   $('#modal').showModal();
 }
-function control(label, id, value, type = 'number', min = '', max = '', full = false) {
+function control(
+  label: string,
+  id: string,
+  value: string | number,
+  type = 'number',
+  min: string | number = '',
+  max: string | number = '',
+  full = false,
+): string {
   return `<div class="control ${full ? 'full' : ''}"><label for="${id}">${label}</label><input id="${id}" type="${type}" value="${esc(value)}" ${min !== '' ? `min="${min}"` : ''} ${max !== '' ? `max="${max}"` : ''} step=".1"></div>`;
 }
-function settings(isNew = false) {
+/** Diálogo de formato del libro (nuevo o existente). */
+function settings(isNew = false): void {
   if (isNew && dirty) {
     confirmChanges(() => settingsNew());
     return;
   }
   settingsNew(isNew);
 }
-function settingsNew(isNew = true) {
+function settingsNew(isNew = true): void {
   let format = book.format;
   modal(
     isNew ? 'Un nuevo libro, una nueva historia' : 'Configuración del libro',
@@ -1035,7 +1127,7 @@ function settingsNew(isNew = true) {
           book.height = h;
         }
         if (resized && book.guides)
-          book.guides = book.guides.map((g) => ({
+          book.guides = book.guides.map((g: { axis: string; position: number }) => ({
             ...g,
             position: Math.min(g.position, g.axis === 'v' ? w : h),
           }));
@@ -1045,7 +1137,7 @@ function settingsNew(isNew = true) {
         book.format = format;
         if (resized) {
           const maxMargin = Math.min(w, h) / 4;
-          for (const k of Object.keys(book.margins))
+          for (const k of Object.keys(book.margins) as (keyof typeof book.margins)[])
             book.margins[k] = Math.min(book.margins[k], maxMargin);
           if (!M.validateGrid(book)) {
             book.grid.gapX = book.grid.gapY = 0;
@@ -1069,7 +1161,7 @@ function settingsNew(isNew = true) {
   $$('.format-option').forEach(
     (el) =>
       (el.onclick = () => {
-        format = el.dataset.format;
+        format = el.dataset.format!;
         let [w, h] = M.formats[format];
         if ($('#orientation').value === 'landscape') [w, h] = [h, w];
         const u = $('#pageUnits').value === 'cm' ? 10 : 1;
@@ -1089,8 +1181,8 @@ function settingsNew(isNew = true) {
     const cm = $('#pageUnits').value === 'cm',
       factor = cm ? 0.1 : 10;
     for (const button of $$('.format-option')) {
-      const [w, h] = M.formats[button.dataset.format];
-      button.querySelector('small').textContent =
+      const [w, h] = M.formats[button.dataset.format!];
+      button.querySelector('small')!.textContent =
         (cm ? w / 10 : w) + ' × ' + (cm ? h / 10 : h) + ' ' + (cm ? 'cm' : 'mm');
     }
     for (const id of ['#newWidth', '#newHeight']) {
@@ -1109,7 +1201,7 @@ function settingsNew(isNew = true) {
   };
   if (book.measurementUnit === 'cm') {
     $('#pageUnits').value = 'cm';
-    $('#pageUnits').onchange();
+    ($('#pageUnits').onchange as () => void)();
   }
   $('#orientation').onchange = () => {
     let w = Number($('#newWidth').value),
@@ -1118,7 +1210,8 @@ function settingsNew(isNew = true) {
     $('#newHeight').value = w;
   };
 }
-function confirmChanges(proceed) {
+/** Pregunta qué hacer con los cambios sin guardar y, si corresponde, sigue con proceed. */
+function confirmChanges(proceed: () => unknown): void {
   askChoice({
     title: bw(
       'Tu libro tiene cambios sin guardar',
@@ -1142,12 +1235,12 @@ function confirmChanges(proceed) {
         variant: 'primary',
       },
     ],
-  }).then(async (choice) => {
+  }).then(async (choice: string | null) => {
     if (choice === 'discard') proceed();
     else if (choice === 'save' && (await saveProject())) setTimeout(proceed, 20);
   });
 }
-async function saveProject() {
+async function saveProject(): Promise<boolean> {
   finishEditing();
   try {
     M.validate(book);
@@ -1167,12 +1260,12 @@ async function saveProject() {
     toast('Proyecto guardado. Podés seguir editando.');
     return true;
   } catch (error) {
-    toast('No se pudo guardar: ' + error.message, 'error');
+    toast('No se pudo guardar: ' + (error as Error).message, 'error');
     return false;
   }
 }
 window.saveProject = saveProject;
-function download(blob, name) {
+function download(blob: Blob, name: string): void {
   const a = document.createElement('a'),
     url = URL.createObjectURL(blob);
   a.href = url;
@@ -1180,7 +1273,7 @@ function download(blob, name) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-function openBook() {
+function openBook(): void {
   const run = async () => {
     try {
       if (native) {
@@ -1189,13 +1282,14 @@ function openBook() {
         loadOpenedProject(r);
       } else $('#openInput').click();
     } catch (error) {
-      toast(error.message, 'error');
+      toast((error as Error).message, 'error');
     }
   };
   if (dirty) confirmChanges(run);
   else run();
 }
-function loadProject(content) {
+/** Valida el contenido de un proyecto y lo carga como libro actual. */
+function loadProject(content: string): void {
   if (content.length > 80000000) throw Error('El proyecto supera 80 MB.');
   const loaded = M.validate(JSON.parse(content.replace(/^\uFEFF/, '')));
   book = loaded;
@@ -1208,16 +1302,16 @@ function loadProject(content) {
   render(true);
   toast('Proyecto abierto.');
 }
-$('#openInput').onchange = async (e) => {
+$('#openInput').onchange = async (e: Event) => {
   try {
-    const file = e.target.files[0];
+    const file = (e.target as HTMLInputElement).files![0];
     if (file) loadProject(await file.text());
   } catch (error) {
-    toast('No se pudo abrir: ' + error.message, 'error');
+    toast('No se pudo abrir: ' + (error as Error).message, 'error');
   }
-  e.target.value = '';
+  (e.target as HTMLInputElement).value = '';
 };
-function command(name) {
+function command(name: string): void {
   const o = selectObject();
   if (name === 'settings') {
     settings(false);
@@ -1300,7 +1394,7 @@ function command(name) {
     });
   }
 }
-function exportDialog() {
+function exportDialog(): void {
   let count = Math.ceil(book.pages.length / 4) * 4;
   modal(
     'Tu libro, listo para salir',
@@ -1324,7 +1418,7 @@ function exportDialog() {
     'EXPORTACIÓN',
   );
 }
-function preparePrint() {
+function preparePrint(): boolean {
   finishEditing();
   const root = $('#printRoot');
   root.replaceChildren();
@@ -1335,18 +1429,18 @@ function preparePrint() {
   for (let i = 0; i < book.pages.length; i++) root.append(paper(i, px, true));
   return true;
 }
-function clearPrint() {
+function clearPrint(): void {
   $('#printRoot').replaceChildren();
 }
 window.preparePrint = preparePrint;
 window.clearPrint = clearPrint;
-async function bytesBase64(bytes) {
+async function bytesBase64(bytes: Uint8Array): Promise<string> {
   let s = '';
   for (let i = 0; i < bytes.length; i += 32768)
     s += String.fromCharCode(...bytes.subarray(i, i + 32768));
   return btoa(s);
 }
-async function imposePdf(bytes, paperName, fit) {
+async function imposePdf(bytes: Uint8Array, paperName: string, fit: string): Promise<Uint8Array> {
   const { PDFDocument } = PDFLib,
     src = await PDFDocument.load(bytes),
     out = await PDFDocument.create(),
@@ -1380,7 +1474,7 @@ async function imposePdf(bytes, paperName, fit) {
   out.setCreator('Maquetario');
   return out.save();
 }
-async function performExport(mode, paperName, fit) {
+async function performExport(mode: string, paperName: string, fit: string): Promise<void> {
   if (!native) {
     toast('Abrí Maquetario.exe para generar el PDF directamente.', 'info');
     return;
@@ -1388,13 +1482,13 @@ async function performExport(mode, paperName, fit) {
   finishEditing();
   if (busy) return;
   busy = true;
-  document.querySelector('main').inert = true;
+  document.querySelector('main')!.inert = true;
   $('#export').disabled = true;
   toast('Preparando tu PDF…', 'info');
   try {
     await document.fonts.ready;
     const { base64 } = await nativeCall('export', { width: book.width, height: book.height });
-    let bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    let bytes: Uint8Array = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
     if (mode === 'booklet') bytes = await imposePdf(bytes, paperName, fit);
     const r = await nativeCall('savePdf', {
       base64: await bytesBase64(bytes),
@@ -1405,14 +1499,14 @@ async function performExport(mode, paperName, fit) {
       r.saved ? 'success' : 'info',
     );
   } catch (error) {
-    toast('No se pudo exportar: ' + error.message, 'error');
+    toast('No se pudo exportar: ' + (error as Error).message, 'error');
   } finally {
     busy = false;
-    document.querySelector('main').inert = false;
+    document.querySelector('main')!.inert = false;
     $('#export').disabled = false;
   }
 }
-async function recoveryDb() {
+async function recoveryDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open('LibroStudioRecovery', 1);
     req.onupgradeneeded = () => req.result.createObjectStore('books');
@@ -1420,7 +1514,7 @@ async function recoveryDb() {
     req.onerror = () => reject(req.error);
   });
 }
-async function storeRecovery() {
+async function storeRecovery(): Promise<void> {
   try {
     const db = await recoveryDb(),
       tx = db.transaction('books', 'readwrite');
@@ -1428,7 +1522,7 @@ async function storeRecovery() {
     tx.oncomplete = () => db.close();
   } catch {}
 }
-async function offerRecovery() {
+async function offerRecovery(): Promise<void> {
   try {
     const db = await recoveryDb(),
       tx = db.transaction('books', 'readonly'),
@@ -1452,8 +1546,8 @@ async function offerRecovery() {
     };
   } catch {}
 }
-function buildToolbar() {
-  let actions = [
+function buildToolbar(): void {
+  let actions: [string, string, string, () => unknown][] = [
     ['new', 'Nuevo', 'file', () => settings(true)],
     ['open', 'Abrir', 'folder', openBook],
     ['save', 'Guardar', 'save', saveProject],
@@ -1486,11 +1580,11 @@ function buildToolbar() {
         `<button class="tool ${id === 'select' ? 'active' : ''}" data-tool="${id}">${icon(key)}<span>${label}</span><span class="shortcut">${k}</span></button>`,
     )
     .join('');
-  $$('[data-tool]').forEach((el) => (el.onclick = () => setTool(el.dataset.tool)));
+  $$('[data-tool]').forEach((el) => (el.onclick = () => setTool(el.dataset.tool!)));
   icons();
 }
 buildToolbar();
-$$('.tab').forEach((el) => (el.onclick = () => showTab(el.dataset.tab)));
+$$('.tab').forEach((el) => (el.onclick = () => showTab(el.dataset.tab!)));
 $('#preview').onclick = () => {
   finishEditing();
   preview = !preview;
@@ -1500,13 +1594,13 @@ $('#preview').onclick = () => {
 $('#export').onclick = exportDialog;
 $('#addPage').onclick = () => command('addPage');
 $('#documentSettings').onclick = () => settings(false);
-$('#zoom').oninput = (e) => {
-  zoom = Number(e.target.value) / 100;
+$('#zoom').oninput = (e: Event) => {
+  zoom = Number((e.target as HTMLInputElement).value) / 100;
   $('#fitZoom').textContent = Math.round(zoom * 100) + '%';
   finishEditing();
   renderPages();
 };
-function setZoom(z) {
+function setZoom(z: number): void {
   zoom = Math.max(0.4, Math.min(1.6, z));
   $('#zoom').value = zoom * 100;
   $('#fitZoom').textContent = Math.round(zoom * 100) + '%';
@@ -1521,7 +1615,7 @@ $('#fullscreen').onclick = () => {
 };
 document.addEventListener('keydown', (e) => {
   if ($('#modal').open) return;
-  const input = e.target.closest?.('input,textarea,select,[contenteditable="true"]');
+  const input = (e.target as Element).closest?.('input,textarea,select,[contenteditable="true"]');
   if (e.ctrlKey && e.key.toLowerCase() === 's') {
     e.preventDefault();
     saveProject();
