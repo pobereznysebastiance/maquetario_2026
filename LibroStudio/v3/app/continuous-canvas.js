@@ -2,7 +2,7 @@
 
 let continuousCanvas = localStorage.getItem('maquetario-continuous') === 'true';
 let continuousRows = [], visibleRowFrame = 0, continuousKey = '', continuousSpread = -1;
-const canvasGap = 38, normalPages = renderPages;
+const canvasGap = 38;
 const normalCanvasAnchor = canvasAnchor, normalCanvasRestore = restoreCanvasAnchor;
 canvasAnchor = function(clientX,clientY) {
   const anchor = normalCanvasAnchor(clientX,clientY);
@@ -82,7 +82,7 @@ canvasStage.addEventListener('pointerdown',event=>{
 },true);
 $('#thumbnails').addEventListener('click',()=>{if (continuousCanvas) continuousKey='';},true);
 
-renderPages = function() {
+extend('renderPages',normalPages=>function(){
   labelContinuousCanvas();
   const host = $('#spread');
   host.classList.toggle('canvas-continuous',continuousCanvas);
@@ -129,5 +129,5 @@ renderPages = function() {
   $('#rulerY').innerHTML = Array.from({length:8},(_,i)=>`<span>${displayMeasure(i*referenceHeight/8)}</span>`).join('');
   updateCanvasZoomDisplay();
   updateCanvasCursor();
-};
+},'continuous-canvas');
 labelContinuousCanvas();

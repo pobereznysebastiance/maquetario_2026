@@ -1,8 +1,7 @@
 'use strict';
 
 const folioMetric = document.createElement('canvas').getContext('2d');
-const priorFolioElement = autoElement;
-autoElement = function(index,type,px,printing=false) {
+extend('autoElement',priorFolioElement=>function(index,type,px,printing=false){
   const element = priorFolioElement(index,type,px,printing);
   if (!element || type !== 'folio') return element;
   const cfg = M.auto(book,index,type), margins = M.margins(book,index);
@@ -44,10 +43,9 @@ autoElement = function(index,type,px,printing=false) {
     transform:`translate(-50%,-50%)${rotate?' rotate(-90deg)':''}`,transformOrigin:'center'
   });
   return element;
-};
+},'folio-position');
 
-const beforeFolioControls = inspector;
-inspector = function() {
+extend('inspector',beforeFolioControls=>function(){
   beforeFolioControls();
   const section = $('[data-bind="folio.pos"]')?.closest('.section');
   if (!section || section.querySelector('.folio-placement')) return;
@@ -88,4 +86,4 @@ inspector = function() {
   const details = section.querySelector('details');
   if (details) details.before(group);
   else section.append(group);
-};
+},'folio-position');

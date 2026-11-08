@@ -1,6 +1,5 @@
 'use strict';
-const beforeDocumentViewTests = window.runNavigationTests;
-window.runNavigationTests = async function() {
+extend('runNavigationTests',beforeDocumentViewTests=>async function(){
   const report = await beforeDocumentViewTests();
   const check = (condition,message)=>{
     if (!condition) throw Error(message);
@@ -64,4 +63,4 @@ window.runNavigationTests = async function() {
     continuousKey=canvasSpreadKey='';
     render(true);
   }
-};
+},'document-view-tests');

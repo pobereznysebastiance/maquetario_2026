@@ -42,22 +42,19 @@ function adaptLengthControls(root) {
     }
   }
 }
-const unitsInspector = inspector;
-inspector = function() { unitsInspector();adaptLengthControls($('#inspectorContent')); };
-const unitsModal = modal;
-modal = function(...args) {
+extend('inspector',unitsInspector=>function(){ unitsInspector();adaptLengthControls($('#inspectorContent')); },'document-units');
+extend('modal',unitsModal=>function(...args){
   unitsModal(...args);
   if ($('#modal').open && !$('#pageUnits')) adaptLengthControls($('#modalBody'));
-};
-const unitsCover = coverEditor;
-coverEditor = function() {
+},'document-units');
+extend('coverEditor',unitsCover=>function(){
   unitsCover();
   if ($('#coverPreview')) adaptLengthControls($('#modalBody'));
-};
+},'document-units');
 
-const unitStatus = updateStatus;
+
 const statusUnit = $('.statusbar .status-spacer').nextElementSibling;
-updateStatus = function() {
+extend('updateStatus',unitStatus=>function(){
   unitStatus();
   statusUnit.textContent = bw('Unidades','Units','Unidades')+': '+documentUnit();
   const object = selectObject();
@@ -66,4 +63,4 @@ updateStatus = function() {
     text.textContent = text.textContent.split(' · ')[0]+' · '+displayDimensions(object.w,object.h);
   }
   if ($('#documentFormat')) $('#documentFormat').textContent = book.format+' · '+displayDimensions(book.width,book.height);
-};
+},'document-units');

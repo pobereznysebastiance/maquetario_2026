@@ -73,17 +73,15 @@ function updateTutorialSpotlight() {
   }
   if (!tutorialCard.hidden) spotlightFrame = requestAnimationFrame(updateTutorialSpotlight);
 }
-const spotlightStep = showTutorialStep;
-showTutorialStep = function(index) {
+extend('showTutorialStep',spotlightStep=>function(index){
   spotlightStep(index);
   tutorialCard.style.left = '';
   cancelAnimationFrame(spotlightFrame);
   updateTutorialSpotlight();
-};
-const spotlightClose = closeTutorial;
-closeTutorial = function() {
+},'editor-controls');
+extend('closeTutorial',spotlightClose=>function(){
   spotlightClose();
   cancelAnimationFrame(spotlightFrame);
   spotlight.style.display = 'none';
   tutorialCard.style.left = '';
-};
+},'editor-controls');

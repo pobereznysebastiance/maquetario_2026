@@ -1,7 +1,6 @@
 'use strict';
 
-const coverBeforeBindingEstimate = coverEditor;
-coverEditor = function() {
+extend('coverEditor',coverBeforeBindingEstimate=>function(){
   coverBeforeBindingEstimate();
   const spine = $('[data-cover-size="spine"]');
   if (!spine) return;
@@ -61,4 +60,4 @@ coverEditor = function() {
   method.addEventListener('change', refreshEstimate);
   caliper.addEventListener('input', refreshEstimate);
   refreshEstimate();
-};
+},'binding-estimate');

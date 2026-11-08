@@ -1,7 +1,6 @@
 'use strict';
 
-const navigationBeforeFeedback = window.runNavigationTests;
-window.runNavigationTests = async function() {
+extend('runNavigationTests',navigationBeforeFeedback=>async function(){
   const result = await navigationBeforeFeedback();
   const check = (condition, message) => {
     if (!condition) throw Error(message);
@@ -82,4 +81,4 @@ window.runNavigationTests = async function() {
     setReadability(wasLarge ? 'large' : 'standard');
     render(true);
   }
-};
+},'feedback-tests');

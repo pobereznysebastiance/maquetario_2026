@@ -37,8 +37,7 @@ function bindParagraphHyphenation(object, formats) {
 }
 
 // While typing, use the original manuscript so discretionary hyphens never enter it.
-const startBeforeHyphenation = startEditing;
-startEditing = function(element) {
+extend('startEditing',startBeforeHyphenation=>function(element){
   startBeforeHyphenation(element);
   if (editing !== element) return;
   const object = selectObject();
@@ -47,10 +46,9 @@ startEditing = function(element) {
   element.querySelectorAll('.mqt-paragraph').forEach((paragraph, index) => {
     if (paragraphFormat(book, object, index).hyphenate) paragraph.textContent = lines[index] || '\u00a0';
   });
-};
+},'hyphenation-controls');
 
-const finishBeforeHyphenation = finishEditing;
-finishEditing = function() {
+extend('finishEditing',finishBeforeHyphenation=>function(){
   const element = editing, object = element && selectObject();
   finishBeforeHyphenation();
   if (!object || object.type !== 'text' || object.id !== element.dataset.id) return;
@@ -59,4 +57,4 @@ finishEditing = function() {
     const format = paragraphFormat(book, object, index);
     if (format.hyphenate) setHyphenatedText(paragraph,lines[index] || '',format);
   });
-};
+},'hyphenation-controls');

@@ -1,6 +1,5 @@
 'use strict';
-const beforeCategoryTests = window.runNavigationTests;
-window.runNavigationTests = async function() {
+extend('runNavigationTests',beforeCategoryTests=>async function(){
   const result = await beforeCategoryTests();
   const check = (value,label)=>{if(!value) throw Error(label);result.checks.push(label);};
   const original = {book,active,spread,selected,tab,dirty};
@@ -44,7 +43,7 @@ window.runNavigationTests = async function() {
     ({book,active,spread,selected,tab,dirty}=original);
     render(true);
   }
-};
+},'category-tests');
 
 window.prepareFolioPositionPreview = function() {
   window.prepareNavigationPreview();

@@ -58,7 +58,7 @@ const allJs = appJs.map((f) => readFileSync(join(app, f), 'utf8')).join('\n');
 const legacyCss = legacyFiles.map((f) => readFileSync(join(app, f), 'utf8')).join('\n');
 const count = (text, re) => (text.match(re) ?? []).length;
 const debt = {
-  'funciones globales reemplazadas por otro módulo (const x=f; f=function…)': count(
+  'funciones globales reemplazadas a mano (sin extend)': count(
     allJs,
     /(?:const|let)\s+\w+\s*=\s*(?:window\.)?(\w+)\s*;\s*(?:window\.)?\1\s*=\s*(?:async\s*)?function/g,
   ),

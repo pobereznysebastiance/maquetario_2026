@@ -1,7 +1,6 @@
 'use strict';
 
-const navigationBeforePackageProof = window.runNavigationTests;
-window.runNavigationTests = async function() {
+extend('runNavigationTests',navigationBeforePackageProof=>async function(){
   const report = await navigationBeforePackageProof();
   const verify = (condition,message) => {
     if (!condition) throw Error(message);
@@ -51,7 +50,7 @@ window.runNavigationTests = async function() {
     ({book,active,spread,selected,dirty}=previous);
     render(true);
   }
-};
+},'package-proof-tests');
 
 window.preparePackageProof = function(faceId) {
   book = M.create();

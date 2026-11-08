@@ -5,8 +5,7 @@ function coverFontFamily() {
   return face ? '"MQT_'+face.id+'",Georgia,serif' : 'Georgia,serif';
 }
 
-const coverControlsBeforeWrap = coverEditor;
-coverEditor = function() {
+extend('coverEditor',coverControlsBeforeWrap=>function(){
   coverControlsBeforeWrap();
   const fields = $('[data-cover-size="spine"]')?.closest('.cover-fields');
   if (!fields) return;
@@ -40,10 +39,9 @@ coverEditor = function() {
     updateCoverPreview();
   };
   updateCoverPreview();
-};
+},'print-proof');
 
-const coverPreviewBeforeFlaps = updateCoverPreview;
-updateCoverPreview = function() {
+extend('updateCoverPreview',coverPreviewBeforeFlaps=>function(){
   if (coverDraft && !coverGeometry(coverDraft).parts.some(part => part.id === coverPart)) coverPart = 'front';
   coverPreviewBeforeFlaps();
   for (const toggle of $$('[data-flap]')) toggle.checked = coverDraft[toggle.dataset.flap] > 0;
@@ -53,7 +51,7 @@ updateCoverPreview = function() {
     if (coverDraft.wrap) $('#coverDimensions').textContent += ' · '+bw(
       `+${displayMeasure(coverDraft.wrap)} ${documentUnit()} de demasía por lado`,`+${displayMeasure(coverDraft.wrap)} ${documentUnit()} wrap per edge`,`+${displayMeasure(coverDraft.wrap)} ${documentUnit()} de dobra por lado`);
   }
-};
+},'print-proof');
 
 function sheetSizeStatus(art, paper, ratio) {
   const size = displayDimensions;
@@ -62,8 +60,7 @@ function sheetSizeStatus(art, paper, ratio) {
   return bw('Pieza','Artwork','Peça')+' '+size(...art)+' · '+bw('Hoja','Sheet','Folha')+' '+size(...paper)+' · '+scale;
 }
 
-const interiorPreviewBeforeStatus = outputPreview;
-outputPreview = function() {
+extend('outputPreview',interiorPreviewBeforeStatus=>function(){
   const checkbox = $('#outFit');
   if (!checkbox || !$('#outputPreview')) return interiorPreviewBeforeStatus();
   const config = outputConfigFromDialog();
@@ -85,7 +82,7 @@ outputPreview = function() {
     interiorPreviewBeforeStatus();
     $('#outputPreview').replaceChildren();
   }
-};
+},'print-proof');
 
 function coverSheetDialog(destination) {
   const printing = destination === 'print', w = ow();

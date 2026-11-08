@@ -116,8 +116,7 @@ function editorialRulesDialog() {
   $('#modal').addEventListener('close',()=>$('#modal').classList.remove('editorial-rules-dialog'),{once:true});
 }
 
-const beforeEditorialRules = inspector;
-inspector = function() {
+extend('inspector',beforeEditorialRules=>function(){
   beforeEditorialRules();
   if (tab !== 'structure' || !hasDocument) return;
   const button = document.createElement('button');
@@ -127,4 +126,4 @@ inspector = function() {
   button.textContent = bw('Reglas internas','Editorial rules','Regras internas');
   button.onclick = editorialRulesDialog;
   $('#inspectorContent').prepend(button);
-};
+},'editorial-rules');
