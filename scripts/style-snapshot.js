@@ -20,7 +20,7 @@
   const sel = (type) => { const o = book.pages.flatMap((p) => p.objects).find((o) => o.type === type); active = book.pages.findIndex((p) => p.objects.includes(o)); selected = o.id; render(true); };
   const STATES = [
     ['bienvenida', () => { close(); showWelcome(); }],
-    ['editor', async () => { close(); try { await installNovel(); } catch {} hideWelcome(); hasDocument = true; selected = null; render(true); }],
+    ['editor', async () => { close(); try { installNovel(LibroModel.create()); } catch {} hideWelcome(); hasDocument = true; selected = null; render(true); }],
     ['estructura', () => showTab('structure')], ['diseño', () => showTab('design')], ['texto', () => { sel('text'); showTab('text'); }],
     ['objeto', () => showTab('object')], ['capas', () => showTab('layers')], ['páginas', () => showTab('pages')],
     ['plegado', () => { document.body.classList.add('templates-collapsed', 'workflow-collapsed'); }],

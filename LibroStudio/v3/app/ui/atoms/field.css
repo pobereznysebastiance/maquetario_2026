@@ -1,8 +1,9 @@
 /* Átomo: campo (texto, número, selector, área de texto) en el marco de la app.
    Alcance acotado a las zonas de interfaz: nunca toca el contenido del libro
    (#spread, #printRoot) ni controles especiales (rango, color, casillas). */
+/* El filtro de tipos va en :where: sin peso propio, así la regla del selector (flecha con aire) le gana. */
 :is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog)
-  :is(input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']), select, textarea) {
+  :is(input:where(:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file'])), select, textarea) {
   min-height: var(--control-sm);
   padding: 0 var(--space-sm);
   border: var(--border-width) solid var(--line-default);
@@ -179,8 +180,18 @@ textarea {
   appearance: none;
 }
 
-/* Selector en una fila: un valor largo se corta con puntos suspensivos en vez de ocupar varias líneas. */
-.field-row select {
+/* Selector en una fila: un valor largo se corta con puntos suspensivos antes de la flecha, en vez de
+   pasar por debajo. El botón con <selectedcontent> lo agrega ui/select.js. */
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer) select > button {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
