@@ -19,7 +19,7 @@
 }
 /* Número de página de inicio. */
 .structure-item small {
-  min-width: 2.5ch;
+  min-width: var(--number-column);
   color: var(--text-mark);
   font-variant-numeric: tabular-nums;
 }

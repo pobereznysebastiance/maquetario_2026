@@ -45,3 +45,11 @@ body[data-rulers='hidden'] #spreadStage {
   top: 0;
   left: 0;
 }
+
+/* Ayuda de navegación debajo del lienzo. */
+.canvas-hint {
+  color: var(--text-tertiary);
+}
+.canvas-hint kbd {
+  font-size: var(--type-xs);
+}

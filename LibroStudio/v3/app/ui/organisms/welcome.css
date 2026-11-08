@@ -81,3 +81,17 @@
 .recent-arrow {
   color: var(--text-mark);
 }
+/* Tamaños de texto de la bienvenida. */
+.welcome-intro,
+.welcome-actions .btn,
+.welcome-section-title h2 {
+  font-size: var(--type-lg);
+}
+.welcome-links button,
+.welcome-footer,
+.recent-empty p {
+  font-size: var(--type-md);
+}
+.welcome-brand > span {
+  font-size: var(--type-sm);
+}

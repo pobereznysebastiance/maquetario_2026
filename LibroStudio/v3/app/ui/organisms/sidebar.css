@@ -46,3 +46,7 @@
 .inspector .tab.active .icon {
   color: var(--accent);
 }
+
+.left-bottom .version {
+  color: var(--text-secondary);
+}

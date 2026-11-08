@@ -131,3 +131,7 @@
   background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
   pointer-events: none;
 }
+.brand small,
+.tool-action {
+  font-size: var(--type-sm);
+}

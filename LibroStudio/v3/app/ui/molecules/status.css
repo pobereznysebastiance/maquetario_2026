@@ -40,3 +40,6 @@
   font-size: var(--type-callout);
   box-shadow: var(--elevation-2);
 }
+#toast {
+  max-width: 80vw;
+}

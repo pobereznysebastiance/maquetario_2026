@@ -28,10 +28,9 @@
 .book-route .route-spacer {
   flex: 1;
 }
+/* El paso actual ya se ve marcado en la ruta: el rótulo de texto no se muestra. */
 .book-route strong {
-  color: var(--text-mark);
-  font-size: var(--type-xs);
-  font-weight: var(--weight-medium);
+  display: none;
 }
 /* Sin documento sólo se puede empezar (primer paso). */
 .no-document .book-route button:not(:first-child) {

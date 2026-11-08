@@ -33,3 +33,34 @@
   border-color: var(--line-default);
   backdrop-filter: var(--material-blur-bar);
 }
+
+/* ── Migrado de readability.css ── */
+.template-panel {
+  padding-inline: var(--space-md);
+}
+.templates {
+  gap: var(--space-md);
+}
+.template {
+  width: var(--template-card-width);
+  text-align: left;
+}
+.template-heading > span {
+  display: flex;
+  align-items: center;
+}
+/* Miniatura de una página con su grilla: papel claro y líneas verde agua. */
+.grid-mini-page {
+  display: grid;
+  gap: var(--border-width);
+  width: var(--grid-mini-width);
+  padding: var(--space-xs) var(--space-2xs);
+  background: var(--text-primary);
+  box-shadow: var(--elevation-1);
+}
+.grid-mini-page i {
+  border: var(--border-hairline) solid color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.template-dimensions {
+  color: var(--text-mark);
+}

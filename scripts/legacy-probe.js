@@ -141,15 +141,25 @@
   };
   // Por propiedad: qué declaraciones de cada regla siguen cambiando algo (para portar sólo esas a ui/).
   // legacyProps('estado') acumula en window.__legacyProps: { 'archivo#i': { selector, props: {prop: valor} } }.
-  window.legacyProps = (label = '') => {
+  // Asincrónica: cede el hilo entre reglas (las hojas grandes tardan) y deja el avance en
+  // window.__legacyPropsProgress. Lanzarla sin esperar y consultar el avance.
+  const INHERITED = /^(color|font|line-height|letter-spacing|word-spacing|text-(align|indent|transform|shadow)|white-space|visibility|cursor|direction|list-style|quotes|hyphens|tab-size)/;
+  window.legacyProps = async (label = '') => {
     const found = sheets(), out = (window.__legacyProps ??= {});
+    const total = FILES.reduce((n, f) => n + found[f].cssRules.length, 0);
+    let done = 0;
     for (const file of FILES) for (let i = 0; i < found[file].cssRules.length; i++) {
+      window.__legacyPropsProgress = `${label}: ${++done}/${total}`;
+      if (done % 5 === 0) await new Promise((r) => setTimeout(r, 0));
       const rule = found[file].cssRules[i];
       if (!(rule instanceof CSSStyleRule) || new RegExp(DYNAMIC.source).test(rule.selectorText)) continue;
-      const pairs = targets(rule);
-      if (!pairs.length) continue;
+      const withKids = targets(rule);
+      if (!withKids.length) continue;
+      const own = withKids.filter(([el, pseudo]) => { try { return pseudo || flat(rule).some((r) => split(r.selectorText).some((p) => el.matches(p.replace(PSEUDO, '').trim() || '*'))); } catch { return true; } });
       for (const prop of [...rule.style]) {
         if (prop.startsWith('--')) continue;
+        const pairs = INHERITED.test(prop) ? withKids : own;
+        if (!pairs.length) continue;
         const value = rule.style.getPropertyValue(prop), priority = rule.style.getPropertyPriority(prop);
         const before = snapshot(pairs, [prop]);
         rule.style.removeProperty(prop);

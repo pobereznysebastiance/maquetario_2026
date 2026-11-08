@@ -115,3 +115,8 @@ select option {
 .switch input:checked + span {
   background: var(--text-mark);
 }
+input:not([type='range'], [type='checkbox'], [type='file']),
+select,
+textarea {
+  font-size: var(--type-md);
+}

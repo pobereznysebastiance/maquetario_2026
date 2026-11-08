@@ -98,3 +98,29 @@ dialog .modal-actions {
 .eyebrow {
   color: var(--text-mark);
 }
+/* La barra de acciones queda a la vista aunque el contenido sea largo. */
+.modal-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--layer-chrome);
+}
+.modal-grid .control label,
+.cover-fields label,
+.builder-label,
+.publication-picker > label {
+  font-size: var(--type-body);
+  line-height: var(--leading-ui);
+}
+.modal-grid input,
+.modal-grid select {
+  height: var(--control-lg);
+}
+.format-option strong {
+  font-size: var(--type-lg);
+}
+.format-option small {
+  font-size: var(--type-sm);
+}
+.format-option.active strong {
+  color: var(--text-mark);
+}

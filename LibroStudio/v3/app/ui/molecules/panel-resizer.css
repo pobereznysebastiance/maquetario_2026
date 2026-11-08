@@ -1,0 +1,47 @@
+/* Molécula: borde para arrastrar y cambiar el tamaño de un panel (izquierdo, derecho y plantillas).
+   La zona sensible es ancha; la marca visible es una línea corta en el medio. */
+.leftpanel,
+.inspector,
+.template-panel {
+  position: relative;
+}
+.panel-resizer {
+  position: absolute;
+  z-index: var(--layer-resizer);
+  touch-action: none;
+}
+.resize-left,
+.resize-right {
+  top: 0;
+  bottom: 0;
+  width: var(--resizer-hit);
+  cursor: col-resize;
+}
+.resize-left {
+  right: 0;
+}
+.resize-templates {
+  right: 0;
+  left: 0;
+  height: var(--resizer-hit);
+  cursor: row-resize;
+}
+.panel-resizer::after {
+  content: '';
+  position: absolute;
+  border-radius: var(--radius-pill);
+  background: var(--line-strong);
+}
+.resize-left::after,
+.resize-right::after {
+  top: 45%;
+  left: var(--space-3xs);
+  width: var(--resizer-grip-thin);
+  height: var(--resizer-grip-long);
+}
+.resize-templates::after {
+  top: var(--space-3xs);
+  left: calc(50% - var(--resizer-grip-wide) / 2);
+  width: var(--resizer-grip-wide);
+  height: var(--resizer-grip-thin);
+}

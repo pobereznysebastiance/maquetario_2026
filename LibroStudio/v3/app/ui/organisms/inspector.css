@@ -236,7 +236,7 @@
   font-size: var(--type-md);
 }
 .shape-color-control > label:first-child {
-  min-width: 7ch;
+  min-width: var(--label-column);
 }
 .shape-color-control input[type='color'] {
   width: var(--space-2xl);
@@ -245,5 +245,76 @@
 }
 .shape-color-control .check-line {
   margin: 0;
+  font-size: var(--type-sm);
+}
+
+/* ── Migrado de readability.css: tamaños del inspector ── */
+.field-row {
+  min-height: var(--control-field);
+}
+.field-row input,
+.field-row select {
+  width: var(--field-width);
+  height: var(--control-field);
+}
+.pair input {
+  height: var(--control-field);
+}
+.pair label {
+  line-height: var(--leading-ui);
+}
+.help {
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  line-height: var(--leading-text);
+}
+.check-line {
+  gap: var(--space-sm);
+  font-size: var(--type-md);
+}
+.check-line input {
+  width: var(--space-lg);
+  height: var(--space-lg);
+}
+.section details summary,
+.guide-controls summary {
+  padding-block: var(--space-sm);
+  font-size: var(--type-md);
+  line-height: var(--leading-text);
+}
+.alignment {
+  width: var(--field-width);
+}
+.alignment button {
+  width: calc(var(--field-width) / 4 - var(--space-2xs));
+  height: var(--control-field);
+}
+.object-alignment button {
+  padding: var(--space-sm) var(--space-2xs);
+  font-size: var(--type-callout);
+}
+.inspector-foot {
+  color: var(--text-secondary);
+  line-height: var(--leading-text);
+}
+.selection-chip,
+.empty-selection {
+  font-size: var(--type-md);
+  line-height: var(--leading-text);
+}
+.active-page-notice strong {
+  font-size: var(--type-body);
+}
+.layer-name {
+  font-size: var(--type-md);
+}
+.layer-row {
+  min-height: var(--control-lg);
+}
+.structure-item span,
+.structure-summary {
+  font-size: var(--type-md);
+}
+.inspector-content small {
   font-size: var(--type-sm);
 }

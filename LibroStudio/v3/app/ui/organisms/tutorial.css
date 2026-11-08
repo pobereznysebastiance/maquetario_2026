@@ -54,3 +54,16 @@
 .tour-target {
   outline-color: var(--focus-ring);
 }
+.tutorial-card {
+  width: var(--tutorial-card-width);
+}
+.tutorial-body p,
+.tutorial-exercise,
+.tutorial-action,
+.tutorial-note,
+.tutorial-nav .btn {
+  font-size: var(--type-md);
+}
+.tutorial-jump {
+  height: var(--control-lg);
+}

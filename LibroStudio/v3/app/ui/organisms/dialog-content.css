@@ -87,7 +87,7 @@
 
 /* Armador de libros (manuscrito → partes). */
 .book-builder {
-  width: min(48rem, 94vw);
+  width: min(var(--dialog-builder-width), 94vw);
 }
 .builder-intro {
   margin: 0 0 var(--space-lg);
@@ -118,7 +118,7 @@
 }
 .builder-source {
   width: 100%;
-  height: 12rem;
+  height: var(--builder-source-height);
   resize: vertical;
   line-height: var(--leading-text);
 }
@@ -129,7 +129,7 @@
 }
 .builder-short {
   width: 100%;
-  height: 3.5rem;
+  height: var(--builder-short-height);
 }
 
 /* Elegir figura. */
@@ -152,11 +152,96 @@
 }
 .shape-choice > div {
   position: relative;
-  max-width: 9.5rem;
-  height: 5.5rem;
+  max-width: var(--shape-preview-width);
+  height: var(--shape-preview-height);
   margin: auto auto var(--space-lg);
 }
 .shape-choice strong {
   font-size: var(--type-md);
   font-weight: var(--weight-medium);
+}
+
+/* ── Migrado de readability.css: revisión de salida y cubierta ── */
+#reviewFaces label {
+  font-size: var(--type-md);
+}
+#reviewFaces button {
+  min-width: var(--control-md);
+  height: var(--control-md);
+}
+.cover-modal #coverDimensions {
+  font-size: var(--type-body);
+}
+.cover-modal .modal-actions {
+  flex-wrap: wrap;
+}
+.cover-persistent-actions {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-right: auto;
+}
+.cover-image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-block: var(--space-md);
+}
+.cover-image-actions strong {
+  min-width: var(--cover-label-width);
+  color: var(--text-mark);
+  font-size: var(--type-body);
+}
+.cover-image-actions p {
+  width: 100%;
+  margin-block: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body);
+  line-height: var(--leading-text);
+}
+.cover-image-fit {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--type-body);
+}
+.cover-image-fit select {
+  height: var(--control-field);
+}
+/* Medidas de cada parte de la cubierta. */
+.cover-measures {
+  margin-block: var(--space-lg);
+  padding: var(--space-lg);
+  border: var(--border-width) solid var(--status-warning-line);
+  border-radius: var(--radius-lg);
+  background: var(--status-warning-surface);
+}
+.cover-measures h3 {
+  margin: 0 0 var(--space-md);
+}
+.cover-measures table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--type-body);
+  font-variant-numeric: tabular-nums;
+}
+.cover-measures th {
+  padding: var(--space-sm);
+  border-bottom: var(--border-width) solid var(--status-warning-line);
+  color: var(--text-mark);
+  text-align: left;
+}
+.cover-measures td {
+  padding: var(--space-sm);
+  border-bottom: var(--border-width) solid var(--line-subtle);
+}
+.cover-measures tr.selected {
+  background: var(--surface-selected);
+  color: var(--text-primary);
+}
+.cover-measures > p {
+  font-size: var(--type-body);
+  line-height: var(--leading-text);
 }
