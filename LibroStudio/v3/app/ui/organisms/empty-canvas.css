@@ -31,3 +31,16 @@
 #emptyCanvas button {
   margin: 0 var(--space-2xs);
 }
+
+/* ── Migrado de review.css ── */
+#emptyCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+#emptyCanvas[hidden] {
+  display: none;
+}

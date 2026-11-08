@@ -195,3 +195,8 @@ body[data-rulers='hidden'] #spreadStage {
     --layout-right: 310px;
   }
 }
+
+/* ── Migrado de review.css: sin documento sólo se ve la mesa vacía ── */
+.no-document :is(#spreadStage, .ruler-x, .ruler-y, .canvas-hint, .template-panel, .inspector-content, #activePageStatus, .doc-format, #documentName, #thumbnails) {
+  visibility: hidden;
+}

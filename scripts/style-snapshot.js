@@ -40,6 +40,9 @@
     ['cerrar sin guardar', () => { close(); prepareCloseNoticePreview(); }],
     ['foco', () => { close(); $('#fullscreen')?.click(); }],
     ['interfaz grande', () => { close(); setReadability('large'); }],
+    ['asistente', () => { close(); openEditorialAssistant(); }],
+    // Último: reemplaza el libro por uno en blanco.
+    ['sin documento', () => { close(); hideWelcome(); activateBlankDocument(); }],
   ];
   // Ruta estable de un elemento: id o etiqueta.clases con su posición entre hermanos.
   const key = (el) => { const parts = []; for (let e = el; e && e !== document.body; e = e.parentElement) { if (e.id) { parts.unshift('#' + e.id); break; } const i = [...(e.parentElement?.children || [])].indexOf(e); parts.unshift(e.tagName.toLowerCase() + (e.classList.length ? '.' + [...e.classList].sort().join('.') : '') + ':' + i); } return parts.join('>'); };

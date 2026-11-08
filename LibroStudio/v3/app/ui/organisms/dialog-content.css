@@ -335,3 +335,268 @@
   flex: 1 1 0%;
   min-width: var(--spine-select-min);
 }
+
+/* ── Migrado de output-review.css y review.css: revisión de salida (opciones | vista previa) ── */
+.output-modal #modalForm {
+  display: flex;
+  flex-direction: column;
+  max-height: 95vh;
+}
+.output-modal .modal-header {
+  flex-shrink: 0;
+}
+.output-modal #modalBody {
+  display: flex;
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow: hidden;
+}
+.output-review-layout {
+  --output-options-width: 310px;
+  --output-layout-height: min(75vh, 820px);
+  --output-layout-min: 420px;
+  display: grid;
+  grid-template-columns: var(--output-options-width) minmax(0, 1fr);
+  width: 100%;
+  height: var(--output-layout-height);
+  min-height: var(--output-layout-min);
+}
+.output-review-options {
+  padding: var(--space-lg);
+  border-right: var(--border-width) solid var(--line-default);
+  overflow: auto;
+}
+.output-review-options .output-options {
+  grid-template-columns: 1fr;
+  gap: var(--space-2xs);
+  margin-top: var(--space-lg);
+}
+.output-review-options .check-line {
+  line-height: var(--leading-text);
+}
+.output-review-options .printer-row {
+  margin-bottom: var(--space-lg);
+}
+.output-review-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: var(--space-md) var(--space-lg) var(--space-sm);
+}
+#outputPreview {
+  position: relative;
+}
+.output-review-pane #outputPreview {
+  --output-preview-min: 350px;
+  flex: 1 1 0%;
+  min-height: var(--output-preview-min);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-canvas);
+  overflow: auto;
+}
+.output-review-pane .output-preview-title {
+  margin: var(--space-xs) 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body);
+}
+.output-review-pane #reviewFaces {
+  padding: var(--space-xs) 0 var(--space-sm);
+}
+.output-review-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-2xs);
+}
+.output-review-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--type-md);
+}
+.output-review-toolbar select {
+  --output-select-height: 37px;
+  height: var(--output-select-height);
+}
+.output-review-toolbar #outputReviewExpand {
+  margin-left: auto;
+}
+.output-review-toolbar #outputReviewFactor {
+  color: var(--text-mark);
+  font-size: var(--type-md);
+}
+.output-review-pane .output-sheet {
+  box-shadow: var(--elevation-page);
+}
+.output-modal .modal-actions {
+  flex-shrink: 0;
+}
+.output-modal.preview-expanded .output-review-layout {
+  grid-template-columns: 1fr;
+}
+.output-modal.preview-expanded .output-review-options {
+  display: none;
+}
+.output-modal.preview-expanded .output-review-pane {
+  padding-right: var(--space-xl);
+  padding-left: var(--space-xl);
+}
+@media (max-width: 1100px) {
+  .output-review-layout {
+    --output-options-width: 260px;
+  }
+  .output-review-options,
+  .output-review-pane {
+    padding: var(--space-md);
+  }
+}
+@media (max-height: 800px) {
+  .output-review-layout {
+    --output-layout-height: 70vh;
+    --output-layout-min: 350px;
+  }
+  .output-review-pane #outputPreview {
+    --output-preview-min: 260px;
+  }
+}
+/* Caras de la revisión: anterior · número · siguiente. */
+#reviewFaces {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+#reviewFaces button {
+  border-width: var(--border-width);
+  border-style: solid;
+  border-radius: var(--radius-sm);
+  font-size: var(--type-xl);
+}
+#reviewFaces label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+#reviewFaces input {
+  --review-face-width: 46px;
+  --review-face-height: 28px;
+  width: var(--review-face-width);
+  height: var(--review-face-height);
+  text-align: center;
+}
+
+/* ── Migrado de editorial-assistant.css: asistente editorial ── */
+.assistant-hero {
+  align-items: center;
+  gap: var(--space-lg);
+}
+.assistant-hero p {
+  line-height: var(--leading-text);
+}
+.assistant-workspace {
+  --assistant-aside-width: 270px;
+  display: grid;
+  grid-template-columns: var(--assistant-aside-width) minmax(0, 1fr);
+  gap: var(--space-xl);
+}
+.assistant-workspace > aside {
+  padding-right: var(--space-lg);
+  border-right: var(--border-width) solid var(--line-default);
+}
+.assistant-workspace > section {
+  min-width: 0;
+}
+.assistant-workspace hr {
+  margin: var(--space-xl) 0;
+  border: 0;
+  border-top: var(--border-width) solid var(--line-default);
+}
+.assistant-consent {
+  line-height: var(--leading-text);
+}
+.assistant-consent input {
+  flex-shrink: 0;
+}
+.assistant-workspace select {
+  width: 100%;
+  height: var(--control-lg);
+}
+.assistant-empty {
+  --assistant-empty-top: 38px;
+  padding: var(--assistant-empty-top) var(--space-lg);
+  text-align: center;
+}
+.assistant-empty > span {
+  --assistant-empty-mark: 58px;
+  color: var(--text-mark);
+  font-size: var(--assistant-empty-mark);
+}
+.assistant-empty p {
+  --assistant-empty-text: 480px;
+  max-width: var(--assistant-empty-text);
+  margin: auto;
+  font-size: var(--type-md);
+  line-height: 1.8;
+}
+.assistant-finding {
+  margin: var(--space-md) 0;
+}
+.assistant-finding-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.assistant-finding-heading > span {
+  color: var(--text-mark);
+  font-size: var(--type-xl);
+}
+.assistant-finding p {
+  margin: var(--space-sm) 0;
+  color: var(--text-secondary);
+  font-size: var(--type-md);
+  line-height: 1.7;
+}
+.assistant-finding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+#assistantSummary {
+  padding: var(--space-2xs) 0 var(--space-sm);
+  line-height: 1.7;
+}
+#classCode,
+#classUrl {
+  --class-field-height: 40px;
+  width: 100%;
+  height: var(--class-field-height);
+}
+@media (max-width: 800px) {
+  .assistant-workspace {
+    grid-template-columns: 1fr;
+  }
+  .assistant-workspace > aside {
+    padding-right: 0;
+    padding-bottom: var(--space-lg);
+    border-right: 0;
+    border-bottom: var(--border-width) solid var(--line-default);
+  }
+}
+
+/* ── Migrado de review.css: casillas de los diálogos ── */
+.modal-grid input[type='checkbox'] {
+  --modal-check: 14px;
+  flex-shrink: 0;
+  width: var(--modal-check);
+  height: var(--modal-check);
+}
+.modal-grid .control label.check-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: var(--space-sm) 0;
+}

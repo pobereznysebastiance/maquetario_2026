@@ -134,3 +134,23 @@
     --document-name-max: 90px;
   }
 }
+
+/* ── Migrado de master-refinement.css: número de paso redondo ── */
+.route-step-number {
+  --route-step-size: 23px;
+  flex: 0 0 var(--route-step-size);
+  width: var(--route-step-size);
+  min-width: var(--route-step-size);
+  height: var(--route-step-size);
+  border-radius: 50%;
+  font-size: var(--type-md);
+}
+.book-route button {
+  gap: var(--space-xs);
+  min-height: var(--control-md);
+}
+#activePageStatus {
+  margin-right: var(--space-xs);
+  font-size: var(--type-xs);
+  white-space: nowrap;
+}
