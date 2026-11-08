@@ -1,0 +1,16 @@
+{
+  // Tipos sobre el JavaScript de la interfaz (etapa 2): se chequea sin compilar.
+  // Los scripts no son módulos: comparten el ámbito global, como en el navegador.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": ["*.js", "ui/*.js", "globals.d.ts"],
+  "exclude": ["pdf-lib.min.js", "sample-image.js", "tests"]
+}

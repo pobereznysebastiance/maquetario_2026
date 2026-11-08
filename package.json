@@ -17,7 +17,8 @@
     "license:dev-issue": "npm run dev-issue --workspace @maquetario/license --",
     "lint:design": "node scripts/check-design-tokens.mjs",
     "format": "prettier --write \"LibroStudio/v3/app/**/*.js\" \"desktop/src/**/*.ts\" \"desktop/scripts/**/*.mjs\" \"desktop/test/**/*.ts\" \"packages/*/src/**/*.ts\" \"packages/*/test/**/*.ts\" \"scripts/**/*.{js,mjs,cjs}\"",
-    "format:check": "prettier --check \"LibroStudio/v3/app/**/*.js\" \"desktop/src/**/*.ts\" \"desktop/scripts/**/*.mjs\" \"desktop/test/**/*.ts\" \"packages/*/src/**/*.ts\" \"packages/*/test/**/*.ts\" \"scripts/**/*.{js,mjs,cjs}\""
+    "format:check": "prettier --check \"LibroStudio/v3/app/**/*.js\" \"desktop/src/**/*.ts\" \"desktop/scripts/**/*.mjs\" \"desktop/test/**/*.ts\" \"packages/*/src/**/*.ts\" \"packages/*/test/**/*.ts\" \"scripts/**/*.{js,mjs,cjs}\"",
+    "typecheck:app": "tsc -p LibroStudio/v3/app/tsconfig.json --pretty false"
   },
   "engines": {
     "node": ">=22.0.0"

@@ -225,11 +225,7 @@
 
   function foldersBody() {
     if (!MaquetarioHost.available) return `<p class="settings-note">${t('desktopOnly')}</p>`;
-    const folders = Array.isArray(window.fontFolders)
-      ? window.fontFolders
-      : typeof fontFolders !== 'undefined'
-        ? fontFolders
-        : [];
+    const folders = Array.isArray(fontFolders) ? fontFolders : [];
     const list = folders.length
       ? `<ul class="settings-list">${folders.map((f) => `<li class="settings-list-item user-content" title="${esc(f)}">${esc(f)}</li>`).join('')}</ul>`
       : `<p class="settings-note">${t('noFolders')}</p>`;
