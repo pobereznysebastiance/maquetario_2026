@@ -1,10 +1,45 @@
-'use strict';
-let editorialReport = [],
+// Asistente editorial: botón "Asistente editorial" en la barra y su diálogo. La revisión
+// automática recorre las páginas sin conexión (objetos fuera de página, texto que no entra,
+// espacios repetidos, fuentes que faltan, marcos vacíos, imágenes ilegibles o con pocos píxeles,
+// cajas de texto superpuestas y texto sobrante en la cubierta). La consulta a la IA del aula manda
+// texto y medidas al servicio del docente por el anfitrión (nativeCall), sólo con autorización.
+// Los hallazgos no cambian el libro: sólo la corrección de espacios, explícita y con deshacer.
+// Fuente TypeScript: se compila a build/editorial-assistant.js (desktop/scripts/build.mjs).
+
+import type { BookObject } from './model.ts';
+
+export type FindingSeverity = 'error' | 'warning' | 'tip';
+
+/** Un hallazgo de la revisión automática ('local') o de la IA del aula ('ai'). */
+export interface EditorialFinding {
+  id: string;
+  pageId: string | null;
+  objectId: string | null;
+  kind: string;
+  severity: FindingSeverity;
+  title: string;
+  detail: string;
+  suggestion: string;
+  /** Corrección que ofrece el diálogo (sólo 'spaces': quitar espacios repetidos). */
+  fix?: 'spaces' | null;
+  source: 'local' | 'ai';
+  ignored?: boolean;
+}
+
+/** Estado de la conexión con el servicio de IA del aula (lo devuelve el anfitrión). */
+interface ClassServiceInfo {
+  configured: boolean;
+  serviceUrl: string;
+}
+
+type ImageSize = { w: number; h: number };
+
+let editorialReport: EditorialFinding[] = [],
   editorialBusy = false,
   editorialSummary = '',
   editorialReportStamp = '',
-  classServiceInfo = { configured: false, serviceUrl: '' };
-const imageSizeCache = new Map();
+  classServiceInfo: ClassServiceInfo = { configured: false, serviceUrl: '' };
+const imageSizeCache = new Map<string, Promise<ImageSize | null>>();
 const assistantSpark =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 2.7 7.3L22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7Z"/><path d="m20 2 .6 1.4L22 4l-1.4.6L20 6l-.6-1.4L18 4l1.4-.6Z"/></svg>';
 const assistantButton = document.createElement('button');
@@ -23,7 +58,7 @@ assistantButton.title = bw(
 );
 $('#printButton').before(assistantButton);
 assistantButton.onclick = () => openEditorialAssistant();
-function reviewStamp() {
+function reviewStamp(): string {
   let hash = 2166136261;
   const text = JSON.stringify([
     book.title,
@@ -46,7 +81,16 @@ function reviewStamp() {
   }
   return String(hash);
 }
-function finding(page, o, kind, severity, title, detail, suggestion, fix = null) {
+function finding(
+  page: number,
+  o: BookObject | null | undefined,
+  kind: string,
+  severity: FindingSeverity,
+  title: string,
+  detail: string,
+  suggestion: string,
+  fix: 'spaces' | null = null,
+): EditorialFinding {
   return {
     id: M.uid(),
     pageId: book.pages[page]?.id || null,
@@ -61,8 +105,8 @@ function finding(page, o, kind, severity, title, detail, suggestion, fix = null)
     ignored: false,
   };
 }
-async function imageDimensions(src) {
-  if (imageSizeCache.has(src)) return imageSizeCache.get(src);
+async function imageDimensions(src: string): Promise<ImageSize | null> {
+  if (imageSizeCache.has(src)) return imageSizeCache.get(src)!;
   const promise = (async () => {
     const img = new Image();
     img.src = src;
@@ -72,12 +116,12 @@ async function imageDimensions(src) {
   imageSizeCache.set(src, promise);
   return promise;
 }
-async function automaticEditorialReview() {
+async function automaticEditorialReview(): Promise<EditorialFinding[]> {
   await ensureBookFonts();
-  const issues = [];
+  const issues: EditorialFinding[] = [];
   for (let i = 0; i < book.pages.length; i++) {
     const p = book.pages[i];
-    let rendered;
+    let rendered: HTMLElement | undefined;
     try {
       rendered = paper(i, 96 / 25.4, true);
       Object.assign(rendered.style, {
@@ -308,7 +352,7 @@ async function automaticEditorialReview() {
     });
   return issues;
 }
-function renderEditorialResults() {
+function renderEditorialResults(): void {
   const host = $('#assistantFindings');
   if (!host) return;
   const visible = editorialReport.filter((x) => !x.ignored);
@@ -328,10 +372,10 @@ function renderEditorialResults() {
       'Escolha uma revisão para começar.',
     );
   $('#assistantStale').hidden = !editorialReportStamp || editorialReportStamp === reviewStamp();
-  host.querySelectorAll('[data-finding-go]').forEach(
+  host.querySelectorAll<HTMLElement>('[data-finding-go]').forEach(
     (b) =>
       (b.onclick = () => {
-        const item = editorialReport.find((x) => x.id === b.dataset.findingGo);
+        const item = editorialReport.find((x) => x.id === b.dataset.findingGo)!;
         $('#modal').close();
         if (item.kind === 'cover') {
           setTimeout(coverEditor, 30);
@@ -347,17 +391,17 @@ function renderEditorialResults() {
         render(true);
       }),
   );
-  host.querySelectorAll('[data-finding-ignore]').forEach(
+  host.querySelectorAll<HTMLElement>('[data-finding-ignore]').forEach(
     (b) =>
       (b.onclick = () => {
-        editorialReport.find((x) => x.id === b.dataset.findingIgnore).ignored = true;
+        editorialReport.find((x) => x.id === b.dataset.findingIgnore)!.ignored = true;
         renderEditorialResults();
       }),
   );
-  host.querySelectorAll('[data-finding-fix]').forEach(
+  host.querySelectorAll<HTMLElement>('[data-finding-fix]').forEach(
     (b) =>
       (b.onclick = () => {
-        const item = editorialReport.find((x) => x.id === b.dataset.findingFix),
+        const item = editorialReport.find((x) => x.id === b.dataset.findingFix)!,
           target = book.pages
             .find((p) => p.id === item.pageId)
             ?.objects.find((o) => o.id === item.objectId);
@@ -375,7 +419,7 @@ function renderEditorialResults() {
       }),
   );
 }
-async function openEditorialAssistant() {
+async function openEditorialAssistant(): Promise<void> {
   if (!hasDocument) {
     toast(
       bw(
@@ -402,7 +446,7 @@ async function openEditorialAssistant() {
   $('#runClassroomAI').onclick = runClassroomReview;
   renderEditorialResults();
 }
-async function runAutomaticReview() {
+async function runAutomaticReview(): Promise<void> {
   if (editorialBusy) return;
   editorialBusy = true;
   $('#runAutomaticReview').disabled = true;
@@ -420,13 +464,13 @@ async function runAutomaticReview() {
     editorialSummary = `${book.pages.length} ${bw('páginas revisadas', 'pages reviewed', 'páginas revisadas')} · ${issues.length} ${bw('hallazgos para comprobar', 'findings to check', 'observações para conferir')}`;
     renderEditorialResults();
   } catch (e) {
-    if ($('#assistantError')) $('#assistantError').textContent = e.message;
+    if ($('#assistantError')) $('#assistantError').textContent = (e as Error).message;
   } finally {
     editorialBusy = false;
     if ($('#runAutomaticReview')) $('#runAutomaticReview').disabled = false;
   }
 }
-function configureClassroom() {
+function configureClassroom(): void {
   modal(
     bw('Conectar el aula', 'Connect classroom', 'Conectar turma'),
     `<p class="builder-intro">${bw('Tu docente te entrega un código. La clave del proveedor de IA nunca se instala en los equipos de estudiantes.', 'Your teacher provides a code. The AI provider key is never installed on student computers.', 'Seu docente fornece um código. A chave do provedor de IA nunca é instalada nos computadores dos alunos.')}</p><label class="builder-label" for="classCode">${bw('Código de aula', 'Classroom code', 'Código da turma')}</label><input id="classCode" type="password" autocomplete="off" maxlength="200" placeholder="${classServiceInfo.configured ? bw('Dejar vacío para conservar', 'Leave blank to keep', 'Deixar vazio para manter') : ''}"><details ${classServiceInfo.serviceUrl ? '' : 'open'}><summary>${bw('Configuración del docente', 'Teacher setup', 'Configuração do docente')}</summary><label class="builder-label" for="classUrl">${bw('Dirección del servicio del aula', 'Classroom service address', 'Endereço do serviço da turma')}</label><input id="classUrl" type="url" value="${esc(classServiceInfo.serviceUrl || '')}" placeholder="https://…"><p class="help">${bw('Podés distribuir maquetario-aula.json junto al ejecutable con esta dirección. Los estudiantes solo ingresan el código. El servicio central se publica por separado.', 'Distribute maquetario-aula.json next to the executable with this address. Students only enter the code. Publish the central service separately.', 'Distribua maquetario-aula.json junto ao executável com este endereço. Alunos só informam o código. O serviço central é publicado separadamente.')}</p></details>`,
@@ -440,7 +484,7 @@ function configureClassroom() {
     bw('Guardar conexión', 'Save connection', 'Salvar conexão'),
   );
 }
-function classroomPayload(scope) {
+function classroomPayload(scope: string) {
   const pages =
     scope === 'page'
       ? [{ p: book.pages[active], index: active }]
@@ -488,7 +532,7 @@ function classroomPayload(scope) {
     truncated: truncated,
   };
 }
-async function runClassroomReview() {
+async function runClassroomReview(): Promise<void> {
   if (editorialBusy) return;
   if (!$('#assistantConsent').checked) {
     $('#assistantError').textContent = bw(
@@ -519,7 +563,8 @@ async function runClassroomReview() {
         ),
       );
     const allowedPages = new Set(payload.pages.map((p) => p.id));
-    const suggestions = result.issues
+    // La respuesta del servicio es JSON sin tipo: estos filtros son su validación.
+    const suggestions: EditorialFinding[] = (result.issues as any[])
       .slice(0, 30)
       .filter(
         (i) =>
@@ -541,7 +586,7 @@ async function runClassroomReview() {
         : '');
     renderEditorialResults();
   } catch (e) {
-    if ($('#assistantError')) $('#assistantError').textContent = e.message;
+    if ($('#assistantError')) $('#assistantError').textContent = (e as Error).message;
   } finally {
     editorialBusy = false;
     if ($('#runClassroomAI')) $('#runClassroomAI').disabled = false;
@@ -551,7 +596,7 @@ async function runClassroomReview() {
 extend.after(
   'render',
   function (full = true) {
-    assistantButton.querySelector('span').textContent = bw(
+    assistantButton.querySelector('span')!.textContent = bw(
       'Asistente editorial',
       'Editorial assistant',
       'Assistente editorial',
@@ -559,3 +604,47 @@ extend.after(
   },
   'editorial-assistant',
 );
+
+// Publicado a propósito: las pruebas (tests/assistant-tests.js, paso "asistente editorial" de la
+// autoprueba) llaman a estas funciones, y scripts/style-snapshot.js abre el diálogo.
+type ClassroomPayload = ReturnType<typeof classroomPayload>;
+type FindingFactory = typeof finding;
+declare global {
+  var openEditorialAssistant: () => Promise<void>;
+  var runAutomaticReview: () => Promise<void>;
+  var automaticEditorialReview: () => Promise<EditorialFinding[]>;
+  var classroomPayload: (scope: string) => ClassroomPayload;
+  var finding: FindingFactory;
+  var reviewStamp: () => string;
+  /** Hallazgos del último informe (las pruebas lo reemplazan y lo vacían). */
+  var editorialReport: EditorialFinding[];
+  /** Huella del documento cuando se hizo el informe ('' si no hay informe). */
+  var editorialReportStamp: string;
+  /** Resumen que muestra el diálogo sobre los hallazgos. */
+  var editorialSummary: string;
+}
+globalThis.openEditorialAssistant = openEditorialAssistant;
+globalThis.runAutomaticReview = runAutomaticReview;
+globalThis.automaticEditorialReview = automaticEditorialReview;
+globalThis.classroomPayload = classroomPayload;
+globalThis.finding = finding;
+globalThis.reviewStamp = reviewStamp;
+// El estado del informe sigue siendo de este archivo; las pruebas lo leen y lo reemplazan por
+// estos accesores (antes eran `let` globales que se asignaban directamente).
+Object.defineProperties(globalThis, {
+  editorialReport: {
+    get: () => editorialReport,
+    set: (value: EditorialFinding[]) => (editorialReport = value),
+    configurable: true,
+  },
+  editorialReportStamp: {
+    get: () => editorialReportStamp,
+    set: (value: string) => (editorialReportStamp = value),
+    configurable: true,
+  },
+  editorialSummary: {
+    get: () => editorialSummary,
+    set: (value: string) => (editorialSummary = value),
+    configurable: true,
+  },
+});

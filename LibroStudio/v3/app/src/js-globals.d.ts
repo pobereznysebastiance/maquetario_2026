@@ -343,6 +343,9 @@ declare global {
   // ── book-workflow.js ──
   /** Dibuja el recorrido del libro (los cinco pasos de la barra del documento). */
   function renderBookRoute(): void;
+
+  /** Ids de las caras que no se pudieron cargar. */
+  var fontLoadErrors: Set<string>;
 }
 
 export {};
