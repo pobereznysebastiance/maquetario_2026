@@ -600,3 +600,242 @@
   gap: var(--space-sm);
   margin: var(--space-sm) 0;
 }
+
+/* ── Migrado de master-refinement.css: glifos de la tipografía ── */
+.glyph-font-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+.glyph-font-controls > label {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+  font-size: var(--type-body);
+}
+.glyph-font-controls select {
+  --glyph-control-height: 40px;
+  width: 100%;
+  height: var(--glyph-control-height);
+}
+.glyph-font-controls .btn {
+  --glyph-button-max: 240px;
+  max-width: var(--glyph-button-max);
+  white-space: normal;
+}
+.glyph-filters {
+  display: flex;
+  gap: var(--space-md);
+  margin: var(--space-sm) 0 var(--space-lg);
+}
+.glyph-filters input {
+  --glyph-search-min: 120px;
+  flex: 1 1 0%;
+  min-width: var(--glyph-search-min);
+}
+.glyph-filters :is(input, select) {
+  --glyph-filter-height: 39px;
+  height: var(--glyph-filter-height);
+}
+.glyph-view-layout {
+  --glyph-detail-width: 210px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--glyph-detail-width);
+  gap: var(--space-lg);
+}
+#fontGlyphGrid {
+  --glyph-grid-max: 380px;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: var(--space-2xs);
+  max-height: var(--glyph-grid-max);
+  padding: var(--space-3xs);
+  overflow: auto;
+}
+#fontGlyphGrid button {
+  --glyph-cell-height: 62px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  height: var(--glyph-cell-height);
+  min-width: 0;
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  overflow: hidden;
+}
+#fontGlyphGrid button > span {
+  --glyph-char-size: 28px;
+  font-family: inherit;
+  font-size: var(--glyph-char-size);
+  line-height: 1.2;
+}
+#fontGlyphGrid button small {
+  color: var(--text-tertiary);
+  font-family: var(--font-ui);
+  font-size: var(--type-caption2);
+}
+#fontGlyphGrid button:is(:hover, .active) {
+  border-color: var(--text-mark);
+  background: var(--status-warning-surface);
+}
+.glyph-pages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+  font-size: var(--type-body);
+}
+#glyphSelectedLarge {
+  --glyph-large-size: 105px;
+  --glyph-large-min: 160px;
+  min-height: var(--glyph-large-min);
+  border: var(--border-width) solid var(--status-warning-line);
+  border-radius: var(--radius-lg);
+  background: var(--status-info-surface);
+  font-size: var(--glyph-large-size);
+  line-height: 1.5;
+  text-align: center;
+}
+#glyphSelectedCode {
+  color: var(--text-mark);
+  text-align: center;
+}
+#glyphInsert {
+  width: 100%;
+  white-space: normal;
+}
+@media (max-height: 850px) {
+  #fontGlyphGrid {
+    --glyph-grid-max: 270px;
+  }
+}
+
+/* ── Migrado de category-design.css y document-view.css: pauta de uso tipográfico ── */
+#editorialRules {
+  margin-bottom: var(--space-sm);
+}
+.editorial-rules-table {
+  overflow: auto;
+}
+.editorial-rules-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.editorial-rules-table :is(th, td) {
+  padding: var(--space-sm);
+  border-bottom: var(--border-width) solid var(--line-default);
+  text-align: left;
+}
+.editorial-rules-table small {
+  display: block;
+  margin-top: var(--space-3xs);
+  color: var(--text-tertiary);
+}
+.editorial-rules-table thead {
+  background: var(--surface-field);
+  color: var(--text-mark);
+}
+.editorial-rules-table tbody tr:nth-child(even) {
+  background: var(--surface-control);
+}
+.editorial-rules-table td:first-of-type {
+  --rules-first-min: 115px;
+  min-width: var(--rules-first-min);
+}
+.editorial-rules-table td:last-child {
+  --rules-last-min: 105px;
+  min-width: var(--rules-last-min);
+}
+.rule-grid-examples {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2xs);
+  text-align: center;
+}
+.rule-grid-preview {
+  --rule-preview-width: 28px;
+  --rule-preview-height: 40px;
+  display: block;
+  width: var(--rule-preview-width);
+  height: var(--rule-preview-height);
+  border-radius: var(--space-3xs);
+  background: var(--paper-50);
+}
+
+/* ── Migrado de publications.css, output.css y test-feedback.css: cubierta y salida ── */
+#coverPreview {
+  --cover-preview-min: 210px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--cover-preview-min);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-field);
+  overflow: auto;
+}
+.cover-fields {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+.cover-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.cover-fields :is(input, select) {
+  --cover-field-height: 34px;
+  width: 100%;
+  height: var(--cover-field-height);
+}
+.cover-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+.publication-picker > label {
+  display: block;
+  margin-bottom: var(--space-sm);
+  font-size: var(--type-sm);
+}
+.publication-picker > select {
+  --publication-select-height: 36px;
+  width: 100%;
+  height: var(--publication-select-height);
+}
+.output-options {
+  display: grid;
+}
+.output-options label[hidden],
+.binding-estimate button[hidden] {
+  display: none;
+}
+.printer-row {
+  display: flex;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+.printer-row select {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+.printer-row button {
+  --printer-button-min: 36px;
+  min-width: var(--printer-button-min);
+}
+.binding-estimate summary {
+  cursor: pointer;
+}
+.binding-estimate[open] summary {
+  margin-bottom: var(--space-md);
+}

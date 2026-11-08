@@ -14,8 +14,3 @@
 }
 .continuous-row-vertical { flex-direction: column; align-items: center; justify-content: flex-start; }
 .continuous-row .page { flex-shrink: 0; }
-.editorial-rules-table { overflow: auto; }
-.editorial-rules-table table { border-collapse: collapse; width: 100%; }
-.editorial-rules-table :is(th,td) { padding: 10px; border-bottom: 1px solid #68b3aa55; text-align: left; }
-.editorial-rules-table small { display: block; color: var(--muted); margin-top: 3px; }
-#editorialRules { margin-bottom: 10px; }

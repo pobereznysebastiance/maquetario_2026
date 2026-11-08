@@ -54,3 +54,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ── Migrado de studio.css: punto de estado ── */
+.saved i,
+.status-dot {
+  --status-dot-size: 5px;
+  display: inline-block;
+  flex-shrink: 0;
+  width: var(--status-dot-size);
+  height: var(--status-dot-size);
+  border-radius: 50%;
+}

@@ -209,3 +209,8 @@ dialog .modal-actions {
 .output-review-options .modal-grid {
   grid-template-columns: 1fr;
 }
+
+/* ── Migrado de maquetario.css ── */
+.format-option strong {
+  color: var(--text-primary);
+}

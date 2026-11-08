@@ -4,12 +4,5 @@ body :is(.btn,.tool,.icon-btn,.format-option,.tool-action,button.quiet,input:not
   border-radius: var(--control-radius);
 }
 body .close-publication-modal { border-radius:var(--radius-lg); }
-.folio-placement .field-row .unit-wrap input { width: 100%; padding-right: 35px !important; }
-.editorial-rules-table thead { background: #172e35; color: #f0cb94; }
-.editorial-rules-table tbody tr:nth-child(even) { background: #ffffff06; }
-.editorial-rules-table td:first-of-type { min-width: 115px; }
-.editorial-rules-table td:last-child { min-width: 105px; }
-.rule-grid-examples { display: flex; align-items: flex-start; gap: 4px; text-align: center; }
-.rule-grid-preview { display: block; width: 28px; height: 40px; background: #f4f5ee; border-radius:2px; }
 .rule-style-input { display: grid; gap: 8px; padding: 12px; border: 1px solid #71bdb544; border-radius:var(--radius-md); }
 .rule-style-input label { display: grid; gap: 4px; }

@@ -14,3 +14,11 @@
 .unit-wrap input {
   max-width: 100%;
 }
+
+/* ── Migrado de studio.css ── */
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}

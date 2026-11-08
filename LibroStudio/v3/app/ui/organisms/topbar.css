@@ -185,3 +185,34 @@
   font-size: var(--type-xs);
   white-space: nowrap;
 }
+
+/* ── Migrado de readability.css, maquetario.css y editorial.css ── */
+.brand {
+  --brand-min: 230px;
+  min-width: var(--brand-min);
+}
+.brand strong {
+  color: var(--text-primary);
+}
+.toolbar {
+  padding-left: var(--space-md);
+}
+.topright .saved {
+  display: none;
+}
+#language {
+  --language-max: 117px;
+  max-width: var(--language-max);
+  height: var(--control-md);
+}
+@media (max-width: 1350px) {
+  .brand {
+    --brand-min: 175px;
+  }
+  .toolbar {
+    padding-left: var(--space-xs);
+  }
+  #language {
+    --language-max: 85px;
+  }
+}

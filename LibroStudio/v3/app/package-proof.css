@@ -1,11 +1,4 @@
-.hyphenation-controls {
-  display: grid;
-  gap: 6px;
-  margin: 9px 0;
-  padding: 9px;
-  border: 1px solid #68B3AA44;
-  border-radius:var(--radius-md);
-}
+
 .mqt-paragraph { overflow-wrap: normal; word-break: normal; }
 .cover-tabs button[hidden] { display: none; }
 .cover-sheet-dialog { width: min(940px, 94vw); }

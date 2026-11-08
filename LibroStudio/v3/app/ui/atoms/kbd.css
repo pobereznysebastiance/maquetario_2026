@@ -1,0 +1,11 @@
+/* Átomo: tecla (atajos en la ayuda del lienzo y del tutorial). */
+kbd {
+  --kbd-size: 8px;
+  --kbd-pad-y: 1px;
+  padding: var(--kbd-pad-y) var(--space-2xs);
+  border: var(--border-width) solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  font-family: var(--font-ui);
+  font-size: var(--kbd-size);
+}

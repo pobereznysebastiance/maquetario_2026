@@ -135,3 +135,21 @@
     --tutorial-card-left: 195px;
   }
 }
+
+/* ── Migrado de test-feedback.css: máscara que ilumina lo que señala el paso ── */
+#tutorialSpotlight {
+  position: fixed;
+  inset: 0;
+  z-index: 54;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+#tutorialSpotlight path {
+  fill: var(--material-spotlight);
+}
+#tutorialSpotlight rect {
+  fill: none;
+  stroke: var(--accent-hover);
+  stroke-width: var(--focus-ring-width);
+}

@@ -113,3 +113,11 @@
   background: var(--surface-control);
   color: var(--text-primary);
 }
+
+/* ── Migrado de studio.css ── */
+button > span[data-icon] {
+  display: flex;
+}
+.icon-btn {
+  font-size: var(--type-xl);
+}

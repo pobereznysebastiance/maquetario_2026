@@ -200,3 +200,8 @@ body[data-rulers='hidden'] #spreadStage {
 .no-document :is(#spreadStage, .ruler-x, .ruler-y, .canvas-hint, .template-panel, .inspector-content, #activePageStatus, .doc-format, #documentName, #thumbnails) {
   visibility: hidden;
 }
+
+/* ── Migrado de readability.css ── */
+.ui-large .inspector {
+  min-width: 0;
+}

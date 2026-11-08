@@ -68,3 +68,10 @@
   --thumb-width: 144px;
   width: var(--thumb-width);
 }
+
+/* ── Migrado de studio.css: número de página bajo la miniatura ── */
+.thumb small {
+  display: block;
+  margin-top: var(--space-xs);
+  letter-spacing: 0.05em;
+}

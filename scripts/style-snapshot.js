@@ -18,6 +18,7 @@
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const close = () => {
     try { $('#modal')?.open && $('#modal').close(); } catch {}
+    try { $('#fontBrowser')?.open && $('#fontBrowser').close(); } catch {}
     try { closeTutorial(); } catch {}
     if (document.body.classList.contains('focused')) $('#fullscreen')?.click();
     if (document.body.classList.contains('ui-large')) try { setReadability('standard'); } catch {}
@@ -41,6 +42,9 @@
     ['foco', () => { close(); $('#fullscreen')?.click(); }],
     ['interfaz grande', () => { close(); setReadability('large'); }],
     ['asistente', () => { close(); openEditorialAssistant(); }],
+    ['buscador de fuentes', async () => { close(); sel('text'); showTab('text'); await wait(200); const s = $('#inspectorContent select[data-object="font"], #inspectorContent select.font-native-hidden'); if (s) openFontBrowser(s); await wait(500); }],
+    ['glifos', async () => { close(); sel('text'); showFontGlyphs(); await wait(500); }],
+    ['reglas internas', () => { close(); editorialRulesDialog(); }],
     // Último: reemplaza el libro por uno en blanco.
     ['sin documento', () => { close(); hideWelcome(); activateBlankDocument(); }],
   ];

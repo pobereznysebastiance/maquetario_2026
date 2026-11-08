@@ -619,3 +619,26 @@
 .folio-placement .field-row input[type='range'] {
   grid-column: 1 / -1;
 }
+
+/* ── Migrado de studio.css, editorial.css y package-proof.css ── */
+.empty-selection {
+  margin: var(--space-2xs) 0 var(--space-sm);
+  padding: var(--space-lg) var(--space-md);
+  border: var(--border-width) dashed var(--line-default);
+  border-radius: var(--radius-md);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+.guide-controls {
+  margin-top: var(--space-md);
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+}
+.hyphenation-controls {
+  display: grid;
+  gap: var(--space-xs);
+  margin: var(--space-sm) 0;
+  padding: var(--space-sm);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-md);
+}

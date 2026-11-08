@@ -196,3 +196,33 @@ textarea {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ── Migrado de studio.css, crystal.css y category-design.css ── */
+/* Campos de color (fuera del marco de campos de la interfaz). */
+input[type='color'] {
+  min-width: 0;
+  padding: var(--space-xs) var(--space-sm);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-field);
+  box-shadow: var(--shadow-field-inset);
+}
+select {
+  cursor: pointer;
+}
+select option {
+  color: var(--text-primary);
+}
+.switch span {
+  box-shadow: var(--shadow-field-inset);
+}
+/* Campo con unidad: el campo ocupa su envoltura y deja lugar a la unidad. Va con !important
+   porque los organismos (inspector, diálogos) fijan el ancho de los campos de una fila. */
+.unit-wrap input {
+  --unit-input-pad: 23px;
+  width: 100% !important;
+  padding-right: var(--unit-input-pad) !important;
+}
+.folio-placement .field-row .unit-wrap input {
+  --unit-input-pad: 35px;
+}

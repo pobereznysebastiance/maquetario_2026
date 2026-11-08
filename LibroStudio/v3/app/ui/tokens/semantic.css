@@ -31,6 +31,9 @@
   --material-blur-bar: blur(20px) saturate(140%);
   --material-blur-popover: blur(16px) saturate(130%);
   /* Luz de borde superior: el canto del vidrio. */
+  /* Hundido de campos e interruptor; oscurecido de la máscara del tutorial. */
+  --shadow-field-inset: inset 0 1px 3px rgb(0 0 0 / 0.2);
+  --material-spotlight: rgb(7 20 29 / 0.8);
   --material-edge: inset 0 1px 0 rgb(255 255 255 / 0.07);
 
   /* ── Ambiente (degradés de marca) ────────────────────────── */

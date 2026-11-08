@@ -17,3 +17,211 @@
 .font-library .help {
   font-size: var(--type-xs);
 }
+
+/* ── Migrado de font-browser.css: selector visual, buscador y vista de la tipografía ── */
+.font-native-hidden {
+  display: none !important;
+}
+.font-visual-select {
+  --font-select-height: 38px;
+  max-width: 60%;
+  height: var(--font-select-height);
+  padding: var(--space-xs) var(--space-sm);
+  border: var(--border-width) solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  font-size: var(--type-md);
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.font-visual-select:hover {
+  border-color: var(--text-mark);
+  background: var(--surface-selected);
+}
+.modal-grid .font-visual-select {
+  width: 100%;
+  max-width: 100%;
+}
+.font-browser-body {
+  padding: var(--space-lg) var(--space-xl);
+}
+#fontBrowserSearch {
+  --font-search-height: 42px;
+  width: 100%;
+  height: var(--font-search-height);
+}
+.font-browser-columns {
+  --font-list-min: 340px;
+  --font-detail-min: 260px;
+  display: grid;
+  grid-template-columns: minmax(var(--font-list-min), 1.2fr) minmax(var(--font-detail-min), 1fr);
+  gap: var(--space-xl);
+  margin-top: var(--space-md);
+}
+#fontBrowserList {
+  --font-list-height: 420px;
+  position: relative;
+  height: var(--font-list-height);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-field);
+  overflow: auto;
+}
+#fontBrowserRows {
+  position: relative;
+}
+.font-browser-row {
+  --font-row-height: 68px;
+  position: absolute;
+  right: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: var(--space-sm);
+  height: var(--font-row-height);
+  padding: var(--space-sm) var(--space-md);
+  border: 0;
+  border-bottom: var(--border-width) solid var(--line-subtle);
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  overflow: hidden;
+}
+.font-browser-name {
+  --font-name-size: 14px;
+  font-family: var(--font-ui);
+  font-size: var(--font-name-size);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.font-browser-name small {
+  display: block;
+  margin-top: var(--space-2xs);
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+}
+.font-browser-row-sample {
+  --font-row-sample: 25px;
+  font-size: var(--font-row-sample);
+  line-height: 1.4;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.font-browser-detail {
+  min-width: 0;
+  padding-top: var(--space-lg);
+}
+.font-browser-detail h2 {
+  margin: 0 0 var(--space-lg);
+  font-family: var(--font-ui);
+  font-size: var(--type-title1);
+  font-weight: var(--weight-medium);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.font-browser-detail label {
+  display: block;
+  margin-bottom: var(--space-xs);
+  font-size: var(--type-md);
+}
+.font-browser-detail select {
+  --font-detail-select: 39px;
+  width: 100%;
+  height: var(--font-detail-select);
+}
+#fontBrowserSample {
+  --font-sample-box: 72px;
+  width: 100%;
+  height: var(--font-sample-box);
+  margin: var(--space-lg) 0;
+  resize: vertical;
+}
+#fontBrowserLarge {
+  --font-large-size: 36px;
+  --font-large-min: 150px;
+  min-height: var(--font-large-min);
+  padding: var(--space-md) var(--space-sm);
+  border-top: var(--border-width) solid var(--status-warning-line);
+  font-size: var(--font-large-size);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+@media (max-height: 850px) {
+  #fontBrowserList {
+    --font-list-height: 330px;
+  }
+  #fontBrowserLarge {
+    --font-large-min: 100px;
+  }
+}
+@media (max-width: 700px) {
+  .font-browser-columns {
+    grid-template-columns: 1fr;
+  }
+  #fontBrowserList {
+    --font-list-height: 260px;
+  }
+}
+
+/* ── Migrado de fonts.css: biblioteca de fuentes del inspector ── */
+.font-variant-block {
+  margin: var(--space-xs) 0 var(--space-md);
+  padding: var(--space-sm);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-field);
+}
+.font-axis {
+  margin-top: var(--space-sm);
+}
+.font-axis > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+}
+.font-axis label span {
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+}
+.font-axis output {
+  color: var(--text-mark);
+  font-variant-numeric: tabular-nums;
+}
+.font-axis input {
+  --font-axis-track: 4px;
+  width: 100%;
+  height: var(--font-axis-track);
+  margin: var(--space-sm) 0 var(--space-2xs);
+  accent-color: var(--accent);
+}
+.font-specimen {
+  --font-specimen-size: 24px;
+  margin-top: var(--space-md);
+  padding: var(--space-md) var(--space-3xs) var(--space-2xs);
+  color: var(--text-primary);
+  font-size: var(--font-specimen-size);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.font-warning {
+  color: var(--status-warning);
+  font-size: var(--type-xs);
+  line-height: var(--leading-text);
+}
+.font-folder-list {
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  overflow-wrap: anywhere;
+}
+.font-library details {
+  margin-top: var(--space-md);
+}
+.font-search {
+  font-size: var(--type-xs);
+}

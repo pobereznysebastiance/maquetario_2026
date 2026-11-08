@@ -154,3 +154,8 @@
   font-size: var(--type-xs);
   white-space: nowrap;
 }
+@media (max-width: 1350px) {
+  #activePageStatus {
+    font-size: var(--type-caption2);
+  }
+}

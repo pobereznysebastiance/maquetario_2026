@@ -51,6 +51,8 @@ function editorialRulesDialog() {
   const rules = collectEditorialRules();
   const styleRoles = book.editorialRoles || {};
   const styleNotes = book.editorialPautas || {};
+  // Puntos para mostrar: el interlineado sale de multiplicar (14 × 1,4 = 19,599999…); dos decimales alcanzan.
+  const points = (value) => Number((Number(value) || 0).toFixed(2));
   const leadingNames = {wide:bw('Amplio','Open','Amplo'),normal:bw('Normal','Normal','Normal'),tight:bw('Ajustado','Tight','Justo')};
   const writingNames = {upper:bw('Mayúsculas','Uppercase','Maiúsculas'),lower:bw('Minúsculas','Lowercase','Minúsculas'),mixed:bw('Mixta','Mixed','Mista')};
   const headers = [
@@ -76,12 +78,12 @@ function editorialRulesDialog() {
     const operation = note?.operation || '—';
     return `<tr><th scope="row">${esc(style && styleRoles[style.id] || name)}
       <small>${style && styleRoles[style.id] ? esc(name)+' · ' : ''}${count} ${bw('párr.','para.','parág.')}</small></th>
-      <td><strong>${esc(format.font)}</strong><small>${format.size} pt · ${esc(variant)}</small></td>
+      <td><strong>${esc(format.font)}</strong><small>${points(format.size)} pt · ${esc(variant)}</small></td>
       <td>${[...writing].map(key=>writingNames[key]).join(' / ')||'—'}</td>
       <td>${weight} · ${format.fontAxes?.wdth ?? '—'} · ${inclination}${axes?`<small>${esc(axes)}</small>`:''}</td>
       <td>${icon(format.align)} ${align[format.align]||'—'}</td>
       <td>${[...columns].sort((a,b)=>a-b).join(' / ')}</td>
-      <td>${format.leading} pt <small>${leadingNames[note?.leading]||'—'}</small></td>
+      <td>${points(format.leading)} pt <small>${leadingNames[note?.leading]||'—'}</small></td>
       <td>${esc(operation)}<small>${bw('Sangrías','Indents','Recuos')} ${[format.indentLeft,format.indentRight,format.firstIndent].map(n=>displayMeasure(n||0)).join(' / ')} ${documentUnit()}
       · ${bw('Espacio','Spacing','Espaço')} ${[format.spaceBefore,format.spaceAfter].map(n=>displayMeasure(n||0)).join(' / ')} ${documentUnit()}</small></td>
       <td><div class="rule-grid-examples">${examples.map(example=>`<div>${ruleGridPreview(example)}<small>${M.folio(book,example.page)}</small></div>`).join('')}</div></td></tr>`;

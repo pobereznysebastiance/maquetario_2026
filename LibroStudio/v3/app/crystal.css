@@ -1,7 +1,6 @@
 /* Restos de la capa "cristal": figuras dibujadas sobre la página, sombra del pliego e impresión.
    La interfaz migró a ui/. */
 .page-priority .spread{box-shadow:0 0 0 7px #D5F4E316,0 14px 50px #0005,0 0 35px #39C5AE08}
-.switch span{box-shadow:inset 0 1px 3px #0003}
 .editorial-shape-svg{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;overflow:visible}
 .shape-draw-ghost{position:absolute;outline:1px dashed #33ADAA;pointer-events:none;z-index:30;opacity:.8}
 .editorial-shape.selected{overflow:visible!important}

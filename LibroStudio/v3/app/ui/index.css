@@ -10,7 +10,6 @@
 @import url('../editorial.css') layer(legacy);
 @import url('../maquetario.css') layer(legacy);
 @import url('../output.css') layer(legacy);
-@import url('../fonts.css') layer(legacy);
 @import url('../frame-handles.css') layer(legacy);
 @import url('../workspace.css') layer(legacy);
 @import url('../review.css') layer(legacy);
@@ -38,6 +37,7 @@
 @import url('atoms/button.css') layer(atoms);
 @import url('atoms/field.css') layer(atoms);
 @import url('atoms/skeleton.css') layer(atoms);
+@import url('atoms/kbd.css') layer(atoms);
 @import url('molecules/section-grip.css') layer(molecules);
 @import url('molecules/section-toggle.css') layer(molecules);
 @import url('molecules/action-item.css') layer(molecules);

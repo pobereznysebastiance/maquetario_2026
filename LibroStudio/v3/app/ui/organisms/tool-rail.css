@@ -91,3 +91,8 @@
 .tool[data-tool='select'].active {
   cursor: default;
 }
+
+/* ── Migrado de publications.css ── */
+.tools {
+  overflow: auto;
+}
