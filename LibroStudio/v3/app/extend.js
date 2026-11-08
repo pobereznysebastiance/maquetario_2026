@@ -54,6 +54,29 @@
       origin,
     );
 
+  // Ajustar lo que devuelve la función: fn(resultado, ...args) devuelve el resultado final
+  // (normalmente el mismo objeto, modificado).
+  extend.result = (name, fn, origin = '') =>
+    extend(
+      name,
+      (previous) =>
+        function (...args) {
+          return fn.call(this, previous.apply(this, args), ...args);
+        },
+      origin,
+    );
+
+  // Una ruta: cuando when(...args) es verdadera, fn reemplaza a la función; si no, sigue la cadena.
+  extend.instead = (name, when, fn, origin = '') =>
+    extend(
+      name,
+      (previous) =>
+        function (...args) {
+          return (when.apply(this, args) ? fn : previous).apply(this, args);
+        },
+      origin,
+    );
+
   extend.around = function (name, factory, origin = '') {
     const entry = entryFor(name);
     entry.arounds.push({ factory, origin });

@@ -1,8 +1,7 @@
 'use strict';
 
 const folioMetric = document.createElement('canvas').getContext('2d');
-extend('autoElement',priorFolioElement=>function(index,type,px,printing=false){
-  const element = priorFolioElement(index,type,px,printing);
+extend.result('autoElement',function(element,index,type,px,printing=false){
   if (!element || type !== 'folio') return element;
   const cfg = M.auto(book,index,type), margins = M.margins(book,index);
   const clamp = (value,min,max) => Math.max(min,Math.min(max,value));

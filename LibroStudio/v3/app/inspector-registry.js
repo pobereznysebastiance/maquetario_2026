@@ -8,18 +8,7 @@
   window.decorateInspector = (fn, origin = '') => extend.after('inspector', fn, origin);
   // Una pestaña con panel propio dibuja ese panel en lugar del contenido base del inspector.
   window.registerInspectorPanel = (panelTab, render, origin = '') =>
-    extend(
-      'inspector',
-      (previous) =>
-        function () {
-          if (tab === panelTab) {
-            render();
-            return;
-          }
-          previous();
-        },
-      origin,
-    );
+    extend.instead('inspector', () => tab === panelTab, render, origin);
 
   const pauses = [];
   window.pauseInspectorWhile = (cond, origin = '') => pauses.push({ cond, origin });

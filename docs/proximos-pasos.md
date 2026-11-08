@@ -16,9 +16,19 @@ Commits en castellano, sin líneas de autoría de IA.
 
 Las 17 extensiones de `inspector` pasan por el registro (`inspector-registry.js`): `decorateInspector`, `registerInspectorPanel` (Estructura, Objeto, Capas) y `pauseInspectorWhile` (ajuste en vivo de maestras). El scroll y los `<details>` abiertos se conservan una sola vez, por fuera de toda la cadena (`extend.around`). Ningún módulo llama `extend('inspector', …)` directamente.
 
-`render` (7) y `coverEditor` (7) también están hechos: todas sus cadenas sólo agregaban algo después, y pasaron a `extend.after(nombre, fn, 'módulo')`.
+También hechas, con tres formas declaradas en `extend.js` (la cadena se compone igual que antes):
 
-Siguiente: `paper` (7), `prepareOutput` (4) y `autoElement` (5). Dibujan el libro (página, impresión, miniaturas): revisar cada cadena a mano, porque no todas son "después", y comparar los PDF de la autoprueba antes y después. Luego las 14 de `runIntegrationTests` a un registro de pruebas. Ver qué módulo extiende cada función con `MaquetarioExtensions.list()`. Autoprueba después de cada función convertida.
+- `extend.after(nombre, fn)`: corre después, con los mismos argumentos. `render` (7), `coverEditor` (7).
+- `extend.result(nombre, (resultado, ...args) => resultado)`: ajusta lo que devuelve. `paper` (7), `autoElement` (5), `prepareOutput` (3).
+- `extend.instead(nombre, cuándo, fn)`: una ruta. Cubierta en `prepareOutput`; `registerInspectorPanel` se apoya en ella.
+
+Los PDF y capturas de la autoprueba salen idénticos byte a byte antes y después de convertir `paper`, `prepareOutput` y `autoElement`.
+
+Quedan 84 cadenas con fábrica a mano (`extend('f', anterior => function …)`) en 36 funciones. 25 son pruebas (`runIntegrationTests` 19, `runNavigationTests` 4, `runFontIntegrationTests` 2) y van a un registro de pruebas (`registerIntegrationTest`). El resto, de una a tres por función, se convierte con las mismas tres formas. Para contarlas:
+
+```bash
+grep -oh "extend('[A-Za-z]*'" LibroStudio/v3/app/*.js | sort | uniq -c | sort -rn
+```
 
 ## 2. Vaciar la capa legacy
 
