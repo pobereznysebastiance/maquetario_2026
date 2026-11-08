@@ -1,17 +1,40 @@
-'use strict';
+// Empaquetar proyecto: botón junto a "Guardar como" que crea una carpeta con el proyecto editable,
+// copias de las imágenes, el PDF del interior (y el de la cubierta, si hay) y, si se pide, las
+// fuentes que se pueden compartir. Al abrir un proyecto desde un paquete, sus fuentes se suman al
+// catálogo antes de cargarlo.
+//
+// loadOpenedProject es global: lo llaman studio.js (Abrir) y welcome.js (recientes).
+//
+// Fuente TypeScript: se compila a build/project-package.js (desktop/scripts/build.mjs).
 
-function loadOpenedProject(result) {
+/** Lo que devuelve el anfitrión al abrir un proyecto (desktop/src/main/handlers/project.ts). */
+interface OpenedProject {
+  content: string;
+  path?: string;
+  /** Caras tipográficas del paquete, si el proyecto está dentro de uno. */
+  packageFaces?: typeof portableFontFaces;
+}
+
+declare global {
+  /** Valida el proyecto abierto, suma las fuentes de su paquete al catálogo y lo carga. */
+  var loadOpenedProject: (result: OpenedProject) => void;
+}
+
+function loadOpenedProject(result: OpenedProject): void {
   M.validate(JSON.parse(result.content.replace(/^\uFEFF/, '')));
   portableFontFaces = result.packageFaces || [];
   updatePortableFontCatalog();
   loadProject(result.content);
 }
+globalThis.loadOpenedProject = loadOpenedProject;
 
-function packageFontUsage() {
-  const usage = new Map();
-  const include = (format) => {
+/** Fuentes que usa el libro: id de la cara (o "missing:…") → nombre legible. */
+function packageFontUsage(): Record<string, string> {
+  const usage = new Map<string, string>();
+  const include = (format: Record<string, any> | undefined) => {
     if (!format?.font) return;
-    const face = selectedFace(format);
+    // selectedFace devuelve la cara del catálogo de fonts.js, que trae su id.
+    const face = selectedFace(format) as { id?: string; style?: string } | undefined;
     const id = face?.id || 'missing:' + format.font + ' ' + (format.fontStyleName || '');
     usage.set(id, format.font + (face?.style ? ' · ' + face.style : ''));
   };
@@ -24,13 +47,14 @@ function packageFontUsage() {
         for (let index = 0; index < count; index++) include(paragraphFormat(book, object, index));
       }
     }
-  for (const type of ['header', 'titulillo', 'folio']) if (book[type].enabled) include(book[type]);
+  for (const type of ['header', 'titulillo', 'folio'] as const)
+    if (book[type].enabled) include(book[type]);
   for (const style of book.paragraphStyles || []) include(style.properties);
   if (book.cover) include({ font: 'Georgia' });
   return Object.fromEntries(usage);
 }
 
-function packageDialog() {
+function packageDialog(): void {
   if (!hasDocument || busy) return;
   const title = bw('Empaquetar proyecto', 'Package project', 'Empacotar projeto');
   modal(
@@ -58,7 +82,7 @@ function packageDialog() {
       const copyFonts = $('#packageFonts').checked;
       const dialog = $('#modal');
       const buttons = [...dialog.querySelectorAll('button')].filter((button) => !button.disabled);
-      const preventCancel = (event) => event.preventDefault();
+      const preventCancel = (event: Event) => event.preventDefault();
       for (const button of buttons) button.disabled = true;
       dialog.addEventListener('cancel', preventCancel);
       busy = true;
@@ -100,11 +124,13 @@ packageButton.id = 'packageProject';
 packageButton.innerHTML = icon('folder') + '<span></span>';
 packageButton.onclick = packageDialog;
 $('#saveAs').after(packageButton);
-function labelPackageButton() {
-  packageButton.querySelector('span').textContent = bw('Empaquetar', 'Package', 'Empacotar');
+function labelPackageButton(): void {
+  packageButton.querySelector('span')!.textContent = bw('Empaquetar', 'Package', 'Empacotar');
   packageButton.title = bw('Empaquetar proyecto', 'Package project', 'Empacotar projeto');
 }
 labelPackageButton();
 document.addEventListener('maquetario:language', () => {
   labelPackageButton();
 });
+
+export {};

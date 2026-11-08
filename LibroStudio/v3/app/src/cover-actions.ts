@@ -1,4 +1,27 @@
-'use strict';
+// Acciones de la cubierta: en el editor de cubierta, botones fijos para exportar o imprimir la
+// cubierta (guardan el borrador antes) y una nota que distingue Interior PDF de Cubierta PDF.
+// Al imprimir la cubierta en un papel estándar (A3, A4, A5, Carta), la centra en la hoja y, si
+// se permite, la reduce para una prueba.
+//
+// No publica globales: todo se engancha con extend.
+//
+// Fuente TypeScript: se compila a build/cover-actions.js (desktop/scripts/build.mjs).
+
+/** Lo que devuelve prepareOutput (output.js). */
+interface OutputInfo {
+  width: number;
+  height: number;
+  faces: number;
+  scale: number;
+}
+
+/** Lo que recibe prepareOutput: para la cubierta, kind = 'cover'. */
+interface OutputRequest {
+  kind?: string;
+  paper: string;
+  fit: boolean;
+}
+
 extend.after(
   'coverEditor',
   function () {
@@ -22,7 +45,8 @@ extend.after(
       b.textContent = label;
       b.onclick = () => {
         try {
-          validateCover(coverDraft);
+          // Con el editor de cubierta abierto, el borrador siempre existe.
+          validateCover(coverDraft!);
           commit(() => (book.cover = M.clone(coverDraft)), false);
           $('#modal').close();
           setTimeout(
@@ -30,7 +54,7 @@ extend.after(
             30,
           );
         } catch (e) {
-          toast(e.message, 'error');
+          toast((e as Error).message, 'error');
         }
       };
       actions.append(b);
@@ -48,12 +72,12 @@ extend.after(
   },
   'cover-actions',
 );
-async function coverPrintDialog() {
+async function coverPrintDialog(): Promise<void> {
   return coverSheetDialog('print');
 }
 extend.result(
   'prepareOutput',
-  function (info, config) {
+  function (info: OutputInfo, config: OutputRequest): OutputInfo {
     if (config.kind !== 'cover' || !['A3', 'A4', 'A5', 'Letter'].includes(config.paper))
       return info;
     const [width, height] = outputPaperDimensions(config.paper, info.width, info.height);
@@ -69,7 +93,7 @@ extend.result(
       );
     }
     const root = $('#printRoot'),
-      art = root.querySelector('.cover-artwork'),
+      art = root.querySelector<HTMLElement>('.cover-artwork')!,
       sheet = document.createElement('div');
     sheet.className = 'print-page';
     Object.assign(sheet.style, {
@@ -88,9 +112,11 @@ extend.result(
       top: (((height - info.height * scale) / 2) * 96) / 25.4 + 'px',
     });
     sheet.append(art);
-    root.querySelector('style').textContent = `@page{size:${width}mm ${height}mm;margin:0}`;
+    root.querySelector('style')!.textContent = `@page{size:${width}mm ${height}mm;margin:0}`;
     root.append(sheet);
     return { width, height, faces: 1, scale };
   },
   'cover-actions',
 );
+
+export {};

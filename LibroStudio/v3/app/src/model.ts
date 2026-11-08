@@ -624,5 +624,5 @@ export type LibroModelApi = typeof LibroModel;
 declare global {
   var LibroModel: LibroModelApi;
 }
-// Objeto común (no un módulo congelado): master-refinement.js y shapes.js reemplazan validate.
+// Objeto común (no un módulo congelado): src/master-refinement.ts y shapes.js reemplazan validate.
 globalThis.LibroModel = LibroModel;

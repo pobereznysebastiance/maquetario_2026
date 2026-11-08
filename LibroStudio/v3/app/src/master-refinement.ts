@@ -1,9 +1,27 @@
-'use strict';
-let liveMasterAdjustment = false;
+// Cornisa y titulillo en el margen lateral: cuando su posición es izquierda, derecha, exterior o
+// interior, se dibujan girados dentro del margen, con un selector de sentido de lectura (de abajo
+// hacia arriba o al revés) en el inspector. También evita que el inspector se redibuje mientras
+// se ajusta un número de cornisa, titulillo o folio, y suma al validador del modelo el chequeo
+// de la dirección lateral.
+//
+// liveMasterAdjustment es global porque tests/refinement-tests.js lo vuelve a false.
+//
+// Ojo con el orden: este archivo reemplaza M.validate envolviendo al anterior, al cargar (después
+// de model.js y antes de shapes.js, que lo vuelve a envolver).
+//
+// Fuente TypeScript: se compila a build/master-refinement.js (desktop/scripts/build.mjs).
+import type { AutoType, Book, LibroModelApi } from './model.ts';
+
+declare global {
+  /** Se está ajustando un número de cornisa, titulillo o folio: el inspector no se redibuja. */
+  var liveMasterAdjustment: boolean;
+}
+
+globalThis.liveMasterAdjustment = false;
 document.addEventListener(
   'change',
   (e) => {
-    const el = e.target,
+    const el = e.target as HTMLInputElement,
       key = el.dataset?.bind;
     if (
       el.type === 'number' &&
@@ -21,7 +39,7 @@ document.addEventListener(
 pauseInspectorWhile(() => liveMasterAdjustment, 'master-refinement');
 decorateInspector(() => {
   const host = $('#inspectorContent');
-  for (const type of ['header', 'titulillo']) {
+  for (const type of ['header', 'titulillo'] as const) {
     const selector = host.querySelector(`[data-bind="${type}.pos"]`);
     if (!selector) continue;
     const c = book[type],
@@ -30,12 +48,12 @@ decorateInspector(() => {
     const row = document.createElement('div');
     row.className = 'field-row';
     row.innerHTML = `<label>${bw('Lectura lateral', 'Side reading direction', 'Leitura lateral')}</label><select data-master-direction="${type}"><option value="up">↑ ${bw('De abajo hacia arriba', 'Bottom to top', 'De baixo para cima')}</option><option value="down">↓ ${bw('De arriba hacia abajo', 'Top to bottom', 'De cima para baixo')}</option></select>`;
-    selector.closest('.field-row').after(row);
-    const input = row.querySelector('select');
+    selector.closest('.field-row')!.after(row);
+    const input = row.querySelector('select')!;
     input.value = c.sideDirection || 'up';
     input.onchange = () => commit(() => (c.sideDirection = input.value), false);
     const legacy = host.querySelector(`[data-bind="${type}.vertical"]`);
-    if (legacy) legacy.closest('label').hidden = true;
+    if (legacy) legacy.closest('label')!.hidden = true;
     const hint = document.createElement('p');
     hint.className = 'help';
     hint.textContent = bw(
@@ -48,7 +66,13 @@ decorateInspector(() => {
 }, 'master-refinement');
 extend.result(
   'autoElement',
-  function (el, i, type, px, print = false) {
+  function (
+    el: HTMLElement | null,
+    i: number,
+    type: AutoType,
+    px: number,
+    print = false,
+  ): HTMLElement | null {
     const c = book[type];
     if (
       !el ||
@@ -89,11 +113,13 @@ extend.result(
   },
   'master-refinement',
 );
-const refineValidation = M.validate;
-M.validate = function (input) {
+const refineValidation: LibroModelApi['validate'] = M.validate;
+M.validate = function (input: any): Book {
   const b = refineValidation(input);
-  for (const type of ['header', 'titulillo'])
+  for (const type of ['header', 'titulillo'] as const)
     if (b[type].sideDirection !== undefined && !['up', 'down'].includes(b[type].sideDirection))
       throw Error('Dirección lateral inválida.');
   return b;
 };
+
+export {};

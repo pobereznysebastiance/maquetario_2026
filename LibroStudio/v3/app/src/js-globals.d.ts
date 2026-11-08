@@ -16,6 +16,28 @@ import type { Book, BookObject, LibroModelApi } from './model.ts';
 import type { NovelSample } from './novel-sample.ts';
 import type { CoverDesign, CoverGeometryPart } from './cover-measurements.ts';
 
+/** Cara tipográfica tal como la manda el anfitrión (desktop/src/main/fonts/opentype.ts → FontFace). */
+interface NativeFontFace {
+  id: string;
+  family: string;
+  style: string;
+  [key: string]: any;
+}
+
+/** Opciones del diálogo de salida (output.js → outputConfigFromDialog). */
+interface OutputDialogConfig {
+  mode: string;
+  paper: string;
+  fit: boolean;
+  crop: boolean;
+  staples?: boolean;
+  grid: boolean;
+  guides: boolean;
+  margins: boolean;
+  headers: boolean;
+  folios: boolean;
+}
+
 declare global {
   // ── studio.js ──
   /** Alias de LibroModel. */
@@ -59,7 +81,7 @@ declare global {
   function paragraphFormat(b: Book, o: BookObject, index: number): Record<string, any>;
 
   // ── fonts.js ──
-  function selectedFace(o: object): { weight?: number; style?: string } | undefined;
+  function selectedFace(o: object): { id?: string; weight?: number; style?: string } | undefined;
 
   // ── studio.js ──
   /** Índice de la página activa. */
@@ -152,7 +174,53 @@ declare global {
   function bookBuilder(sample?: boolean): void;
   function gridGallery(): void;
   function openSettings(focusSection?: string): Promise<void>;
+
+  // ── studio.js ──
+  /** Hay una salida o un paquete en curso. */
+  var busy: boolean;
+  /** Valida el contenido de un proyecto y lo carga como libro actual. */
+  function loadProject(content: string): void;
+  function clearPrint(): void;
+
+  // ── output.js ──
+  function outputConfigFromDialog(): OutputDialogConfig;
+  function outputPaperDimensions(
+    format: string,
+    artworkWidth: number,
+    artworkHeight: number,
+    pad?: number,
+  ): [number, number];
+  function outputGeometry(config: OutputDialogConfig): {
+    width: number;
+    height: number;
+    ratio: number;
+    faces: number[][];
+    vertical: boolean;
+    columns: number;
+    rows: number;
+    booklet: boolean;
+  };
+  function outputPreview(): void;
+  function outputDialog(destination: string): Promise<void>;
+
+  // ── fonts.js ──
+  /** Caras que trae el paquete del proyecto abierto (van antes que las del sistema). */
+  var portableFontFaces: NativeFontFace[];
+  function updatePortableFontCatalog(): void;
+  /** Carga del catálogo de fuentes del sistema (null hasta que arranca). */
+  var fontCatalogPromise: Promise<unknown> | null;
+
+  var tutorialIndex: number;
+  const tutorialCard: HTMLElement;
+
+  /** Lanza un error legible si la cubierta tiene medidas fuera de rango. */
+  function validateCover(c: Record<string, any>): void;
+
+  // ── print-proof.js ──
+  function coverSheetDialog(destination: string): void;
 }
+
+export {};
 
 export {};
 

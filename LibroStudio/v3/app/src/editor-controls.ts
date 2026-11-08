@@ -1,6 +1,18 @@
-'use strict';
+// Controles del editor: las flechas arriba y abajo (y la rueda, con el campo enfocado) suben o
+// bajan los campos numéricos respetando mínimo, máximo y paso, y conservan el foco si el
+// inspector se redibuja. También ilumina el objetivo de cada paso del tutorial (oscurece el resto
+// de la ventana) y aparta la tarjeta del tutorial si lo tapa.
+//
+// spotlight es global porque tests/feedback-tests.js revisa la iluminación.
+//
+// Fuente TypeScript: se compila a build/editor-controls.js (desktop/scripts/build.mjs).
 
-function stepNumberField(event, direction) {
+declare global {
+  /** Capa que oscurece la ventana y deja a la vista el objetivo del tutorial. */
+  var spotlight: SVGSVGElement;
+}
+
+function stepNumberField(event: Event, direction: number): void {
   const field = event.target;
   if (
     !(field instanceof HTMLInputElement) ||
@@ -19,9 +31,12 @@ function stepNumberField(event, direction) {
   // stepUp and stepDown retain the field's min, max and configured precision.
   if (field.step === 'any') {
     const delta = (Number(field.value) || 0) + direction * 0.1;
-    field.value = Math.min(
-      field.max === '' ? Infinity : Number(field.max),
-      Math.max(field.min === '' ? -Infinity : Number(field.min), Number(delta.toFixed(8))),
+    // String() da el mismo texto que el campo al recibir un número.
+    field.value = String(
+      Math.min(
+        field.max === '' ? Infinity : Number(field.max),
+        Math.max(field.min === '' ? -Infinity : Number(field.min), Number(delta.toFixed(8))),
+      ),
     );
   } else if (direction > 0) field.stepUp();
   else field.stepDown();
@@ -31,7 +46,7 @@ function stepNumberField(event, direction) {
   if (!field.isConnected) {
     const replacement = field.id
       ? document.getElementById(field.id)
-      : container?.querySelectorAll('input[type=number]')[index];
+      : container?.querySelectorAll<HTMLInputElement>('input[type=number]')[index];
     if (replacement && JSON.stringify(replacement.dataset) === fieldKeys)
       replacement.focus({ preventScroll: true });
   }
@@ -66,9 +81,10 @@ spotlight.setAttribute('aria-hidden', 'true');
 spotlight.innerHTML = '<path fill-rule="evenodd"/><rect rx="6"/>';
 spotlight.style.display = 'none';
 document.body.append(spotlight);
+globalThis.spotlight = spotlight;
 
-let spotlightFrame;
-function updateTutorialSpotlight() {
+let spotlightFrame!: number;
+function updateTutorialSpotlight(): void {
   const step = guideLessons[tutorialIndex];
   let target = step && $(step.target);
   if (!target?.getClientRects().length && step) {
@@ -105,11 +121,12 @@ function updateTutorialSpotlight() {
       height = Math.max(0, bottom - y);
     const hole = width && height ? `M${x} ${y}h${width}v${height}h-${width}z` : '';
     spotlight
-      .querySelector('path')
+      .querySelector('path')!
       .setAttribute('d', `M0 0H${innerWidth}V${innerHeight}H0z${hole}`);
-    const outline = spotlight.querySelector('rect');
+    const outline = spotlight.querySelector('rect')!;
+    // String() da el mismo texto que setAttribute al recibir un número.
     for (const [key, value] of Object.entries({ x, y, width, height }))
-      outline.setAttribute(key, value);
+      outline.setAttribute(key, String(value));
     const card = tutorialCard.getBoundingClientRect();
     if (
       width &&
@@ -129,7 +146,7 @@ function updateTutorialSpotlight() {
 }
 extend.after(
   'showTutorialStep',
-  function (index) {
+  function (index: number) {
     tutorialCard.style.left = '';
     cancelAnimationFrame(spotlightFrame);
     updateTutorialSpotlight();
@@ -145,3 +162,5 @@ extend.after(
   },
   'editor-controls',
 );
+
+export {};

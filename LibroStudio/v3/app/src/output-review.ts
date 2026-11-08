@@ -1,10 +1,22 @@
-'use strict';
+// Revisión de la salida: el diálogo de exportar o imprimir pasa a dos columnas (opciones a la
+// izquierda, vista previa a la derecha) con zoom (ajustar a ventana, 100–300 %) y un botón para
+// ampliar la revisión ocultando las opciones.
+//
+// prepareLargeOutputPreview es global: arma esa vista para la captura de la autoprueba (Host.cs).
+//
+// Fuente TypeScript: se compila a build/output-review.js (desktop/scripts/build.mjs).
+
+declare global {
+  /** Abre la salida en cuadernillo A4 del libro de muestra, para la captura de revisión. */
+  var prepareLargeOutputPreview: () => void;
+}
+
 let outputReviewScale = 'fit';
 extend.after(
   'outputPreview',
   function () {
     const box = $('#outputPreview'),
-      sheet = box?.querySelector('.output-sheet');
+      sheet = box?.querySelector<HTMLElement>('.output-sheet');
     if (!sheet) return;
     const config = outputConfigFromDialog(),
       geometry = outputGeometry(config),
@@ -40,7 +52,7 @@ extend.after(
 extend(
   'outputDialog',
   (beforeLargeOutputDialog) =>
-    function (destination) {
+    function (destination: string) {
       outputReviewScale = 'fit';
       const result = beforeLargeOutputDialog(destination);
       if (!$('#outputPreview') || $('#modal .output-review-layout')) return result;
@@ -54,7 +66,7 @@ extend(
       const tools = document.createElement('div');
       tools.className = 'output-review-toolbar';
       tools.innerHTML = `<label for="outputReviewZoom">Zoom <select id="outputReviewZoom"><option value="fit">${bw('Ajustar a ventana', 'Fit to window', 'Ajustar à janela')}</option><option value="1">100%</option><option value="1.5">150%</option><option value="2">200%</option><option value="3">300%</option></select></label><span id="outputReviewFactor"></span><button type="button" class="btn" id="outputReviewExpand">${bw('Ampliar revisión', 'Expand preview', 'Ampliar revisão')}</button>`;
-      const previewNodes = [
+      const previewNodes: Element[] = [
         '.output-preview-title',
         '#reviewFaces',
         '#outputPreview',
@@ -66,8 +78,8 @@ extend(
       previewPane.append(tools, ...previewNodes);
       layout.append(options, previewPane);
       body.append(layout);
-      $('#outputReviewZoom').onchange = (e) => {
-        outputReviewScale = e.target.value;
+      $('#outputReviewZoom').onchange = (e: Event) => {
+        outputReviewScale = (e.target as HTMLSelectElement).value;
         outputPreview();
       };
       $('#outputReviewExpand').onclick = () => {
@@ -88,7 +100,7 @@ extend(
 window.addEventListener('resize', () => {
   if ($('#modal').open && $('#outputPreview')) outputPreview();
 });
-window.prepareLargeOutputPreview = function () {
+globalThis.prepareLargeOutputPreview = function () {
   hideWelcome();
   if ($('#modal').open) $('#modal').close();
   window.prepareNovelProof();
@@ -97,3 +109,5 @@ window.prepareLargeOutputPreview = function () {
   $('#outPaper').value = 'A4';
   outputPreview();
 };
+
+export {};

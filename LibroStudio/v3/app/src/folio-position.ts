@@ -1,13 +1,27 @@
-'use strict';
+// Posición del folio: lo ubica según el ancho real del número (medido en un canvas), dentro del
+// margen elegido (arriba, abajo o lateral), y suma al inspector deslizadores de ajuste fino
+// horizontal y vertical que muestran el cambio en vivo.
+//
+// No publica globales: todo se engancha con extend y decorateInspector.
+//
+// Fuente TypeScript: se compila a build/folio-position.js (desktop/scripts/build.mjs).
+import type { AutoType } from './model.ts';
 
-const folioMetric = document.createElement('canvas').getContext('2d');
+const folioMetric = document.createElement('canvas').getContext('2d')!;
 extend.result(
   'autoElement',
-  function (element, index, type, px, printing = false) {
+  function (
+    element: HTMLElement | null,
+    index: number,
+    type: AutoType,
+    px: number,
+    printing = false,
+  ): HTMLElement | null {
     if (!element || type !== 'folio') return element;
-    const cfg = M.auto(book, index, type),
+    // Si el folio no se muestra en esta página, autoElement ya devolvió null.
+    const cfg = M.auto(book, index, type)!,
       margins = M.margins(book, index);
-    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
     const fontSize = (cfg.size * 25.4) / 72,
       height = fontSize * 1.3;
     const outer = index % 2 === 0 ? 'left' : 'right',
@@ -17,11 +31,11 @@ extend.result(
     const lateral = ['left', 'right'].includes(side);
     const font = element.style.fontFamily || 'Georgia';
     folioMetric.font = `${element.style.fontStyle || 'normal'} ${element.style.fontWeight || '400'} ${fontSize * 4}px ${font}`;
-    const width = Math.max(fontSize, folioMetric.measureText(element.textContent).width / 4) + 0.6;
+    const width = Math.max(fontSize, folioMetric.measureText(element.textContent!).width / 4) + 0.6;
     const rotate = !!cfg.vertical;
     const halfX = (rotate ? height : width) / 2,
       halfY = (rotate ? width : height) / 2;
-    let x, y;
+    let x: number, y: number;
     if (lateral) {
       const left = side === 'left',
         margin = left ? margins.left : margins.right;
@@ -89,19 +103,20 @@ decorateInspector(() => {
     ['offsetX', bw('Horizontal', 'Horizontal', 'Horizontal')],
     ['offsetY', bw('Vertical', 'Vertical', 'Vertical')],
   ]) {
-    const numeric = section.querySelector(`[data-bind="folio.${key}"]`);
+    const numeric = section.querySelector<HTMLInputElement>(`[data-bind="folio.${key}"]`);
     const field = numeric?.closest('.field-row');
     if (!field) continue;
-    field.querySelector('label').textContent = label;
-    numeric.setAttribute('aria-label', label);
+    field.querySelector('label')!.textContent = label;
+    numeric!.setAttribute('aria-label', label);
     group.append(field);
     const slider = document.createElement('input');
     slider.type = 'range';
-    const limits = (value) => {
+    // String() da el mismo texto que el control al recibir un número.
+    const limits = (value: number) => {
       const span = Math.max(key === 'offsetX' ? 30 : 60, Math.abs(Number(value)));
-      slider.min = -span;
-      slider.max = span;
-      slider.value = value;
+      slider.min = String(-span);
+      slider.max = String(span);
+      slider.value = String(value);
     };
     slider.step = '.5';
     limits(book.folio[key]);
@@ -111,7 +126,7 @@ decorateInspector(() => {
     );
     slider.oninput = () => {
       const previous = book.folio[key];
-      numeric.value = slider.value;
+      numeric!.value = slider.value;
       book.folio[key] = Number(slider.value);
       try {
         renderPages();
@@ -119,11 +134,13 @@ decorateInspector(() => {
         book.folio[key] = previous;
       }
     };
-    slider.onchange = () => numeric.dispatchEvent(new Event('change', { bubbles: true }));
-    numeric.addEventListener('change', () => limits(book.folio[key]));
+    slider.onchange = () => numeric!.dispatchEvent(new Event('change', { bubbles: true }));
+    numeric!.addEventListener('change', () => limits(book.folio[key]));
     field.append(slider);
   }
   const details = section.querySelector('details');
   if (details) details.before(group);
   else section.append(group);
 }, 'folio-position');
+
+export {};
