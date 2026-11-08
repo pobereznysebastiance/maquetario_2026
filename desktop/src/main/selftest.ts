@@ -150,6 +150,37 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     await exec(session, "document.querySelector('#modal').close()");
     return ['Inicial oculta lo avanzado', 'Personalizado guarda la selección', 'Predeterminado muestra todo'];
   });
+  await step('tamaños de pantalla', async () => {
+    // Viewport en píxeles CSS: notebook, notebook Full HD al 125 %, 1080p, 1440p, 4K al 150 % y 4K al 100 %.
+    const sizes: [string, number, number][] = [
+      ['1366x768', 1366, 768],
+      ['1536x864', 1536, 864],
+      ['1920x1080', 1920, 1080],
+      ['2560x1440', 2560, 1440],
+      ['3840x2160', 3840, 2160],
+    ];
+    const contents = session.win.webContents;
+    const overflow: Record<string, number> = {};
+    for (const [name, width, height] of sizes) {
+      contents.enableDeviceEmulation({
+        screenPosition: 'desktop',
+        screenSize: { width, height },
+        viewPosition: { x: 0, y: 0 },
+        deviceScaleFactor: 1,
+        viewSize: { width, height },
+        scale: 1,
+      });
+      await delay(500);
+      // Algo que se sale del ancho de la ventana es un defecto en cualquier tamaño.
+      overflow[name] = await exec<number>(session, 'document.documentElement.scrollWidth - window.innerWidth');
+      await writeFile(join(out, `pantalla-${name}.png`), (await contents.capturePage({ x: 0, y: 0, width, height })).toPNG());
+    }
+    contents.disableDeviceEmulation();
+    await delay(300);
+    const broken = Object.entries(overflow).filter(([, px]) => px > 0);
+    if (broken.length) throw new Error(`Desborde horizontal: ${JSON.stringify(Object.fromEntries(broken))}`);
+    return overflow;
+  });
   await step('PDF de cubierta', async () => {
     await exec(session, 'window.prepareCoverProof()');
     await delay(300);

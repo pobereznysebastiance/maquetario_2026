@@ -1,10 +1,13 @@
-// Orden de las secciones del inspector: se arrastran por la manija del título
-// (o con Alt+↑ / Alt+↓ desde la manija) y el orden se recuerda por pestaña.
-// No toca cómo se arma cada sección: reordena lo que inspector() dibuja.
+// Secciones del inspector:
+// - Orden: se arrastran por la manija del título (o Alt+↑ / Alt+↓ desde la manija).
+// - Plegado: la flecha del título (o un clic en el nombre) pliega la sección y libera su alto.
+// Orden y plegado se recuerdan por pestaña. No toca cómo se arma cada sección:
+// trabaja sobre lo que inspector() dibuja.
 (function () {
   'use strict';
 
   const STORE = 'maquetario-inspector-order';
+  const COLLAPSED_STORE = 'maquetario-inspector-collapsed';
   const host = $('#inspectorContent');
   const label = () => bw('Arrastrar para reordenar', 'Drag to reorder', 'Arraste para reordenar');
 
@@ -117,14 +120,66 @@
     saveCurrent();
   });
 
+  // ── Plegado ──
+  const readCollapsed = () => {
+    try {
+      return JSON.parse(localStorage.getItem(COLLAPSED_STORE)) || {};
+    } catch {
+      return {};
+    }
+  };
+  function setCollapsed(section, collapsed) {
+    section.classList.toggle('is-collapsed', collapsed);
+    const toggle = section.querySelector(':scope > .section-heading > .section-toggle');
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', String(!collapsed));
+      toggle.title = toggle.ariaLabel = collapsed ? bw('Desplegar', 'Expand', 'Expandir') : bw('Plegar', 'Collapse', 'Recolher');
+    }
+    const all = readCollapsed();
+    const keys = new Set(all[tabKey()] || []);
+    if (collapsed) keys.add(section.dataset.orderKey);
+    else keys.delete(section.dataset.orderKey);
+    all[tabKey()] = [...keys];
+    try {
+      localStorage.setItem(COLLAPSED_STORE, JSON.stringify(all));
+    } catch {
+      // Sin almacenamiento: vale hasta cerrar la app.
+    }
+  }
+
+  function addToggle(section, collapsedKeys) {
+    const heading = section.querySelector(':scope > .section-heading');
+    if (!heading || heading.querySelector('.section-toggle')) return;
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'section-toggle';
+    toggle.innerHTML = icon('chevron');
+    toggle.addEventListener('click', () => setCollapsed(section, !section.classList.contains('is-collapsed')));
+    heading.append(toggle);
+    // Un clic en el nombre de la sección también pliega (no en sus controles: interruptor, ayuda…).
+    const title = heading.querySelector(':scope > span:not(.tiny)');
+    if (title) {
+      title.classList.add('section-title');
+      title.addEventListener('click', () => toggle.click());
+    }
+    const collapsed = collapsedKeys.has(section.dataset.orderKey);
+    section.classList.toggle('is-collapsed', collapsed);
+    toggle.setAttribute('aria-expanded', String(!collapsed));
+    toggle.title = toggle.ariaLabel = collapsed ? bw('Desplegar', 'Expand', 'Expandir') : bw('Plegar', 'Collapse', 'Recolher');
+  }
+
   function decorate() {
     const sections = sectionsOf();
-    if (sections.length < 2) return;
+    if (!sections.length) return;
     // Ya decoradas (por ejemplo, después de mover una): nada que hacer.
-    if (sections.every((s) => s.querySelector(':scope > .section-heading > .section-grip'))) return;
+    if (sections.every((s) => s.querySelector(':scope > .section-heading > .section-toggle'))) return;
     assignKeys(sections);
-    applyStoredOrder(sections);
-    sections.forEach(addGrip);
+    if (sections.length > 1) {
+      applyStoredOrder(sections);
+      sections.forEach(addGrip);
+    }
+    const collapsedKeys = new Set(readCollapsed()[tabKey()] || []);
+    sections.forEach((s) => addToggle(s, collapsedKeys));
   }
 
   new MutationObserver(decorate).observe(host, { childList: true });

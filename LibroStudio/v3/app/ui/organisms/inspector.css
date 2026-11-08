@@ -137,3 +137,16 @@
 #inspectorContent .rule-settings .field-row {
   margin: var(--space-xs) 0 0;
 }
+
+/* Títulos limpios: sin ícono decorativo (el nombre ya dice qué es la sección).
+   La ayuda "?" queda centrada con la línea del título y en proporción con el texto. */
+#inspectorContent .section-heading > svg.icon {
+  display: none;
+}
+#inspectorContent .section-heading .term-help {
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+  margin-left: var(--space-xs);
+  vertical-align: middle;
+  transform: translateY(calc(-1 * var(--space-3xs)));
+}

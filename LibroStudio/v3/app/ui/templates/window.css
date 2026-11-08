@@ -6,13 +6,16 @@
   --window-controls-right: 0px;
   --window-controls-left: 0px;
 }
+/* El área que ocupan los botones la informa el sistema (Window Controls Overlay):
+   titlebar-area-x/width es la zona libre. Así se respeta su ancho real con cualquier escala
+   de pantalla. Los valores fijos son sólo el respaldo si el sistema no lo informa. */
 :root[data-window-controls='overlay-right'] {
   /* Minimizar, maximizar y cerrar de Windows. */
-  --window-controls-right: 138px;
+  --window-controls-right: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, calc(100vw - 138px)));
 }
 :root[data-window-controls='inset-left'] {
   /* Semáforos de macOS. */
-  --window-controls-left: 78px;
+  --window-controls-left: env(titlebar-area-x, 78px);
 }
 
 .topbar {

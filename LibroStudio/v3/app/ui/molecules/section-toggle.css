@@ -1,0 +1,44 @@
+/* Molécula: plegar / desplegar una sección del inspector.
+   Flecha al final del título; la sección plegada sólo muestra su título y libera el alto. */
+.section-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: var(--control-sm);
+  height: var(--control-sm);
+  margin-inline-start: var(--space-2xs);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  transition: color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
+}
+.section-toggle:hover {
+  background: var(--surface-control);
+  color: var(--text-primary);
+}
+.section-toggle .icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+.section.is-collapsed .section-toggle .icon {
+  transform: rotate(-90deg);
+}
+
+/* El nombre de la sección empuja la flecha (y el interruptor, si lo hay) al final y es clickeable. */
+.section-heading > .section-title {
+  flex: 1;
+  cursor: pointer;
+}
+
+.section.is-collapsed > :not(.section-heading) {
+  display: none;
+}
+#inspectorContent .section.is-collapsed {
+  padding-block: var(--space-md);
+}
+#inspectorContent .section.is-collapsed > .section-heading {
+  margin-bottom: 0;
+}

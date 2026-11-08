@@ -39,6 +39,7 @@
 @import url('atoms/field.css') layer(atoms);
 @import url('atoms/skeleton.css') layer(atoms);
 @import url('molecules/section-grip.css') layer(molecules);
+@import url('molecules/section-toggle.css') layer(molecules);
 @import url('molecules/action-item.css') layer(molecules);
 @import url('molecules/setting-row.css') layer(molecules);
 @import url('molecules/term-help.css') layer(molecules);
