@@ -12,6 +12,7 @@
     kind,
     available: kind !== 'browser',
     platform: electron ? electron.platform : webview ? 'win32' : 'browser',
+    selfTest: !!(electron && electron.selfTest),
     postMessage(message) {
       if (electron) electron.postMessage(message);
       else if (webview) webview.postMessage(message);

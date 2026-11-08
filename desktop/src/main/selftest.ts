@@ -13,9 +13,9 @@ import { replacePackageFaces, setPackageFonts, getPackageFaces } from './fonts/c
 import { pdf, prepareOutput } from './handlers/output.ts';
 import { createProjectPackage, type PackageRequest } from './handlers/package.ts';
 import { readRecents, recordRecent, saveProject } from './handlers/project.ts';
-import { delay, exec, type Session } from './session.ts';
+import { delay, exec, waitFor, type Session } from './session.ts';
 
-type StepResult = { step: string; ok: boolean; detail?: unknown; error?: string };
+type StepResult = { step: string; ok: boolean; skipped?: boolean; detail?: unknown; error?: string };
 
 export async function runSelfTest(session: Session): Promise<boolean> {
   const out = argValue('out') ?? join(dataDir(), 'self-test');
@@ -29,7 +29,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     if (!details.isSameDocument) console.log(`[autoprueba] navegación: ${details.url}`);
   });
   contents.on('console-message', (details) => {
-    if (details.level === 'error') console.log(`[autoprueba] error en la página: ${details.message}`);
+    if (details.level === 'error') console.log(`[autoprueba] error en la página: ${details.message} (${details.sourceId}:${details.lineNumber})`);
   });
   const A5 = { width: 148, height: 210 };
 
@@ -74,6 +74,14 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   await delay(500);
   // Las confirmaciones (confirm.js) no esperan respuesta durante la autoprueba.
   await exec(session, 'window.maquetarioSelfTest = true');
+  // Las pruebas de la interfaz se cargan aparte (test-loader.js); el paquete distribuido no las trae.
+  const loaderDone = await waitFor(session, 'window.maquetarioTestsReady !== undefined', 150, 100);
+  const testsIncluded = loaderDone && (await exec(session, 'window.maquetarioTestsReady')) === true;
+  if (!testsIncluded) console.log('[autoprueba] este paquete no incluye las pruebas de la interfaz: se omiten los pasos que las usan');
+  const testStep = async (name: string, work: () => Promise<unknown>) => {
+    if (testsIncluded) return step(name, work);
+    results.push({ step: name, ok: true, skipped: true, detail: 'omitido: paquete sin pruebas' });
+  };
   await step('interfaz: pruebas de integración', () =>
     uiSuite('verificacion.json', '(()=>{try{return window.runIntegrationTests()}catch(e){return JSON.stringify({ok:false,error:e.stack})}})()'),
   );
@@ -96,7 +104,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     await exec(session, 'window.prepareFontPdfTest()');
     return writePdf('prueba-fuentes.pdf', 'void 0', A5, 200);
   });
-  await step('PDF de párrafos', () => writePdf('prueba-parrafos.pdf', 'window.prepareParagraphPdfTest()', A5, 200));
+  await testStep('PDF de párrafos', () => writePdf('prueba-parrafos.pdf', 'window.prepareParagraphPdfTest()', A5, 200));
   await step('novela de prueba', async () => {
     const report = await exec<string>(session, 'window.prepareNovelProof()');
     await writeFile(join(out, 'prueba-novela.json'), report);
@@ -181,7 +189,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     if (broken.length) throw new Error(`Desborde horizontal: ${JSON.stringify(Object.fromEntries(broken))}`);
     return overflow;
   });
-  await step('PDF de cubierta', async () => {
+  await testStep('PDF de cubierta', async () => {
     await exec(session, 'window.prepareCoverProof()');
     await delay(300);
     const page = await prepareOutput(session, { kind: 'cover', crop: true });
@@ -190,18 +198,20 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     await writeFile(join(out, 'prueba-cubierta.pdf'), bytes);
     return { page };
   });
-  await step('asistente editorial', () =>
+  await testStep('asistente editorial', () =>
     uiSuite('verificacion-asistente.json', 'window.runAssistantTests().catch(e=>({ok:false,error:e.stack}))'),
   );
-  await step('navegación', () =>
+  await testStep('navegación', () =>
     uiSuite('verificacion-navegacion.json', 'window.runNavigationTests().catch(e=>({ok:false,error:e.stack}))'),
   );
   await step('avisos', () => uiSuite('verificacion-avisos.json', 'window.runNoticeTests().catch(e=>({ok:false,error:e.stack}))'));
-  await step('paquete del proyecto', () => checkPackage(session));
+  await testStep('paquete del proyecto', () => checkPackage(session));
 
   const ok = results.every((r) => r.ok);
   await writeFile(join(out, 'resumen.json'), JSON.stringify({ ok, carpeta: out, resultados: results }, null, 2));
-  for (const r of results) console.log(`${r.ok ? '✓' : '✗'} ${r.step}${r.ok ? '' : `\n    ${r.error}`}`);
+  for (const r of results) {
+    console.log(`${r.skipped ? '·' : r.ok ? '✓' : '✗'} ${r.step}${r.skipped ? ' (omitido)' : r.ok ? '' : `\n    ${r.error}`}`);
+  }
   console.log(`\nAutoprueba ${ok ? 'OK' : 'CON FALLAS'} · resultados en ${out}`);
   return ok;
 }

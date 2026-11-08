@@ -39,7 +39,8 @@
         "from": "../LibroStudio/v3/app",
         "to": "renderer",
         "filter": [
-          "**/*"
+          "**/*",
+          "!**/*-tests.js"
         ]
       }
     ],
@@ -51,9 +52,14 @@
       "icon": "../LibroStudio/v3/app/maquetario.ico"
     },
     "nsis": {
-      "oneClick": false,
+      "oneClick": true,
       "perMachine": false,
-      "allowToChangeInstallationDirectory": true
+      "allowElevation": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "shortcutName": "Maquetario"
     },
     "mac": {
       "target": [

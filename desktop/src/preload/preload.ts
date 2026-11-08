@@ -14,6 +14,8 @@ contextBridge.exposeInMainWorld('maquetarioNative', {
   material: argument('maquetario-material') ?? 'none',
   /** Botones de la ventana: "overlay-right" (Windows/Linux) o "inset-left" (macOS). */
   windowControls: argument('maquetario-controls') ?? 'overlay-right',
+  /** Autoprueba: la interfaz carga sus pruebas de integración (test-loader.js). */
+  selfTest: argument('maquetario-selftest') === '1',
   postMessage(message: unknown): void {
     ipcRenderer.send('host:message', message);
   },

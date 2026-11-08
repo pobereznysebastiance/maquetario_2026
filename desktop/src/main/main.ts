@@ -70,7 +70,11 @@ function createWindow(): Session {
     webPreferences: {
       preload: join(__dirname, 'preload.cjs'),
       // La interfaz necesita saber qué material y qué botones de ventana hay para acomodarse.
-      additionalArguments: [`--maquetario-material=${chrome.material}`, `--maquetario-controls=${chrome.controls}`],
+      additionalArguments: [
+        `--maquetario-material=${chrome.material}`,
+        `--maquetario-controls=${chrome.controls}`,
+        ...(isSelfTest ? ['--maquetario-selftest=1'] : []),
+      ],
       contextIsolation: true,
       sandbox: true,
       nodeIntegration: false,
