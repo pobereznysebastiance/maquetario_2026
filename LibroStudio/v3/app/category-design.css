@@ -30,8 +30,6 @@ body .inspector .tabs { overflow: hidden; align-items: stretch; }
 #categoryMenu button:is(:hover,.active) { background: #38726755; }
 .folio-placement { padding: 9px; margin: 10px 0; border: 1px solid #6dc5b646; border-radius:var(--radius-md); }
 .folio-placement strong { font-weight: 650; color: #b0e7dc; }
-.folio-placement .field-row { display: grid; grid-template-columns: 1fr minmax(60px,96px); }
-.folio-placement .field-row .unit-wrap { width: 100%; max-width: none; }
 .folio-placement .field-row .unit-wrap input { width: 100%; padding-right: 35px !important; }
 .folio-placement .field-row input[type=range] { grid-column: 1/-1; width: 100%; max-width: none; accent-color: #64d3bf; }
 .editorial-rules-table thead { background: #172e35; color: #f0cb94; }

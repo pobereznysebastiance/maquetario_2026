@@ -14,7 +14,6 @@
 }
 .continuous-row-vertical { flex-direction: column; align-items: center; justify-content: flex-start; }
 .continuous-row .page { flex-shrink: 0; }
-#continuousCanvas[aria-pressed="true"] { color: #78ead7; background: #3cd1bb22; }
 .editorial-rules-table { overflow: auto; }
 .editorial-rules-table table { border-collapse: collapse; width: 100%; }
 .editorial-rules-table :is(th,td) { padding: 10px; border-bottom: 1px solid #68b3aa55; text-align: left; }
