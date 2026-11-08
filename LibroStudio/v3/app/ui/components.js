@@ -40,6 +40,12 @@
       return `<button${attrs({ type: 'button', id: o.id, class: 'action-item' })}>${icon(o.icon)}<span class="action-item-text"><span class="action-item-title">${html(o.title)}</span><span class="action-item-description">${html(o.description)}</span></span></button>`;
     },
 
+    /** Átomo: esqueleto de carga, con texto accesible de lo que se está cargando. */
+    skeleton(o = {}) {
+      const lines = Math.max(1, Math.min(o.lines || 3, 12));
+      return `<div class="skeleton" role="status" aria-busy="true" aria-label="${html(o.label || '')}">${'<span class="skeleton-line"></span>'.repeat(lines)}</div>`;
+    },
+
     /** Molécula: fila de preferencia (etiqueta y ayuda a la izquierda, control a la derecha). */
     settingRow(o) {
       return `<div class="setting-row"><div class="setting-row-label">${html(o.label)}${o.help ? `<p class="setting-row-help">${html(o.help)}</p>` : ''}</div><div class="setting-row-control">${o.control}</div></div>`;

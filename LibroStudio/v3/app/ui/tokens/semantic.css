@@ -128,10 +128,16 @@
   --elevation-3: 0 22px 56px -16px rgb(0 0 0 / 0.58), 0 2px 8px rgb(0 0 0 / 0.26);
   --elevation-page: 0 14px 40px -10px rgb(0 0 0 / 0.55), 0 1px 3px rgb(0 0 0 / 0.35);
 
+  /* ── Carga ───────────────────────────────────────────────── */
+  --skeleton-base: rgb(244 245 238 / 0.06);
+  --skeleton-shine: rgb(244 245 238 / 0.12);
+  --skeleton-line-height: var(--size-12);
+
   /* ── Movimiento ──────────────────────────────────────────── */
   --duration-fast: 110ms;
   --duration-base: 170ms;
   --duration-slow: 260ms;
+  --duration-skeleton: 1400ms;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-in-out: cubic-bezier(0.45, 0, 0.25, 1);
 

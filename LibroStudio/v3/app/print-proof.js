@@ -94,7 +94,7 @@ function coverSheetDialog(destination) {
     kind:'cover',paper:$('#coverSheetPaper').value,crop:$('#coverSheetCrop').checked,fit:$('#coverSheetFit').checked
   });
   modal(title,`<div class="cover-sheet-layout"><aside>
-    ${printing ? `<label for="outPrinter">${w.printer}</label><div class="printer-row"><select id="outPrinter"></select><button id="refreshPrinters" type="button" class="btn">↻</button></div>
+    ${printing ? `<label for="outPrinter">${w.printer}</label><div class="printer-row"><select id="outPrinter"></select><button id="refreshPrinters" type="button" class="btn" title="${bw('Volver a buscar','Refresh','Atualizar')}">${icon('refresh')}</button></div>
       ${control(w.copies,'coverSheetCopies',1,'number',1,99)}` : ''}
     <div class="control"><label for="coverSheetPaper">${w.paper}</label>
       <select id="coverSheetPaper">

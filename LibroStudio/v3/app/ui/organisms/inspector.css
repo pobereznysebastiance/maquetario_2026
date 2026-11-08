@@ -2,6 +2,11 @@
    sección (título) → grupo (subtítulo) → filas (etiqueta | control).
    Secciones planas separadas por una línea; nada de tarjetas dentro de tarjetas,
    bordes de color a la izquierda ni subtítulos dorados compitiendo con los títulos. */
+/* Nada se pasa del ancho del panel (sin barra horizontal). */
+#inspectorContent {
+  overflow-x: hidden;
+}
+
 #inspectorContent .section {
   padding: var(--space-xl) var(--space-lg) var(--space-xl);
   border: 0;
@@ -48,11 +53,16 @@
 /* Fila: etiqueta a la izquierda, control a la derecha, alto de control constante. */
 #inspectorContent .field-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  /* La etiqueta tiene más lugar que el control: las etiquetas largas no se parten en tres líneas. */
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
   align-items: center;
   gap: var(--space-md);
   min-height: var(--control-md);
   margin: 0 0 var(--space-xs);
+}
+/* La columna de la fila define el ancho: sin topes heredados (legacy limitaba la etiqueta al 45 %). */
+#inspectorContent .field-row > label {
+  max-width: none;
 }
 #inspectorContent .field-row > label,
 #inspectorContent .field-label,

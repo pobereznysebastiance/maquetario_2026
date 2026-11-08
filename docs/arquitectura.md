@@ -121,6 +121,38 @@ Ninguna verificación del lado del cliente es inviolable: el objetivo es que el 
 - Cuántos días puede funcionar sin conexión.
 - Certificado de firma de código (Windows) y cuenta de Apple Developer (notarización en macOS).
 
+## Instalación y actualizaciones
+
+### Lo que baja la persona
+
+- **Un solo archivo por versión**: `Maquetario-<versión>-win-x64.zip` (o `-mac-*.zip`). El launcher lo descarga de Motiova, verifica sha256 y firma, y lo descomprime en **una sola carpeta**: `<localAppData>/Motiova/apps/maquetario/<versión>/`. Nada más.
+- Sin pasos posteriores: Electron trae su motor (no se instala WebView2 ni .NET), las fuentes y la interfaz van adentro, y la app no descarga nada al abrirse.
+- Fuera de esa carpeta sólo quedan las preferencias (`userData`) y la licencia (`<appData>/Motiova/`), para poder actualizar sin perderlas.
+- También se genera un instalador clásico (NSIS en Windows, DMG en macOS) para quien no use el launcher. Se instala por usuario: **no pide permisos de administrador**.
+
+### Chequeo de actualizaciones (al iniciar sesión)
+
+1. Cada vez que la persona inicia sesión en el launcher (y al abrirlo, si la sesión sigue activa), el launcher pide `GET /desktop/resources`, que responde la última versión a la que tiene derecho para cada recurso.
+2. Si hay una versión más nueva que la instalada, el launcher la descarga e instala **al lado** de la actual, sin tocarla.
+3. La próxima vez que se abre Maquetario, abre la versión nueva. Si algo falla, el launcher vuelve a la anterior.
+4. Maquetario no se actualiza solo ni se conecta para eso: lo hace el launcher, que es quien tiene la sesión.
+
+### Endurecimiento del ejecutable
+
+Configurado en `desktop/package.json` (`build.electronFuses`):
+
+- No puede usarse como Node (`runAsNode: false`) ni recibir opciones de inspección o `NODE_OPTIONS`.
+- Sólo carga la app desde `app.asar`, con **verificación de integridad**. La interfaz va dentro del asar (`app.asar/renderer`): modificar un archivo hace que la app no abra.
+- Cookies y almacenamiento cifrados.
+
+### Firma de código (pendiente: requiere comprar el certificado)
+
+Sin firma, Windows muestra "editor desconocido" (SmartScreen) y macOS bloquea la app. **Ejecutar como administrador no lo evita**: el aviso es por falta de firma, no por permisos, y pedir administrador suma otra advertencia (UAC). La solución es firmar:
+
+- **Windows**: certificado de firma de código de una autoridad reconocida. La opción más simple hoy es **Azure Trusted Signing** (servicio mensual; la reputación de SmartScreen se gana enseguida). Alternativa: certificado OV/EV (Sectigo, DigiCert…). electron-builder firma solo si encuentra `CSC_LINK` y `CSC_KEY_PASSWORD` (archivo .pfx) o la configuración `win.azureSignOptions`.
+- **macOS**: cuenta de Apple Developer (Developer ID) y notarización. electron-builder firma y notariza con `CSC_LINK` + `APPLE_ID` / `APPLE_APP_SPECIFIC_PASSWORD` / `APPLE_TEAM_ID`.
+- El launcher también va firmado, y verifica que cada versión descargada esté firmada con el mismo certificado antes de abrirla.
+
 ## Etapas
 
 1. **Electron con la interfaz actual** ← en curso. Funciona en macOS y Linux además de Windows.

@@ -125,12 +125,17 @@ export function legacyExport(session: Session, payload: { width?: unknown; heigh
   });
 }
 
+/** Un PDF de libro con imágenes puede ser grande, pero no infinito: límite en base64 (~300 MB). */
+const MAX_PDF_BASE64 = 400_000_000;
+
 export async function savePdf(session: Session, payload: { name?: unknown; base64?: unknown }) {
+  const base64 = String(payload.base64 ?? '');
+  if (base64.length > MAX_PDF_BASE64) throw new Error('El PDF es demasiado grande para guardarlo.');
   const picked = await dialog.showSaveDialog(session.win, {
     defaultPath: `${String(payload.name ?? 'Maquetario')}.pdf`,
     filters: [{ name: 'Documento PDF', extensions: ['pdf'] }],
   });
   if (picked.canceled || !picked.filePath) return { saved: false };
-  await writeFile(picked.filePath, Buffer.from(String(payload.base64 ?? ''), 'base64'));
+  await writeFile(picked.filePath, Buffer.from(base64, 'base64'));
   return { saved: true, path: picked.filePath };
 }

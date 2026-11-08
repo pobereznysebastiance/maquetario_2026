@@ -1,0 +1,30 @@
+/* Átomo: esqueleto de carga (UI.skeleton). Ocupa el lugar de lo que va a aparecer,
+   con un brillo lento que respeta "reducir movimiento". */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.skeleton-line {
+  height: var(--skeleton-line-height);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--skeleton-base) 0%, var(--skeleton-shine) 50%, var(--skeleton-base) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shine var(--duration-skeleton) var(--ease-in-out) infinite;
+}
+.skeleton-line:last-child:not(:only-child) {
+  width: 62%;
+}
+@keyframes skeleton-shine {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line {
+    animation: none;
+  }
+}

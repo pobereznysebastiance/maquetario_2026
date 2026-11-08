@@ -3,7 +3,7 @@
 import { dialog } from 'electron';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { APP_CREATOR, appVersion, dataDir, isSelfTest } from '../env.ts';
-import { cleanName, exists, readJson, readProject, writeAtomic, writeJson } from '../files.ts';
+import { cleanName, exists, MAX_PROJECT_BYTES, readJson, readProject, writeAtomic, writeJson } from '../files.ts';
 import { getPackageFaces, setPackageFonts } from '../fonts/catalog.ts';
 import { licenseSummary } from '../license.ts';
 import type { Session } from '../session.ts';
@@ -77,6 +77,7 @@ export async function openRecent(session: Session, path: string) {
 }
 
 export async function saveProject(session: Session, content: string, name: string, saveAs: boolean): Promise<boolean> {
+  if (content.length > MAX_PROJECT_BYTES) throw new Error('El proyecto supera 80 MB.');
   let target = session.projectPath;
   if (saveAs || !target || extname(target).toLowerCase() !== '.mqt') {
     const suggested = saveAs && target

@@ -33,9 +33,18 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   });
   const A5 = { width: 148, height: 210 };
 
+  /** Cada paso tiene un límite: un paso colgado falla con su nombre en vez de trabar toda la prueba. */
+  const STEP_TIMEOUT_MS = 90_000;
   const step = async (name: string, work: () => Promise<unknown>) => {
     try {
-      const detail = await work();
+      let timer: NodeJS.Timeout | undefined;
+      const timeout = new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error(`El paso tardó más de ${STEP_TIMEOUT_MS / 1000} s (¿quedó esperando una respuesta?)`)),
+          STEP_TIMEOUT_MS,
+        );
+      });
+      const detail = await Promise.race([work(), timeout]).finally(() => clearTimeout(timer));
       results.push({ step: name, ok: true, detail });
     } catch (error) {
       results.push({ step: name, ok: false, error: error instanceof Error ? error.stack ?? error.message : String(error) });
@@ -97,18 +106,20 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     return writePdf('El atlas de las casas vacias.pdf', 'window.prepareNovelPdf()', A5, 350);
   });
   await step('capturas de interfaz', async () => {
-    console.log('[autoprueba] capturas: pestaña diseño');
+    await exec(session, 'showWelcome()');
+    await delay(600);
+    await capture('bienvenida.png');
+    await exec(session, 'hideWelcome()');
     await exec(session, "showTab('design')");
     await delay(250);
     await capture('inspector-diseno.png');
     await exec(session, "showTab('book')");
-    console.log('[autoprueba] capturas: configuración');
     await exec(session, 'openSettings()');
     await delay(400);
     await capture('configuracion.png');
     await exec(session, "document.querySelector('#modal').close()");
-    console.log('[autoprueba] capturas: confirmación');
-    await exec(session, "window.maquetarioSelfTest = false; showWelcome && 0; confirmAction({ title: '¿Eliminar la página 3?', message: 'La página y sus objetos se quitan del libro. Podés recuperarlos con Deshacer.', confirmLabel: 'Eliminar página', danger: true })");
+    // void: executeJavaScript esperaría la promesa, que sólo se resuelve al contestar el diálogo.
+    await exec(session, "window.maquetarioSelfTest = false; void confirmAction({ title: '¿Eliminar la página 3?', message: 'La página y sus objetos se quitan del libro. Podés recuperarlos con Deshacer.', confirmLabel: 'Eliminar página', danger: true })");
     await delay(300);
     await capture('confirmacion.png');
     await exec(session, "document.querySelector('#confirmDialog').close(); window.maquetarioSelfTest = true");

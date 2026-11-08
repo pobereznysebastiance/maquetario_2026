@@ -20,9 +20,12 @@ export const NOTICE_ORIGIN = `${APP_SCHEME}://notice`;
 export const noticeDir = (): string => join(__dirname, 'notice');
 export const FONT_ROUTE = '/__fonts/';
 
-/** Carpeta de la interfaz: en desarrollo, la fuente del repo; empaquetada, un recurso. */
+/**
+ * Carpeta de la interfaz. En desarrollo, la fuente del repo; empaquetada, dentro de app.asar,
+ * que está cubierto por la verificación de integridad (no se puede modificar sin que la app lo detecte).
+ */
 export const rendererDir = (): string =>
-  app.isPackaged ? join(process.resourcesPath, 'renderer') : resolve(__dirname, '..', '..', 'LibroStudio', 'v3', 'app');
+  app.isPackaged ? join(app.getAppPath(), 'renderer') : resolve(__dirname, '..', '..', 'LibroStudio', 'v3', 'app');
 
 /** Datos de la app (recientes, carpetas de fuentes, aula). */
 export const dataDir = (): string => app.getPath('userData');

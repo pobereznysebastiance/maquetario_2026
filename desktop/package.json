@@ -18,7 +18,7 @@
   "devDependencies": {
     "@maquetario/license": "*",
     "@types/node": "^26.6.6",
-    "electron": "^45.2.3",
+    "electron": "45.2.3",
     "electron-builder": "^26.18.0",
     "esbuild": "^0.28.2",
     "typescript": "^7.0.2"
@@ -34,16 +34,20 @@
     },
     "files": [
       "dist/**/*",
-      "package.json"
-    ],
-    "extraResources": [
+      "package.json",
       {
         "from": "../LibroStudio/v3/app",
-        "to": "renderer"
+        "to": "renderer",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "win": {
-      "target": "nsis",
+      "target": [
+        "nsis",
+        "zip"
+      ],
       "icon": "../LibroStudio/v3/app/maquetario.ico"
     },
     "nsis": {
@@ -52,13 +56,32 @@
       "allowToChangeInstallationDirectory": true
     },
     "mac": {
-      "target": "dmg",
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "category": "public.app-category.graphics-design",
       "hardenedRuntime": true
     },
     "linux": {
       "target": "AppImage",
       "category": "Graphics"
+    },
+    "electronLanguages": [
+      "es",
+      "es-419",
+      "en-US",
+      "pt-BR"
+    ],
+    "artifactName": "Maquetario-${version}-${os}-${arch}.${ext}",
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "grantFileProtocolExtraPrivileges": false
     }
   }
 }
