@@ -6,7 +6,7 @@ Estado: **etapa 1 en curso** (programa de escritorio en Electron). La versión C
 
 ```
 LibroStudio/v3/app/        Interfaz (HTML/CSS/JS). La misma para Electron y para el .exe C#.
-  host.js                  Única parte que sabe en qué programa corre (Electron, WebView2 o navegador).
+  src/host.ts              Única parte que sabe en qué programa corre (Electron, WebView2 o navegador).
 LibroStudio/v3/Host*.cs    Programa C# anterior (WebView2, sólo Windows). Se retira al terminar la etapa 1.
 desktop/                   Programa de escritorio en Electron + TypeScript (Windows, macOS, Linux).
   src/main/main.ts         Ventana, seguridad, cierre con cambios sin guardar.
@@ -193,7 +193,7 @@ Las 127 cadenas en las que un módulo reemplazaba una función global (`const an
 | shapes.js | decorador | `shapeAppearance()` |
 | tutorial.js | decorador | bloquea controles si el objeto está bloqueado |
 
-Diseño (en `inspector-registry.js`, cargado justo después de `studio.js`):
+Diseño (en `src/inspector-registry.ts`, cargado justo después de `studio.js`):
 
 - `registerInspectorPanel(tab, render)`: una pestaña con panel propio reemplaza el contenido base (estructura, objeto).
 - `decorateInspector(fn, { tab })`: corre después del contenido base, en orden de registro (el mismo orden que hoy).

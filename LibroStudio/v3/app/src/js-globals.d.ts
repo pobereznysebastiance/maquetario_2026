@@ -26,6 +26,7 @@ declare global {
   ): void;
   function commit(fn: () => void, full?: boolean): void;
   function finishEditing(): void;
+  function renderPages(): void;
 
   // ── review-workspace.js ──
   var hasDocument: boolean;

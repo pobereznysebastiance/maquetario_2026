@@ -10,13 +10,6 @@
 // lo de cada clase de control (value, checked, showModal…) queda libre hasta tipar cada llamada.
 type UIElement = HTMLElement & { [key: string]: any };
 
-// ── Extensiones e inspector (extend.js, inspector-registry.js, test-registry.js) ──
-declare var decorateInspector: any;
-declare var registerInspectorPanel: any;
-declare var pauseInspectorWhile: any;
-declare var inspectorPaused: any;
-declare var inspectorDetailKey: any;
-
 // ── Sistema de componentes (ui/) ──
 declare var UI: any;
 declare var dialogVariant: (name: string) => void;
@@ -25,8 +18,6 @@ declare var onDialogClose: (fn: () => void) => void;
 // ── Modelo, idioma y anfitrión ──
 declare var LibroI18n: any;
 declare var setLanguage: any;
-declare var MaquetarioHost: any;
-declare var maquetarioNative: any;
 declare var MaquetarioWorkspace: any;
 declare var maquetarioUpdateAvailable: any;
 declare var requestCloseConfirmation: any;

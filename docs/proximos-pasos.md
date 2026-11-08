@@ -26,7 +26,7 @@ Una **cadena** es una función global que varios módulos extienden, cada uno en
 
 Encima de esas formas:
 
-- Inspector (`inspector-registry.js`): `decorateInspector`, `registerInspectorPanel` (Estructura, Objeto, Capas), `pauseInspectorWhile`. El scroll y los `<details>` abiertos se conservan una sola vez.
+- Inspector (`src/inspector-registry.ts`): `decorateInspector`, `registerInspectorPanel` (Estructura, Objeto, Capas), `pauseInspectorWhile`. El scroll y los `<details>` abiertos se conservan una sola vez.
 - Pruebas (`test-registry.js`): `registerIntegrationTest`, `registerNavigationTest`, `registerFontTest`. Las 25 cadenas de pruebas pasaron al registro.
 
 Quedan **13 envolturas de verdad** con `extend(f, anterior => …)`: miran el estado antes y después, o llaman a la anterior en el medio, y ahí la envoltura es la forma correcta. Son `renderPages` (2), `finishEditing` (2), `settingsNew` (2), `outputPreview` (2), `outputDialog`, `objectDown`, `commit`, `applyFace` y `startTutorial`. `npm run lint:design` las cuenta ("envolturas extend() escritas a mano"): una nueva tiene que justificarse.
@@ -86,7 +86,7 @@ Verificado al mudar: `style-snapshot` idéntico con las hojas viejas y con `book
    - Por ahora cada archivo compila a un script que publica su global (`globalThis.X = …` con `declare global` para el tipo), así el resto de la app no cambia. Cuando estén pasados los que dependen entre sí, se cambia a `import` y un solo punto de entrada.
    - Tipos: `src/` es estricto y entra en `npm run typecheck` (0 errores). El chequeo del JS (`typecheck:app`) incluye `src/`, así que el JS ya ve los tipos reales de lo pasado.
    - Hecho: **`model.ts`** (el modelo del libro: tipos `Book`, `Page`, `BookObject`, `AutoElement`, `TocEntry`). Comparado con el viejo en Node con el mismo azar: mismas salidas en todas sus funciones. Sigue siendo un objeto común porque `master-refinement.js` y `shapes.js` reemplazan `M.validate` (pendiente: pasarlo a un registro de validaciones).
-   - Hecho también: **`extend.ts`** (con el tipo `Extend` de toda la API), **`test-registry.ts`** (`TestResult`), **`document-units.ts`** y **`editorial-rules.ts`**. Van 5 de 70.
+   - Hecho también: **`extend.ts`** (con el tipo `Extend` de toda la API), **`test-registry.ts`** (`TestResult`), **`document-units.ts`** y **`editorial-rules.ts`**. En paralelo (otros agentes, integrados con la autoprueba): **`confirm.ts`**, **`rulers.ts`**, **`welcome-links.ts`**, **`host.ts`** (tipos del puente con el preload), **`inspector-registry.ts`** (`inspectorPaused` e `inspectorDetailKey` quedan privados) y **`page-priority.ts`**. Van 11 de 70.
    - Cómo se pasa un archivo de interfaz: sus globales que usan otros archivos (o las pruebas, o `selftest.ts`) se publican con `globalThis.X = …` y `declare global`; lo demás queda privado. Los globales del JS que usa se declaran en `src/js-globals.d.ts` (sólo para el chequeo estricto de `src/`). Se verifica con la autoprueba (PDF y JSON idénticos).
    - Siguen: los archivos con menos dependencias primero (`confirm.js`, `welcome-links.js`, `rulers.js`, `i18n.js`), después los centrales (`studio.js`, `paragraphs.js`, `fonts.js`). El cambio a `import` y un solo punto de entrada va cuando `studio.js` esté pasado: es el que define casi todos los globales.
    - La versión C# (`LibroStudio/v3/Host*.cs`) no compila `src/`: necesita que `build/` exista. Se retira al cerrar la etapa 1.
