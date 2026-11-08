@@ -1,0 +1,32 @@
+/* Organismo: mesa de trabajo sin documento abierto. */
+#emptyCanvas {
+  background: var(--ambient-canvas);
+  color: var(--text-secondary);
+}
+#emptyCanvas > div {
+  --empty-canvas-width: 420px;
+  max-width: var(--empty-canvas-width);
+  padding: var(--space-2xl);
+}
+#emptyCanvas .icon {
+  width: var(--icon-xl);
+  height: var(--icon-xl);
+  color: var(--accent);
+  stroke-width: var(--icon-stroke-display);
+}
+#emptyCanvas h2 {
+  margin: var(--space-lg) 0 var(--space-sm);
+  color: var(--text-primary);
+  font-size: var(--type-2xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+}
+#emptyCanvas p {
+  margin: 0 0 var(--space-xl);
+  color: var(--text-secondary);
+  font-size: var(--type-md);
+  line-height: var(--leading-text);
+}
+#emptyCanvas button {
+  margin: 0 var(--space-2xs);
+}

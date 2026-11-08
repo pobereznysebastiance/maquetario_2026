@@ -1,0 +1,25 @@
+/* Molécula: ayuda de un término del oficio (ícono "?" junto a una etiqueta; abre el glosario).
+   El círculo lo dibuja el ícono: el botón no lleva borde propio. */
+.term-help {
+  display: inline-grid;
+  place-items: center;
+  width: var(--control-sm);
+  height: var(--control-sm);
+  min-width: 0;
+  margin-left: var(--space-2xs);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-tertiary);
+  vertical-align: middle;
+  transition: color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
+}
+.term-help:hover {
+  background: var(--surface-control);
+  color: var(--accent);
+}
+.term-help .icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}

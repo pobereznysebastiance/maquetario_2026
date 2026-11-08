@@ -1,0 +1,40 @@
+/* Molécula: acción con explicación (UI.actionItem).
+   Ícono · título · descripción. Fila completa clickeable, con fondo al pasar. */
+.action-item {
+  display: grid;
+  grid-template-columns: var(--icon-md) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-md);
+  width: 100%;
+  padding: var(--space-sm);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+.action-item:hover {
+  background: var(--surface-control);
+  color: var(--text-primary);
+}
+.action-item > .icon {
+  margin-top: var(--space-3xs);
+  color: var(--accent);
+}
+.action-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  min-width: 0;
+}
+.action-item-title {
+  font-size: var(--type-md);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+}
+.action-item-description {
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  line-height: var(--leading-text);
+}

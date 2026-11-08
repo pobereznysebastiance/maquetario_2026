@@ -1,0 +1,31 @@
+/* Organismo: barra de zoom (− deslizador + · porcentaje · Continuo · Ajustar · ? · Ampliar área).
+   Compone átomos sin pisarles la medida: cada botón mide lo que su texto necesita.
+   (Antes, legacy fijaba 42 px a todos los botones de texto y "Continuo" se encimaba con "Ajustar".) */
+.zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-width: 0;
+  font-size: var(--type-sm);
+}
+
+.zoom .quiet {
+  width: auto;
+  min-width: 0;
+  justify-content: center;
+  white-space: nowrap;
+  /* El porcentaje no salta de ancho al cambiar de cifra. */
+  font-variant-numeric: tabular-nums;
+}
+
+
+.zoom input[type='range'] {
+  --zoom-slider-width: 96px;
+  width: var(--zoom-slider-width);
+  accent-color: var(--accent);
+}
+
+.zoom .icon-btn {
+  width: var(--control-sm);
+  height: var(--control-sm);
+}

@@ -12,6 +12,9 @@ import { createSession, exec, type Session } from './session.ts';
 import { windowChromeOptions } from './window-chrome.ts';
 
 app.setName('Maquetario');
+// La autoprueba usa su propio perfil (como BrowserData-selftest en la versión C#): ni hereda las
+// preferencias de quien usa la app, ni comparte el perfil de Chromium con una ventana abierta.
+if (isSelfTest) app.setPath('userData', `${app.getPath('userData')}-autoprueba`);
 registerScheme();
 
 // Una sola instancia: abrir otro .mqt con la app abierta lo lleva a la ventana existente.

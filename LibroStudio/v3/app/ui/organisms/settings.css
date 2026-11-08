@@ -2,7 +2,6 @@
    etiqueta (y ayuda) a la izquierda, control a la derecha. Sin tarjetas anidadas. */
 .settings-modal {
   --settings-width: 560px;
-  --settings-control-width: 180px;
   width: min(var(--settings-width), 92vw);
   max-width: none;
 }
@@ -34,20 +33,6 @@
   font-size: var(--type-lg);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
-}
-
-.settings-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-lg);
-  min-height: var(--control-md);
-  color: var(--text-secondary);
-  font-size: var(--type-sm);
-}
-
-.settings-row-control select {
-  min-width: var(--settings-control-width);
 }
 
 .settings-help,

@@ -3,8 +3,20 @@
    laterales de macOS), en vez de tarjetas flotantes con huecos. Las columnas siguen
    definidas en legacy (varían según el ancho de la ventana). */
 .app-layout {
+  height: calc(100% - var(--topbar-height));
   gap: 0;
   padding: 0;
+}
+
+/* Barra del documento y pestañas del inspector: una sola altura, líneas alineadas. */
+.documentbar,
+.inspector .tabs {
+  height: var(--subbar-height);
+  min-height: var(--subbar-height);
+  box-sizing: border-box;
+}
+.documentbar {
+  border-bottom: var(--border-width) solid var(--line-subtle);
 }
 
 .leftpanel,

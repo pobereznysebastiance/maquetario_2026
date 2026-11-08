@@ -1,6 +1,6 @@
 // Aspecto de la ventana según el sistema: material translúcido (Mica / vibrancy)
 // y barra de título integrada a la barra de Maquetario.
-import { nativeTheme, type BrowserWindowConstructorOptions } from 'electron';
+import { app, nativeTheme, type BrowserWindowConstructorOptions } from 'electron';
 import { release } from 'node:os';
 
 export type WindowMaterial = 'mica' | 'vibrancy' | 'none';
@@ -15,12 +15,15 @@ function supportsMica(): boolean {
 }
 
 export function windowMaterial(): WindowMaterial {
+  // Desarrollo: MAQUETARIO_WINDOW_MATERIAL=none fuerza la ventana sólida (diagnóstico).
+  const forced = process.env.MAQUETARIO_WINDOW_MATERIAL;
+  if (!app.isPackaged && (forced === 'none' || forced === 'mica' || forced === 'vibrancy')) return forced;
   if (process.platform === 'darwin') return 'vibrancy';
   return supportsMica() ? 'mica' : 'none';
 }
 
 /** Alto de la zona de los botones de la ventana; coincide con la barra superior (ui/templates/window.css). */
-export const TITLE_BAR_HEIGHT = 40;
+export const TITLE_BAR_HEIGHT = 64;
 const SOLID_WINDOW = '#13242b';
 const CONTROL_SYMBOLS = '#d6e0dc';
 

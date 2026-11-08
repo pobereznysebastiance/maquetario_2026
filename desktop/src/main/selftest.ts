@@ -22,6 +22,15 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   await rm(out, { recursive: true, force: true });
   await mkdir(out, { recursive: true });
   const results: StepResult[] = [];
+  // Si la página se recarga o se cae durante la prueba, queda registrado con su motivo.
+  const contents = session.win.webContents;
+  contents.on('render-process-gone', (_e, details) => console.log(`[autoprueba] la página se cayó: ${details.reason} (código ${details.exitCode})`));
+  contents.on('did-start-navigation', (details) => {
+    if (!details.isSameDocument) console.log(`[autoprueba] navegación: ${details.url}`);
+  });
+  contents.on('console-message', (details) => {
+    if (details.level === 'error') console.log(`[autoprueba] error en la página: ${details.message}`);
+  });
   const A5 = { width: 148, height: 210 };
 
   const step = async (name: string, work: () => Promise<unknown>) => {
@@ -54,6 +63,8 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   const capture = async (file: string) => writeFile(join(out, file), (await session.win.webContents.capturePage()).toPNG());
 
   await delay(500);
+  // Las confirmaciones (confirm.js) no esperan respuesta durante la autoprueba.
+  await exec(session, 'window.maquetarioSelfTest = true');
   await step('interfaz: pruebas de integración', () =>
     uiSuite('verificacion.json', '(()=>{try{return window.runIntegrationTests()}catch(e){return JSON.stringify({ok:false,error:e.stack})}})()'),
   );
@@ -86,14 +97,30 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     return writePdf('El atlas de las casas vacias.pdf', 'window.prepareNovelPdf()', A5, 350);
   });
   await step('capturas de interfaz', async () => {
+    console.log('[autoprueba] capturas: pestaña diseño');
     await exec(session, "showTab('design')");
     await delay(250);
     await capture('inspector-diseno.png');
     await exec(session, "showTab('book')");
+    console.log('[autoprueba] capturas: configuración');
     await exec(session, 'openSettings()');
     await delay(400);
     await capture('configuracion.png');
     await exec(session, "document.querySelector('#modal').close()");
+    console.log('[autoprueba] capturas: confirmación');
+    await exec(session, "window.maquetarioSelfTest = false; showWelcome && 0; confirmAction({ title: '¿Eliminar la página 3?', message: 'La página y sus objetos se quitan del libro. Podés recuperarlos con Deshacer.', confirmLabel: 'Eliminar página', danger: true })");
+    await delay(300);
+    await capture('confirmacion.png');
+    await exec(session, "document.querySelector('#confirmDialog').close(); window.maquetarioSelfTest = true");
+  });
+  await step('confirmación aislada de los atajos', async () => {
+    const result = await exec<string>(
+      session,
+      "(async()=>{window.maquetarioSelfTest=false;const pages=book.pages.length,before=tool;const answer=confirmAction({title:'Prueba',message:'',confirmLabel:'Eliminar',danger:true});const d=document.querySelector('#confirmDialog');for(const key of ['h','t','Delete','Backspace'])d.querySelector('button').dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true}));d.querySelector('button').click();const value=await answer;window.maquetarioSelfTest=true;return JSON.stringify({closed:!d.open,value,toolKept:tool===before,pagesKept:book.pages.length===pages});})()",
+    );
+    const r = JSON.parse(result) as { closed: boolean; value: boolean; toolKept: boolean; pagesKept: boolean };
+    if (!r.closed || r.value !== false || !r.toolKept || !r.pagesKept) throw new Error(result);
+    return ['Cancelar cierra y no confirma', 'Las teclas no llegan a los atajos de la app'];
   });
   await step('PDF de cubierta', async () => {
     await exec(session, 'window.prepareCoverProof()');

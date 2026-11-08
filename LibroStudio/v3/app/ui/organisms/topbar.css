@@ -26,3 +26,41 @@
   fill: var(--text-mark);
   flex-shrink: 0;
 }
+
+/* Alto fijo: coincide con la zona de botones de la ventana, así quedan centrados con la fila. */
+.topbar {
+  height: var(--topbar-height);
+  min-height: var(--topbar-height);
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+/* Compactación por etapas en vez de desbordarse:
+   1600: se oculta el subtítulo de la marca;
+   1440: las acciones de archivo quedan sólo con ícono (el nombre sigue en el título emergente);
+   1280: Imprimir y Vista previa también. Exportar PDF conserva siempre su texto. */
+@media (max-width: 1599px) {
+  .topbar .brand small,
+  .topbar .brand .beta {
+    display: none;
+  }
+}
+@media (max-width: 1439px) {
+  .topbar .tool-action {
+    min-width: var(--control-lg);
+  }
+  .topbar .tool-action > span {
+    display: none;
+  }
+  .topbar #savedState {
+    display: none;
+  }
+}
+@media (max-width: 1279px) {
+  .topbar :is(#preview, #printButton, .assistant-entry) > span:not([data-icon]) {
+    display: none;
+  }
+  .topbar :is(#preview, #printButton, .assistant-entry) {
+    padding-inline: var(--space-sm);
+  }
+}

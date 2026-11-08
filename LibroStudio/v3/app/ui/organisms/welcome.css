@@ -1,0 +1,39 @@
+/* Organismo: bienvenida. El encabezado deja libre la esquina de los botones de la ventana;
+   el idioma vive en el pie, junto a la versión. */
+.welcome-header {
+  padding-right: calc(5.4vw + var(--window-controls-right));
+  padding-left: calc(5.4vw + var(--window-controls-left));
+}
+.welcome-footer-end {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+#welcomeLanguage {
+  min-height: var(--control-sm);
+  padding: 0 var(--space-sm);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-field);
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+}
+#welcomeLanguage:hover {
+  border-color: var(--line-strong);
+  color: var(--text-primary);
+}
+
+/* "Para empezar": acciones secundarias como filas que explican qué hacen. */
+.welcome-links-title {
+  margin: var(--space-2xl) 0 var(--space-sm);
+  color: var(--text-tertiary);
+  font-size: var(--type-sm);
+  font-weight: var(--weight-semibold);
+}
+.welcome-links {
+  --welcome-action-min: 260px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--welcome-action-min), 1fr));
+  gap: var(--space-2xs) var(--space-md);
+  margin-top: 0;
+}

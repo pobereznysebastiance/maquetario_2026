@@ -40,17 +40,12 @@
   };
   const t = (key) => bw(...text[key]);
 
-  /** Único punto para cambiar el idioma desde fuera de #language (ver docs/plan-interfaz.md). */
+  /** Cambia el idioma por la API de i18n (LibroI18n.set), la misma que usa la bienvenida. */
   function setLanguage(value) {
-    const source = $('#language');
-    if (!source || source.value === value) return;
-    source.value = value;
-    if (typeof source.onchange === 'function') source.onchange(new Event('change'));
+    if (LibroI18n.language !== value) LibroI18n.set(value);
   }
 
-  function row(label, control, help) {
-    return `<div class="settings-row"><div class="settings-row-label">${label}${help ? `<p class="settings-help">${help}</p>` : ''}</div><div class="settings-row-control">${control}</div></div>`;
-  }
+  const row = (label, control, help) => UI.settingRow({ label, control, help });
 
   function section(title, body) {
     return `<section class="settings-section"><h3 class="settings-section-title">${title}</h3>${body}</section>`;
@@ -63,7 +58,7 @@
     }
     const expires = license.expires ? new Date(license.expires).toLocaleDateString(document.documentElement.lang || 'es') : '';
     return (
-      row(esc(license.email || ''), `<span class="settings-value">${esc(license.edition || '')}</span>`, t('edition')) +
+      row(license.email || '', `<span class="settings-value">${esc(license.edition || '')}</span>`, t('edition')) +
       (expires ? row(t('expires'), `<span class="settings-value">${esc(expires)}</span>`) : '')
     );
   }
@@ -88,7 +83,7 @@
         info = null;
       }
     }
-    const language = $('#language') ? $('#language').value : 'es';
+    const language = LibroI18n.language;
     const large = document.body.classList.contains('ui-large');
     const body =
       `<div class="settings">` +

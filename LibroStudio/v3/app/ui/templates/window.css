@@ -16,7 +16,7 @@
 }
 
 .topbar {
-  padding-inline: calc(var(--space-lg) + var(--window-controls-left)) calc(var(--space-lg) + var(--window-controls-right));
+  padding-inline: calc(var(--space-lg) + var(--window-controls-left)) calc(var(--space-xl) + var(--window-controls-right));
 }
 
 :root[data-window-controls] .topbar {

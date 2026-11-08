@@ -51,3 +51,21 @@ if (problems.length) {
   process.exit(1);
 }
 console.log('Sistema de diseño: sin valores sueltos.');
+
+// ── Deuda de "alambre" (informativa: tiene que bajar en cada entrega) ──
+const appJs = readdirSync(app).filter((f) => f.endsWith('.js') && f !== 'pdf-lib.min.js' && f !== 'sample-image.js');
+const allJs = appJs.map((f) => readFileSync(join(app, f), 'utf8')).join('\n');
+const legacyCss = legacyFiles.map((f) => readFileSync(join(app, f), 'utf8')).join('\n');
+const count = (text, re) => (text.match(re) ?? []).length;
+const debt = {
+  'funciones globales reemplazadas por otro módulo (const x=f; f=function…)': count(
+    allJs,
+    /(?:const|let)\s+\w+\s*=\s*(?:window\.)?(\w+)\s*;\s*(?:window\.)?\1\s*=\s*(?:async\s*)?function/g,
+  ),
+  'cadenas de onchange sobre #language': count(allJs, /\$\('#language'\)\.onchange\s*=\s*function/g),
+  'anchos fijos en px en el CSS legacy (width/min-width)': count(legacyCss, /(?:^|[;{\s])(?:min-)?width:\s*\d+px/g),
+  '!important en el CSS legacy': count(legacyCss, /!important/g),
+  'estilos inline desde JS (style= / .style.x=)': count(allJs, /style="|\.style\.[a-zA-Z]+\s*=/g),
+};
+console.log('\nDeuda pendiente (tiene que bajar):');
+for (const [what, n] of Object.entries(debt)) console.log(`  ${String(n).padStart(4)}  ${what}`);

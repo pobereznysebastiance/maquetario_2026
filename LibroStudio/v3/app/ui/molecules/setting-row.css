@@ -1,0 +1,22 @@
+/* Molécula: fila de preferencia (UI.settingRow).
+   Etiqueta (y ayuda opcional) a la izquierda, control a la derecha, alto de control constante. */
+.setting-row {
+  --setting-control-width: 180px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-lg);
+  min-height: var(--control-md);
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+}
+.setting-row-help {
+  margin: var(--space-3xs) 0 0;
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  line-height: var(--leading-text);
+  max-width: 52ch;
+}
+.setting-row-control :is(select, input) {
+  min-width: var(--setting-control-width);
+}

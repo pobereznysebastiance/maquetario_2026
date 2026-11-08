@@ -53,7 +53,11 @@ async function serveFile(root: string, pathname: string): Promise<Response> {
   if (!file.startsWith(root + sep)) return notFound();
   try {
     return new Response(new Uint8Array(await readFile(file)), {
-      headers: { 'Content-Type': MIME[extname(file).toLowerCase()] ?? 'application/octet-stream' },
+      headers: {
+        'Content-Type': MIME[extname(file).toLowerCase()] ?? 'application/octet-stream',
+        // Archivos locales: leer siempre la versión actual (si no, Ctrl+R muestra CSS viejo).
+        'Cache-Control': 'no-store',
+      },
     });
   } catch {
     return notFound();

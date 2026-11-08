@@ -37,9 +37,17 @@
 @import url('atoms/icon.css') layer(atoms);
 @import url('atoms/button.css') layer(atoms);
 @import url('atoms/field.css') layer(atoms);
+@import url('molecules/section-grip.css') layer(molecules);
+@import url('molecules/action-item.css') layer(molecules);
+@import url('molecules/setting-row.css') layer(molecules);
+@import url('molecules/term-help.css') layer(molecules);
 @import url('organisms/topbar.css') layer(organisms);
 @import url('organisms/settings.css') layer(organisms);
 @import url('organisms/sidebar.css') layer(organisms);
 @import url('organisms/inspector.css') layer(organisms);
+@import url('organisms/empty-canvas.css') layer(organisms);
+@import url('organisms/welcome.css') layer(organisms);
+@import url('organisms/zoom-bar.css') layer(organisms);
+@import url('organisms/dialog.css') layer(organisms);
 @import url('templates/window.css') layer(templates);
 @import url('templates/workspace.css') layer(templates);

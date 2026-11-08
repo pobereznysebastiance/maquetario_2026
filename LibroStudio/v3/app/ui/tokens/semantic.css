@@ -104,6 +104,12 @@
   --radius-pill: 999px;
   --border-width: 1px;
 
+  /* ── Medidas de la ventana ───────────────────────────────── */
+  /* La barra superior y la zona de botones de la ventana miden lo mismo (desktop/src/main/window-chrome.ts). */
+  --topbar-height: 64px;
+  /* Barra del documento y pestañas del inspector: misma altura para que sus líneas coincidan. */
+  --subbar-height: 40px;
+
   /* ── Medidas de control ──────────────────────────────────── */
   --control-sm: 26px;
   --control-md: 32px;
@@ -111,7 +117,10 @@
   --icon-sm: 15px;
   --icon-md: 18px;
   --icon-lg: 22px;
+  --icon-xl: 40px;
   --icon-stroke: 1.6;
+  /* Íconos grandes (estados vacíos): trazo más fino en proporción, para que no se vean pesados. */
+  --icon-stroke-display: 1.25;
 
   /* ── Elevación (sombras con desplazamiento y difusión) ───── */
   --elevation-1: 0 1px 2px rgb(0 0 0 / 0.28);

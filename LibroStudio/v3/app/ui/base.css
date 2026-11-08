@@ -47,3 +47,12 @@ body {
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+/* Sin viudas en la interfaz: títulos con líneas parejas, párrafos sin palabra sola al final.
+   Nunca dentro del libro (#spread, #printRoot, miniaturas): eso lo compone el motor del libro. */
+:is(h1, h2, h3, h4, h5, h6):not(:is(#spread, #printRoot, .thumbnails) *) {
+  text-wrap: balance;
+}
+:is(p, li, small, .help-text):not(:is(#spread, #printRoot, .thumbnails) *) {
+  text-wrap: pretty;
+}
