@@ -21,8 +21,6 @@ declare var inspectorDetailKey: any;
 declare var UI: any;
 declare var dialogVariant: (name: string) => void;
 declare var onDialogClose: (fn: () => void) => void;
-declare var confirmAction: any;
-declare var askChoice: any;
 
 // ── Modelo, idioma y anfitrión ──
 declare var LibroI18n: any;
@@ -30,7 +28,6 @@ declare var setLanguage: any;
 declare var MaquetarioHost: any;
 declare var maquetarioNative: any;
 declare var MaquetarioWorkspace: any;
-declare var MaquetarioRulers: any;
 declare var maquetarioUpdateAvailable: any;
 declare var requestCloseConfirmation: any;
 declare var showBusyCloseNotice: any;
