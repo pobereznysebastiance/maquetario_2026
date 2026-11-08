@@ -19,8 +19,6 @@ declare var onDialogClose: (fn: () => void) => void;
 declare var setLanguage: any;
 declare var MaquetarioWorkspace: any;
 declare var maquetarioUpdateAvailable: any;
-declare var requestCloseConfirmation: any;
-declare var showBusyCloseNotice: any;
 declare var chrome: any;
 
 // ── Fuentes y separación silábica ──
@@ -37,15 +35,9 @@ declare var fontOutputReady: any;
 declare var shapeOutputReady: any;
 declare var maquetarioSelfTest: boolean;
 declare var maquetarioTestsReady: true | 'missing' | undefined;
-declare var novelProofContent: any;
-declare var novelProofReport: any;
-declare var prepareNovelPdf: any;
-declare var prepareNovelProof: any;
 declare var showHandlePreview: any;
 declare var preparePromoScene: any;
 declare var prepareBlankCreatePreview: any;
-declare var prepareCloseNoticePreview: any;
-declare var prepareFocusPreview: any;
 declare var prepareGlassShapePreview: any;
 declare var prepareLargeOutputPreview: any;
 declare var prepareObjectOrganizationPreview: any;

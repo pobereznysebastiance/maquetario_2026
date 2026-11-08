@@ -1,4 +1,11 @@
-'use strict';
+// Excepciones por página: en la pestaña Páginas del inspector, qué elementos automáticos (número,
+// cornisa, titulillo) se ocultan sólo en la página activa, y una marca en las miniaturas de las
+// páginas que tienen alguno oculto.
+//
+// No publica globales: se engancha con decorateInspector y extend.after('thumbs').
+//
+// Fuente TypeScript: se compila a build/page-exceptions.js (desktop/scripts/build.mjs).
+
 decorateInspector(() => {
   if (tab !== 'pages') return;
   const host = $('#inspectorContent'),
@@ -29,11 +36,11 @@ decorateInspector(() => {
     )}<div class="page-action"><button type="button" class="btn" id="pageHideAutomatic">${bw('Ocultar los tres', 'Hide all three', 'Ocultar os três')}</button><button type="button" class="btn" id="pageShowAutomatic">${bw('Mostrar los tres', 'Show all three', 'Mostrar os três')}</button></div><p class="help">${bw('Ocultar un número no elimina la página ni reinicia la numeración. Para ver un elemento, también debe estar activado globalmente en Diseño.', 'Hiding a number does not remove the page or restart numbering. To display an element, it must also be globally enabled in Design.', 'Ocultar um número não remove a página nem reinicia a numeração. Para mostrar um elemento, ele também deve estar ativado em Design.')}</p>`;
   host.prepend(section);
   section
-    .querySelectorAll('[data-page-visible]')
+    .querySelectorAll<HTMLInputElement>('[data-page-visible]')
     .forEach(
       (input) =>
         (input.onchange = () =>
-          commit(() => (book.pages[active][input.dataset.pageVisible] = !input.checked), true)),
+          commit(() => (book.pages[active][input.dataset.pageVisible!] = !input.checked), true)),
     );
   $('#pageHideAutomatic').onclick = () =>
     commit(() => {
@@ -75,3 +82,5 @@ extend.after(
   },
   'page-exceptions',
 );
+
+export {};

@@ -1,5 +1,31 @@
-'use strict';
-function novelSample() {
+// Novela de muestra ("El atlas de las casas vacías"): datos para el armador de novelas
+// (book-workflow.js, botón "Usar ejemplo") y para la prueba del libro completo (book-proof.ts).
+//
+// novelSample es global porque la usan book-workflow.js, book-proof.ts y tests/book-proof-tests.js.
+//
+// Fuente TypeScript: se compila a build/novel-sample.js (desktop/scripts/build.mjs).
+
+/** Datos de una novela para el armador: textos de las partes y el manuscrito (capítulos con #). */
+export interface NovelSample {
+  title: string;
+  author: string;
+  dedication: string;
+  epigraph: string;
+  legal: string;
+  thanks: string;
+  colophon: string;
+  toc: boolean;
+  blanks: boolean;
+  rule: boolean;
+  source: string;
+}
+
+declare global {
+  /** Novela de muestra completa (siempre un objeto nuevo). */
+  var novelSample: () => NovelSample;
+}
+
+function novelSample(): NovelSample {
   return {
     title: 'El atlas de las casas vacías',
     author: 'Autoría de demostración',
@@ -83,3 +109,6 @@ Una tarde abrió todas las ventanas antes de ponerse a dibujar. Del otro lado ll
 Apoyó el lápiz sobre una hoja nueva. Esta vez empezó por las puertas.`,
   };
 }
+globalThis.novelSample = novelSample;
+
+export {};

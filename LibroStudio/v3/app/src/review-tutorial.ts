@@ -1,4 +1,10 @@
-'use strict';
+// Lecciones del tutorial sobre estilos de párrafo, alineación y revisión de la salida, y el texto
+// actualizado de la lección de párrafo. Se registran al cargar, después de las de tutorial.js.
+//
+// No publica globales: sólo llama a lesson() y retoca guideLessons (de tutorial.js).
+//
+// Fuente TypeScript: se compila a build/review-tutorial.js (desktop/scripts/build.mjs).
+
 lesson(
   'paragraph-styles',
   'text',
@@ -56,9 +62,11 @@ lesson(
   ],
   'pdf',
 );
-const paragraphLesson = guideLessons.find((s) => s.id === 'paragraph');
+const paragraphLesson = guideLessons.find((s) => s.id === 'paragraph')!;
 paragraphLesson.body = [
   'Tamaño define el cuerpo e Interlineado la distancia entre líneas. En Párrafo y estilos elegí un párrafo o toda la caja antes de formatear. Tenés alineación izquierda, centrada, derecha y justificada, última línea, sangrías izquierda y derecha, primera línea y espacios anterior y posterior. Guardá combinaciones como estilos reutilizables.',
   'Size sets font size and Leading the line spacing. In Paragraphs and styles, choose one paragraph or the whole frame before formatting. Set left, center, right or justified alignment, last-line alignment, left and right indents, first-line indent and before/after spacing. Save combinations as reusable styles.',
   'Tamanho define o corpo e Entrelinha o espaçamento de linhas. Em Parágrafos e estilos, escolha um parágrafo ou a caixa inteira antes de formatar. Configure alinhamento, última linha, recuos esquerdo e direito, primeira linha e espaços anterior e posterior. Salve combinações como estilos reutilizáveis.',
 ];
+
+export {};

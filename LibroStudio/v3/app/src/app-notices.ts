@@ -1,5 +1,31 @@
-'use strict';
-function showClosePublicationDialog(actions) {
+// Avisos al cerrar Maquetario: el diálogo "¿Guardamos tu publicación?" (guardar, cerrar sin
+// guardar o cancelar) y el aviso de que hay una operación en curso.
+//
+// requestCloseConfirmation y showBusyCloseNotice son globales porque los llama el proceso principal
+// (desktop/src/main/main.ts) al cerrar la ventana; showClosePublicationDialog, por las pruebas
+// (tests/app-notices-tests.js); prepareCloseNoticePreview, por las capturas de estilo.
+//
+// Fuente TypeScript: se compila a build/app-notices.js (desktop/scripts/build.mjs).
+
+/** Qué hacer con cada salida del diálogo de cierre. save devuelve si se guardó. */
+export interface CloseActions {
+  save: () => Promise<boolean>;
+  discard: () => unknown;
+  cancel: () => unknown;
+}
+
+declare global {
+  /** Abre el diálogo de cierre con cambios sin guardar. */
+  var showClosePublicationDialog: (actions: CloseActions) => void;
+  /** Pregunta antes de cerrar y le avisa al proceso principal qué se eligió. */
+  var requestCloseConfirmation: () => void;
+  /** Aviso de que hay que esperar a que termine una operación antes de cerrar. */
+  var showBusyCloseNotice: () => void;
+  /** Muestra el diálogo de cierre sin efectos (para capturas). */
+  var prepareCloseNoticePreview: () => void;
+}
+
+function showClosePublicationDialog(actions: CloseActions): void {
   if ($('#modal').open) $('#modal').close();
   let settled = false,
     saving = false;
@@ -17,7 +43,7 @@ function showClosePublicationDialog(actions) {
         settled = true;
         return true;
       } catch (e) {
-        $('#closePublicationError').textContent = e.message;
+        $('#closePublicationError').textContent = (e as Error).message;
         return false;
       } finally {
         saving = false;
@@ -51,7 +77,8 @@ function showClosePublicationDialog(actions) {
     cancel.focus();
   }
 }
-window.requestCloseConfirmation = function () {
+globalThis.showClosePublicationDialog = showClosePublicationDialog;
+globalThis.requestCloseConfirmation = function () {
   showClosePublicationDialog({
     save: async () => {
       const ok = await saveProject();
@@ -62,7 +89,7 @@ window.requestCloseConfirmation = function () {
     cancel: () => nativeCall('closeCancelled').catch(() => {}),
   });
 };
-window.showBusyCloseNotice = function () {
+globalThis.showBusyCloseNotice = function () {
   toast(
     bw(
       'Esperá a que termine la operación antes de cerrar Maquetario.',
@@ -72,8 +99,10 @@ window.showBusyCloseNotice = function () {
     'warning',
   );
 };
-window.prepareCloseNoticePreview = function () {
+globalThis.prepareCloseNoticePreview = function () {
   hideWelcome();
   if ($('#modal').open) $('#modal').close();
   showClosePublicationDialog({ save: async () => false, discard: () => {}, cancel: () => {} });
 };
+
+export {};

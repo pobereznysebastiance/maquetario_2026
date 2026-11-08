@@ -1,4 +1,10 @@
-'use strict';
+// Estimación de grosor y lomo en el editor de cubierta: según la encuadernación (abrochado o
+// lomo plano), la cantidad de páginas y el espesor del papel, calcula pliegos, hojas y grosor
+// teórico, y ofrece pasar la medida al campo del lomo.
+//
+// No publica globales: se engancha con extend.after('coverEditor').
+//
+// Fuente TypeScript: se compila a build/binding-estimate.js (desktop/scripts/build.mjs).
 
 extend.after(
   'coverEditor',
@@ -24,18 +30,18 @@ extend.after(
     <p id="bindingResult" aria-live="polite"></p>
     <p id="bindingHint" class="help"></p>
     <button type="button" id="applyBindingSpine" class="btn" hidden></button>`;
-    spine.closest('.cover-fields').after(estimate);
+    spine.closest('.cover-fields')!.after(estimate);
     const method = $('#bindingMethod'),
       caliper = $('#paperCaliper');
     const result = $('#bindingResult'),
       hint = $('#bindingHint'),
       apply = $('#applyBindingSpine');
-    const format = (number) =>
+    const format = (number: number) =>
       new Intl.NumberFormat(LibroI18n.language, {
         maximumFractionDigits: documentUnit() === 'cm' ? 3 : 2,
       }).format(number);
 
-    function refreshEstimate() {
+    function refreshEstimate(): void {
       const stapled = method.value === 'stapled',
         pageCount = book.pages.length;
       const sheets = Math.ceil(pageCount / 4),
@@ -86,3 +92,5 @@ extend.after(
   },
   'binding-estimate',
 );
+
+export {};

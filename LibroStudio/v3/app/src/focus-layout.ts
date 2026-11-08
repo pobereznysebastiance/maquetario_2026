@@ -1,5 +1,19 @@
-'use strict';
-function updateFocusControl() {
+// Modo ampliado: el botón #fullscreen esconde los paneles y deja el lienzo a todo el ancho.
+// Escape vuelve a los paneles (salvo con un diálogo o el explorador de fuentes abiertos).
+//
+// updateFocusControl es global porque lo llaman shapes.js y las pruebas (focus-layout-tests,
+// navigation-tests); prepareFocusPreview, para las capturas de la vista ampliada.
+//
+// Fuente TypeScript: se compila a build/focus-layout.js (desktop/scripts/build.mjs).
+
+declare global {
+  /** Actualiza texto, título y estado del botón según el modo ampliado. */
+  var updateFocusControl: () => void;
+  /** Deja la novela de muestra en modo ampliado (para capturas). */
+  var prepareFocusPreview: () => void;
+}
+
+function updateFocusControl(): void {
   const focused = document.body.classList.contains('focused'),
     b = $('#fullscreen'),
     text = bw(
@@ -14,6 +28,7 @@ function updateFocusControl() {
   b.setAttribute('aria-label', b.title);
   b.setAttribute('aria-pressed', String(focused));
 }
+globalThis.updateFocusControl = updateFocusControl;
 extend.after(
   'applyPanelSizes',
   function () {
@@ -48,7 +63,7 @@ document.addEventListener(
   true,
 );
 updateFocusControl();
-window.prepareFocusPreview = function () {
+globalThis.prepareFocusPreview = function () {
   hideWelcome();
   if ($('#modal').open) $('#modal').close();
   if (fontBrowser.open) fontBrowser.close();
@@ -57,3 +72,5 @@ window.prepareFocusPreview = function () {
   applyPanelSizes();
   updateFocusControl();
 };
+
+export {};

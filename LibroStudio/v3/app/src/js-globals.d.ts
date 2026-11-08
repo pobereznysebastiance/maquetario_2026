@@ -2,6 +2,18 @@
 // las fuentes de src/. Sólo los ve el chequeo estricto de src/: en el chequeo del JS se ven las
 // definiciones reales. Cuando un archivo pasa a src/, sus globales salen de acá.
 import type { Book, BookObject, LibroModelApi } from './model.ts';
+import type { NovelSample } from './novel-sample.ts';
+
+/** Una lección del tutorial (title, body y task: castellano, inglés y portugués). */
+interface GuideLesson {
+  id: string;
+  tab: string;
+  target: string;
+  title: string[];
+  body: string[];
+  task: string[];
+  action: string;
+}
 
 declare global {
   // ── studio.js ──
@@ -47,6 +59,57 @@ declare global {
 
   // ── fonts.js ──
   function selectedFace(o: object): { weight?: number; style?: string } | undefined;
+
+  // ── studio.js ──
+  /** Índice de la página activa. */
+  var active: number;
+  /** Elemento de texto que se está editando en el lienzo, o null. */
+  var editing: HTMLElement | null;
+  function toast(msg: string, type?: string): void;
+  function showTab(name: string): void;
+  function saveProject(): Promise<boolean>;
+
+  // ── welcome.js ──
+  function hideWelcome(): void;
+
+  // ── tutorial.js ──
+  const guideLessons: GuideLesson[];
+  function lesson(
+    id: string,
+    tab: string,
+    target: string,
+    title: string[],
+    body: string[],
+    task: string[],
+    action?: string,
+  ): void;
+  function closeTutorial(): void;
+
+  // ── book-workflow.js ──
+  function goToBookPage(index: number): void;
+  function composeNovel(data: NovelSample): Book;
+  function installNovel(b: Book): void;
+  /** Revisión del libro: objetos fuera de la página y cajas de texto desbordadas. */
+  function preflightBook(): { page: number; kind: 'bounds' | 'overflow' }[];
+
+  // ── output.js ──
+  function prepareOutput(config: Record<string, unknown>): {
+    width: number;
+    height: number;
+    faces: number;
+    scale: number;
+  };
+
+  // ── paragraphs.js ──
+  function paragraphPatch(values: Record<string, unknown>): void;
+
+  // ── panel-resize.js ──
+  function applyPanelSizes(): void;
+
+  // ── font-browser.js ──
+  const fontBrowser: HTMLDialogElement;
 }
+
+export {};
 
 export {};
