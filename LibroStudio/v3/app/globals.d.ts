@@ -11,16 +11,11 @@
 type UIElement = HTMLElement & { [key: string]: any };
 
 // ── Extensiones e inspector (extend.js, inspector-registry.js, test-registry.js) ──
-declare var extend: any;
-declare var MaquetarioExtensions: any;
 declare var decorateInspector: any;
 declare var registerInspectorPanel: any;
 declare var pauseInspectorWhile: any;
 declare var inspectorPaused: any;
 declare var inspectorDetailKey: any;
-declare var registerIntegrationTest: any;
-declare var registerNavigationTest: any;
-declare var registerFontTest: any;
 
 // ── Sistema de componentes (ui/) ──
 declare var UI: any;
