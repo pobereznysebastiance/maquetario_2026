@@ -100,9 +100,6 @@
 }
 
 @media (max-width: 1279px) {
-  .topbar #savedState {
-    display: none;
-  }
   .topbar :is(#preview, #printButton, .assistant-entry) > span:not([data-icon]) {
     display: none;
   }
@@ -154,14 +151,6 @@
   gap: var(--space-sm);
   margin-left: auto;
 }
-.saved {
-  align-items: center;
-  gap: var(--space-xs);
-  margin-right: var(--space-sm);
-  color: var(--text-tertiary);
-  font-size: var(--type-xs);
-  white-space: nowrap;
-}
 
 /* ── Migrado de readability.css, maquetario.css y editorial.css ── */
 .brand {
@@ -173,9 +162,6 @@
 }
 .toolbar {
   padding-left: var(--space-md);
-}
-.topright .saved {
-  display: none;
 }
 #language {
   --language-max: 117px;

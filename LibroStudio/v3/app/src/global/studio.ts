@@ -156,18 +156,32 @@ MaquetarioHost.onMessage((data) => {
 });
 function toast(msg: string, type = 'success'): void {
   const t = $('#toast');
-  t.innerHTML = UI.toast({ message: msg, type });
+  // El de error trae botón de cerrar ("Cerrar" se traduce solo, como el resto de los textos).
+  t.innerHTML = UI.toast({
+    message: msg,
+    type,
+    closeLabel: type === 'error' ? 'Cerrar' : undefined,
+  });
   t.dataset.type = type;
   t.setAttribute('role', type === 'error' ? 'alert' : 'status');
   t.classList.add('visible');
   clearTimeout(toastTimer);
+  const close = t.querySelector<HTMLButtonElement>('.icon-btn');
+  if (close)
+    close.onclick = () => {
+      clearTimeout(toastTimer);
+      t.classList.remove('visible');
+    };
   toastTimer = setTimeout(() => t.classList.remove('visible'), type === 'error' ? 7000 : 4300);
 }
-/** Avisa al anfitrión si hay cambios sin guardar y actualiza el indicador. */
+/**
+ * Avisa al anfitrión si hay cambios sin guardar y actualiza el indicador de la barra de estado
+ * (#savedState) y el punto del nombre del documento: una sola fuente, la variable dirty.
+ */
 function syncNative(): void {
   if (native) nativeCall('dirty', { dirty, title: book.title }).catch(() => {});
-  $('#savedState').innerHTML =
-    `<i style="background:${dirty ? '#c2a87f' : '#7fceaa'}"></i> ${dirty ? 'Cambios sin guardar' : 'Proyecto guardado'}`;
+  document.body.classList.toggle('has-unsaved-changes', dirty);
+  $('#savedState').innerHTML = `<i></i> ${dirty ? 'Cambios sin guardar' : 'Guardado en tu equipo'}`;
 }
 /** Guarda el estado para deshacer. */
 function snapshot(): void {

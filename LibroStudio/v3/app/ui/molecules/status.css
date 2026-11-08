@@ -30,73 +30,71 @@
   background: var(--status-warning-surface);
 }
 
-/* Mensaje emergente: hoja sólida y discreta, como una notificación del sistema. */
-#toast {
-  padding: var(--space-sm) var(--space-lg);
-  border: var(--border-width) solid var(--line-default);
-  border-radius: var(--radius-md);
-  background: var(--material-popover);
-  color: var(--text-primary);
-  font-size: var(--type-callout);
-  box-shadow: var(--elevation-2);
-}
-#toast {
-  max-width: 80vw;
-}
+/* Mensaje emergente (#toast, contenido de UI.toast): una sola definición. Hoja opaca arriba al
+   centro, debajo de la barra superior, para que no se lea lo que queda debajo. El tipo se lee por
+   el ícono (éxito en verde agua, error y advertencia con su color, información en verde claro) y,
+   en error y advertencia, también por el borde. El de error se puede cerrar. Oculto hasta que
+   llega un aviso. */
 #toast {
   position: fixed;
-  bottom: var(--toast-offset);
+  top: calc(var(--topbar-height) + var(--space-sm));
   left: 50%;
   z-index: var(--layer-toast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  max-width: 80vw;
+  padding: var(--space-sm) var(--space-lg) var(--space-sm) var(--space-md);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-md);
+  background: var(--material-sheet);
+  color: var(--text-primary);
+  font-size: var(--type-body);
+  font-weight: var(--weight-medium);
+  box-shadow: var(--elevation-3);
+  opacity: 0;
   pointer-events: none;
+  transform: translate(-50%, calc(-1 * var(--space-sm)));
   transition:
     opacity var(--duration-base) var(--ease-out),
     transform var(--duration-base) var(--ease-out);
-}
-
-/* Aviso del sistema: siempre en el mismo lugar (arriba al centro, debajo de la barra) y con el
-   verde agua de la marca, para que se note sin salir de la paleta. Oculto hasta que llega un aviso. */
-#toast {
-  top: calc(var(--topbar-height) + var(--space-sm));
-  bottom: auto;
-  padding: var(--space-sm) var(--space-lg);
-  border-color: transparent;
-  background: var(--accent);
-  color: var(--text-on-accent);
-  font-size: var(--type-body);
-  font-weight: var(--weight-semibold);
-  box-shadow: var(--elevation-3);
-  opacity: 0;
-  transform: translate(-50%, calc(-1 * var(--space-sm)));
 }
 #toast.visible {
   opacity: 1;
   transform: translate(-50%, 0);
 }
-
-/* Contenido: ícono de estado y mensaje (UI.toast). El tipo se lee por el color y el ícono:
-   éxito en verde agua, error y advertencia con su color de estado, información en hoja neutra. */
-#toast {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding-left: var(--space-md);
-}
-#toast .icon {
+#toast > .icon {
+  flex-shrink: 0;
   width: var(--icon-sm);
   height: var(--icon-sm);
+  color: var(--status-success);
 }
-#toast[data-type='error'] {
-  background: var(--status-error);
+#toast[data-type='info'] > .icon {
+  color: var(--status-info);
 }
 #toast[data-type='warning'] {
-  background: var(--status-warning);
+  border-color: var(--status-warning-line);
 }
-#toast[data-type='info'] {
-  border-color: var(--line-default);
-  background: var(--material-popover);
-  color: var(--text-primary);
+#toast[data-type='warning'] > .icon {
+  color: var(--status-warning);
 }
-#toast[data-type='info'] .icon {
-  color: var(--status-info);
+#toast[data-type='error'] {
+  padding-right: var(--space-xs);
+  border-color: var(--status-error-line);
+}
+#toast[data-type='error'] > .icon {
+  color: var(--status-error);
+}
+/* El de error recibe clics sólo mientras se ve: tiene el botón de cerrar. */
+#toast[data-type='error'].visible {
+  pointer-events: auto;
+}
+#toast .icon-btn {
+  flex-shrink: 0;
+  width: var(--control-sm);
+  height: var(--control-sm);
+}
+/* Oculto, el botón no queda en el orden de tabulación. */
+#toast:not(.visible) .icon-btn {
+  visibility: hidden;
 }

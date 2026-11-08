@@ -89,15 +89,16 @@ const UI = {
   /**
    * Molécula: contenido del aviso del sistema (#toast): ícono de estado y mensaje.
    * type: 'success' (por defecto) | 'info' | 'warning' | 'error'.
+   * closeLabel: si viene, agrega el botón de cerrar (sólo ícono, con ese nombre accesible).
    */
-  toast(o: { type?: string; message: string }): string {
+  toast(o: { type?: string; message: string; closeLabel?: string }): string {
     const icons: Record<string, string> = {
       success: 'check',
       info: 'info',
       warning: 'alert',
       error: 'error',
     };
-    return `${icon(icons[o.type ?? ''] || icons.success)}<span class="toast-message">${html(o.message)}</span>`;
+    return `${icon(icons[o.type ?? ''] || icons.success)}<span class="toast-message">${html(o.message)}</span>${o.closeLabel ? UI.iconButton({ label: o.closeLabel, icon: 'close' }) : ''}`;
   },
 };
 

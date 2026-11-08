@@ -141,10 +141,13 @@
   border-radius: var(--radius-sm);
   letter-spacing: var(--tracking-caps);
 }
+/* El cuerpo crece para llenar la ventana pero no se achica por debajo de su contenido: en
+   pantallas bajas (1366×768, 1150×700) la bienvenida se desplaza y el pie queda debajo, en vez de
+   montarse sobre "Proyectos recientes". */
 .welcome-body {
   --welcome-body-top: 35px;
   display: grid;
-  flex: 1 1 0%;
+  flex: 1 0 auto;
   grid-template-columns: 1fr 1fr;
   gap: 5vw;
   min-height: 0;
@@ -209,9 +212,12 @@
   max-height: var(--recent-list-max);
   overflow: auto;
 }
+/* La ilustración acompaña el alto del texto, no lo define: sin tamaño propio (contain), se
+   estira a la fila y nunca baja de su mínimo. */
 .welcome-art {
   --welcome-art-min: 300px;
   position: relative;
+  contain: size;
   display: flex;
   flex-direction: column;
   align-self: stretch;

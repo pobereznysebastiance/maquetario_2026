@@ -11,16 +11,26 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.statusbar .status-dot,
-.left-bottom .status-dot {
-  background: var(--accent);
-}
 
-/* Indicadores de estado del documento. */
+/* Estado de guardado (#savedState y el punto del nombre del documento). Una sola fuente:
+   syncNative() escribe el texto y pone .has-unsaved-changes en body mientras haya cambios. */
+.saved {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
 .document-dot,
-.status-dot,
 .saved i {
-  background: var(--text-mark);
+  background: var(--status-success);
+}
+.has-unsaved-changes :is(.document-dot, .saved i) {
+  background: var(--status-warning);
+}
+.has-unsaved-changes .saved {
+  color: var(--text-secondary);
+}
+.no-document .saved {
+  visibility: hidden;
 }
 .page-priority :is(.statusbar, .left-bottom, .inspector-foot) {
   border-color: var(--line-subtle);
@@ -56,8 +66,7 @@
 }
 
 /* ── Migrado de studio.css: punto de estado ── */
-.saved i,
-.status-dot {
+.saved i {
   --status-dot-size: 5px;
   display: inline-block;
   flex-shrink: 0;
