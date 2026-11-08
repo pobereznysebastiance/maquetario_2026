@@ -29,7 +29,8 @@ registerNavigationTest(async function (report) {
       'Cambiar a cm conserva el tamaño real y los objetos',
     );
     check(
-      statusUnit.textContent.endsWith('cm') && M.validate(M.clone(book)).measurementUnit === 'cm',
+      $('.statusbar .status-spacer').nextElementSibling.textContent.endsWith('cm') &&
+        M.validate(M.clone(book)).measurementUnit === 'cm',
       'La unidad aparece en el estado y queda en el proyecto',
     );
     showTab('design');

@@ -1,6 +1,28 @@
-'use strict';
+// Pauta de uso tipográfico ("Reglas internas"): agrupa los párrafos del libro por su formato real
+// y arma la tabla editable de funciones y operaciones de cada estilo.
+// Fuente TypeScript: se compila a build/editorial-rules.js (desktop/scripts/build.mjs).
+import type { BookObject } from './model.ts';
 
-function usedGridColumns(page, object) {
+interface ParagraphStyle {
+  id: string;
+  name: string;
+  properties?: Record<string, unknown>;
+}
+interface RuleExample {
+  page: number;
+  object: BookObject;
+}
+/** Un grupo de párrafos con el mismo estilo y el mismo formato efectivo. */
+export interface EditorialRule {
+  style: ParagraphStyle | undefined;
+  format: Record<string, any>;
+  count: number;
+  columns: Set<number>;
+  writing: Set<'upper' | 'lower' | 'mixed'>;
+  examples: RuleExample[];
+}
+
+function usedGridColumns(page: number, object: BookObject): number {
   const grid = M.gridRect(book, page),
     { cols, gapX } = book.grid;
   const width = (grid.w - gapX * (cols - 1)) / cols;
@@ -11,7 +33,7 @@ function usedGridColumns(page, object) {
   }
   return count;
 }
-function ruleGridPreview({ page, object }) {
+function ruleGridPreview({ page, object }: RuleExample): string {
   const grid = M.gridRect(book, page),
     { cols, rows, gapX, gapY } = book.grid;
   const w = (grid.w - gapX * (cols - 1)) / cols,
@@ -27,8 +49,8 @@ function ruleGridPreview({ page, object }) {
     </svg>`;
 }
 
-function collectEditorialRules() {
-  const groups = new Map();
+function collectEditorialRules(): EditorialRule[] {
+  const groups = new Map<string, EditorialRule>();
   for (const [pageIndex, page] of book.pages.entries())
     for (const object of page.objects) {
       if (object.type !== 'text' || object.hidden || object.toc) continue;
@@ -38,7 +60,7 @@ function collectEditorialRules() {
         if (!lines[index].trim()) continue;
         const format = paragraphFormat(book, object, index);
         const style = book.paragraphStyles?.find(
-          (item) => item.id === object.paragraphMap?.[index]?.styleId,
+          (item: ParagraphStyle) => item.id === object.paragraphMap?.[index]?.styleId,
         );
         const signature = JSON.stringify([
           style?.id || '',
@@ -53,7 +75,7 @@ function collectEditorialRules() {
             writing: new Set(),
             examples: [],
           });
-        const row = groups.get(signature),
+        const row = groups.get(signature)!,
           text = lines[index];
         row.count++;
         row.columns.add(columns);
@@ -68,20 +90,21 @@ function collectEditorialRules() {
   return [...groups.values()];
 }
 
-function editorialRulesDialog() {
+function editorialRulesDialog(): void {
   if (!hasDocument) return;
   finishEditing();
   const rules = collectEditorialRules();
-  const styleRoles = book.editorialRoles || {};
-  const styleNotes = book.editorialPautas || {};
+  const styleRoles: Record<string, string> = book.editorialRoles || {};
+  const styleNotes: Record<string, { leading?: string; operation?: string }> =
+    book.editorialPautas || {};
   // Puntos para mostrar: el interlineado sale de multiplicar (14 × 1,4 = 19,599999…); dos decimales alcanzan.
-  const points = (value) => Number((Number(value) || 0).toFixed(2));
-  const leadingNames = {
+  const points = (value: unknown) => Number((Number(value) || 0).toFixed(2));
+  const leadingNames: Record<string, string> = {
     wide: bw('Amplio', 'Open', 'Amplo'),
     normal: bw('Normal', 'Normal', 'Normal'),
     tight: bw('Ajustado', 'Tight', 'Justo'),
   };
-  const writingNames = {
+  const writingNames: Record<string, string> = {
     upper: bw('Mayúsculas', 'Uppercase', 'Maiúsculas'),
     lower: bw('Minúsculas', 'Lowercase', 'Minúsculas'),
     mixed: bw('Mixta', 'Mixed', 'Mista'),
@@ -97,7 +120,12 @@ function editorialRulesDialog() {
     bw('Operación tipográfica', 'Typographic treatment', 'Operação tipográfica'),
     bw('Zonas activas', 'Grid areas', 'Áreas ativas'),
   ];
-  const align = { left: pw().l, right: pw().r, center: pw().c, justify: pw().j };
+  const align: Record<string, string> = {
+    left: pw().l,
+    right: pw().r,
+    center: pw().c,
+    justify: pw().j,
+  };
   const rows = rules
     .map(({ style, format, count, columns, writing, examples }) => {
       const face = selectedFace(format);
@@ -106,7 +134,7 @@ function editorialRulesDialog() {
         [format.bold ? 'Bold' : '', format.italic ? 'Italic' : ''].filter(Boolean).join(' ') ||
         selectedFace(format)?.style ||
         '—';
-      const axes = Object.entries(format.fontAxes || {})
+      const axes = Object.entries((format.fontAxes || {}) as Record<string, number>)
         .map(([name, value]) => name + ' ' + value)
         .join(' · ');
       const weight =
@@ -115,7 +143,7 @@ function editorialRulesDialog() {
         format.fontItalic || format.italic
           ? bw('Cursiva', 'Italic', 'Itálico')
           : bw('Recta', 'Upright', 'Reto');
-      const note = style ? styleNotes[style.id] : null;
+      const note = style ? styleNotes[style.id] : undefined;
       const name = style?.name || bw('Formato directo', 'Direct formatting', 'Formatação direta');
       const operation = note?.operation || '—';
       return `<tr><th scope="row">${esc((style && styleRoles[style.id]) || name)}
@@ -125,9 +153,9 @@ function editorialRulesDialog() {
       <td>${weight} · ${format.fontAxes?.wdth ?? '—'} · ${inclination}${axes ? `<small>${esc(axes)}</small>` : ''}</td>
       <td>${icon(format.align)} ${align[format.align] || '—'}</td>
       <td>${[...columns].sort((a, b) => a - b).join(' / ')}</td>
-      <td>${points(format.leading)} pt <small>${leadingNames[note?.leading] || '—'}</small></td>
-      <td>${esc(operation)}<small>${bw('Sangrías', 'Indents', 'Recuos')} ${[format.indentLeft, format.indentRight, format.firstIndent].map((n) => displayMeasure(n || 0)).join(' / ')} ${documentUnit()}
-      · ${bw('Espacio', 'Spacing', 'Espaço')} ${[format.spaceBefore, format.spaceAfter].map((n) => displayMeasure(n || 0)).join(' / ')} ${documentUnit()}</small></td>
+      <td>${points(format.leading)} pt <small>${leadingNames[note?.leading ?? ''] || '—'}</small></td>
+      <td>${esc(operation)}<small>${bw('Sangrías', 'Indents', 'Recuos')} ${[format.indentLeft, format.indentRight, format.firstIndent].map((n: number) => displayMeasure(n || 0)).join(' / ')} ${documentUnit()}
+      · ${bw('Espacio', 'Spacing', 'Espaço')} ${[format.spaceBefore, format.spaceAfter].map((n: number) => displayMeasure(n || 0)).join(' / ')} ${documentUnit()}</small></td>
       <td><div class="rule-grid-examples">${examples.map((example) => `<div>${ruleGridPreview(example)}<small>${M.folio(book, example.page)}</small></div>`).join('')}</div></td></tr>`;
     })
     .join('');
@@ -150,7 +178,9 @@ function editorialRulesDialog() {
         ? `<h3>${bw('Asignar funciones a los estilos', 'Assign roles to styles', 'Atribuir funções aos estilos')}</h3>
     <div class="modal-grid">${book.paragraphStyles
       .map(
-        (style) => `<section class="rule-style-input"><label class="control">${esc(style.name)}
+        (
+          style: ParagraphStyle,
+        ) => `<section class="rule-style-input"><label class="control">${esc(style.name)}
       <input type="text" data-editorial-role="${esc(style.id)}" aria-label="${roleLabel}: ${esc(style.name)}"
       maxlength="80" value="${esc(styleRoles[style.id] || '')}" placeholder="${bw('Ej. Cuerpo principal', 'E.g. Body text', 'Ex. Texto principal')}"></label>
       <label>${bw('Tipo de interlineado', 'Leading type', 'Tipo de entrelinha')} <select data-rule-leading>
@@ -175,11 +205,13 @@ function editorialRulesDialog() {
       );
       const notes = Object.fromEntries(
         $$('.rule-style-input')
-          .map((section) => [
-            section.querySelector('[data-editorial-role]').dataset.editorialRole,
+          .map((section): [string | undefined, { leading: string; operation: string }] => [
+            section.querySelector<HTMLElement>('[data-editorial-role]')!.dataset.editorialRole,
             {
-              leading: section.querySelector('[data-rule-leading]').value,
-              operation: section.querySelector('[data-rule-operation]').value.trim(),
+              leading: section.querySelector<HTMLSelectElement>('[data-rule-leading]')!.value,
+              operation: section
+                .querySelector<HTMLInputElement>('[data-rule-operation]')!
+                .value.trim(),
             },
           ])
           .filter(([, note]) => note.leading || note.operation),
@@ -210,3 +242,11 @@ decorateInspector(() => {
   button.onclick = editorialRulesDialog;
   $('#inspectorContent').prepend(button);
 }, 'editorial-rules');
+
+// Las usan las pruebas (tests/category-tests.js, tests/document-view-tests.js).
+declare global {
+  var collectEditorialRules: () => EditorialRule[];
+  var editorialRulesDialog: () => void;
+}
+globalThis.collectEditorialRules = collectEditorialRules;
+globalThis.editorialRulesDialog = editorialRulesDialog;
