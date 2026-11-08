@@ -339,6 +339,10 @@ declare global {
 
   // ── welcome.js ──
   /** La pantalla de bienvenida está a la vista. */
+
+  // ── book-workflow.js ──
+  /** Dibuja el recorrido del libro (los cinco pasos de la barra del documento). */
+  function renderBookRoute(): void;
 }
 
 export {};
