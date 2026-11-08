@@ -1,5 +1,44 @@
-'use strict';
-const layoutWords = {
+// Herramientas de maquetación: imán (ajuste magnético a grilla, márgenes y guías al mover o
+// redimensionar), y capas (panel del inspector para ordenar, ocultar, bloquear y nombrar objetos).
+// Los objetos ocultos no se dibujan y los bloqueados no se seleccionan ni se editan.
+//
+// snapLines y snappedFrame son globales porque las usa tests/layout-tools-tests.js;
+// updateSnapButton, porque la llama inspector-organization.js.
+//
+// Fuente TypeScript: se compila a build/layout-tools.js (desktop/scripts/build.mjs).
+import type { Book, BookObject, Rect } from './model.ts';
+
+/** Posiciones (mm) a las que se ajusta el imán, por eje. */
+export interface SnapLines {
+  x: number[];
+  y: number[];
+}
+
+/** Resultado del imán: el rectángulo ajustado y las líneas que tocó. */
+export interface SnapResult {
+  rect: Rect;
+  hits: { axis: 'x' | 'y'; value: number }[];
+}
+
+declare global {
+  /** Líneas de ajuste de una página: bordes, márgenes, columnas y filas de la grilla, y guías. */
+  var snapLines: (b: Book, index: number) => SnapLines;
+  /**
+   * Ajusta un rectángulo a las líneas más cercanas dentro de la tolerancia. Con direction
+   * (n, s, e, w o combinaciones) ajusta esos bordes al redimensionar; sin ella, lo mueve entero.
+   */
+  var snappedFrame: (
+    rect: Rect,
+    direction: string | false,
+    lines: SnapLines,
+    tolerance: number,
+    bounds: { width: number; height: number },
+  ) => SnapResult;
+  /** Estado y textos del botón del imán. */
+  var updateSnapButton: () => void;
+}
+
+const layoutWords: Record<string, Record<string, string>> = {
   es: {
     layers: 'Capas',
     snap: 'Imán',
@@ -44,7 +83,7 @@ const layoutWords = {
   },
 };
 const lw = () => layoutWords[globalThis.LibroI18n?.language || 'es'];
-function snapLines(b, index) {
+function snapLines(b: Book, index: number): SnapLines {
   const m = M.margins(b, index),
     x = [0, b.width, m.left, b.width - m.right],
     y = [0, b.height, b.margins.top, b.height - b.margins.bottom];
@@ -62,8 +101,14 @@ function snapLines(b, index) {
     y: [...new Set(y.map((v) => +v.toFixed(8)))],
   };
 }
-function nearestSnap(value, lines, tolerance, valid = () => true) {
-  let result = null;
+globalThis.snapLines = snapLines;
+function nearestSnap(
+  value: number,
+  lines: number[],
+  tolerance: number,
+  valid: (line: number) => boolean = () => true,
+): { line: number; delta: number } | null {
+  let result: { line: number; delta: number } | null = null;
   for (const line of lines) {
     let delta = line - value;
     if (
@@ -75,9 +120,15 @@ function nearestSnap(value, lines, tolerance, valid = () => true) {
   }
   return result;
 }
-function snappedFrame(rect, direction, lines, tolerance, bounds) {
+function snappedFrame(
+  rect: Rect,
+  direction: string | false,
+  lines: SnapLines,
+  tolerance: number,
+  bounds: { width: number; height: number },
+): SnapResult {
   const r = { ...rect },
-    hits = [],
+    hits: SnapResult['hits'] = [],
     min = 3;
   if (direction) {
     if (direction.includes('w')) {
@@ -126,7 +177,7 @@ function snappedFrame(rect, direction, lines, tolerance, bounds) {
     for (const [axis, pos, size, limit] of [
       ['x', 'x', 'w', 'width'],
       ['y', 'y', 'h', 'height'],
-    ]) {
+    ] as const) {
       let a = nearestSnap(
           r[pos],
           lines[axis],
@@ -148,14 +199,16 @@ function snappedFrame(rect, direction, lines, tolerance, bounds) {
   }
   return { rect: r, hits };
 }
-function updateSnapButton() {
+globalThis.snappedFrame = snappedFrame;
+function updateSnapButton(): void {
   const b = $('#snapButton');
   if (!b) return;
   b.classList.toggle('on', book.snap?.enabled !== false);
   b.title = lw().snapHint;
   b.innerHTML = '⌁ <span class="snap-label">' + lw().snap + '</span>';
-  b.setAttribute('aria-pressed', book.snap?.enabled !== false);
+  b.setAttribute('aria-pressed', String(book.snap?.enabled !== false));
 }
+globalThis.updateSnapButton = updateSnapButton;
 const snapButton = document.createElement('button');
 snapButton.id = 'snapButton';
 snapButton.className = 'quiet';
@@ -169,7 +222,7 @@ $('#documentSettings').before(snapButton);
 updateSnapButton();
 extend.after(
   'moveObject',
-  function (e) {
+  function (e: PointerEvent) {
     $$('.snap-indicator').forEach((n) => n.remove());
     if (!drag) return;
     const d = drag;
@@ -188,7 +241,7 @@ extend.after(
       width: d.o.w * scale + 'px',
       height: d.o.h * scale + 'px',
     });
-    const page = d.el.closest('.page');
+    const page = d.el.closest('.page')!;
     for (const hit of out.hits) {
       let line = document.createElement('div');
       line.className = 'snap-indicator ' + hit.axis;
@@ -201,14 +254,14 @@ extend.after(
 );
 extend.after(
   'upObject',
-  function (e) {
+  function (e: PointerEvent) {
     $$('.snap-indicator').forEach((n) => n.remove());
   },
   'layout-tools',
 );
 extend.instead(
   'objectDown',
-  (e, o) => o.locked || o.hidden,
+  (e: PointerEvent, o: BookObject) => o.locked || o.hidden,
   () => {},
   'layout-tools',
 );
@@ -220,13 +273,14 @@ extend.instead(
 );
 extend.instead(
   'command',
-  (name) => ['deleteObject', 'front', 'back', 'editText'].includes(name) && selectObject()?.locked,
+  (name: string) =>
+    ['deleteObject', 'front', 'back', 'editText'].includes(name) && selectObject()?.locked,
   () => {},
   'layout-tools',
 );
 extend.result(
   'paper',
-  function (page, index, px, print = false) {
+  function (page: HTMLElement, index: number, px: number, print = false) {
     for (const o of book.pages[index].objects) {
       const node = page.querySelector(`[data-id="${o.id}"]`);
       if (!node) continue;
@@ -241,8 +295,8 @@ extend.result(
   },
   'layout-tools',
 );
-let layerDrag = null;
-function layersPanel() {
+let layerDrag: string | null = null;
+function layersPanel(): void {
   const w = lw(),
     host = $('#inspectorContent'),
     objects = book.pages[active].objects;
@@ -258,19 +312,19 @@ function layersPanel() {
             `<div class="layer-row ${o.id === selected ? 'active' : ''} ${o.hidden ? 'is-hidden' : ''}" draggable="true" data-layer="${o.id}"><span class="layer-grip">⠿</span><span class="layer-type">${icon(o.type === 'text' ? 'text' : o.type === 'image' ? 'image' : 'frame')}</span><span class="layer-name user-content">${esc(o.name || o.text?.trim().split('\n')[0]?.slice(0, 36) || (o.type === 'frame' ? 'Marco' : 'Objeto'))}</span><button class="icon-btn" data-eye="${o.id}" title="${w.show}">${o.hidden ? '○' : '◉'}</button><button class="icon-btn" data-lock="${o.id}" title="${w.lock}">${o.locked ? '▣' : '□'}</button></div>`,
         )
         .join('') || `<p class="help">${w.empty}</p>`
-    }</div>${selectObject() ? `<label class="field-label">${w.rename}</label><input id="layerName" class="field-full" maxlength="100" value="${esc(selectObject().name || '')}"><div class="page-action"><button id="layerUp" class="btn">↑ ${w.up}</button><button id="layerDown" class="btn">↓ ${w.down}</button></div><div class="pair"><div class="control"><label>${w.width} · mm</label><input id="layerWidth" type="number" min="3" max="${book.width}" step=".5" value="${selectObject().w.toFixed(1)}"></div><div class="control"><label>${w.height} · mm</label><input id="layerHeight" type="number" min="3" max="${book.height}" step=".5" value="${selectObject().h.toFixed(1)}"></div></div>` : ''}`,
+    }</div>${selectObject() ? `<label class="field-label">${w.rename}</label><input id="layerName" class="field-full" maxlength="100" value="${esc(selectObject()!.name || '')}"><div class="page-action"><button id="layerUp" class="btn">↑ ${w.up}</button><button id="layerDown" class="btn">↓ ${w.down}</button></div><div class="pair"><div class="control"><label>${w.width} · mm</label><input id="layerWidth" type="number" min="3" max="${book.width}" step=".5" value="${selectObject()!.w.toFixed(1)}"></div><div class="control"><label>${w.height} · mm</label><input id="layerHeight" type="number" min="3" max="${book.height}" step=".5" value="${selectObject()!.h.toFixed(1)}"></div></div>` : ''}`,
   );
-  host.querySelectorAll('[data-layer]').forEach((row) => {
+  host.querySelectorAll<HTMLElement>('[data-layer]').forEach((row) => {
     row.onclick = (e) => {
-      if (e.target.closest('button')) return;
+      if ((e.target as Element).closest('button')) return;
       finishEditing();
       tool = 'select';
-      selected = row.dataset.layer;
+      selected = row.dataset.layer!;
       render(false);
     };
     row.ondragstart = (e) => {
-      layerDrag = row.dataset.layer;
-      e.dataTransfer.setData('text/plain', layerDrag);
+      layerDrag = row.dataset.layer!;
+      e.dataTransfer!.setData('text/plain', layerDrag);
     };
     row.ondragover = (e) => {
       e.preventDefault();
@@ -280,38 +334,39 @@ function layersPanel() {
     row.ondrop = (e) => {
       e.preventDefault();
       const source = layerDrag,
-        target = row.dataset.layer;
+        target = row.dataset.layer!;
       if (source && source !== target) commit(() => reorderLayer(source, target), false);
       layerDrag = null;
     };
   });
-  host.querySelectorAll('[data-eye]').forEach(
+  host.querySelectorAll<HTMLElement>('[data-eye]').forEach(
     (b) =>
       (b.onclick = () =>
         commit(() => {
-          const o = objects.find((o) => o.id === b.dataset.eye);
+          const o = objects.find((o) => o.id === b.dataset.eye)!;
           o.hidden = !o.hidden;
         }, false)),
   );
-  host.querySelectorAll('[data-lock]').forEach(
+  host.querySelectorAll<HTMLElement>('[data-lock]').forEach(
     (b) =>
       (b.onclick = () =>
         commit(() => {
-          const o = objects.find((o) => o.id === b.dataset.lock);
+          const o = objects.find((o) => o.id === b.dataset.lock)!;
           o.locked = !o.locked;
         }, false)),
   );
   if ($('#layerName')) {
-    $('#layerName').onchange = (e) => commit(() => (selectObject().name = e.target.value), false);
+    $('#layerName').onchange = (e: Event) =>
+      commit(() => (selectObject()!.name = (e.target as HTMLInputElement).value), false);
     $('#layerUp').onclick = () => moveLayer(1);
     $('#layerDown').onclick = () => moveLayer(-1);
     for (const [id, key, limit, pos] of [
       ['#layerWidth', 'w', 'width', 'x'],
       ['#layerHeight', 'h', 'height', 'y'],
     ])
-      $(id).onchange = (e) => {
-        const o = selectObject(),
-          n = Number(e.target.value);
+      $(id).onchange = (e: Event) => {
+        const o = selectObject()!,
+          n = Number((e.target as HTMLInputElement).value);
         if (o.locked || !Number.isFinite(n) || n < 3 || n > book[limit] - o[pos]) {
           inspector();
           return;
@@ -322,7 +377,7 @@ function layersPanel() {
 }
 registerInspectorPanel('layers', layersPanel, 'layout-tools');
 decorateInspector(() => updateSnapButton(), 'layout-tools');
-function reorderLayer(source, target) {
+function reorderLayer(source: string, target: string): void {
   let list = book.pages[active].objects,
     from = list.findIndex((o) => o.id === source),
     to = list.findIndex((o) => o.id === target);
@@ -331,7 +386,7 @@ function reorderLayer(source, target) {
   list.splice(to, 0, item);
   selected = source;
 }
-function moveLayer(direction) {
+function moveLayer(direction: number): void {
   const o = selectObject();
   if (!o || o.locked) return;
   const list = book.pages[active].objects,
@@ -360,7 +415,7 @@ layerButton.onclick = () => {
 $('#tools').append(layerButton);
 document.addEventListener('maquetario:language', () => {
   tabLayer.textContent = lw().layers;
-  layerButton.querySelector('span').textContent = lw().layers;
+  layerButton.querySelector('span')!.textContent = lw().layers;
   updateSnapButton();
 });
 updateSnapButton();

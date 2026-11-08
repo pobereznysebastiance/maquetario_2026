@@ -1,5 +1,92 @@
-'use strict';
-const publicationTypes = {
+// Publicaciones y cubierta: tipos de producto editorial al crear un documento (libro, revista,
+// diario…), editor de la cubierta desplegada, su dibujo (coverArtwork) y su salida en PDF.
+//
+// Todo lo publicado lo usan otros archivos, las pruebas (tests/publications-tests.js y otras) o
+// la autoprueba. Las funciones se definen directamente en globalThis y se llaman por su nombre
+// global, no por una copia local: otros módulos las extienden por nombre (extend reemplaza
+// window[nombre]) y las llamadas de acá adentro tienen que pasar por esa cadena, como antes.
+// coverDraft y coverPart viven en globalThis porque otros archivos (y las pruebas) los asignan.
+//
+// Fuente TypeScript: se compila a build/publications.js (desktop/scripts/build.mjs).
+
+/** Una zona de la cubierta (texto, tipografía e imagen). */
+export interface CoverDesignPart {
+  text: string;
+  size: number;
+  color: string;
+  y: number;
+  align: 'left' | 'center' | 'right' | string;
+  image?: string;
+  imageFit?: 'cover' | 'contain' | string;
+  [extra: string]: any;
+}
+
+/** Cubierta del libro (book.cover y coverDraft). */
+export interface CoverDesign {
+  spine: number;
+  leftFlap: number;
+  rightFlap: number;
+  bleed: number;
+  wrap?: number;
+  safe: number;
+  background: string;
+  /** backFlap, back, spine, front, frontFlap. */
+  parts: Record<string, CoverDesignPart>;
+  [extra: string]: any;
+}
+
+/** Zona del desplegado: posición y ancho en mm. */
+export interface CoverGeometryPart {
+  id: string;
+  x: number;
+  w: number;
+}
+
+/** Desplegado de la cubierta: zonas presentes (ancho > 0), ancho total y alto, en mm. */
+export interface CoverGeometry {
+  parts: CoverGeometryPart[];
+  width: number;
+  height: number;
+}
+
+/** Punto de partida de un producto editorial (labels: castellano, inglés y portugués). */
+export interface PublicationType {
+  labels: [string, string, string];
+  w: number;
+  h: number;
+  cols: number;
+  rows: number;
+  count: number;
+}
+
+declare global {
+  /** Productos editoriales que ofrece el diálogo de documento nuevo. */
+  var publicationTypes: Record<string, PublicationType>;
+  /** Cubierta en edición (copia de book.cover mientras el editor está abierto). */
+  var coverDraft: CoverDesign | null;
+  /** Zona de la cubierta elegida en el editor (backFlap, back, spine, front, frontFlap). */
+  var coverPart: string;
+  /** Cubierta inicial: textos de ejemplo y medidas habituales. */
+  var defaultCover: () => CoverDesign;
+  /** Nombre de cada zona de la cubierta en el idioma actual. */
+  var coverNames: () => Record<string, string>;
+  /** Sangrado más demasía, en mm. */
+  var coverExtension: (c: CoverDesign) => number;
+  var coverGeometry: (c: CoverDesign) => CoverGeometry;
+  /** Lanza un error legible si la cubierta tiene medidas o contenido fuera de rango; si no, la devuelve. */
+  var validateCover: (c: CoverDesign) => CoverDesign;
+  /** Dibuja la cubierta a px píxeles por mm (con guías de edición o marcas de corte si se piden). */
+  var coverArtwork: (c: CoverDesign, px: number, guides?: boolean, crop?: boolean) => HTMLElement;
+  /** Redibuja la vista previa y los campos del editor de cubierta. */
+  var updateCoverPreview: () => void;
+  /** Abre el editor de la cubierta desplegada. */
+  var coverEditor: () => void;
+  var coverOutputDialog: () => void;
+  /** Si algún texto de la cubierta no entra en su zona. */
+  var coverOverflow: (c: CoverDesign) => boolean;
+}
+
+const publicationTypes: Record<string, PublicationType> = {
   book: { labels: ['Libro', 'Book', 'Livro'], w: 148, h: 210, cols: 1, rows: 1, count: 8 },
   magazine: {
     labels: ['Revista', 'Magazine', 'Revista'],
@@ -35,6 +122,7 @@ const publicationTypes = {
     count: 4,
   },
 };
+globalThis.publicationTypes = publicationTypes;
 extend.after(
   'settingsNew',
   function (isNew = true) {
@@ -64,7 +152,8 @@ extend.after(
       $('#newCount').value = p.count;
       $('#newTitle').value = bw(...p.labels);
     };
-    const apply = $('#modalApply').onclick;
+    // El aplicar de modal() (studio.js): se llama sin evento.
+    const apply = $('#modalApply').onclick as unknown as () => Promise<unknown>;
     $('#modalApply').onclick = async () => {
       const type = $('#publicationType').value;
       await apply();
@@ -85,7 +174,7 @@ extend.after(
   },
   'publications',
 );
-function defaultCover() {
+globalThis.defaultCover = function (): CoverDesign {
   return {
     spine: 12,
     leftFlap: 70,
@@ -129,25 +218,27 @@ function defaultCover() {
       },
     },
   };
-}
-const coverNames = () => ({
+};
+globalThis.coverNames = () => ({
   backFlap: bw('Solapa de contratapa', 'Back flap', 'Orelha traseira'),
   back: bw('Contratapa', 'Back cover', 'Quarta capa'),
   spine: bw('Lomo', 'Spine', 'Lombada'),
   front: bw('Tapa', 'Front cover', 'Capa'),
   frontFlap: bw('Solapa de tapa', 'Front flap', 'Orelha dianteira'),
 });
-function coverExtension(c) {
+globalThis.coverExtension = function (c: CoverDesign): number {
   return c.bleed + (c.wrap || 0);
-}
-function coverGeometry(c) {
-  const parts = [
-    ['backFlap', c.leftFlap],
-    ['back', book.width],
-    ['spine', c.spine],
-    ['front', book.width],
-    ['frontFlap', c.rightFlap],
-  ].filter(([, w]) => w > 0);
+};
+globalThis.coverGeometry = function (c: CoverDesign): CoverGeometry {
+  const parts = (
+    [
+      ['backFlap', c.leftFlap],
+      ['back', book.width],
+      ['spine', c.spine],
+      ['front', book.width],
+      ['frontFlap', c.rightFlap],
+    ] as [string, number][]
+  ).filter(([, w]) => w > 0);
   let x = 0;
   return {
     parts: parts.map(([id, w]) => {
@@ -158,8 +249,8 @@ function coverGeometry(c) {
     width: parts.reduce((s, p) => s + p[1], 0),
     height: book.height,
   };
-}
-function validateCover(c) {
+};
+globalThis.validateCover = function (c: CoverDesign): CoverDesign {
   if (c.wrap !== undefined && (!Number.isFinite(c.wrap) || c.wrap < 0 || c.wrap > 50))
     throw Error('Demasía: 0–50 mm');
   for (const [k, min, max] of [
@@ -168,7 +259,7 @@ function validateCover(c) {
     ['rightFlap', 0, 150],
     ['bleed', 0, 10],
     ['safe', 3, 20],
-  ])
+  ] as [string, number, number][])
     if (!Number.isFinite(c[k]) || c[k] < min || c[k] > max)
       throw Error(
         bw(
@@ -203,8 +294,13 @@ function validateCover(c) {
       );
   }
   return c;
-}
-function coverArtwork(c, px, guides = false, crop = false) {
+};
+globalThis.coverArtwork = function (
+  c: CoverDesign,
+  px: number,
+  guides = false,
+  crop = false,
+): HTMLElement {
   const g = coverGeometry(c),
     pad = coverExtension(c) + (crop ? 7 : 0),
     root = document.createElement('div');
@@ -337,13 +433,13 @@ function coverArtwork(c, px, guides = false, crop = false) {
       ),
     );
   return root;
-}
-let coverDraft = null,
-  coverPart = 'front';
-function updateCoverPreview() {
+};
+globalThis.coverDraft = null;
+globalThis.coverPart = 'front';
+globalThis.updateCoverPreview = function (): void {
   const area = $('#coverPreview');
   if (!area) return;
-  const c = coverDraft,
+  const c = coverDraft!,
     g = coverGeometry(c),
     px = 96 / 25.4,
     k = Math.min(
@@ -356,7 +452,7 @@ function updateCoverPreview() {
   const wrap = document.createElement('div');
   wrap.style.width = art.style.width;
   wrap.style.height = art.style.height;
-  wrap.style.zoom = k;
+  wrap.style.zoom = String(k);
   art.style.transform = 'none';
   wrap.append(art);
   area.replaceChildren(wrap);
@@ -372,8 +468,8 @@ function updateCoverPreview() {
   $$('[data-cover-edit]').forEach((b) =>
     b.classList.toggle('primary', b.dataset.coverEdit === coverPart),
   );
-}
-function coverEditor() {
+};
+globalThis.coverEditor = function (): void {
   if (!hasDocument) {
     settings(true);
     return;
@@ -392,27 +488,29 @@ function coverEditor() {
       )
       .join(
         '',
-      )}</div><h3 id="coverRegion"></h3><textarea id="coverText" class="builder-source" maxlength="3000"></textarea><div class="cover-fields"><label>${bw('Tamaño · pt', 'Size · pt', 'Tamanho · pt')}<input id="coverSize" type="number" min="4" max="100"></label><label>${bw('Texto', 'Text', 'Texto')}<input id="coverTextColor" type="color"></label><label>${bw('Distancia superior · mm', 'Top distance · mm', 'Distância superior · mm')}<input id="coverY" type="number" min="0" max="${book.height}"></label><label>${bw('Alineación', 'Alignment', 'Alinhamento')}<select id="coverAlign"><option value="left">${bw('Izquierda', 'Left', 'Esquerda')}</option><option value="center">${bw('Centro', 'Center', 'Centro')}</option><option value="right">${bw('Derecha', 'Right', 'Direita')}</option></select></label></div><div class="page-action"><button type="button" class="btn" id="coverImage">${bw('Imagen de esta zona', 'Image for this area', 'Imagem desta área')}</button><button type="button" class="btn" id="coverRemoveImage">${bw('Quitar imagen', 'Remove image', 'Remover imagem')}</button><button type="button" class="btn" id="coverExport">${bw('Guardar y exportar PDF', 'Save and export PDF', 'Salvar e exportar PDF')}</button></div></div><div class="cover-controls"><p id="coverDimensions" class="help"></p><div class="cover-fields">${[
-      ['spine', bw('Lomo · mm', 'Spine · mm', 'Lombada · mm'), 0, 100],
-      ['leftFlap', bw('Solapa trasera · mm', 'Back flap · mm', 'Orelha traseira · mm'), 0, 150],
+      )}</div><h3 id="coverRegion"></h3><textarea id="coverText" class="builder-source" maxlength="3000"></textarea><div class="cover-fields"><label>${bw('Tamaño · pt', 'Size · pt', 'Tamanho · pt')}<input id="coverSize" type="number" min="4" max="100"></label><label>${bw('Texto', 'Text', 'Texto')}<input id="coverTextColor" type="color"></label><label>${bw('Distancia superior · mm', 'Top distance · mm', 'Distância superior · mm')}<input id="coverY" type="number" min="0" max="${book.height}"></label><label>${bw('Alineación', 'Alignment', 'Alinhamento')}<select id="coverAlign"><option value="left">${bw('Izquierda', 'Left', 'Esquerda')}</option><option value="center">${bw('Centro', 'Center', 'Centro')}</option><option value="right">${bw('Derecha', 'Right', 'Direita')}</option></select></label></div><div class="page-action"><button type="button" class="btn" id="coverImage">${bw('Imagen de esta zona', 'Image for this area', 'Imagem desta área')}</button><button type="button" class="btn" id="coverRemoveImage">${bw('Quitar imagen', 'Remove image', 'Remover imagem')}</button><button type="button" class="btn" id="coverExport">${bw('Guardar y exportar PDF', 'Save and export PDF', 'Salvar e exportar PDF')}</button></div></div><div class="cover-controls"><p id="coverDimensions" class="help"></p><div class="cover-fields">${(
       [
-        'rightFlap',
-        bw('Solapa delantera · mm', 'Front flap · mm', 'Orelha dianteira · mm'),
-        0,
-        150,
-      ],
-      ['bleed', bw('Sangrado · mm', 'Bleed · mm', 'Sangria · mm'), 0, 10],
-      ['safe', bw('Seguridad · mm', 'Safe area · mm', 'Segurança · mm'), 3, 20],
-    ]
+        ['spine', bw('Lomo · mm', 'Spine · mm', 'Lombada · mm'), 0, 100],
+        ['leftFlap', bw('Solapa trasera · mm', 'Back flap · mm', 'Orelha traseira · mm'), 0, 150],
+        [
+          'rightFlap',
+          bw('Solapa delantera · mm', 'Front flap · mm', 'Orelha dianteira · mm'),
+          0,
+          150,
+        ],
+        ['bleed', bw('Sangrado · mm', 'Bleed · mm', 'Sangria · mm'), 0, 10],
+        ['safe', bw('Seguridad · mm', 'Safe area · mm', 'Segurança · mm'), 3, 20],
+      ] as [string, string, number, number][]
+    )
       .map(
         ([key, label, min, max]) =>
-          `<label>${label}<input data-cover-size="${key}" type="number" min="${min}" max="${max}" step="0.5" value="${coverDraft[key]}"></label>`,
+          `<label>${label}<input data-cover-size="${key}" type="number" min="${min}" max="${max}" step="0.5" value="${coverDraft![key]}"></label>`,
       )
       .join(
         '',
-      )}<label>${bw('Fondo', 'Background', 'Fundo')}<input id="coverBackground" type="color" value="${coverDraft.background}"></label></div><p class="help">${bw('Las guías no se exportan. El sangrado extiende el fondo; las imágenes deben cubrirlo si llegan al corte. La cubierta se exporta aparte del interior, en una sola pieza.', 'Guides are not exported. Bleed extends the background; images must cover it if they reach the trim. Export the cover separately as one spread.', 'Guias não são exportadas. A sangria estende o fundo; imagens devem cobri-la se chegam ao corte. A capa é exportada separada do miolo, em uma peça.')}</p></div>`,
+      )}<label>${bw('Fondo', 'Background', 'Fundo')}<input id="coverBackground" type="color" value="${coverDraft!.background}"></label></div><p class="help">${bw('Las guías no se exportan. El sangrado extiende el fondo; las imágenes deben cubrirlo si llegan al corte. La cubierta se exporta aparte del interior, en una sola pieza.', 'Guides are not exported. Bleed extends the background; images must cover it if they reach the trim. Export the cover separately as one spread.', 'Guias não são exportadas. A sangria estende o fundo; imagens devem cobri-la se chegam ao corte. A capa é exportada separada do miolo, em uma peça.')}</p></div>`,
     () => {
-      validateCover(coverDraft);
+      validateCover(coverDraft!);
       commit(() => (book.cover = M.clone(coverDraft)), false);
     },
     bw('Guardar cubierta', 'Save cover', 'Salvar capa'),
@@ -423,21 +521,21 @@ function coverEditor() {
       (el.onchange = () => {
         const n = Number(el.value);
         if (!Number.isFinite(n) || n < Number(el.min) || n > Number(el.max)) {
-          el.value = coverDraft[el.dataset.coverSize];
+          el.value = coverDraft![el.dataset.coverSize!];
           return;
         }
-        coverDraft[el.dataset.coverSize] = n;
+        coverDraft![el.dataset.coverSize!] = n;
         updateCoverPreview();
       }),
   );
-  $('#coverBackground').oninput = (e) => {
-    coverDraft.background = e.target.value;
+  $('#coverBackground').oninput = (e: Event) => {
+    coverDraft!.background = (e.target as HTMLInputElement).value;
     updateCoverPreview();
   };
   $$('[data-cover-edit]').forEach(
     (b) =>
       (b.onclick = () => {
-        coverPart = b.dataset.coverEdit;
+        coverPart = b.dataset.coverEdit!;
         updateCoverPreview();
       }),
   );
@@ -448,14 +546,20 @@ function coverEditor() {
     ['coverY', 'y'],
     ['coverAlign', 'align'],
   ])
-    $('#' + id).onchange = (e) => {
-      const v = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
+    // Campos de texto, número, color y selector: se leen como un <input>.
+    $('#' + id).onchange = (e: Event) => {
+      const v =
+        (e.target as HTMLInputElement).type === 'number'
+          ? Number((e.target as HTMLInputElement).value)
+          : (e.target as HTMLInputElement).value;
       if (
-        e.target.type === 'number' &&
-        (!Number.isFinite(v) || v < Number(e.target.min) || v > Number(e.target.max))
+        (e.target as HTMLInputElement).type === 'number' &&
+        (!Number.isFinite(v) ||
+          (v as number) < Number((e.target as HTMLInputElement).min) ||
+          (v as number) > Number((e.target as HTMLInputElement).max))
       )
         return;
-      coverDraft.parts[coverPart][key] = v;
+      coverDraft!.parts[coverPart][key] = v;
       updateCoverPreview();
     };
   $('#coverImage').onclick = () => {
@@ -463,7 +567,7 @@ function coverEditor() {
     input.type = 'file';
     input.accept = 'image/png,image/jpeg,image/webp';
     input.onchange = () => {
-      const file = input.files[0];
+      const file = input.files![0];
       if (!file) return;
       if (file.size > 12000000) {
         toast(
@@ -474,7 +578,7 @@ function coverEditor() {
       }
       const r = new FileReader();
       r.onload = () => {
-        coverDraft.parts[coverPart].image = r.result;
+        coverDraft!.parts[coverPart].image = r.result as string;
         updateCoverPreview();
       };
       r.readAsDataURL(file);
@@ -482,28 +586,28 @@ function coverEditor() {
     input.click();
   };
   $('#coverRemoveImage').onclick = () => {
-    delete coverDraft.parts[coverPart].image;
+    delete coverDraft!.parts[coverPart].image;
     updateCoverPreview();
   };
   $('#coverExport').onclick = () => {
     try {
-      validateCover(coverDraft);
+      validateCover(coverDraft!);
       commit(() => (book.cover = M.clone(coverDraft)), false);
       $('#modal').close();
       setTimeout(coverOutputDialog, 30);
     } catch (e) {
-      toast(e.message, 'error');
+      toast((e as Error).message, 'error');
     }
   };
   requestAnimationFrame(updateCoverPreview);
-}
-function coverOutputDialog() {
+};
+globalThis.coverOutputDialog = function (): void {
   return coverSheetDialog('pdf');
-}
+};
 extend.instead(
   'prepareOutput',
-  (config) => config.kind === 'cover',
-  function (config) {
+  (config: { kind?: string; crop?: boolean }) => config.kind === 'cover',
+  function (config: { kind?: string; crop?: boolean }) {
     const c = validateCover(book.cover),
       g = coverGeometry(c),
       pad = coverExtension(c) + (config.crop ? 7 : 0),
@@ -539,13 +643,13 @@ extend.after(
     b.textContent = bw('Cubierta', 'Cover', 'Capa');
     b.onclick = coverEditor;
     $('#structureBook').after(b);
-    coverButton.querySelector('span').textContent = bw('Cubierta', 'Cover', 'Capa');
+    coverButton.querySelector('span')!.textContent = bw('Cubierta', 'Cover', 'Capa');
   },
   'publications',
 );
 renderBookRoute();
 
-function coverOverflow(c) {
+globalThis.coverOverflow = function (c: CoverDesign): boolean {
   const art = coverArtwork(c, 96 / 25.4, false);
   Object.assign(art.style, { position: 'fixed', left: '-10000px', top: '0', visibility: 'hidden' });
   document.body.append(art);
@@ -556,4 +660,4 @@ function coverOverflow(c) {
   } finally {
     art.remove();
   }
-}
+};

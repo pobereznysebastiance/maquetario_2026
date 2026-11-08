@@ -7,7 +7,7 @@
 //
 // Fuente TypeScript: se compila a build/editorial-learning.js (desktop/scripts/build.mjs).
 'use strict';
-import type { CoverDesign } from './cover-measurements.ts';
+import type { CoverDesign } from './publications.ts';
 
 /** Texto en castellano, inglés y portugués. */
 type Words = [string, string, string];

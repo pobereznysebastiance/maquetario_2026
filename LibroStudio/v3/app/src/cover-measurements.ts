@@ -7,38 +7,7 @@
 //
 // Fuente TypeScript: se compila a build/cover-measurements.js (desktop/scripts/build.mjs).
 
-/** Una zona de la cubierta (texto, tipografía e imagen). La define publications.js, todavía en JS. */
-export interface CoverDesignPart {
-  text: string;
-  size: number;
-  color: string;
-  y: number;
-  align: 'left' | 'center' | 'right' | string;
-  image?: string;
-  imageFit?: 'cover' | 'contain' | string;
-  [extra: string]: any;
-}
-
-/** Cubierta del libro (book.cover y coverDraft). La define publications.js, todavía en JS. */
-export interface CoverDesign {
-  spine: number;
-  leftFlap: number;
-  rightFlap: number;
-  bleed: number;
-  wrap?: number;
-  safe: number;
-  background: string;
-  /** backFlap, back, spine, front, frontFlap. */
-  parts: Record<string, CoverDesignPart>;
-  [extra: string]: any;
-}
-
-/** Zona del desplegado: posición y ancho en mm (coverGeometry de publications.js). */
-export interface CoverGeometryPart {
-  id: string;
-  x: number;
-  w: number;
-}
+import type { CoverDesign, CoverGeometryPart } from './publications.ts';
 
 export interface CoverMeasurementRow extends CoverGeometryPart {
   height: number;

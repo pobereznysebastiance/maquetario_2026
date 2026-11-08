@@ -3,8 +3,6 @@
 // definiciones reales. Cuando un archivo pasa a src/, sus globales salen de acá.
 import type { Book, BookObject, LibroModelApi } from './model.ts';
 import type { NovelSample } from './novel-sample.ts';
-import type { CoverDesign, CoverGeometryPart } from './cover-measurements.ts';
-import type { CanvasAnchor } from './continuous-canvas.ts';
 
 declare global {
   // ── studio.js ──
@@ -82,24 +80,6 @@ declare global {
   function settingsNew(isNew?: boolean): void;
   function download(blob: Blob, name: string): void;
 
-  // ── publications.js: cubierta ──
-  var coverDraft: CoverDesign | null;
-  /** Zona de la cubierta elegida en el editor (backFlap, back, spine, front, frontFlap). */
-  var coverPart: string;
-  function defaultCover(): CoverDesign;
-  /** Nombre de cada zona de la cubierta en el idioma actual. */
-  function coverNames(): Record<string, string>;
-  /** Sangrado más demasía, en mm. */
-  function coverExtension(c: CoverDesign): number;
-  function coverGeometry(c: CoverDesign): {
-    parts: CoverGeometryPart[];
-    width: number;
-    height: number;
-  };
-  function updateCoverPreview(): void;
-  function coverEditor(): void;
-  function coverOutputDialog(): void;
-
   function bookBuilder(sample?: boolean): void;
 
   // ── studio.js ──
@@ -108,9 +88,6 @@ declare global {
   /** Valida el contenido de un proyecto y lo carga como libro actual. */
   function loadProject(content: string): void;
   function clearPrint(): void;
-
-  /** Lanza un error legible si la cubierta tiene medidas fuera de rango. */
-  function validateCover(c: Record<string, any>): void;
 
   // ── print-proof.js ──
 
@@ -158,8 +135,8 @@ declare global {
     y: number;
     w: number;
     h: number;
-    /** false: mover; true o una dirección (nw, n, ne…): redimensionar. */
-    resize: boolean | string;
+    /** false: mover; una dirección (nw, n, ne…): redimensionar (objectDown convierte true en "se"). */
+    resize: string | false;
     moved: boolean;
   }
 
@@ -208,11 +185,8 @@ declare global {
   // ── project-package.js ──
 
   // ── layout-tools.js ──
-  function updateSnapButton(): void;
 
   // ── output.js ──
-
-  function coverOverflow(c: any): boolean;
 
   // ── welcome.js ──
   /** Pantalla de bienvenida (#welcomeScreen). */
@@ -233,6 +207,10 @@ declare global {
   function get(path: string): any;
 
   // ── editorial-learning.js ──
+
+  // ── output.js ──
+
+  // ── print-proof.js ──
 }
 
 export {};
