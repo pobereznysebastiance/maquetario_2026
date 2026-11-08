@@ -111,3 +111,23 @@
     padding-inline: var(--space-sm);
   }
 }
+
+/* Marca: subtítulo y etiqueta de versión. */
+.brand small {
+  color: var(--text-secondary);
+}
+.beta {
+  border-color: var(--status-warning-line);
+  color: var(--text-mark);
+}
+/* Canto superior del vidrio de la barra. */
+.topbar::before {
+  content: '';
+  position: absolute;
+  top: var(--border-width);
+  right: var(--space-xl);
+  left: var(--space-xl);
+  height: var(--border-width);
+  background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
+  pointer-events: none;
+}

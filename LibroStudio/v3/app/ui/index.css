@@ -64,5 +64,7 @@
 @import url('organisms/page-strip.css') layer(organisms);
 @import url('organisms/statusbar.css') layer(organisms);
 @import url('organisms/template-panel.css') layer(organisms);
+@import url('organisms/book-route.css') layer(organisms);
+@import url('organisms/structure.css') layer(organisms);
 @import url('templates/window.css') layer(templates);
 @import url('templates/workspace.css') layer(templates);

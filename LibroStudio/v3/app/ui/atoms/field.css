@@ -95,3 +95,23 @@ select option:checked {
 select option::checkmark {
   color: var(--accent);
 }
+
+/* Campos fuera de los paneles (bienvenida, diálogos sueltos): mismo hundido y texto. */
+input:not([type='range'], [type='checkbox'], [type='radio'], [type='file'], [type='color']),
+select,
+textarea {
+  border-color: var(--line-default);
+  background: var(--surface-field);
+  color: var(--text-primary);
+}
+:is(input:not([type='range'], [type='checkbox'], [type='radio'], [type='file'], [type='color']), select, textarea):focus {
+  border-color: var(--accent-hover);
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--surface-selected);
+}
+select option {
+  background: var(--material-sheet);
+}
+/* Interruptor encendido: dorado de la marca, liso. */
+.switch input:checked + span {
+  background: var(--text-mark);
+}

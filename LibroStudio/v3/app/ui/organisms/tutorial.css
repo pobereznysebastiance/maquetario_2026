@@ -49,3 +49,8 @@
 .tutorial-action {
   color: var(--text-accent);
 }
+
+/* Elemento señalado por el paso del tutorial. */
+.tour-target {
+  outline-color: var(--focus-ring);
+}

@@ -28,3 +28,8 @@
 .template.active {
   color: var(--text-primary);
 }
+
+.page-priority .template-panel {
+  border-color: var(--line-default);
+  backdrop-filter: var(--material-blur-bar);
+}

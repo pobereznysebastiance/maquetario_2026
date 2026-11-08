@@ -58,3 +58,105 @@
 .binding-estimate summary {
   color: var(--text-accent);
 }
+
+/* Salida: destino y caras de la revisión. */
+.export-choice {
+  border-color: var(--line-default);
+  background: var(--surface-control);
+}
+.export-choice .icon {
+  color: var(--text-mark);
+}
+#reviewFaces button {
+  border-color: var(--line-default);
+  background: var(--surface-selected);
+}
+.cover-tabs button:hover {
+  border-color: var(--accent);
+}
+
+/* Glifos de la tipografía. */
+.glyph-grid button {
+  border-color: var(--line-default);
+  background: var(--surface-control);
+}
+.glyph-grid button:hover {
+  background: var(--accent);
+  color: var(--text-on-accent);
+}
+
+/* Armador de libros (manuscrito → partes). */
+.book-builder {
+  width: min(48rem, 94vw);
+}
+.builder-intro {
+  margin: 0 0 var(--space-lg);
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  line-height: var(--leading-text);
+}
+.builder-steps {
+  display: flex;
+  gap: var(--space-sm);
+  margin: 0 0 var(--space-lg);
+  color: var(--text-mark);
+  font-size: var(--type-xs);
+}
+.builder-steps span {
+  padding: var(--space-2xs) var(--space-sm);
+  border: var(--border-width) solid var(--status-warning-line);
+  border-radius: var(--radius-lg);
+}
+.builder-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3xs) var(--space-xl);
+  margin: var(--space-sm) 0;
+}
+.builder-parts .check-line {
+  margin: var(--space-2xs) 0;
+}
+.builder-source {
+  width: 100%;
+  height: 12rem;
+  resize: vertical;
+  line-height: var(--leading-text);
+}
+.builder-label {
+  display: block;
+  margin: var(--space-lg) 0 var(--space-xs);
+  font-size: var(--type-xs);
+}
+.builder-short {
+  width: 100%;
+  height: 3.5rem;
+}
+
+/* Elegir figura. */
+.shape-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+.shape-choice {
+  padding: var(--space-xl);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-control);
+  color: var(--text-primary);
+  text-align: center;
+}
+.shape-choice:hover {
+  border-color: var(--accent-hover);
+  background: var(--surface-selected);
+}
+.shape-choice > div {
+  position: relative;
+  max-width: 9.5rem;
+  height: 5.5rem;
+  margin: auto auto var(--space-lg);
+}
+.shape-choice strong {
+  font-size: var(--type-md);
+  font-weight: var(--weight-medium);
+}

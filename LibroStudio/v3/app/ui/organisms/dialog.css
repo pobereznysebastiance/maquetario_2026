@@ -90,3 +90,11 @@ dialog .modal-actions {
   gap: var(--space-sm);
   margin-top: var(--space-lg);
 }
+
+.modal-header,
+.modal-actions {
+  border-color: var(--line-subtle);
+}
+.eyebrow {
+  color: var(--text-mark);
+}

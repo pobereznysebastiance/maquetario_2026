@@ -77,3 +77,7 @@
   height: var(--border-width);
   background: var(--line-subtle);
 }
+
+.tools {
+  border-color: var(--line-subtle);
+}

@@ -37,23 +37,34 @@ Sigue (etapa 2 de `arquitectura.md`): sacar del build de producción las pruebas
 
 ## 2. Vaciar la capa legacy
 
-`npm run lint:design` informa la deuda: 811 colores (eran 965), 137 anchos fijos, 63 `!important`, 111 estilos desde JS. Criterio: cuando una pieza ya está en su organismo de `ui/`, borrar sus reglas de las hojas viejas.
+`npm run lint:design` informa la deuda: **556 colores** (eran 965), 111 anchos fijos (eran 137), 62 `!important`, 111 estilos desde JS. Legacy: 75,8 KB (eran 98,9). Criterio: cuando una pieza ya está en su organismo de `ui/`, borrar sus reglas de las hojas viejas.
 
-**Método** (probado con `glass.css` y `crystal.css`):
+### Método
 
-1. Servir la interfaz (`node scripts/serve-ui.cjs LibroStudio/v3/app 5179`), pegar `scripts/legacy-probe.js` en la consola y correr `legacyProbe('estado')` en cada estado: bienvenida, sin documento, cada pestaña, con selección, multiselección, diálogos, tutorial, pantalla angosta.
-2. `legacyReport()` separa las reglas en muertas, efectivas, `:hover`/`:focus` sin cubrir y sin probar. Borrar las muertas con `node scripts/prune-css.cjs`.
-3. Guardar las capturas de la autoprueba antes, correr `npm run self-test` y compararlas con `npx electron scripts/compare-captures.cjs <antes> <después> <salida>` (`UMBRAL=4` para lo fino). Lo que la sonda no visitó aparece ahí: devolver esas reglas y repetir hasta que la diferencia máxima sea 1/255 (ruido del renderizado).
+1. Servir la interfaz (`node scripts/serve-ui.cjs LibroStudio/v3/app 5179`, o la configuración `interfaz` del panel de navegador), cargar `scripts/legacy-probe.js` con `window.LEGACY_FILES = [...]` y recorrer los estados: bienvenida, sin documento, cada pestaña, con selección, multiselección, cambios sin guardar, vista continua, diálogos, tutorial, pantalla angosta.
+2. `legacyProbe('estado')` en cada uno; `legacyReport()` da las candidatas a muertas.
+3. `legacyConfirm('estado', candidatas)` en cada estado: borra de a una sin reponer, así los duplicados entre hojas no pasan como muertos. Lo que devuelve el último estado se borra con `node scripts/prune-css.cjs LibroStudio/v3/app lista.json` (antes, `--contar` tiene que coincidir con el CSSOM).
+4. Para migrar una pieza: `legacyProps('estado')` dice qué declaración exacta de cada regla sigue pesando; sólo esas pasan a `ui/`, con tokens.
+5. Guardar las capturas de la autoprueba antes, correr `npm run self-test` y comparar con `npx electron scripts/compare-captures.cjs <antes> <después> <salida>` (`UMBRAL=4` para lo fino). PDF y JSON de verificación tienen que salir idénticos.
 
-**Hecho:** 70 reglas muertas borradas de `glass.css` (145 → 93) y `crystal.css` (47 → 29). Capturas idénticas.
+**Lo que la sonda no ve** (y la autoprueba sí encontró): el estado real de la barra superior en Electron (controles de ventana), elementos dentro de algo oculto (sus estilos cambian pero no se ven), anchos de barra de desplazamiento, y propiedades cortas con `var()` en `ui/` (el CSSOM deja vacías las largas). `prune-css.cjs` nunca borra `html`, `body`, `:root`, `*`, `@font-face`, `@media`, impresión ni `::-webkit-*`.
 
-**Queda en esas dos hojas** (122 reglas): unas 80 efectivas que corresponden a piezas sin organismo en `ui/`, y unas 30 sin probar.
+Cuidado al migrar una regla de varios selectores: la sonda la marca efectiva si pesa en uno solo. Pasar los demás a una capa de `ui/` les gana a otros organismos (pasó con `.tool#indexTool`). Portar selector por selector.
 
-- Piezas sin organismo: bienvenida con la escultura de páginas; ruta del libro (`book-route`); estructura (`structure-item`, `structure-summary`); marca y etiqueta de página activa; selección y multiselección de objetos; filas de capas; índice (`toc-entry`); armador de libros (`builder-*`); controles de figuras; interruptor; botones de alineación activos; aviso flotante (`#toast`).
-- `:hover`/`:focus` que `ui/` no fija: `.btn`, `.btn.primary`, foco de campos, `.tool`, `.tool-action`, botones de la ruta y de las solapas de cubierta. Van a `atoms/button.css` y `atoms/field.css`.
-- Sin probar (sus elementos no aparecieron en la sonda): figuras dibujadas, imán, preflight, armador, recientes.
+### Hecho
 
-Siguiente: crear los organismos que faltan, revisados con impeccable, y borrar sus reglas de legacy. Después, el mismo método con las otras 21 hojas.
+- `glass.css` (145 → 11 reglas) y `crystal.css` (47 → 9): queda sólo lo que dibuja el libro en el editor (papel, selección, página activa, imán, figuras, sombra del pliego), la impresión y el aviso flotante.
+- Organismos nuevos: `organisms/book-route.css` (ruta del libro y barra del documento) y `organisms/structure.css` (estructura y revisión previa). Lo demás se sumó a barra superior, herramientas, inspector (alineación, capas, índice, color de figura), campos, interruptor, diálogos (salida, glifos, armador, figuras), bienvenida, tutorial y ventana.
+- Barrido de reglas muertas en las otras 21 hojas: 158 reglas menos.
+- Cambios visuales buscados: colores de tokens (dorado `--text-mark`, verde agua `--accent`, superficies `--surface-*`), alineación activa con contorno verde agua en lugar de relleno lleno, interruptor dorado liso (sin degradé), estructura un poco más compacta.
+
+### Queda
+
+- `#toast` en `glass.css`: `molecules/status.css` ya lo define, pero quitar la regla vieja cambió el aviso en una captura; entender por qué antes de borrarla.
+- Reglas de la barra superior y de la barra del documento en `editorial.css`, `maquetario.css`, `output.css` y `readability.css`: migrarlas cuando se revise `organisms/topbar.css`, probando en Electron (la sonda no ve los controles de ventana).
+- Las otras 21 hojas tienen unas 450 reglas efectivas: migrarlas por pieza con el mismo método (`legacyProps`), empezando por `readability.css` (117 reglas) y `studio.css` (185).
+- La bienvenida crea una "escultura" que siempre queda oculta (`book-workflow.js`, `.welcome-sculpture`): sacar ese código y la regla que la oculta.
+- `.eyebrow` (texto chico sobre un título) va contra las reglas de diseño: revisar dónde aparece y sacarlo.
 
 ## 3. Experiencia de uso
 

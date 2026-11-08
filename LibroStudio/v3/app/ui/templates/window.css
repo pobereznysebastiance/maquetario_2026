@@ -34,3 +34,10 @@
 .workarea {
   background: var(--ambient-canvas);
 }
+
+/* Paneles: el contenido no se sale de sus esquinas redondeadas. */
+.leftpanel,
+.inspector,
+.center {
+  overflow: hidden;
+}

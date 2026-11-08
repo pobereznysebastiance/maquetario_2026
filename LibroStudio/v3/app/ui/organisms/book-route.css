@@ -1,0 +1,48 @@
+/* Organismo: ruta del libro y barra del documento.
+   La ruta (Manuscrito → Páginas → … → Salida) va arriba del lienzo; la barra del documento
+   muestra la página activa y el estado de guardado. Material de barra, sin vidrio extra. */
+.book-route {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: var(--space-xs) var(--space-md);
+  border-bottom: var(--border-width) solid var(--line-subtle);
+  background: var(--material-bar);
+}
+.book-route button {
+  padding: var(--space-2xs) var(--space-sm);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+.book-route button:hover {
+  background: var(--surface-control);
+  color: var(--text-mark);
+}
+.book-route .route-spacer {
+  flex: 1;
+}
+.book-route strong {
+  color: var(--text-mark);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
+}
+/* Sin documento sólo se puede empezar (primer paso). */
+.no-document .book-route button:not(:first-child) {
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+}
+
+.page-priority .documentbar {
+  border-color: var(--line-subtle);
+  background: var(--material-bar);
+}
+#activePageStatus {
+  color: var(--text-mark);
+}

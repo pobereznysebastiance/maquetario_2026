@@ -1,0 +1,62 @@
+/* Organismo: estructura del libro (pestaña Libro) y revisión previa (preflight).
+   Cada parte del libro es una fila; la actual se marca con el dorado de la marca. */
+.structure-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  margin: var(--space-xs) 0;
+  padding: var(--space-sm);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+}
+.structure-item.current {
+  border-color: var(--status-warning-line);
+  background: var(--status-warning-surface);
+}
+/* Número de página de inicio. */
+.structure-item small {
+  min-width: 2.5ch;
+  color: var(--text-mark);
+  font-variant-numeric: tabular-nums;
+}
+/* Cantidad de páginas, a la derecha. */
+.structure-item em {
+  margin-left: auto;
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+.structure-summary {
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  line-height: var(--leading-text);
+}
+
+.preflight-item {
+  margin: var(--space-sm) 0;
+  padding: var(--space-sm) var(--space-md);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-lg);
+  font-size: var(--type-sm);
+  line-height: var(--leading-text);
+}
+.preflight-item.warn {
+  border-color: var(--status-warning-line);
+  color: var(--status-warning);
+}
+.preflight-item.ok {
+  color: var(--text-secondary);
+}
+.preflight-link {
+  margin-left: var(--space-sm);
+  border: 0;
+  background: none;
+  color: var(--text-mark);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}

@@ -15,3 +15,14 @@
 .left-bottom .status-dot {
   background: var(--accent);
 }
+
+/* Indicadores de estado del documento. */
+.document-dot,
+.status-dot,
+.saved i {
+  background: var(--text-mark);
+}
+.page-priority :is(.statusbar, .left-bottom, .inspector-foot) {
+  border-color: var(--line-subtle);
+  background: var(--material-bar);
+}

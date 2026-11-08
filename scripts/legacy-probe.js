@@ -139,5 +139,30 @@
     window.__legacyNeeded = (window.__legacyNeeded || []).concat(needed.map((k) => k + ' (' + label + ')'));
     return keys.filter((k) => !needed.includes(k));
   };
+  // Por propiedad: qué declaraciones de cada regla siguen cambiando algo (para portar sólo esas a ui/).
+  // legacyProps('estado') acumula en window.__legacyProps: { 'archivo#i': { selector, props: {prop: valor} } }.
+  window.legacyProps = (label = '') => {
+    const found = sheets(), out = (window.__legacyProps ??= {});
+    for (const file of FILES) for (let i = 0; i < found[file].cssRules.length; i++) {
+      const rule = found[file].cssRules[i];
+      if (!(rule instanceof CSSStyleRule) || new RegExp(DYNAMIC.source).test(rule.selectorText)) continue;
+      const pairs = targets(rule);
+      if (!pairs.length) continue;
+      for (const prop of [...rule.style]) {
+        if (prop.startsWith('--')) continue;
+        const value = rule.style.getPropertyValue(prop), priority = rule.style.getPropertyPriority(prop);
+        const before = snapshot(pairs, [prop]);
+        rule.style.removeProperty(prop);
+        const after = snapshot(pairs, [prop]);
+        rule.style.setProperty(prop, value, priority);
+        if (before.some((v, k) => v !== after[k])) {
+          const entry = (out[file + '#' + i] ??= { selector: rule.selectorText, props: {}, states: [] });
+          entry.props[prop] = value + (priority ? ' !' + priority : '');
+          if (!entry.states.includes(label)) entry.states.push(label);
+        }
+      }
+    }
+    return Object.keys(out).length + ' reglas con propiedades efectivas';
+  };
   return 'sonda lista para ' + FILES.join(', ');
 })();

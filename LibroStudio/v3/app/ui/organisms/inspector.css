@@ -150,3 +150,100 @@
   vertical-align: middle;
   transform: translateY(calc(-1 * var(--space-3xs)));
 }
+
+/* ── Migrado de las capas de vidrio (glass/crystal) ── */
+.section details summary,
+.guide-controls summary {
+  color: var(--text-secondary);
+}
+.field-row > label,
+.sub-label,
+.field-label,
+.check-line {
+  color: var(--text-secondary);
+}
+.section-heading .tiny,
+.selection-chip {
+  border-color: var(--status-info-line);
+  background: var(--surface-selected);
+  color: var(--text-primary);
+}
+.page-priority .inspector-content > .section {
+  margin: var(--space-sm) var(--space-sm) var(--space-md);
+}
+.page-priority .tabs {
+  border-color: var(--line-default);
+}
+.page-priority .tab.active::after {
+  background: var(--accent-hover);
+}
+
+/* Alineación de párrafo y de objetos. */
+.segmented,
+.alignment button,
+.paragraph-align button,
+.object-alignment button {
+  border-color: var(--line-default);
+  background: var(--surface-field);
+}
+.alignment button.active,
+.paragraph-align button.active,
+.segmented button.active {
+  border-color: var(--accent);
+  background: var(--surface-selected-strong);
+  color: var(--text-primary);
+}
+.object-alignment button:hover {
+  border-color: var(--text-mark);
+}
+
+/* Capas. */
+.layer-row {
+  border-color: var(--line-default);
+  background: var(--surface-control);
+}
+.layer-row.active {
+  border-color: var(--status-warning-line);
+  background: var(--status-warning-surface);
+}
+.layer-row.drop-target {
+  border-color: var(--text-mark);
+}
+.layer-row .icon-btn:hover {
+  color: var(--text-mark);
+}
+
+/* Índice. */
+.toc-entry {
+  border-color: var(--line-default);
+  background: var(--surface-field);
+}
+.toc-entry strong,
+.toc-entry .btn {
+  color: var(--text-mark);
+}
+.active-page-notice strong {
+  color: var(--text-mark);
+}
+
+/* Color de figura. */
+.shape-color-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: var(--space-md) 0;
+  font-size: var(--type-md);
+}
+.shape-color-control > label:first-child {
+  min-width: 7ch;
+}
+.shape-color-control input[type='color'] {
+  width: var(--space-2xl);
+  height: var(--control-md);
+  padding: var(--space-3xs);
+}
+.shape-color-control .check-line {
+  margin: 0;
+  font-size: var(--type-sm);
+}
