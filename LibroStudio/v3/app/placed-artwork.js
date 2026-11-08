@@ -37,7 +37,7 @@ async function placeArtwork(files, page, position) {
   if (publication !== book || canvasUnavailable() || !book.pages.includes(page)) return;
   images.splice(Math.max(0, 300 - page.objects.length));
   if (!images.length) {
-    toast(bw('No se pudo colocar la imagen. Usá PNG, JPG, WebP o SVG de hasta 16 MB y verificá que haya espacio para más objetos.', 'Could not place the image. Use PNG, JPG, WebP or SVG up to 16 MB and check the page object limit.', 'Não foi possível inserir a imagem. Use PNG, JPG, WebP ou SVG de até 16 MB e confira o limite de objetos.'));
+    toast(bw('No se pudo colocar la imagen. Usá PNG, JPG, WebP o SVG de hasta 16 MB y verificá que haya espacio para más objetos.', 'Could not place the image. Use PNG, JPG, WebP or SVG up to 16 MB and check the page object limit.', 'Não foi possível inserir a imagem. Use PNG, JPG, WebP ou SVG de até 16 MB e confira o limite de objetos.'),'error');
     return;
   }
   finishEditing();
@@ -55,7 +55,7 @@ async function placeArtwork(files, page, position) {
     }
     tool = 'select';
   });
-  if (images.length < files.length) toast(bw('Algunas imágenes no se pudieron colocar.', 'Some images could not be placed.', 'Algumas imagens não puderam ser inseridas.'));
+  if (images.length < files.length) toast(bw('Algunas imágenes no se pudieron colocar.', 'Some images could not be placed.', 'Algumas imagens não puderam ser inseridas.'),'warning');
 }
 
 function clearDropTarget() {
@@ -120,5 +120,5 @@ document.addEventListener('paste', async event => {
       }
     } catch { /* Clipboard can be temporarily locked by another application. */ }
   }
-  toast(bw('Para pegar desde Illustrator, activá «Incluir código SVG» en las preferencias del portapapeles y volvé a copiar.', 'To paste from Illustrator, enable “Include SVG Code” in Clipboard Handling and copy again.', 'Para colar do Illustrator, ative “Incluir código SVG” nas preferências da área de transferência e copie novamente.'));
+  toast(bw('Para pegar desde Illustrator, activá «Incluir código SVG» en las preferencias del portapapeles y volvé a copiar.', 'To paste from Illustrator, enable “Include SVG Code” in Clipboard Handling and copy again.', 'Para colar do Illustrator, ative “Incluir código SVG” nas preferências da área de transferência e copie novamente.'),'info');
 });

@@ -61,6 +61,15 @@
     settingRow(o) {
       return `<div class="setting-row"><div class="setting-row-label">${html(o.label)}${o.help ? `<p class="setting-row-help">${html(o.help)}</p>` : ''}</div><div class="setting-row-control">${o.control}</div></div>`;
     },
+
+    /**
+     * Molécula: contenido del aviso del sistema (#toast): ícono de estado y mensaje.
+     * type: 'success' (por defecto) | 'info' | 'warning' | 'error'.
+     */
+    toast(o) {
+      const icons = { success: 'check', info: 'info', warning: 'alert', error: 'error' };
+      return `${icon(icons[o.type] || icons.success)}<span class="toast-message">${html(o.message)}</span>`;
+    },
   };
 
   window.UI = Object.freeze(UI);

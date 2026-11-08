@@ -8,6 +8,6 @@
 .paper-object.multi-selected{outline-color:#DBB16E}
 .snap-indicator.x{border-color:#D6AF72}
 .snap-indicator.y{border-color:#D6AF72}
-#toast{background:#224C4CF5;border-color:#E4B16C77;color:#F4F5EE}
+
 @media print{.book-route{display:none!important}.print-page{background:white!important}}
 .welcome-art>.welcome-sculpture{display:none}

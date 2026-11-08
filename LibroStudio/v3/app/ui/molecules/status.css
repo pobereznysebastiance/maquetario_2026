@@ -73,3 +73,30 @@
   opacity: 1;
   transform: translate(-50%, 0);
 }
+
+/* Contenido: ícono de estado y mensaje (UI.toast). El tipo se lee por el color y el ícono:
+   éxito en verde agua, error y advertencia con su color de estado, información en hoja neutra. */
+#toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-left: var(--space-md);
+}
+#toast .icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+#toast[data-type='error'] {
+  background: var(--status-error);
+}
+#toast[data-type='warning'] {
+  background: var(--status-warning);
+}
+#toast[data-type='info'] {
+  border-color: var(--line-default);
+  background: var(--material-popover);
+  color: var(--text-primary);
+}
+#toast[data-type='info'] .icon {
+  color: var(--status-info);
+}
