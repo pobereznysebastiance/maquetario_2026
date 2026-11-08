@@ -1,0 +1,12 @@
+/* Organismo: explorador de fuentes. La fuente elegida se marca con fondo de selección
+   (antes, una franja dorada a la izquierda). */
+.font-browser-row {
+  border-radius: var(--radius-sm);
+}
+.font-browser-row:hover {
+  background: var(--surface-control);
+}
+.font-browser-row.active {
+  background: var(--surface-selected);
+  box-shadow: none;
+}

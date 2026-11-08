@@ -217,6 +217,27 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   await step('avisos', () => uiSuite('verificacion-avisos.json', 'window.runNoticeTests().catch(e=>({ok:false,error:e.stack}))'));
   await testStep('paquete del proyecto', () => checkPackage(session));
 
+  await testStep('capturas de paneles', async () => {
+    const shots: [string, string, string][] = [
+      ['panel-salida.png', 'window.prepareOutputReviewPreview()', "document.querySelector('#modal').close()"],
+      ['panel-fuentes.png', 'window.prepareFontBrowserPreview()', "document.querySelector('#fontBrowser')?.close()"],
+      ['panel-cubierta.png', 'window.prepareCoverProof()', "document.querySelector('#modal').close()"],
+      ['panel-asistente.png', 'window.prepareAssistantPreview()', "document.querySelector('#modal').close()"],
+      ['panel-tutorial.png', 'window.startTutorial(3)', "document.querySelector('#pauseTutorial')?.click()"],
+      ['panel-glosario.png', 'window.prepareGlossaryPreview()', "document.querySelector('#modal').close()"],
+    ];
+    const done: string[] = [];
+    for (const [file, open, close] of shots) {
+      await exec(session, `Promise.resolve(${open}).then(() => true)`);
+      await delay(700);
+      await capture(file);
+      await exec(session, `try { ${close} } catch {}`);
+      await delay(150);
+      done.push(file);
+    }
+    return done;
+  });
+
   // Última: abrir "libro nuevo" descarta el libro de prueba.
   await step('captura de libro nuevo', async () => {
     await exec(session, 'settingsNew(true)');

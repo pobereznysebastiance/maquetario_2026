@@ -1,0 +1,98 @@
+/* Organismo: asistente editorial. Herramienta de revisión, no una "experiencia IA":
+   encabezado simple, acción principal en verde agua, hallazgos como filas con un punto de estado. */
+.assistant-hero {
+  display: block;
+  margin-bottom: var(--space-xl);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.assistant-hero h2 {
+  margin: 0 0 var(--space-2xs);
+  color: var(--text-primary);
+  font-size: var(--type-title2);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-title);
+}
+.assistant-hero p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-callout);
+}
+
+.assistant-workspace h3 {
+  color: var(--text-primary);
+  font-size: var(--type-headline);
+  font-weight: var(--weight-semibold);
+}
+
+/* Revisión automática: la acción principal de la columna. */
+.btn.assistant-run {
+  width: 100%;
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--text-on-accent);
+}
+.btn.assistant-run:hover:not(:disabled) {
+  background: var(--accent-hover);
+  color: var(--text-on-accent);
+}
+
+/* Hallazgo: fila con borde fino; el estado lo dice el punto de color. */
+.assistant-finding {
+  padding: var(--space-md) var(--space-lg);
+  border: var(--border-width) solid var(--line-subtle);
+  border-radius: var(--radius-md);
+  background: transparent;
+  box-shadow: none;
+}
+.assistant-finding + .assistant-finding {
+  margin-top: var(--space-sm);
+}
+.assistant-finding-heading {
+  gap: var(--space-sm);
+}
+.assistant-finding-heading h3 {
+  margin: 0;
+  font-size: var(--type-headline);
+}
+.assistant-finding-heading small {
+  margin-left: auto;
+  color: var(--text-tertiary);
+  font-size: var(--type-footnote);
+}
+.assistant-status {
+  width: var(--space-sm);
+  height: var(--space-sm);
+  border-radius: var(--radius-pill);
+  background: var(--status-info);
+  flex-shrink: 0;
+}
+.assistant-finding.error .assistant-status {
+  background: var(--status-error);
+}
+.assistant-finding.warning .assistant-status {
+  background: var(--status-warning);
+}
+
+.assistant-suggestion {
+  padding: var(--space-sm) var(--space-md);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface-control);
+  color: var(--text-secondary);
+  font-size: var(--type-callout);
+  line-height: var(--leading-text);
+}
+
+.assistant-empty {
+  color: var(--text-tertiary);
+}
+
+/* Resumen de la revisión: texto normal, no dorado. */
+#assistantSummary {
+  color: var(--text-primary);
+  font-size: var(--type-title3);
+}
