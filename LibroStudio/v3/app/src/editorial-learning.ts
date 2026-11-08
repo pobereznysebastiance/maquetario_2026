@@ -1,6 +1,44 @@
+// Aprender: glosario editorial (diálogo con búsqueda y categorías), botón "Aprender" en la barra
+// del documento, ayudas "?" junto a los términos del inspector y "Glosario editorial" en la
+// bienvenida. También numera los pasos del recorrido y suma la orientación del lomo a la cubierta.
+//
+// editorialTerms, glossaryMatches, renderGlossary y showGlossary son globales: los usan
+// tests/learning-tests.js y scripts/style-snapshot.js. foldEditorial lo usa font-browser.js.
+//
+// Fuente TypeScript: se compila a build/editorial-learning.js (desktop/scripts/build.mjs).
 'use strict';
+import type { CoverDesign } from './cover-measurements.ts';
+
+/** Texto en castellano, inglés y portugués. */
+type Words = [string, string, string];
+
+export type GlossaryCategory = 'layout' | 'type' | 'production';
+
+/** Término del glosario: id, categoría, nombre, definición, ejemplo y pestaña (o 'cover', 'output') donde se usa. */
+export type EditorialTerm = [
+  id: string,
+  category: GlossaryCategory,
+  name: Words,
+  definition: Words,
+  example: Words,
+  target: string,
+];
+
+declare global {
+  /** Los términos del glosario. */
+  var editorialTerms: EditorialTerm[];
+  /** Texto sin tildes y en minúsculas, para buscar. */
+  var foldEditorial: (s: string) => string;
+  /** Abre el glosario en un término (si no existe, en "grid"). */
+  var showGlossary: (term?: string) => void;
+  /** Términos que coinciden con la búsqueda, en una categoría o en todas ('all'). */
+  var glossaryMatches: (query: string, category: string) => EditorialTerm[];
+  /** Vuelve a dibujar la lista y la definición del glosario abierto. */
+  var renderGlossary: () => void;
+}
+
 // Short original definitions; glossary knowledge does not imply automatic correction features.
-const editorialTerms = [
+const editorialTerms: EditorialTerm[] = [
   [
     'grid',
     'layout',
@@ -386,18 +424,21 @@ const editorialTerms = [
     'index',
   ],
 ];
-const glossaryCategory = {
+globalThis.editorialTerms = editorialTerms;
+const glossaryCategory: Record<GlossaryCategory, Words> = {
   layout: ['Composición', 'Layout', 'Composição'],
   type: ['Tipografía', 'Typography', 'Tipografia'],
   production: ['Producción', 'Production', 'Produção'],
 };
-let glossaryTerm = 'grid';
-const foldEditorial = (s) =>
+/** Término que muestra el glosario abierto. */
+let glossaryTerm: string | undefined = 'grid';
+const foldEditorial = (s: string): string =>
   s
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
-function showGlossary(term = 'grid') {
+globalThis.foldEditorial = foldEditorial;
+function showGlossary(term = 'grid'): void {
   if (!editorialTerms.some((t) => t[0] === term)) term = 'grid';
   glossaryTerm = term;
   modal(
@@ -418,7 +459,8 @@ function showGlossary(term = 'grid') {
   $('#glossaryCategory').onchange = renderGlossary;
   renderGlossary();
 }
-function glossaryMatches(query, category) {
+globalThis.showGlossary = showGlossary;
+function glossaryMatches(query: string, category: string): EditorialTerm[] {
   const q = foldEditorial(query);
   return editorialTerms.filter(
     (t) =>
@@ -426,7 +468,8 @@ function glossaryMatches(query, category) {
       foldEditorial([...t[2], ...t[3]].join(' ')).includes(q),
   );
 }
-function renderGlossary() {
+globalThis.glossaryMatches = glossaryMatches;
+function renderGlossary(): void {
   const matches = glossaryMatches($('#glossarySearch').value, $('#glossaryCategory').value);
   if (!matches.some((t) => t[0] === glossaryTerm)) glossaryTerm = matches[0]?.[0];
   $('#glossaryList').innerHTML = matches.length
@@ -469,12 +512,14 @@ function renderGlossary() {
       }, 30);
     };
 }
+globalThis.renderGlossary = renderGlossary;
 const learnButton = document.createElement('button');
 learnButton.id = 'learnEditorial';
 learnButton.className = 'quiet';
 learnButton.onclick = () => showGlossary();
 $('.documentbar').append(learnButton);
-const termMap = {
+/** Rótulo del inspector → término del glosario. */
+const termMap: Record<string, string> = {
   Grilla: 'grid',
   Medianiles: 'gutter',
   Márgenes: 'margin',
@@ -489,7 +534,7 @@ const termMap = {
   'Sangrado · mm': 'bleed',
   'Lomo · mm': 'spine',
 };
-function decorateGlossaryHints() {
+function decorateGlossaryHints(): void {
   for (const el of $$(
     '#inspectorContent .section-heading>span,#inspectorContent .sub-label,#inspectorContent .field-row>label',
   )) {
@@ -503,7 +548,7 @@ function decorateGlossaryHints() {
     b.setAttribute(
       'aria-label',
       bw('Aprender: ', 'Learn: ', 'Aprender: ') +
-        bw(...editorialTerms.find((t) => t[0] === term)[2]),
+        bw(...editorialTerms.find((t) => t[0] === term)![2]),
     );
     b.onclick = (e) => {
       e.stopPropagation();
@@ -552,7 +597,7 @@ extend.after(
 );
 extend.result(
   'showWelcome',
-  async function (pending) {
+  async function (pending: Promise<void>) {
     await pending;
     if (!$('#welcomeGlossary')) {
       const b = document.createElement('button');
@@ -567,11 +612,11 @@ extend.result(
   },
   'editorial-learning',
 );
-window.showWelcome = showWelcome;
+globalThis.showWelcome = showWelcome;
 // The direction is cover data, so preview, save/open and PDF share the same value.
 extend.result(
   'validateCover',
-  function (_, c) {
+  function (_: unknown, c: CoverDesign) {
     if (c.parts.spine.direction !== undefined && !['down', 'up'].includes(c.parts.spine.direction))
       throw Error(
         bw(
@@ -586,8 +631,8 @@ extend.result(
 );
 extend.result(
   'coverArtwork',
-  function (art, c, px, guides = false, crop = false) {
-    const spine = art.querySelector('[data-cover-part="spine"] .cover-text');
+  function (art: HTMLElement, c: CoverDesign, px: number, guides = false, crop = false) {
+    const spine = art.querySelector<HTMLElement>('[data-cover-part="spine"] .cover-text');
     if (spine)
       spine.style.transform = `translate(-50%,-50%) rotate(${c.parts.spine.direction === 'up' ? -90 : 90}deg)`;
     return art;
@@ -602,9 +647,9 @@ extend.after(
     box.className = 'spine-direction';
     box.innerHTML = `<strong>${bw('Lectura del lomo', 'Spine reading direction', 'Leitura da lombada')}</strong><select id="spineDirection"><option value="down">↓ ${bw('De arriba hacia abajo', 'Top to bottom', 'De cima para baixo')}</option><option value="up">↑ ${bw('De abajo hacia arriba', 'Bottom to top', 'De baixo para cima')}</option></select>`;
     $('.cover-tabs').before(box);
-    $('#spineDirection').value = coverDraft.parts.spine.direction || 'down';
+    $('#spineDirection').value = coverDraft!.parts.spine.direction || 'down';
     $('#spineDirection').onchange = (e) => {
-      coverDraft.parts.spine.direction = e.target.value;
+      coverDraft!.parts.spine.direction = (e.target as HTMLSelectElement).value;
       coverPart = 'spine';
       updateCoverPreview();
     };
