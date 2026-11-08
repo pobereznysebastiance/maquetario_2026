@@ -1,0 +1,51 @@
+/* Organismo: glosario ("Aprender diseño editorial"). Lista con selección en verde agua,
+   categoría como texto auxiliar, ejemplo con tinte suave (sin franja lateral). */
+.glossary-layout nav {
+  border-right: var(--border-width) solid var(--line-subtle);
+}
+.glossary-layout nav button {
+  padding: var(--space-xs) var(--space-sm);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--type-callout);
+}
+.glossary-layout nav button:hover {
+  background: var(--surface-control);
+  color: var(--text-primary);
+}
+.glossary-layout nav button.active {
+  border: 0;
+  background: var(--surface-selected);
+  color: var(--text-primary);
+}
+#glossaryDefinition .eyebrow {
+  color: var(--text-tertiary);
+  font-size: var(--type-footnote);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.glossary-layout article h2 {
+  margin: var(--space-2xs) 0 var(--space-md);
+  color: var(--text-primary);
+  font-size: var(--type-title1);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-large);
+}
+.glossary-layout article p {
+  color: var(--text-secondary);
+  font-size: var(--type-body);
+  line-height: var(--leading-text);
+}
+.glossary-example {
+  margin: var(--space-lg) 0;
+  padding: var(--space-md) var(--space-lg);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--status-info-surface);
+}
+.glossary-example strong {
+  color: var(--text-primary);
+  font-size: var(--type-headline);
+}

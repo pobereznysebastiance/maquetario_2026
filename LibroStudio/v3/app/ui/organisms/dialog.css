@@ -56,7 +56,8 @@ dialog .modal-actions {
   gap: var(--space-sm);
   padding: var(--space-md) var(--space-xl);
   border-top: var(--border-width) solid var(--line-subtle);
-  background: transparent;
+  /* Sólida: la barra queda fija abajo y el contenido se desplaza por debajo. */
+  background: var(--material-sheet);
 }
 
 /* Confirmación: compacta, la pregunta es el título; sin cabecera ni cruz. */

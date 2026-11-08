@@ -1,0 +1,51 @@
+/* Organismo: tarjeta del tutorial guiado. Superficie de la app (no morada), progreso discreto,
+   ejercicio con tinte suave en lugar de franja lateral. */
+.tutorial-card {
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-lg);
+  background: var(--material-popover);
+  backdrop-filter: var(--material-blur-popover);
+  box-shadow: var(--elevation-3);
+  overflow: hidden;
+}
+.tutorial-card-head {
+  padding: var(--space-sm) var(--space-md) var(--space-sm) var(--space-lg);
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: var(--type-footnote);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.tutorial-progress {
+  height: var(--space-3xs);
+  background: var(--line-subtle);
+}
+.tutorial-progress span {
+  background: var(--accent);
+}
+.tutorial-body h2,
+.tutorial-card h2 {
+  color: var(--text-primary);
+  font-size: var(--type-title2);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-title);
+}
+.tutorial-card p {
+  color: var(--text-secondary);
+  font-size: var(--type-callout);
+  line-height: var(--leading-text);
+}
+.tutorial-exercise,
+.tutorial-note {
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--status-info-surface);
+  color: var(--text-secondary);
+}
+.tutorial-exercise strong {
+  color: var(--text-primary);
+}
+.tutorial-action {
+  color: var(--text-accent);
+}
