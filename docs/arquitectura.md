@@ -208,7 +208,7 @@ Criterio de aceptación: autoprueba completa en verde, contador de reemplazos de
 
 1. **Electron con la interfaz actual** ← en curso. Funciona en macOS y Linux además de Windows.
 2. **TypeScript + módulos**: sacar las pruebas del build de producción (hecho: `app/tests/`), formateador (hecho: prettier), terminar con los reemplazos de funciones globales (hecho: `extend`), tipos sobre el JS actual (`checkJs`) y después `.ts` con módulos; migraciones del `.mqt`. Avance en `docs/proximos-pasos.md` → "Etapa 2".
-3. **Interfaz con componentes** (atomic design, React + Radix, tokens de diseño compartidos con Motiova), revisada con impeccable. Dirección visual: "glass" de macOS, sin que parezca un panel genérico de IA.
+3. **Interfaz con componentes** (atomic design, React + Radix, tokens de diseño compartidos con Motiova), revisada con impeccable. Dirección visual: "glass" de macOS, sin que parezca un panel genérico de IA. Decisiones tomadas el 08-nov: `docs/INTERFAZ_08-nov_decisiones-etapa3.md` (Radix sin estilos + CSS propio; inspector en 3 pestañas; tres tipos de diálogo; tokens con los nombres de Motiova).
 4. **Motor de composición propio** (HarfBuzz/WASM, justificación Knuth-Plass) y PDF de imprenta (CMYK, PDF/X, TrimBox/BleedBox exactas).
 
 ## Problemas conocidos
