@@ -11,7 +11,8 @@ rmSync(join(root, 'dist'), { recursive: true, force: true });
 
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 const licenseMode = pkg.maquetario?.licenseMode ?? 'enforce';
-if (!['off', 'warn', 'enforce'].includes(licenseMode)) throw new Error(`licenseMode inválido: ${licenseMode}`);
+if (!['off', 'warn', 'enforce'].includes(licenseMode))
+  throw new Error(`licenseMode inválido: ${licenseMode}`);
 
 // Dónde está Motiova: producción en la app empaquetada; "dev" (Motiova local) en desarrollo.
 const motiova = pkg.maquetario?.motiova;
@@ -32,9 +33,21 @@ const common = {
 };
 
 await Promise.all([
-  build({ ...common, entryPoints: [join(root, 'src/main/main.ts')], outfile: join(root, 'dist/main.cjs') }),
-  build({ ...common, entryPoints: [join(root, 'src/preload/preload.ts')], outfile: join(root, 'dist/preload.cjs') }),
-  build({ ...common, entryPoints: [join(root, 'src/preload/notice-preload.ts')], outfile: join(root, 'dist/notice-preload.cjs') }),
+  build({
+    ...common,
+    entryPoints: [join(root, 'src/main/main.ts')],
+    outfile: join(root, 'dist/main.cjs'),
+  }),
+  build({
+    ...common,
+    entryPoints: [join(root, 'src/preload/preload.ts')],
+    outfile: join(root, 'dist/preload.cjs'),
+  }),
+  build({
+    ...common,
+    entryPoints: [join(root, 'src/preload/notice-preload.ts')],
+    outfile: join(root, 'dist/notice-preload.cjs'),
+  }),
 ]);
 
 // Avisos de sistema: página estática + ilustración del instalador + DM Sans de la interfaz.

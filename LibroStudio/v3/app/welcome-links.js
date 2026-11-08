@@ -23,7 +23,11 @@
     },
     welcomeResume: {
       icon: 'select',
-      text: ['Volvé al libro que tenías abierto.', 'Go back to the book you had open.', 'Volte ao livro que estava aberto.'],
+      text: [
+        'Volvé al libro que tenías abierto.',
+        'Go back to the book you had open.',
+        'Volte ao livro que estava aberto.',
+      ],
     },
     welcomeRecover: {
       icon: 'undo',

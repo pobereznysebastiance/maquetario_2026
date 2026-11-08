@@ -200,7 +200,9 @@ function tablesInMemory(b: Buffer, offset: number): TableMap {
 export async function faceBytes(record: Pick<FontRecord, 'path' | 'offset'>): Promise<Buffer> {
   const b = await readFile(record.path);
   if (tag(b, 0) !== 'ttcf') return b;
-  const tables = [...tablesInMemory(b, record.offset)].sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0));
+  const tables = [...tablesInMemory(b, record.offset)].sort(([x], [y]) =>
+    x < y ? -1 : x > y ? 1 : 0,
+  );
   const count = tables.length;
   let total = 12 + count * 16;
   for (const [, t] of tables) total += (t.length + 3) & ~3;
@@ -258,7 +260,11 @@ export function unicodePoints(b: Buffer): number[] {
     if (entry + 8 > tableEnd) break;
     const platform = b.readUInt16BE(entry);
     const encoding = b.readUInt16BE(entry + 2);
-    if (platform !== 0 && !(platform === 3 && (encoding === 0 || encoding === 1 || encoding === 10))) continue;
+    if (
+      platform !== 0 &&
+      !(platform === 3 && (encoding === 0 || encoding === 1 || encoding === 10))
+    )
+      continue;
     const rel = b.readInt32BE(entry + 4);
     if (rel < 0 || rel > tableEnd - root - 2) continue;
     const start = root + rel;
@@ -288,7 +294,13 @@ export function unicodePoints(b: Buffer): number[] {
         const beg = end + segments * 2 + 2;
         const delta = beg + segments * 2;
         const ranges = delta + segments * 2;
-        if (segments < 1 || segments > 32768 || start + length > tableEnd || ranges + segments * 2 > start + length) continue;
+        if (
+          segments < 1 ||
+          segments > 32768 ||
+          start + length > tableEnd ||
+          ranges + segments * 2 > start + length
+        )
+          continue;
         for (let j = 0; j < segments; j++) {
           const lo = b.readUInt16BE(beg + j * 2);
           const hi = b.readUInt16BE(end + j * 2);

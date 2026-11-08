@@ -30,8 +30,18 @@
   }
 
   document.addEventListener('keydown', (event) => {
-    if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || event.key.toLowerCase() !== 'r') return;
-    if (event.target.closest?.('input, textarea, select, [contenteditable="true"]') || document.querySelector('dialog[open]')) return;
+    if (
+      !(event.ctrlKey || event.metaKey) ||
+      event.shiftKey ||
+      event.altKey ||
+      event.key.toLowerCase() !== 'r'
+    )
+      return;
+    if (
+      event.target.closest?.('input, textarea, select, [contenteditable="true"]') ||
+      document.querySelector('dialog[open]')
+    )
+      return;
     event.preventDefault();
     setVisible(!visible);
   });

@@ -25,14 +25,16 @@
       // Sin almacenamiento: el orden vale hasta cerrar la app.
     }
   };
-  const tabKey = () => (document.querySelector('.inspector .tab.active') || {}).dataset?.tab || 'default';
+  const tabKey = () =>
+    (document.querySelector('.inspector .tab.active') || {}).dataset?.tab || 'default';
   const sectionsOf = () => [...host.children].filter((el) => el.classList.contains('section'));
 
   /** Clave estable (no depende del idioma): clase propia o ícono de la sección, y su número de aparición. */
   function assignKeys(sections) {
     const seen = {};
     for (const section of sections) {
-      const base = [...section.classList].find((c) => c !== 'section') || section.dataset.key || 'section';
+      const base =
+        [...section.classList].find((c) => c !== 'section') || section.dataset.key || 'section';
       seen[base] = (seen[base] || 0) + 1;
       section.dataset.orderKey = `${base}#${seen[base]}`;
     }
@@ -50,7 +52,9 @@
       const i = stored.indexOf(s.dataset.orderKey);
       return i < 0 ? Number.MAX_SAFE_INTEGER : i;
     };
-    const sorted = [...sections].sort((a, b) => rank(a) - rank(b) || sections.indexOf(a) - sections.indexOf(b));
+    const sorted = [...sections].sort(
+      (a, b) => rank(a) - rank(b) || sections.indexOf(a) - sections.indexOf(b),
+    );
     if (sorted.every((s, i) => s === sections[i])) return;
     const marker = document.createComment('orden');
     host.insertBefore(marker, sections[0]);
@@ -70,7 +74,9 @@
 
   let dragging = null;
   const clearIndicators = () =>
-    host.querySelectorAll('.drop-before, .drop-after').forEach((el) => el.classList.remove('drop-before', 'drop-after'));
+    host
+      .querySelectorAll('.drop-before, .drop-after')
+      .forEach((el) => el.classList.remove('drop-before', 'drop-after'));
 
   function addGrip(section) {
     const heading = section.querySelector(':scope > .section-heading');
@@ -115,7 +121,10 @@
     const target = host.querySelector('.drop-before, .drop-after');
     if (!target) return;
     event.preventDefault();
-    host.insertBefore(dragging, target.classList.contains('drop-after') ? target.nextSibling : target);
+    host.insertBefore(
+      dragging,
+      target.classList.contains('drop-after') ? target.nextSibling : target,
+    );
     clearIndicators();
     saveCurrent();
   });
@@ -133,7 +142,9 @@
     const toggle = section.querySelector(':scope > .section-heading > .section-toggle');
     if (toggle) {
       toggle.setAttribute('aria-expanded', String(!collapsed));
-      toggle.title = toggle.ariaLabel = collapsed ? bw('Desplegar', 'Expand', 'Expandir') : bw('Plegar', 'Collapse', 'Recolher');
+      toggle.title = toggle.ariaLabel = collapsed
+        ? bw('Desplegar', 'Expand', 'Expandir')
+        : bw('Plegar', 'Collapse', 'Recolher');
     }
     const all = readCollapsed();
     const keys = new Set(all[tabKey()] || []);
@@ -154,7 +165,9 @@
     toggle.type = 'button';
     toggle.className = 'section-toggle';
     toggle.innerHTML = icon('chevron');
-    toggle.addEventListener('click', () => setCollapsed(section, !section.classList.contains('is-collapsed')));
+    toggle.addEventListener('click', () =>
+      setCollapsed(section, !section.classList.contains('is-collapsed')),
+    );
     heading.append(toggle);
     // Un clic en el nombre de la sección también pliega (no en sus controles: interruptor, ayuda…).
     const title = heading.querySelector(':scope > span:not(.tiny)');
@@ -165,14 +178,17 @@
     const collapsed = collapsedKeys.has(section.dataset.orderKey);
     section.classList.toggle('is-collapsed', collapsed);
     toggle.setAttribute('aria-expanded', String(!collapsed));
-    toggle.title = toggle.ariaLabel = collapsed ? bw('Desplegar', 'Expand', 'Expandir') : bw('Plegar', 'Collapse', 'Recolher');
+    toggle.title = toggle.ariaLabel = collapsed
+      ? bw('Desplegar', 'Expand', 'Expandir')
+      : bw('Plegar', 'Collapse', 'Recolher');
   }
 
   function decorate() {
     const sections = sectionsOf();
     if (!sections.length) return;
     // Ya decoradas (por ejemplo, después de mover una): nada que hacer.
-    if (sections.every((s) => s.querySelector(':scope > .section-heading > .section-toggle'))) return;
+    if (sections.every((s) => s.querySelector(':scope > .section-heading > .section-toggle')))
+      return;
     assignKeys(sections);
     if (sections.length > 1) {
       applyStoredOrder(sections);

@@ -1,5 +1,21 @@
 'use strict';
-function novelSample(){return{title:'El atlas de las casas vacías',author:'Autoría de demostración',dedication:'A quienes vuelven sin saber\nque también los lugares los esperan.',epigraph:'Una casa no termina en sus paredes.\nTermina donde alguien deja de recordarla.\n— Epígrafe original de esta edición',legal:'Maqueta editorial de prueba · 2026\nTexto original de demostración generado para probar Maquetario.\nNo es una edición comercial. No incluye ISBN.\nAutoría, derechos y datos de impresión: completar antes de publicar.',thanks:'A las bibliotecas de barrio, que guardan mucho más que libros.\nA quienes prestan una silla y escuchan antes de preguntar.',colophon:'Esta maqueta se compuso en Maquetario.\nFormato A5 · Georgia 11/15\nPrueba de estructura, estilos, cornisas, índice y salida PDF.\nNoviembre de 2026',toc:true,blanks:true,rule:false,source:`# Prólogo · La llave
+function novelSample() {
+  return {
+    title: 'El atlas de las casas vacías',
+    author: 'Autoría de demostración',
+    dedication: 'A quienes vuelven sin saber\nque también los lugares los esperan.',
+    epigraph:
+      'Una casa no termina en sus paredes.\nTermina donde alguien deja de recordarla.\n— Epígrafe original de esta edición',
+    legal:
+      'Maqueta editorial de prueba · 2026\nTexto original de demostración generado para probar Maquetario.\nNo es una edición comercial. No incluye ISBN.\nAutoría, derechos y datos de impresión: completar antes de publicar.',
+    thanks:
+      'A las bibliotecas de barrio, que guardan mucho más que libros.\nA quienes prestan una silla y escuchan antes de preguntar.',
+    colophon:
+      'Esta maqueta se compuso en Maquetario.\nFormato A5 · Georgia 11/15\nPrueba de estructura, estilos, cornisas, índice y salida PDF.\nNoviembre de 2026',
+    toc: true,
+    blanks: true,
+    rule: false,
+    source: `# Prólogo · La llave
 La llave llegó en un sobre sin remitente. Era pequeña, de hierro oscuro, y llevaba atado un cartón con una dirección que Clara reconoció antes de terminar de leerla. La casa de su padre seguía existiendo. Durante doce años había preferido pensar que el río se la había llevado.
 Dejó el sobre junto a la taza. Desde la ventana de su departamento podía ver otras ventanas: cientos de rectángulos encendidos donde la gente cenaba, discutía, buscaba algo en un cajón. Ninguno le dijo qué hacer con aquella llave. A la mañana siguiente compró un pasaje.
 No llevaba una valija grande. Solo ropa para tres días y el cuaderno en el que anotaba los nombres de las calles que iban desapareciendo de los mapas. Trabajaba corrigiendo planos municipales. Sabía que borrar una línea era fácil. Averiguar quién había vivido detrás de ella llevaba mucho más tiempo.
@@ -64,4 +80,6 @@ Meses más tarde llegó la primera respuesta. El municipio suspendía ese tramo 
 Clara guardó la resolución en el atlas. Había vuelto a su trabajo y ahora tardaba un poco más en corregir ciertos planos. Cuando encontraba una superficie gris, preguntaba de dónde venía el dato. A veces la respuesta era suficiente. Otras veces pedía una segunda visita.
 La casa de la orilla ya tenía un techo reparado. En su antiguo cuarto había una mesa, una lámpara y estantes sin terminar. La llave seguía siendo la misma. Clara dejó una copia en la panadería y otra con Julián.
 Una tarde abrió todas las ventanas antes de ponerse a dibujar. Del otro lado llegaban una radio, el golpe de una pelota y el ruido del agua contra el terraplén. No eran pruebas de que el mundo estuviera a salvo. Eran señales de que todavía estaba habitado.
-Apoyó el lápiz sobre una hoja nueva. Esta vez empezó por las puertas.`};}
+Apoyó el lápiz sobre una hoja nueva. Esta vez empezó por las puertas.`,
+  };
+}

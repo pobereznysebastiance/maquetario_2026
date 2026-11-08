@@ -1,7 +1,7 @@
 'use strict';
 
 function loadOpenedProject(result) {
-  M.validate(JSON.parse(result.content.replace(/^\uFEFF/,'')));
+  M.validate(JSON.parse(result.content.replace(/^\uFEFF/, '')));
   portableFontFaces = result.packageFaces || [];
   updatePortableFontCatalog();
   loadProject(result.content);
@@ -9,73 +9,102 @@ function loadOpenedProject(result) {
 
 function packageFontUsage() {
   const usage = new Map();
-  const include = format => {
+  const include = (format) => {
     if (!format?.font) return;
     const face = selectedFace(format);
-    const id = face?.id || 'missing:'+format.font+' '+(format.fontStyleName||'');
-    usage.set(id,format.font+(face?.style ? ' · '+face.style : ''));
+    const id = face?.id || 'missing:' + format.font + ' ' + (format.fontStyleName || '');
+    usage.set(id, format.font + (face?.style ? ' · ' + face.style : ''));
   };
-  for (const page of book.pages) for (const object of page.objects) {
-    if (object.type !== 'text') continue;
-    if (object.toc) include(object);
-    else {
-      const count = object.text.split('\n').length;
-      for (let index=0;index<count;index++) include(paragraphFormat(book,object,index));
+  for (const page of book.pages)
+    for (const object of page.objects) {
+      if (object.type !== 'text') continue;
+      if (object.toc) include(object);
+      else {
+        const count = object.text.split('\n').length;
+        for (let index = 0; index < count; index++) include(paragraphFormat(book, object, index));
+      }
     }
-  }
-  for (const type of ['header','titulillo','folio']) if (book[type].enabled) include(book[type]);
+  for (const type of ['header', 'titulillo', 'folio']) if (book[type].enabled) include(book[type]);
   for (const style of book.paragraphStyles || []) include(style.properties);
-  if (book.cover) include({font:'Georgia'});
+  if (book.cover) include({ font: 'Georgia' });
   return Object.fromEntries(usage);
 }
 
 function packageDialog() {
   if (!hasDocument || busy) return;
-  const title = bw('Empaquetar proyecto','Package project','Empacotar projeto');
-  modal(title,`<p class="builder-intro">${bw('Creá una carpeta con el proyecto editable, copias de las imágenes y un PDF del interior. Si diseñaste una cubierta, se agrega su PDF por separado.',
-    'Create a folder with the editable project, copies of its images and an interior PDF. If there is a cover, its PDF is included separately.',
-    'Crie uma pasta com o projeto editável, cópias das imagens e um PDF do miolo. Se houver capa, seu PDF será incluído separadamente.')}</p>
-    <label class="check-line"><input type="checkbox" id="packageFonts">${bw('Copiar las fuentes que tengo permiso de compartir',
-    'Copy fonts I am allowed to share','Copiar as fontes que tenho permissão para compartilhar')}</label>
-    <p class="help">${bw('Abrí el .mqt desde la carpeta del paquete en la otra computadora. Las fuentes que queden afuera se anotan en el LEEME.',
-    'Open the .mqt from inside the package folder on the other computer. Fonts left out are listed in the README.',
-    'Abra o .mqt dentro da pasta do pacote no outro computador. As fontes omitidas são listadas no LEEME.')}</p>
-    <p class="inline-error"></p>`,async()=>{
-    if (busy) return false;
-    M.validate(book);
-    if (book.cover) validateCover(book.cover);
-    const copyFonts = $('#packageFonts').checked;
-    const dialog = $('#modal');
-    const buttons = [...dialog.querySelectorAll('button')].filter(button=>!button.disabled);
-    const preventCancel = event => event.preventDefault();
-    for (const button of buttons) button.disabled = true;
-    dialog.addEventListener('cancel',preventCancel);
-    busy = true;
-    try {
-      await fontCatalogPromise;
-      const result = await nativeCall('packageProject',{project:JSON.stringify(book,null,2),copyFonts,fonts:packageFontUsage()});
-      if (!result) return false;
-      const summary = bw('Paquete creado en','Package created at','Pacote criado em')+' '+result.path;
-      toast(summary + (result.omitted.length ? bw(' · Revisá las fuentes en LEEME.',' · Check fonts in the README.',' · Confira as fontes no LEEME.') : ''));
-      return true;
-    } finally {
-      busy = false;
-      dialog.removeEventListener('cancel',preventCancel);
-      for (const button of buttons) button.disabled = false;
-    }
-  },bw('Elegir carpeta…','Choose folder…','Escolher pasta…'));
+  const title = bw('Empaquetar proyecto', 'Package project', 'Empacotar projeto');
+  modal(
+    title,
+    `<p class="builder-intro">${bw(
+      'Creá una carpeta con el proyecto editable, copias de las imágenes y un PDF del interior. Si diseñaste una cubierta, se agrega su PDF por separado.',
+      'Create a folder with the editable project, copies of its images and an interior PDF. If there is a cover, its PDF is included separately.',
+      'Crie uma pasta com o projeto editável, cópias das imagens e um PDF do miolo. Se houver capa, seu PDF será incluído separadamente.',
+    )}</p>
+    <label class="check-line"><input type="checkbox" id="packageFonts">${bw(
+      'Copiar las fuentes que tengo permiso de compartir',
+      'Copy fonts I am allowed to share',
+      'Copiar as fontes que tenho permissão para compartilhar',
+    )}</label>
+    <p class="help">${bw(
+      'Abrí el .mqt desde la carpeta del paquete en la otra computadora. Las fuentes que queden afuera se anotan en el LEEME.',
+      'Open the .mqt from inside the package folder on the other computer. Fonts left out are listed in the README.',
+      'Abra o .mqt dentro da pasta do pacote no outro computador. As fontes omitidas são listadas no LEEME.',
+    )}</p>
+    <p class="inline-error"></p>`,
+    async () => {
+      if (busy) return false;
+      M.validate(book);
+      if (book.cover) validateCover(book.cover);
+      const copyFonts = $('#packageFonts').checked;
+      const dialog = $('#modal');
+      const buttons = [...dialog.querySelectorAll('button')].filter((button) => !button.disabled);
+      const preventCancel = (event) => event.preventDefault();
+      for (const button of buttons) button.disabled = true;
+      dialog.addEventListener('cancel', preventCancel);
+      busy = true;
+      try {
+        await fontCatalogPromise;
+        const result = await nativeCall('packageProject', {
+          project: JSON.stringify(book, null, 2),
+          copyFonts,
+          fonts: packageFontUsage(),
+        });
+        if (!result) return false;
+        const summary =
+          bw('Paquete creado en', 'Package created at', 'Pacote criado em') + ' ' + result.path;
+        toast(
+          summary +
+            (result.omitted.length
+              ? bw(
+                  ' · Revisá las fuentes en LEEME.',
+                  ' · Check fonts in the README.',
+                  ' · Confira as fontes no LEEME.',
+                )
+              : ''),
+        );
+        return true;
+      } finally {
+        busy = false;
+        dialog.removeEventListener('cancel', preventCancel);
+        for (const button of buttons) button.disabled = false;
+      }
+    },
+    bw('Elegir carpeta…', 'Choose folder…', 'Escolher pasta…'),
+  );
 }
 
 const packageButton = document.createElement('button');
 packageButton.type = 'button';
 packageButton.className = 'tool-action';
 packageButton.id = 'packageProject';
-packageButton.innerHTML = icon('folder')+'<span></span>';
+packageButton.innerHTML = icon('folder') + '<span></span>';
 packageButton.onclick = packageDialog;
 $('#saveAs').after(packageButton);
 function labelPackageButton() {
-  packageButton.querySelector('span').textContent = bw('Empaquetar','Package','Empacotar');
-  packageButton.title = bw('Empaquetar proyecto','Package project','Empacotar projeto');
+  packageButton.querySelector('span').textContent = bw('Empaquetar', 'Package', 'Empacotar');
+  packageButton.title = bw('Empaquetar proyecto', 'Package project', 'Empacotar projeto');
 }
 labelPackageButton();
-document.addEventListener('maquetario:language',()=>{labelPackageButton();});
+document.addEventListener('maquetario:language', () => {
+  labelPackageButton();
+});

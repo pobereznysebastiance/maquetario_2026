@@ -5,7 +5,9 @@ const { writeFileSync } = require('node:fs');
 const { resolve } = require('node:path');
 const { pathToFileURL } = require('node:url');
 
-const [input, output, footer = ''] = process.argv.slice(2).filter((a) => !a.startsWith('--') && a !== '.');
+const [input, output, footer = ''] = process.argv
+  .slice(2)
+  .filter((a) => !a.startsWith('--') && a !== '.');
 if (!input || !output) {
   console.error('Uso: npx electron scripts/render-pdf.cjs <entrada.html> <salida.pdf> ["pie"]');
   process.exit(1);
@@ -14,7 +16,10 @@ if (!input || !output) {
 const escape = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
 
 app.whenReady().then(async () => {
-  const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true } });
+  const win = new BrowserWindow({
+    show: false,
+    webPreferences: { sandbox: true, contextIsolation: true },
+  });
   await win.loadURL(pathToFileURL(resolve(input)).href);
   await win.webContents.executeJavaScript('document.fonts.ready.then(() => true)');
   const pdf = await win.webContents.printToPDF({

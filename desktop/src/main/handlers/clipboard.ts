@@ -9,7 +9,8 @@ function decode(bytes: Buffer): string {
   return utf8.includes('<') && utf8.includes('\0') ? bytes.toString('utf16le') : utf8;
 }
 
-const isSvg = (text: string | null | undefined): text is string => !!text && text.length <= MAX && /<svg/i.test(text);
+const isSvg = (text: string | null | undefined): text is string =>
+  !!text && text.length <= MAX && /<svg/i.test(text);
 
 export async function readClipboardSvg(): Promise<string | null> {
   try {

@@ -66,7 +66,8 @@ async function walk(folder: string, recursive: boolean, out: string[]): Promise<
 async function scan(): Promise<void> {
   folders = await readJson<string[]>(foldersFile(), []);
   const paths = new Map<string, string>();
-  const add = (list: string[]) => list.forEach((p) => paths.has(p.toLowerCase()) || paths.set(p.toLowerCase(), p));
+  const add = (list: string[]) =>
+    list.forEach((p) => paths.has(p.toLowerCase()) || paths.set(p.toLowerCase(), p));
   for (const { path, recursive } of systemFolders()) {
     const found: string[] = [];
     await walk(path, recursive, found);
@@ -97,7 +98,8 @@ async function scan(): Promise<void> {
     if (!unique.has(key)) unique.set(key, face);
   }
   catalog = [...unique.values()].sort(
-    (a, b) => a.family.localeCompare(b.family, undefined, { sensitivity: 'base' }) || a.weight - b.weight,
+    (a, b) =>
+      a.family.localeCompare(b.family, undefined, { sensitivity: 'base' }) || a.weight - b.weight,
   );
   loaded = true;
 }
@@ -143,7 +145,8 @@ export function availableFaces(): FontRecord[] {
   return [...packageFaces, ...catalog].filter((f) => !seen.has(f.id) && seen.add(f.id));
 }
 
-export const findFace = (id: string): FontRecord | undefined => availableFaces().find((f) => f.id === id);
+export const findFace = (id: string): FontRecord | undefined =>
+  availableFaces().find((f) => f.id === id);
 
 export const getPackageFaces = (): FontFace[] => packageFaces.map(publicFace);
 export const replacePackageFaces = (faces: FontRecord[]): FontRecord[] => {

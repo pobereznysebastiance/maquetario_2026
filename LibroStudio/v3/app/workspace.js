@@ -11,42 +11,180 @@
 
   /** Todo lo que un espacio de trabajo puede mostrar u ocultar. `locked`: siempre visible. */
   const ITEMS = [
-    { id: 'tool:select', group: 'tools', selector: '[data-tool="select"]', label: () => t('Seleccionar', 'Select', 'Selecionar'), locked: true },
-    { id: 'tool:hand', group: 'tools', selector: '[data-tool="hand"]', label: () => t('Mano', 'Hand', 'Mão') },
-    { id: 'tool:text', group: 'tools', selector: '[data-tool="text"]', label: () => t('Crear texto', 'Create text', 'Criar texto') },
-    { id: 'tool:image', group: 'tools', selector: '[data-tool="image"]', label: () => t('Imagen', 'Image', 'Imagem') },
-    { id: 'tool:frame', group: 'tools', selector: '[data-tool="frame"]', label: () => t('Marco', 'Frame', 'Moldura') },
-    { id: 'tool:shape', group: 'tools', selector: '[data-tool="shape"], #shapeTool', label: () => t('Figuras', 'Shapes', 'Formas') },
-    { id: 'tool:grid', group: 'tools', selector: '[data-tool="grid"]', label: () => t('Grilla', 'Grid', 'Grade') },
-    { id: 'tool:folio', group: 'tools', selector: '[data-tool="folio"]', label: () => t('Foliado', 'Page numbers', 'Fólio') },
-    { id: 'tool:header', group: 'tools', selector: '[data-tool="header"]', label: () => t('Cornisa', 'Running head', 'Cabeço') },
-    { id: 'tool:box', group: 'tools', selector: '[data-tool="box"]', label: () => t('Caja de texto', 'Text box', 'Caixa de texto') },
-    { id: 'tool:index', group: 'tools', selector: '#indexTool', label: () => t('Índice', 'Contents', 'Sumário') },
-    { id: 'tool:layers', group: 'tools', selector: '#layersTool', label: () => t('Capas', 'Layers', 'Camadas') },
-    { id: 'tool:cover', group: 'tools', selector: '#coverTool', label: () => t('Cubierta', 'Cover', 'Capa') },
-    { id: 'tab:book', group: 'tabs', selector: '.tab[data-tab="book"]', label: () => t('Libro', 'Book', 'Livro'), locked: true },
-    { id: 'tab:design', group: 'tabs', selector: '.tab[data-tab="design"]', label: () => t('Diseño', 'Design', 'Design') },
-    { id: 'tab:text', group: 'tabs', selector: '.tab[data-tab="text"]', label: () => t('Texto', 'Text', 'Texto') },
-    { id: 'tab:object', group: 'tabs', selector: '.tab[data-tab="object"]', label: () => t('Objeto', 'Object', 'Objeto') },
-    { id: 'tab:pages', group: 'tabs', selector: '.tab[data-tab="pages"]', label: () => t('Páginas', 'Pages', 'Páginas') },
-    { id: 'tab:index', group: 'tabs', selector: '.tab[data-tab="index"]', label: () => t('Índice', 'Contents', 'Sumário') },
-    { id: 'tab:layers', group: 'tabs', selector: '.tab[data-tab="layers"]', label: () => t('Capas', 'Layers', 'Camadas') },
-    { id: 'zone:templates', group: 'zones', selector: '.template-panel', label: () => t('Plantillas de grilla', 'Grid templates', 'Modelos de grade') },
+    {
+      id: 'tool:select',
+      group: 'tools',
+      selector: '[data-tool="select"]',
+      label: () => t('Seleccionar', 'Select', 'Selecionar'),
+      locked: true,
+    },
+    {
+      id: 'tool:hand',
+      group: 'tools',
+      selector: '[data-tool="hand"]',
+      label: () => t('Mano', 'Hand', 'Mão'),
+    },
+    {
+      id: 'tool:text',
+      group: 'tools',
+      selector: '[data-tool="text"]',
+      label: () => t('Crear texto', 'Create text', 'Criar texto'),
+    },
+    {
+      id: 'tool:image',
+      group: 'tools',
+      selector: '[data-tool="image"]',
+      label: () => t('Imagen', 'Image', 'Imagem'),
+    },
+    {
+      id: 'tool:frame',
+      group: 'tools',
+      selector: '[data-tool="frame"]',
+      label: () => t('Marco', 'Frame', 'Moldura'),
+    },
+    {
+      id: 'tool:shape',
+      group: 'tools',
+      selector: '[data-tool="shape"], #shapeTool',
+      label: () => t('Figuras', 'Shapes', 'Formas'),
+    },
+    {
+      id: 'tool:grid',
+      group: 'tools',
+      selector: '[data-tool="grid"]',
+      label: () => t('Grilla', 'Grid', 'Grade'),
+    },
+    {
+      id: 'tool:folio',
+      group: 'tools',
+      selector: '[data-tool="folio"]',
+      label: () => t('Foliado', 'Page numbers', 'Fólio'),
+    },
+    {
+      id: 'tool:header',
+      group: 'tools',
+      selector: '[data-tool="header"]',
+      label: () => t('Cornisa', 'Running head', 'Cabeço'),
+    },
+    {
+      id: 'tool:box',
+      group: 'tools',
+      selector: '[data-tool="box"]',
+      label: () => t('Caja de texto', 'Text box', 'Caixa de texto'),
+    },
+    {
+      id: 'tool:index',
+      group: 'tools',
+      selector: '#indexTool',
+      label: () => t('Índice', 'Contents', 'Sumário'),
+    },
+    {
+      id: 'tool:layers',
+      group: 'tools',
+      selector: '#layersTool',
+      label: () => t('Capas', 'Layers', 'Camadas'),
+    },
+    {
+      id: 'tool:cover',
+      group: 'tools',
+      selector: '#coverTool',
+      label: () => t('Cubierta', 'Cover', 'Capa'),
+    },
+    {
+      id: 'tab:book',
+      group: 'tabs',
+      selector: '.tab[data-tab="book"]',
+      label: () => t('Libro', 'Book', 'Livro'),
+      locked: true,
+    },
+    {
+      id: 'tab:design',
+      group: 'tabs',
+      selector: '.tab[data-tab="design"]',
+      label: () => t('Diseño', 'Design', 'Design'),
+    },
+    {
+      id: 'tab:text',
+      group: 'tabs',
+      selector: '.tab[data-tab="text"]',
+      label: () => t('Texto', 'Text', 'Texto'),
+    },
+    {
+      id: 'tab:object',
+      group: 'tabs',
+      selector: '.tab[data-tab="object"]',
+      label: () => t('Objeto', 'Object', 'Objeto'),
+    },
+    {
+      id: 'tab:pages',
+      group: 'tabs',
+      selector: '.tab[data-tab="pages"]',
+      label: () => t('Páginas', 'Pages', 'Páginas'),
+    },
+    {
+      id: 'tab:index',
+      group: 'tabs',
+      selector: '.tab[data-tab="index"]',
+      label: () => t('Índice', 'Contents', 'Sumário'),
+    },
+    {
+      id: 'tab:layers',
+      group: 'tabs',
+      selector: '.tab[data-tab="layers"]',
+      label: () => t('Capas', 'Layers', 'Camadas'),
+    },
+    {
+      id: 'zone:templates',
+      group: 'zones',
+      selector: '.template-panel',
+      label: () => t('Plantillas de grilla', 'Grid templates', 'Modelos de grade'),
+    },
   ];
 
   /** Lo que oculta el espacio Inicial. */
-  const SIMPLE_HIDDEN = ['tool:frame', 'tool:shape', 'tool:grid', 'tool:folio', 'tool:header', 'tool:box', 'tool:index', 'tool:layers', 'tool:cover', 'tab:object', 'tab:index', 'tab:layers', 'zone:templates'];
+  const SIMPLE_HIDDEN = [
+    'tool:frame',
+    'tool:shape',
+    'tool:grid',
+    'tool:folio',
+    'tool:header',
+    'tool:box',
+    'tool:index',
+    'tool:layers',
+    'tool:cover',
+    'tab:object',
+    'tab:index',
+    'tab:layers',
+    'zone:templates',
+  ];
 
   const MODES = {
-    simple: { title: () => t('Inicial', 'Starter', 'Inicial'), description: () => t('Lo esencial para empezar.', 'The essentials to get started.', 'O essencial para começar.') },
-    default: { title: () => t('Predeterminado', 'Default', 'Padrão'), description: () => t('Todas las herramientas.', 'All tools.', 'Todas as ferramentas.') },
-    custom: { title: () => t('Personalizado', 'Custom', 'Personalizado'), description: () => t('Tu selección guardada.', 'Your saved selection.', 'Sua seleção salva.') },
+    simple: {
+      title: () => t('Inicial', 'Starter', 'Inicial'),
+      description: () =>
+        t(
+          'Lo esencial para empezar.',
+          'The essentials to get started.',
+          'O essencial para começar.',
+        ),
+    },
+    default: {
+      title: () => t('Predeterminado', 'Default', 'Padrão'),
+      description: () => t('Todas las herramientas.', 'All tools.', 'Todas as ferramentas.'),
+    },
+    custom: {
+      title: () => t('Personalizado', 'Custom', 'Personalizado'),
+      description: () => t('Tu selección guardada.', 'Your saved selection.', 'Sua seleção salva.'),
+    },
   };
 
   function read() {
     try {
       const value = JSON.parse(localStorage.getItem(STORE)) || {};
-      return { mode: MODES[value.mode] ? value.mode : 'default', custom: Array.isArray(value.custom) ? value.custom : SIMPLE_HIDDEN.slice() };
+      return {
+        mode: MODES[value.mode] ? value.mode : 'default',
+        custom: Array.isArray(value.custom) ? value.custom : SIMPLE_HIDDEN.slice(),
+      };
     } catch {
       return { mode: 'default', custom: SIMPLE_HIDDEN.slice() };
     }
@@ -61,13 +199,16 @@
 
   let state = read();
 
-  const hiddenFor = (s) => new Set(s.mode === 'simple' ? SIMPLE_HIDDEN : s.mode === 'custom' ? s.custom : []);
+  const hiddenFor = (s) =>
+    new Set(s.mode === 'simple' ? SIMPLE_HIDDEN : s.mode === 'custom' ? s.custom : []);
 
   function apply() {
     const hidden = hiddenFor(state);
     for (const item of ITEMS) {
       const hide = !item.locked && hidden.has(item.id);
-      document.querySelectorAll(item.selector).forEach((el) => el.toggleAttribute('data-workspace-hidden', hide));
+      document
+        .querySelectorAll(item.selector)
+        .forEach((el) => el.toggleAttribute('data-workspace-hidden', hide));
     }
     document.body.dataset.workspace = state.mode;
     // Si la pestaña activa quedó oculta, se pasa a la primera visible.
@@ -109,10 +250,21 @@
   function renderMenu() {
     menu.innerHTML =
       Object.entries(MODES)
-        .map(([id, m]) => UI.menuItem({ id: `workspace-${id}`, title: m.title(), description: m.description(), checked: state.mode === id }))
+        .map(([id, m]) =>
+          UI.menuItem({
+            id: `workspace-${id}`,
+            title: m.title(),
+            description: m.description(),
+            checked: state.mode === id,
+          }),
+        )
         .join('') +
       '<hr class="menu-separator">' +
-      UI.menuItem({ id: 'workspace-customize', title: t('Personalizar…', 'Customize…', 'Personalizar…'), icon: 'settings' });
+      UI.menuItem({
+        id: 'workspace-customize',
+        title: t('Personalizar…', 'Customize…', 'Personalizar…'),
+        icon: 'settings',
+      });
     for (const id of Object.keys(MODES)) {
       menu.querySelector(`#workspace-${id}`).onclick = () => {
         menu.hidePopover();
@@ -143,7 +295,8 @@
   }
 
   window.MaquetarioWorkspace = Object.freeze({
-    items: () => ITEMS.map((i) => ({ id: i.id, group: i.group, label: i.label(), locked: !!i.locked })),
+    items: () =>
+      ITEMS.map((i) => ({ id: i.id, group: i.group, label: i.label(), locked: !!i.locked })),
     isVisible: (id) => !hiddenFor(state).has(id) || !!ITEMS.find((i) => i.id === id)?.locked,
     mode: () => state.mode,
     setMode,

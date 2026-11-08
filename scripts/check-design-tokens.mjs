@@ -32,23 +32,36 @@ for (const file of walk(ui)) {
       const value = declaration.slice(colon + 1);
       if (/^\[|^:/.test(property) || value.includes('{')) continue;
       const where = `${relative(app, file)}:${i + 1}`;
-      if (COLOR.test(value)) problems.push(`${where}  color literal en "${property}" (usá un token de ui/tokens)`);
-      else if (!property.startsWith('--') && PX.test(value)) problems.push(`${where}  medida literal en "${property}" (usá un token)`);
+      if (COLOR.test(value))
+        problems.push(`${where}  color literal en "${property}" (usá un token de ui/tokens)`);
+      else if (!property.startsWith('--') && PX.test(value))
+        problems.push(`${where}  medida literal en "${property}" (usá un token)`);
     }
   });
 }
 
 const looseSheets = readdirSync(app).filter((f) => f.endsWith('.css'));
-for (const f of looseSheets) problems.push(`${f}  hoja fuera de ui/ (cada estilo va en su capa: book, tokens, base, átomos…)`);
+for (const f of looseSheets)
+  problems.push(`${f}  hoja fuera de ui/ (cada estilo va en su capa: book, tokens, base, átomos…)`);
 if (problems.length) {
-  console.error(`\n${problems.length} valores sueltos en el sistema de diseño:\n  ${problems.join('\n  ')}`);
+  console.error(
+    `\n${problems.length} valores sueltos en el sistema de diseño:\n  ${problems.join('\n  ')}`,
+  );
   process.exit(1);
 }
 console.log('Sistema de diseño: sin valores sueltos.');
 
 // ── Deuda de "alambre" (informativa: tiene que bajar en cada entrega) ──
-const appJs = readdirSync(app).filter((f) => f.endsWith('.js') && f !== 'pdf-lib.min.js' && f !== 'sample-image.js');
-const allJs = appJs.map((f) => readFileSync(join(app, f), 'utf8')).join('\n');
+const appJs = readdirSync(app).filter(
+  (f) => f.endsWith('.js') && f !== 'pdf-lib.min.js' && f !== 'sample-image.js',
+);
+// Sin las líneas de comentario: los ejemplos de la documentación no cuentan como deuda.
+const allJs = appJs
+  .map((f) => readFileSync(join(app, f), 'utf8'))
+  .join('\n')
+  .split('\n')
+  .filter((line) => !/^\s*(\/\/|\*|\/\*)/.test(line))
+  .join('\n');
 const count = (text, re) => (text.match(re) ?? []).length;
 const debt = {
   'funciones globales reemplazadas a mano (sin extend)': count(
@@ -57,8 +70,11 @@ const debt = {
   ),
   // extend('f', anterior => …) con la envoltura escrita a mano. Lo que tiene forma de
   // antes/después/resultado/ruta va con extend.before/after/result/instead o con los registros.
-  'envolturas extend() escritas a mano': count(allJs, /\bextend\('\w+',\s*\w+\s*=>/g),
-  'cadenas de onchange sobre #language': count(allJs, /\$\('#language'\)\.onchange\s*=\s*function/g),
+  'envolturas extend() escritas a mano': count(allJs, /\bextend\(\s*'\w+',\s*\(?\w+\)?\s*=>/g),
+  'cadenas de onchange sobre #language': count(
+    allJs,
+    /\$\('#language'\)\.onchange\s*=\s*function/g,
+  ),
   'estilos inline desde JS (style= / .style.x=)': count(allJs, /style="|\.style\.[a-zA-Z]+\s*=/g),
 };
 console.log('\nDeuda pendiente (tiene que bajar):');

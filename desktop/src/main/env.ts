@@ -25,7 +25,9 @@ export const FONT_ROUTE = '/__fonts/';
  * que está cubierto por la verificación de integridad (no se puede modificar sin que la app lo detecte).
  */
 export const rendererDir = (): string =>
-  app.isPackaged ? join(app.getAppPath(), 'renderer') : resolve(__dirname, '..', '..', 'LibroStudio', 'v3', 'app');
+  app.isPackaged
+    ? join(app.getAppPath(), 'renderer')
+    : resolve(__dirname, '..', '..', 'LibroStudio', 'v3', 'app');
 
 /** Datos de la app (recientes, carpetas de fuentes, aula). */
 export const dataDir = (): string => app.getPath('userData');

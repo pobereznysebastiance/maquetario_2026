@@ -7,9 +7,13 @@
 
   let lastInput = 'keyboard';
   window.addEventListener('pointerdown', () => (lastInput = 'pointer'), true);
-  window.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape') lastInput = 'keyboard';
-  }, true);
+  window.addEventListener(
+    'keydown',
+    (event) => {
+      if (event.key !== 'Escape') lastInput = 'keyboard';
+    },
+    true,
+  );
 
   const openedBy = new WeakMap();
 
@@ -20,17 +24,20 @@
       if (dialog instanceof HTMLDialogElement && dialog.open) openedBy.set(dialog, lastInput);
     }
   });
-  const watch = (dialog) => observer.observe(dialog, { attributes: true, attributeFilter: ['open'] });
+  const watch = (dialog) =>
+    observer.observe(dialog, { attributes: true, attributeFilter: ['open'] });
   document.querySelectorAll('dialog').forEach(watch);
   new MutationObserver((records) => {
-    for (const r of records) r.addedNodes.forEach((n) => n instanceof HTMLDialogElement && watch(n));
+    for (const r of records)
+      r.addedNodes.forEach((n) => n instanceof HTMLDialogElement && watch(n));
   }).observe(document.body, { childList: true });
 
   // "close" no burbujea: se escucha en captura.
   document.addEventListener(
     'close',
     (event) => {
-      if (!(event.target instanceof HTMLDialogElement) || openedBy.get(event.target) !== 'pointer') return;
+      if (!(event.target instanceof HTMLDialogElement) || openedBy.get(event.target) !== 'pointer')
+        return;
       const el = document.activeElement;
       if (el instanceof HTMLElement && el !== document.body) {
         el.blur();

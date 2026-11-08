@@ -11,8 +11,21 @@ import { readClipboardSvg } from './handlers/clipboard.ts';
 import { chooseFontFolder, fontGlyphs } from './handlers/fonts.ts';
 import { legacyExport, outputDocument, printers, savePdf } from './handlers/output.ts';
 import { packageProject } from './handlers/package.ts';
-import { appInfo, newProject, openProject, openRecent, saveProject, setDirty } from './handlers/project.ts';
-import { accountStatus, cancelConnect, connectAccount, downloadUpdate, releaseAccount } from './motiova/desktop.ts';
+import {
+  appInfo,
+  newProject,
+  openProject,
+  openRecent,
+  saveProject,
+  setDirty,
+} from './handlers/project.ts';
+import {
+  accountStatus,
+  cancelConnect,
+  connectAccount,
+  downloadUpdate,
+  releaseAccount,
+} from './motiova/desktop.ts';
 import type { Session } from './session.ts';
 
 type Payload = Record<string, unknown>;
@@ -87,7 +100,11 @@ export function attachBridge(session: Session): void {
     // Sólo se atiende a la página propia de esta ventana.
     if (event.sender !== contents || !event.senderFrame?.url.startsWith(`${APP_ORIGIN}/`)) return;
     if (!message || typeof message !== 'object') return;
-    const { id, action, payload } = message as { id?: unknown; action?: unknown; payload?: unknown };
+    const { id, action, payload } = message as {
+      id?: unknown;
+      action?: unknown;
+      payload?: unknown;
+    };
     if (typeof id !== 'string' || typeof action !== 'string') return;
     const handler = Object.hasOwn(handlers, action) ? handlers[action] : undefined;
     try {

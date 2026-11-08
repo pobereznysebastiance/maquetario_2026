@@ -1,15 +1,295 @@
 'use strict';
-const objectTab=document.createElement('button');objectTab.className='tab';objectTab.dataset.tab='object';objectTab.setAttribute('role','tab');objectTab.onclick=()=>showTab('object');$('[data-tab="text"]').after(objectTab);
-function editableObjectSelection(){return book.pages[active].objects.filter(o=>(multiSelection.size?multiSelection.has(o.id):selected===o.id)&&!o.locked&&!o.hidden);}
-function distributeObjects(axis){const objects=editableObjectSelection();if(objects.length<3)return;const horizontal=axis==='x',size=horizontal?'w':'h',sorted=objects.slice().sort((a,b)=>a[axis]-b[axis]);const start=sorted[0][axis],end=sorted.at(-1)[axis]+sorted.at(-1)[size],total=sorted.reduce((n,o)=>n+o[size],0),gap=(end-start-total)/(sorted.length-1);commit(()=>{let pos=start;for(const o of sorted){o[axis]=pos;pos+=o[size]+gap;}},false);}
-function objectInspector(){const host=$('#inspectorContent'),scroll=host.scrollTop,o=selectObject(),locked=!o||o.locked,objects=editableObjectSelection(),w=rw();host.innerHTML=section(bw('Objeto seleccionado','Selected object','Objeto selecionado'),'select',o?`<div class="selection-chip">${icon(o.type==='text'?'text':o.type==='image'?'image':'frame')} ${bw(o.type==='text'?'Caja de texto':o.type==='image'?'Imagen':'Marco',o.type==='text'?'Text frame':o.type==='image'?'Image':'Frame',o.type==='text'?'Caixa de texto':o.type==='image'?'Imagem':'Quadro')}</div>${o.type==='text'?`<button class="btn wide" id="objectGoText">${bw('Editar tipografía y párrafos →','Edit type and paragraphs →','Editar tipografia e parágrafos →')}</button>`:''}<p class="help">${bw('Estos controles modifican el elemento completo. La alineación del texto dentro de una caja está en Texto.','These controls modify the whole element. Text alignment within a frame is in Text.','Estes controles alteram o elemento inteiro. O alinhamento do texto dentro da caixa fica em Texto.')}</p>`:`<p class="help">${bw('Seleccioná una caja, una imagen o un marco en la página.','Select a frame or image on the page.','Selecione uma caixa ou imagem na página.')}</p>`)+section(bw('Posición y tamaño','Position and size','Posição e tamanho'),'box',o?`<div class="pair">${['x','y','w','h'].map((key,i)=>`<div><label for="object-${key}">${bw(...[['Posición X','X position','Posição X'],['Posición Y','Y position','Posição Y'],['Ancho','Width','Largura'],['Alto','Height','Altura']][i])} · mm</label><input id="object-${key}" data-object-geometry="${key}" type="number" min="${key==='w'||key==='h'?1:0}" max="${key==='x'||key==='w'?book.width:book.height}" step="0.5" value="${Number(o[key].toFixed(2))}" ${locked?'disabled':''}></div>`).join('')}</div>`:'')+section(w.alignObjects,'frame',`<div class="field-row"><label>${w.relative}</label><select id="alignReference"><option value="margins">${w.margins}</option><option value="page">${w.page}</option><option value="selection">${w.selection}</option></select></div><div class="object-alignment">${[['left',w.xLeft],['hcenter',w.xCenter],['right',w.xRight],['top',w.yTop],['vcenter',w.yCenter],['bottom',w.yBottom]].map(([key,label])=>`<button type="button" data-object-align="${key}" ${objects.length?'':'disabled'}>${label}</button>`).join('')}</div><p class="help">${w.tip}</p>`)+section(bw('Distribuir objetos','Distribute objects','Distribuir objetos'),'grid',`<div class="page-action"><button class="btn" data-distribute="x" ${objects.length<3?'disabled':''}>${bw('Espacios horizontales','Horizontal gaps','Espaços horizontais')}</button><button class="btn" data-distribute="y" ${objects.length<3?'disabled':''}>${bw('Espacios verticales','Vertical gaps','Espaços verticais')}</button></div><p class="help">${bw('Seleccioná al menos tres elementos con Shift + clic. Iguala los espacios entre ellos conservando los extremos.','Shift-click at least three elements. Equalizes gaps while retaining the outer positions.','Selecione pelo menos três elementos com Shift + clique. Iguala os espaços mantendo os extremos.')}</p>`)+section(bw('Orden y bloqueo','Order and locking','Ordem e bloqueio'),'layers',o?`<div class="page-action"><button class="btn" data-object-command="front" ${locked?'disabled':''}>${bw('Al frente','To front','Para frente')}</button><button class="btn" data-object-command="back" ${locked?'disabled':''}>${bw('Al fondo','To back','Para trás')}</button></div><label class="check-line"><input type="checkbox" id="objectLocked" ${o.locked?'checked':''}>${bw('Bloquear objeto','Lock object','Bloquear objeto')}</label><label class="check-line"><input type="checkbox" id="objectHidden" ${o.hidden?'checked':''}>${bw('Ocultar objeto','Hide object','Ocultar objeto')}</label><button class="btn wide danger" data-object-command="deleteObject" ${locked?'disabled':''}>${bw('Eliminar objeto','Delete object','Excluir objeto')}</button>`:'');host.scrollTop=scroll;$('#alignReference').value=objectAlignReference;$('#alignReference').onchange=e=>objectAlignReference=e.target.value;host.querySelectorAll('[data-object-align]').forEach(b=>b.onclick=()=>alignSelection(b.dataset.objectAlign));host.querySelectorAll('[data-distribute]').forEach(b=>b.onclick=()=>distributeObjects(b.dataset.distribute));host.querySelectorAll('[data-object-command]').forEach(b=>b.onclick=()=>command(b.dataset.objectCommand));host.querySelectorAll('[data-object-geometry]').forEach(input=>input.onchange=()=>{const value=Number(input.value),key=input.dataset.objectGeometry;if(!o||o.locked||!Number.isFinite(value)||value<Number(input.min)||value>Number(input.max)){objectInspector();return;}commit(()=>{o[key]=value;if(o.x+o.w>book.width||o.y+o.h>book.height)throw Error(bw('El objeto debe quedar dentro de la página.','The object must stay inside the page.','O objeto deve ficar dentro da página.'));},false);});if($('#objectGoText'))$('#objectGoText').onclick=()=>showTab('text');if(o){$('#objectLocked').onchange=e=>commit(()=>o.locked=e.target.checked,false);$('#objectHidden').onchange=e=>commit(()=>o.hidden=e.target.checked,false);}updateActivePage();updateSnapButton();}
-registerInspectorPanel('object',objectInspector,'inspector-organization');decorateInspector(()=>{if(tab==='object')return;const host=$('#inspectorContent');if(tab==='design'){host.querySelector('[data-object="font"]')?.closest('.section')?.remove();}if(tab==='text'){host.querySelector('[data-section="Transformar objeto"]')?.remove();host.querySelector('#alignReference')?.closest('.section')?.remove();const help=host.querySelector('[data-section="Edición"]');if(help){help.innerHTML=section(bw('Edición de texto','Text editing','Edição de texto'),'text',`<p class="help">${bw('Doble clic dentro de una caja para escribir. Sus medidas, ubicación y alineación con otros elementos se ajustan en Objeto.','Double-click inside a text frame to type. Adjust its size, position and alignment with other elements in Object.','Clique duas vezes na caixa para escrever. Medidas, posição e alinhamento com outros elementos ficam em Objeto.')}</p><button class="btn wide" id="textGoObject">${bw('Ir a Objeto →','Go to Object →','Ir para Objeto →')}</button>`);$('#textGoObject').onclick=()=>showTab('object');}}if(tab==='layers'){host.querySelector('#alignReference')?.closest('.section')?.remove();host.querySelector('#layerWidth')?.closest('.pair')?.remove();}organizationLabels();},'inspector-organization');
-function organizationLabels(){objectTab.textContent=bw('Objeto','Object','Objeto');for(const name of ['text','box']){const b=$(`[data-tool="${name}"]`);if(b){const label=b.querySelector('span');if(label)label.textContent=name==='text'?bw('Crear texto','Create text','Criar texto'):bw('Caja de texto','Text frame','Caixa de texto');b.title=bw('Crear caja de texto','Create a text frame','Criar caixa de texto');}}}
+const objectTab = document.createElement('button');
+objectTab.className = 'tab';
+objectTab.dataset.tab = 'object';
+objectTab.setAttribute('role', 'tab');
+objectTab.onclick = () => showTab('object');
+$('[data-tab="text"]').after(objectTab);
+function editableObjectSelection() {
+  return book.pages[active].objects.filter(
+    (o) =>
+      (multiSelection.size ? multiSelection.has(o.id) : selected === o.id) &&
+      !o.locked &&
+      !o.hidden,
+  );
+}
+function distributeObjects(axis) {
+  const objects = editableObjectSelection();
+  if (objects.length < 3) return;
+  const horizontal = axis === 'x',
+    size = horizontal ? 'w' : 'h',
+    sorted = objects.slice().sort((a, b) => a[axis] - b[axis]);
+  const start = sorted[0][axis],
+    end = sorted.at(-1)[axis] + sorted.at(-1)[size],
+    total = sorted.reduce((n, o) => n + o[size], 0),
+    gap = (end - start - total) / (sorted.length - 1);
+  commit(() => {
+    let pos = start;
+    for (const o of sorted) {
+      o[axis] = pos;
+      pos += o[size] + gap;
+    }
+  }, false);
+}
+function objectInspector() {
+  const host = $('#inspectorContent'),
+    scroll = host.scrollTop,
+    o = selectObject(),
+    locked = !o || o.locked,
+    objects = editableObjectSelection(),
+    w = rw();
+  host.innerHTML =
+    section(
+      bw('Objeto seleccionado', 'Selected object', 'Objeto selecionado'),
+      'select',
+      o
+        ? `<div class="selection-chip">${icon(o.type === 'text' ? 'text' : o.type === 'image' ? 'image' : 'frame')} ${bw(o.type === 'text' ? 'Caja de texto' : o.type === 'image' ? 'Imagen' : 'Marco', o.type === 'text' ? 'Text frame' : o.type === 'image' ? 'Image' : 'Frame', o.type === 'text' ? 'Caixa de texto' : o.type === 'image' ? 'Imagem' : 'Quadro')}</div>${o.type === 'text' ? `<button class="btn wide" id="objectGoText">${bw('Editar tipografía y párrafos →', 'Edit type and paragraphs →', 'Editar tipografia e parágrafos →')}</button>` : ''}<p class="help">${bw('Estos controles modifican el elemento completo. La alineación del texto dentro de una caja está en Texto.', 'These controls modify the whole element. Text alignment within a frame is in Text.', 'Estes controles alteram o elemento inteiro. O alinhamento do texto dentro da caixa fica em Texto.')}</p>`
+        : `<p class="help">${bw('Seleccioná una caja, una imagen o un marco en la página.', 'Select a frame or image on the page.', 'Selecione uma caixa ou imagem na página.')}</p>`,
+    ) +
+    section(
+      bw('Posición y tamaño', 'Position and size', 'Posição e tamanho'),
+      'box',
+      o
+        ? `<div class="pair">${['x', 'y', 'w', 'h']
+            .map(
+              (key, i) =>
+                `<div><label for="object-${key}">${bw(
+                  ...[
+                    ['Posición X', 'X position', 'Posição X'],
+                    ['Posición Y', 'Y position', 'Posição Y'],
+                    ['Ancho', 'Width', 'Largura'],
+                    ['Alto', 'Height', 'Altura'],
+                  ][i],
+                )} · mm</label><input id="object-${key}" data-object-geometry="${key}" type="number" min="${key === 'w' || key === 'h' ? 1 : 0}" max="${key === 'x' || key === 'w' ? book.width : book.height}" step="0.5" value="${Number(o[key].toFixed(2))}" ${locked ? 'disabled' : ''}></div>`,
+            )
+            .join('')}</div>`
+        : '',
+    ) +
+    section(
+      w.alignObjects,
+      'frame',
+      `<div class="field-row"><label>${w.relative}</label><select id="alignReference"><option value="margins">${w.margins}</option><option value="page">${w.page}</option><option value="selection">${w.selection}</option></select></div><div class="object-alignment">${[
+        ['left', w.xLeft],
+        ['hcenter', w.xCenter],
+        ['right', w.xRight],
+        ['top', w.yTop],
+        ['vcenter', w.yCenter],
+        ['bottom', w.yBottom],
+      ]
+        .map(
+          ([key, label]) =>
+            `<button type="button" data-object-align="${key}" ${objects.length ? '' : 'disabled'}>${label}</button>`,
+        )
+        .join('')}</div><p class="help">${w.tip}</p>`,
+    ) +
+    section(
+      bw('Distribuir objetos', 'Distribute objects', 'Distribuir objetos'),
+      'grid',
+      `<div class="page-action"><button class="btn" data-distribute="x" ${objects.length < 3 ? 'disabled' : ''}>${bw('Espacios horizontales', 'Horizontal gaps', 'Espaços horizontais')}</button><button class="btn" data-distribute="y" ${objects.length < 3 ? 'disabled' : ''}>${bw('Espacios verticales', 'Vertical gaps', 'Espaços verticais')}</button></div><p class="help">${bw('Seleccioná al menos tres elementos con Shift + clic. Iguala los espacios entre ellos conservando los extremos.', 'Shift-click at least three elements. Equalizes gaps while retaining the outer positions.', 'Selecione pelo menos três elementos com Shift + clique. Iguala os espaços mantendo os extremos.')}</p>`,
+    ) +
+    section(
+      bw('Orden y bloqueo', 'Order and locking', 'Ordem e bloqueio'),
+      'layers',
+      o
+        ? `<div class="page-action"><button class="btn" data-object-command="front" ${locked ? 'disabled' : ''}>${bw('Al frente', 'To front', 'Para frente')}</button><button class="btn" data-object-command="back" ${locked ? 'disabled' : ''}>${bw('Al fondo', 'To back', 'Para trás')}</button></div><label class="check-line"><input type="checkbox" id="objectLocked" ${o.locked ? 'checked' : ''}>${bw('Bloquear objeto', 'Lock object', 'Bloquear objeto')}</label><label class="check-line"><input type="checkbox" id="objectHidden" ${o.hidden ? 'checked' : ''}>${bw('Ocultar objeto', 'Hide object', 'Ocultar objeto')}</label><button class="btn wide danger" data-object-command="deleteObject" ${locked ? 'disabled' : ''}>${bw('Eliminar objeto', 'Delete object', 'Excluir objeto')}</button>`
+        : '',
+    );
+  host.scrollTop = scroll;
+  $('#alignReference').value = objectAlignReference;
+  $('#alignReference').onchange = (e) => (objectAlignReference = e.target.value);
+  host
+    .querySelectorAll('[data-object-align]')
+    .forEach((b) => (b.onclick = () => alignSelection(b.dataset.objectAlign)));
+  host
+    .querySelectorAll('[data-distribute]')
+    .forEach((b) => (b.onclick = () => distributeObjects(b.dataset.distribute)));
+  host
+    .querySelectorAll('[data-object-command]')
+    .forEach((b) => (b.onclick = () => command(b.dataset.objectCommand)));
+  host.querySelectorAll('[data-object-geometry]').forEach(
+    (input) =>
+      (input.onchange = () => {
+        const value = Number(input.value),
+          key = input.dataset.objectGeometry;
+        if (
+          !o ||
+          o.locked ||
+          !Number.isFinite(value) ||
+          value < Number(input.min) ||
+          value > Number(input.max)
+        ) {
+          objectInspector();
+          return;
+        }
+        commit(() => {
+          o[key] = value;
+          if (o.x + o.w > book.width || o.y + o.h > book.height)
+            throw Error(
+              bw(
+                'El objeto debe quedar dentro de la página.',
+                'The object must stay inside the page.',
+                'O objeto deve ficar dentro da página.',
+              ),
+            );
+        }, false);
+      }),
+  );
+  if ($('#objectGoText')) $('#objectGoText').onclick = () => showTab('text');
+  if (o) {
+    $('#objectLocked').onchange = (e) => commit(() => (o.locked = e.target.checked), false);
+    $('#objectHidden').onchange = (e) => commit(() => (o.hidden = e.target.checked), false);
+  }
+  updateActivePage();
+  updateSnapButton();
+}
+registerInspectorPanel('object', objectInspector, 'inspector-organization');
+decorateInspector(() => {
+  if (tab === 'object') return;
+  const host = $('#inspectorContent');
+  if (tab === 'design') {
+    host.querySelector('[data-object="font"]')?.closest('.section')?.remove();
+  }
+  if (tab === 'text') {
+    host.querySelector('[data-section="Transformar objeto"]')?.remove();
+    host.querySelector('#alignReference')?.closest('.section')?.remove();
+    const help = host.querySelector('[data-section="Edición"]');
+    if (help) {
+      help.innerHTML = section(
+        bw('Edición de texto', 'Text editing', 'Edição de texto'),
+        'text',
+        `<p class="help">${bw('Doble clic dentro de una caja para escribir. Sus medidas, ubicación y alineación con otros elementos se ajustan en Objeto.', 'Double-click inside a text frame to type. Adjust its size, position and alignment with other elements in Object.', 'Clique duas vezes na caixa para escrever. Medidas, posição e alinhamento com outros elementos ficam em Objeto.')}</p><button class="btn wide" id="textGoObject">${bw('Ir a Objeto →', 'Go to Object →', 'Ir para Objeto →')}</button>`,
+      );
+      $('#textGoObject').onclick = () => showTab('object');
+    }
+  }
+  if (tab === 'layers') {
+    host.querySelector('#alignReference')?.closest('.section')?.remove();
+    host.querySelector('#layerWidth')?.closest('.pair')?.remove();
+  }
+  organizationLabels();
+}, 'inspector-organization');
+function organizationLabels() {
+  objectTab.textContent = bw('Objeto', 'Object', 'Objeto');
+  for (const name of ['text', 'box']) {
+    const b = $(`[data-tool="${name}"]`);
+    if (b) {
+      const label = b.querySelector('span');
+      if (label)
+        label.textContent =
+          name === 'text'
+            ? bw('Crear texto', 'Create text', 'Criar texto')
+            : bw('Caja de texto', 'Text frame', 'Caixa de texto');
+      b.title = bw('Crear caja de texto', 'Create a text frame', 'Criar caixa de texto');
+    }
+  }
+}
 // Tool shortcuts find sections by identity instead of a brittle numeric position.
-extend.instead('setTool',name=>['grid','folio','header'].includes(name),function(name){finishEditing();showTab('design');const key={grid:'Grilla',folio:'Foliado',header:'Cornisa'}[name];$(`#inspectorContent [data-section="${key}"]`)?.scrollIntoView({block:'start',behavior:'smooth'});tool='select';},'inspector-organization');extend.after('setTool',function(name){if(name==='image'||name==='frame')showTab('object');},'inspector-organization');
-extend.before('objectDown',function(e,o){if(o.type!=='text'&&tab==='text'&&!o.locked)showTab('object');},'inspector-organization');
-document.addEventListener('maquetario:language',()=>{organizationLabels();inspector();});
-const alignLesson=guideLessons.find(l=>l.id==='align-objects');if(alignLesson){alignLesson.tab='object';alignLesson.body=alignLesson.body.map((text,i)=>text.replace(['Texto y Capas','Text and Layers','Texto e Camadas'][i],['Objeto','Object','Objeto'][i]));}
-organizationLabels();inspector();
-registerIntegrationTest(function(r){const prior=M.clone(book),check=(ok,msg)=>{if(!ok)throw Error(msg);r.checks.push(msg);};try{showTab('design');check(!$('#inspectorContent [data-object="font"]'),'Diseño sin tipografía de cajas duplicada');check(!!$('#inspectorContent [data-bind="header.font"]'),'Cornisas conservan tipografía propia en Diseño');showTab('text');check(!$('#inspectorContent [data-object="x"]')&&!$('#alignReference'),'Texto sin geometría ni alineación de objetos');check(!!$('#inspectorContent [data-object="font"]')&&!!$('.paragraph-panel'),'Texto mantiene tipografía y párrafos');active=0;const image={id:M.uid(),type:'frame',x:10,y:30,w:20,h:20};book.pages[0].objects.push(image);selected=image.id;showTab('object');check(!!$('#object-w')&&!!$('#alignReference'),'Objeto ofrece medidas y alineación para marcos');$('#object-w').value='25';$('#object-w').dispatchEvent(new Event('change'));check(image.w===25,'Cambiar ancho desde Objeto funciona');$('#objectLocked').checked=true;$('#objectLocked').dispatchEvent(new Event('change'));check(image.locked&&$('#object-w').disabled,'Objeto bloqueado impide cambiar dimensiones');const a=M.text('A',10,10,10,10),b=M.text('B',32,10,10,10),c=M.text('C',70,10,10,10);book.pages[0].objects.push(a,b,c);multiSelection=new Set([a.id,b.id,c.id]);selected=b.id;distributeObjects('x');check(Math.abs(b.x-40)<1e-6,'Distribución iguala los espacios entre objetos');}finally{book=prior;selected=null;multiSelection.clear();showTab('design');render(true);}return r;},'inspector-organization');
-window.prepareObjectOrganizationPreview=function(){hideWelcome();if($('#modal').open)$('#modal').close();if(fontBrowser.open)fontBrowser.close();window.prepareNovelProof();active=8;selected=book.pages[active].objects[0].id;showTab('object');render(true);};
+extend.instead(
+  'setTool',
+  (name) => ['grid', 'folio', 'header'].includes(name),
+  function (name) {
+    finishEditing();
+    showTab('design');
+    const key = { grid: 'Grilla', folio: 'Foliado', header: 'Cornisa' }[name];
+    $(`#inspectorContent [data-section="${key}"]`)?.scrollIntoView({
+      block: 'start',
+      behavior: 'smooth',
+    });
+    tool = 'select';
+  },
+  'inspector-organization',
+);
+extend.after(
+  'setTool',
+  function (name) {
+    if (name === 'image' || name === 'frame') showTab('object');
+  },
+  'inspector-organization',
+);
+extend.before(
+  'objectDown',
+  function (e, o) {
+    if (o.type !== 'text' && tab === 'text' && !o.locked) showTab('object');
+  },
+  'inspector-organization',
+);
+document.addEventListener('maquetario:language', () => {
+  organizationLabels();
+  inspector();
+});
+const alignLesson = guideLessons.find((l) => l.id === 'align-objects');
+if (alignLesson) {
+  alignLesson.tab = 'object';
+  alignLesson.body = alignLesson.body.map((text, i) =>
+    text.replace(
+      ['Texto y Capas', 'Text and Layers', 'Texto e Camadas'][i],
+      ['Objeto', 'Object', 'Objeto'][i],
+    ),
+  );
+}
+organizationLabels();
+inspector();
+registerIntegrationTest(function (r) {
+  const prior = M.clone(book),
+    check = (ok, msg) => {
+      if (!ok) throw Error(msg);
+      r.checks.push(msg);
+    };
+  try {
+    showTab('design');
+    check(!$('#inspectorContent [data-object="font"]'), 'Diseño sin tipografía de cajas duplicada');
+    check(
+      !!$('#inspectorContent [data-bind="header.font"]'),
+      'Cornisas conservan tipografía propia en Diseño',
+    );
+    showTab('text');
+    check(
+      !$('#inspectorContent [data-object="x"]') && !$('#alignReference'),
+      'Texto sin geometría ni alineación de objetos',
+    );
+    check(
+      !!$('#inspectorContent [data-object="font"]') && !!$('.paragraph-panel'),
+      'Texto mantiene tipografía y párrafos',
+    );
+    active = 0;
+    const image = { id: M.uid(), type: 'frame', x: 10, y: 30, w: 20, h: 20 };
+    book.pages[0].objects.push(image);
+    selected = image.id;
+    showTab('object');
+    check(
+      !!$('#object-w') && !!$('#alignReference'),
+      'Objeto ofrece medidas y alineación para marcos',
+    );
+    $('#object-w').value = '25';
+    $('#object-w').dispatchEvent(new Event('change'));
+    check(image.w === 25, 'Cambiar ancho desde Objeto funciona');
+    $('#objectLocked').checked = true;
+    $('#objectLocked').dispatchEvent(new Event('change'));
+    check(image.locked && $('#object-w').disabled, 'Objeto bloqueado impide cambiar dimensiones');
+    const a = M.text('A', 10, 10, 10, 10),
+      b = M.text('B', 32, 10, 10, 10),
+      c = M.text('C', 70, 10, 10, 10);
+    book.pages[0].objects.push(a, b, c);
+    multiSelection = new Set([a.id, b.id, c.id]);
+    selected = b.id;
+    distributeObjects('x');
+    check(Math.abs(b.x - 40) < 1e-6, 'Distribución iguala los espacios entre objetos');
+  } finally {
+    book = prior;
+    selected = null;
+    multiSelection.clear();
+    showTab('design');
+    render(true);
+  }
+  return r;
+}, 'inspector-organization');
+window.prepareObjectOrganizationPreview = function () {
+  hideWelcome();
+  if ($('#modal').open) $('#modal').close();
+  if (fontBrowser.open) fontBrowser.close();
+  window.prepareNovelProof();
+  active = 8;
+  selected = book.pages[active].objects[0].id;
+  showTab('object');
+  render(true);
+};

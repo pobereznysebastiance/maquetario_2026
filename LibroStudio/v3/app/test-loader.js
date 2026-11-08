@@ -3,7 +3,21 @@
 // Se cargan en el mismo orden relativo que tenían en index.html; cada una envuelve a la anterior.
 (function () {
   'use strict';
-  const FILES = ["welcome-tests.js","review-tests.js","publications-tests.js","readability-tests.js","learning-tests.js","font-browser-tests.js","refinement-tests.js","assistant-tests.js","navigation-tests.js","feedback-tests.js","package-proof-tests.js","document-view-tests.js","category-tests.js"];
+  const FILES = [
+    'welcome-tests.js',
+    'review-tests.js',
+    'publications-tests.js',
+    'readability-tests.js',
+    'learning-tests.js',
+    'font-browser-tests.js',
+    'refinement-tests.js',
+    'assistant-tests.js',
+    'navigation-tests.js',
+    'feedback-tests.js',
+    'package-proof-tests.js',
+    'document-view-tests.js',
+    'category-tests.js',
+  ];
   if (!window.MaquetarioHost || !MaquetarioHost.selfTest) return;
   (async () => {
     let missing = 0;

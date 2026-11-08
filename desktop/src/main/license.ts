@@ -13,7 +13,12 @@
 import { app } from 'electron';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { describeFailure, verifyLicense, type LicenseClaims, type LicenseResult } from '@maquetario/license';
+import {
+  describeFailure,
+  verifyLicense,
+  type LicenseClaims,
+  type LicenseResult,
+} from '@maquetario/license';
 import { appVersion, argValue, motiovaDir } from './env.ts';
 import { PRODUCTION_PUBLIC_KEYS } from './license-keys.ts';
 
@@ -37,7 +42,10 @@ function publicKeys(): Record<string, string> {
   if (!app.isPackaged) {
     // En desarrollo se acepta la clave de packages/license/dev-keys (npm run license:dev-keys).
     try {
-      keys.dev = readFileSync(resolve(__dirname, '..', '..', 'packages', 'license', 'dev-keys', 'public.pem'), 'utf8');
+      keys.dev = readFileSync(
+        resolve(__dirname, '..', '..', 'packages', 'license', 'dev-keys', 'public.pem'),
+        'utf8',
+      );
     } catch {
       // Sin claves de desarrollo.
     }
@@ -73,9 +81,15 @@ export function checkLicense(): { mode: LicenseMode; result: LicenseResult | nul
   const file = argValue('license-file') ?? join(motiovaDir(), 'licenses', 'maquetario.lic');
   const token = readText(file);
   const result: LicenseResult = token
-    ? verifyLicense(token, { publicKeys: publicKeys(), product: 'maquetario', appVersion: appVersion(), deviceId: deviceId() })
+    ? verifyLicense(token, {
+        publicKeys: publicKeys(),
+        product: 'maquetario',
+        appVersion: appVersion(),
+        deviceId: deviceId(),
+      })
     : { ok: false, reason: 'missing' };
-  if (!result.ok && selected !== 'off') console.warn(`[licencia] ${result.reason}: ${describeFailure(result.reason)}`);
+  if (!result.ok && selected !== 'off')
+    console.warn(`[licencia] ${result.reason}: ${describeFailure(result.reason)}`);
   return (current = { mode: selected, result });
 }
 
@@ -84,7 +98,13 @@ export const licenseMessage = (): string =>
   current.result && !current.result.ok ? describeFailure(current.result.reason) : '';
 
 /** Lo que la interfaz puede mostrar (sin datos sensibles más allá de la cuenta). */
-export function licenseSummary(): null | { mode: LicenseMode; valid: boolean; edition?: string; email?: string; expires?: string } {
+export function licenseSummary(): null | {
+  mode: LicenseMode;
+  valid: boolean;
+  edition?: string;
+  email?: string;
+  expires?: string;
+} {
   if (!current.result) return null;
   const claims: LicenseClaims | undefined = current.result?.ok ? current.result.claims : undefined;
   return {

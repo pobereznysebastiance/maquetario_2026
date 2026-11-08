@@ -88,7 +88,8 @@ function isClaims(value: unknown): value is LicenseClaims {
     typeof c.product === 'string' &&
     typeof c.edition === 'string' &&
     (c.maxMajor === null || Number.isInteger(c.maxMajor)) &&
-    (c.features === undefined || (Array.isArray(c.features) && c.features.every((f) => typeof f === 'string'))) &&
+    (c.features === undefined ||
+      (Array.isArray(c.features) && c.features.every((f) => typeof f === 'string'))) &&
     typeof c.device === 'string' &&
     Number.isFinite(c.iat) &&
     Number.isFinite(c.exp)
@@ -117,7 +118,12 @@ export function verifyLicense(token: string, options: VerifyOptions): LicenseRes
   const text = token.trim();
   if (text.length > 16_384) return { ok: false, reason: 'malformed' };
   const parts = text.split('.');
-  if (parts.length !== 3 || parts[0] !== LICENSE_PREFIX || !BASE64URL.test(parts[1]!) || !BASE64URL.test(parts[2]!)) {
+  if (
+    parts.length !== 3 ||
+    parts[0] !== LICENSE_PREFIX ||
+    !BASE64URL.test(parts[1]!) ||
+    !BASE64URL.test(parts[2]!)
+  ) {
     return { ok: false, reason: 'malformed' };
   }
   const claims = decodeLicenseUnverified(text);
@@ -134,7 +140,8 @@ export function verifyLicense(token: string, options: VerifyOptions): LicenseRes
   if (key.asymmetricKeyType !== 'ed25519') return { ok: false, reason: 'unknown-key', claims };
 
   const signed = Buffer.from(`${parts[0]}.${parts[1]}`, 'ascii');
-  if (!verify(null, signed, key, fromBase64Url(parts[2]!))) return { ok: false, reason: 'bad-signature', claims };
+  if (!verify(null, signed, key, fromBase64Url(parts[2]!)))
+    return { ok: false, reason: 'bad-signature', claims };
 
   // A partir de acá la firma es válida: los claims son de Motiova.
   const now = Math.floor((options.now ?? Date.now()) / 1000);
@@ -159,7 +166,8 @@ export function verifyLicense(token: string, options: VerifyOptions): LicenseRes
 export function issueLicense(claims: LicenseClaims, privateKeyPem: string): string {
   if (!isClaims(claims)) throw new Error('Claims de licencia incompletos.');
   const key = createPrivateKey(privateKeyPem);
-  if (key.asymmetricKeyType !== 'ed25519') throw new Error('La clave de firma tiene que ser Ed25519.');
+  if (key.asymmetricKeyType !== 'ed25519')
+    throw new Error('La clave de firma tiene que ser Ed25519.');
   const payload = toBase64Url(Buffer.from(JSON.stringify(claims), 'utf8'));
   const head = `${LICENSE_PREFIX}.${payload}`;
   const signature = sign(null, Buffer.from(head, 'ascii'), key);

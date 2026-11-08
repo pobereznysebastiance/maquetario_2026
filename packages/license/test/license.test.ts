@@ -1,7 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
-import { decodeLicenseUnverified, issueLicense, verifyLicense, type LicenseClaims } from '../src/index.ts';
+import {
+  decodeLicenseUnverified,
+  issueLicense,
+  verifyLicense,
+  type LicenseClaims,
+} from '../src/index.ts';
 
 const pair = () => {
   const { publicKey, privateKey } = generateKeyPairSync('ed25519');
@@ -11,7 +16,7 @@ const pair = () => {
   };
 };
 const keys = pair();
-const NOW = Date.UTC(2026, 10, 7) ;
+const NOW = Date.UTC(2026, 10, 7);
 const base: LicenseClaims = {
   v: 1,
   iss: 'motiova',
@@ -25,7 +30,12 @@ const base: LicenseClaims = {
   iat: NOW / 1000 - 60,
   exp: NOW / 1000 + 14 * 86400,
 };
-const options = { publicKeys: { k1: keys.pub }, product: 'maquetario', appVersion: '3.24.0', now: NOW };
+const options = {
+  publicKeys: { k1: keys.pub },
+  product: 'maquetario',
+  appVersion: '3.24.0',
+  now: NOW,
+};
 
 test('acepta una licencia válida', () => {
   const result = verifyLicense(issueLicense(base, keys.priv), options);
@@ -36,7 +46,9 @@ test('acepta una licencia válida', () => {
 test('rechaza una firma alterada', () => {
   const token = issueLicense(base, keys.priv);
   const [prefix, , signature] = token.split('.');
-  const forged = Buffer.from(JSON.stringify({ ...base, edition: 'enterprise' })).toString('base64url');
+  const forged = Buffer.from(JSON.stringify({ ...base, edition: 'enterprise' })).toString(
+    'base64url',
+  );
   assert.deepEqual(verifyLicense(`${prefix}.${forged}.${signature}`, options).ok, false);
   const result = verifyLicense(`${prefix}.${forged}.${signature}`, options);
   assert.equal(!result.ok && result.reason, 'bad-signature');
@@ -64,7 +76,13 @@ test('versión mayor no cubierta', () => {
   const token = issueLicense(base, keys.priv);
   const result = verifyLicense(token, { ...options, appVersion: '4.0.0' });
   assert.equal(!result.ok && result.reason, 'version-not-covered');
-  assert.equal(verifyLicense(issueLicense({ ...base, maxMajor: null }, keys.priv), { ...options, appVersion: '9.1.0' }).ok, true);
+  assert.equal(
+    verifyLicense(issueLicense({ ...base, maxMajor: null }, keys.priv), {
+      ...options,
+      appVersion: '9.1.0',
+    }).ok,
+    true,
+  );
 });
 
 test('producto y equipo', () => {

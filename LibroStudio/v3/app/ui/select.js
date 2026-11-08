@@ -7,10 +7,17 @@
 (function () {
   'use strict';
 
-  const ZONES = '.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer';
+  const ZONES =
+    '.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer';
 
   const fit = (select) => {
-    if (select.multiple || select.size > 1 || select.firstElementChild?.tagName === 'BUTTON' || !select.closest(ZONES)) return;
+    if (
+      select.multiple ||
+      select.size > 1 ||
+      select.firstElementChild?.tagName === 'BUTTON' ||
+      !select.closest(ZONES)
+    )
+      return;
     const button = document.createElement('button');
     button.append(document.createElement('selectedcontent'));
     select.prepend(button);

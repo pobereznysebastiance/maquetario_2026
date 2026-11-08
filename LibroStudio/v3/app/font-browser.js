@@ -1,16 +1,274 @@
 'use strict';
-let fontBrowserTarget=null,fontBrowserFamily='',fontBrowserVariant='',fontBrowserMatches=[],fontBrowserSearch='',fontBrowserGeneration=0;
-const fontBrowser=document.createElement('dialog');fontBrowser.id='fontBrowser';fontBrowser.innerHTML=`<div class="modal-header"><div><span class="eyebrow">MAQUETARIO · Aa</span><h1 id="fontBrowserTitle"></h1></div><button type="button" id="fontBrowserClose" class="icon-btn" aria-label="Cerrar">${icon('close')}</button></div><div class="font-browser-body"><input type="search" id="fontBrowserSearch"><div class="font-browser-columns"><div><p id="fontBrowserCount" class="help"></p><div id="fontBrowserList" role="listbox" tabindex="0"><div id="fontBrowserRows"></div></div></div><section class="font-browser-detail"><h2 id="fontBrowserFamily"></h2><label id="fontBrowserWeightLabel" for="fontBrowserStyle"></label><select id="fontBrowserStyle"></select><textarea id="fontBrowserSample" spellcheck="false">Aa Bb Gg · Maquetario 0123456789</textarea><div id="fontBrowserLarge" class="user-content"></div><p class="help" id="fontBrowserNotice"></p></section></div></div><div class="modal-actions"><button type="button" id="fontBrowserCancel" class="btn"></button><button type="button" id="fontBrowserApply" class="btn primary"></button></div>`;document.body.append(fontBrowser);
-function browserVariants(family){return familyFaces(family).flatMap(f=>[{key:f.id,label:f.style,face:f,instance:null},...f.instances.map((i,n)=>({key:f.id+'@'+n,label:i.name,face:f,instance:i}))]);}
-function browserCurrentVariant(){const variants=browserVariants(fontBrowserFamily);return variants.find(v=>v.key===fontBrowserVariant)||variants.find(v=>v.face.id===chooseDefaultFace(fontBrowserFamily)?.id)||variants[0];}
-function updateFontBrowserDetail(){const generation=++fontBrowserGeneration,variants=browserVariants(fontBrowserFamily);if(!variants.some(v=>v.key===fontBrowserVariant))fontBrowserVariant=variants.find(v=>v.face.id===chooseDefaultFace(fontBrowserFamily)?.id)?.key||variants[0]?.key||'';$('#fontBrowserFamily').textContent=fontBrowserFamily;$('#fontBrowserStyle').innerHTML=variants.map(v=>`<option value="${v.key}" ${v.key===fontBrowserVariant?'selected':''}>${esc(v.label)}${v.face.axes.length?' · '+fw().variable:''}</option>`).join('');$('#fontBrowserStyle').disabled=!variants.length;const variant=browserCurrentVariant(),sample=$('#fontBrowserLarge');sample.textContent=$('#fontBrowserSample').value;Object.assign(sample.style,{fontFamily:`"${fontBrowserFamily.replaceAll('"','')}"`,fontWeight:String(variant?.instance?.coordinates?.wght??variant?.face.weight??400),fontStyle:variant?.face.italic?'italic':'normal',fontVariationSettings:Object.entries(variant?.instance?.coordinates||{}).map(([k,v])=>`"${k}" ${v}`).join(',')});$('#fontBrowserNotice').textContent=bw('Explorá sin modificar tu documento. Aplicar confirma la elección.','Browse without changing your document. Apply confirms your choice.','Explore sem alterar o documento. Aplicar confirma a escolha.');if(variant)ensureFace(variant.face).then(()=>{if(generation===fontBrowserGeneration)sample.style.fontFamily=`"MQT_${variant.face.id}"`;}).catch(()=>{if(generation===fontBrowserGeneration)$('#fontBrowserNotice').textContent=fw().fail+fontBrowserFamily;});}
-function renderFontBrowserRows(){const list=$('#fontBrowserList'),rowHeight=68,first=Math.max(0,Math.floor(list.scrollTop/rowHeight)-2),last=Math.min(fontBrowserMatches.length,first+Math.ceil((list.clientHeight||420)/rowHeight)+5),rows=$('#fontBrowserRows');rows.style.height=fontBrowserMatches.length*rowHeight+'px';rows.innerHTML=fontBrowserMatches.slice(first,last).map((family,n)=>{const face=chooseDefaultFace(family),count=familyFaces(family).length;return `<button type="button" class="font-browser-row ${family===fontBrowserFamily?'active':''}" style="top:${(first+n)*rowHeight}px" data-browser-family="${esc(family)}" role="option" aria-selected="${family===fontBrowserFamily}"><span class="font-browser-name">${esc(family)}<small>${count||1} ${fw().faces}</small></span><span class="font-browser-row-sample user-content" ${face?`data-preview-face="${face.id}"`:''} style="font-family:'${face?'MQT_'+face.id:esc(family)}'">Aa Bb Gg</span></button>`;}).join('');rows.querySelectorAll('[data-browser-family]').forEach(b=>b.onclick=()=>{fontBrowserFamily=b.dataset.browserFamily;fontBrowserVariant='';updateFontBrowserDetail();renderFontBrowserRows();});const faces=[...rows.querySelectorAll('[data-preview-face]')];let cursor=0;async function loadVisible(){while(cursor<faces.length){const el=faces[cursor++],face=nativeFaces.find(f=>f.id===el.dataset.previewFace);if(!face)continue;try{await ensureFace(face);if(el.isConnected)el.style.fontFamily=`"MQT_${face.id}"`;}catch{if(el.isConnected)el.textContent=bw('Sin vista previa','Preview unavailable','Sem prévia');}}}for(let i=0;i<3;i++)loadVisible();}
-function filterFontBrowser(){fontBrowserSearch=$('#fontBrowserSearch').value;fontBrowserMatches=fontList.filter(f=>foldEditorial(f).includes(foldEditorial(fontBrowserSearch)));$('#fontBrowserCount').textContent=`${fontBrowserMatches.length} ${fw().families}`;$('#fontBrowserList').scrollTop=0;renderFontBrowserRows();}
-function openFontBrowser(select){if(select.disabled)return;fontBrowserTarget=select;fontBrowserFamily=select.value||fontList[0];const o=select.dataset.object==='font'?selectObject():select.dataset.bind?get(select.dataset.bind.replace(/\.font$/,'')):null;const f=o?.type==='text'?paragraphFormat(book,o,currentParagraph(o)):o,fontFace=f?selectedFace(f):null;fontBrowserVariant=fontFace?fontFace.id:'';$('#fontBrowserTitle').textContent=bw('Elegí una tipografía','Choose a typeface','Escolha uma tipografia');$('#fontBrowserSearch').placeholder=fw().search;$('#fontBrowserSearch').setAttribute('aria-label',fw().search);$('#fontBrowserWeightLabel').textContent=fw().weight;$('#fontBrowserCancel').textContent=bw('Cancelar','Cancel','Cancelar');$('#fontBrowserApply').textContent=bw('Aplicar tipografía','Apply typeface','Aplicar tipografia');$('#fontBrowserSearch').value='';fontBrowserMatches=[...fontList];fontBrowser.showModal();filterFontBrowser();const index=fontBrowserMatches.indexOf(fontBrowserFamily);$('#fontBrowserList').scrollTop=Math.max(0,index*68-100);renderFontBrowserRows();updateFontBrowserDetail();$('#fontBrowserSearch').focus();}
-$('#fontBrowserClose').onclick=$('#fontBrowserCancel').onclick=()=>fontBrowser.close();$('#fontBrowserSearch').oninput=filterFontBrowser;$('#fontBrowserList').onscroll=renderFontBrowserRows;$('#fontBrowserStyle').onchange=e=>{fontBrowserVariant=e.target.value;updateFontBrowserDetail();};$('#fontBrowserSample').oninput=()=>$('#fontBrowserLarge').textContent=$('#fontBrowserSample').value;
-$('#fontBrowserApply').onclick=async()=>{const select=fontBrowserTarget;if(!select?.isConnected){fontBrowser.close();return;}const variant=browserCurrentVariant(),family=fontBrowserFamily;if(!family)return;$('#fontBrowserApply').disabled=true;try{if(variant)await ensureFace(variant.face);if(select.dataset.object==='font'){const o=selectObject();if(!o||o.locked)return;if(variant)await applyFace(o,variant.face,variant.instance);else{select.value=family;select.dispatchEvent(new Event('change'));}}else if(select.dataset.bind?.endsWith('.font')){const c=get(select.dataset.bind.replace(/\.font$/,''));commit(()=>{c.font=family;if(variant){c.fontFaceId=variant.face.id;c.fontStyleName=variant.instance?.name||variant.face.style;c.fontWeight=variant.instance?.coordinates?.wght??variant.face.weight;c.fontItalic=variant.face.italic;c.fontAxes=variant.instance?.coordinates||variations(variant.face);}},false);}else{if(![...select.options].some(o=>o.value===family))select.add(new Option(family,family));select.value=family;select.dispatchEvent(new Event('change'));}fontBrowser.close();}catch(e){$('#fontBrowserNotice').textContent=e.message;}finally{$('#fontBrowserApply').disabled=false;}};
-function decorateFontBrowsers(root=document){for(const select of root.querySelectorAll('select[data-object="font"],select[data-bind$=".font"],select#paragraphStyleFont')){if(select.dataset.browserHook)continue;select.dataset.browserHook='1';select.classList.add('font-native-hidden');const button=document.createElement('button');button.type='button';button.className='font-visual-select';button.disabled=select.disabled;button.textContent=select.value+' ▾';button.title=bw('Ver diseños de tipografías','Preview typeface designs','Ver desenhos das fontes');button.onclick=()=>openFontBrowser(select);select.after(button);}}
-decorateInspector(()=>{decorateFontBrowsers($('#inspectorContent'));},'font-browser');extend.after('modal',function(...args){decorateFontBrowsers($('#modal'));},'font-browser');
-extend.result('autoElement',function(el,i,type,px,print=false){const cfg=book[type],face=selectedFace(cfg);if(el&&face){el.style.fontFamily=`"MQT_${face.id}"`;el.style.fontWeight=String(cfg.fontAxes?.wght??cfg.fontWeight??face.weight);el.style.fontStyle=cfg.fontItalic?'italic':'normal';el.style.fontVariationSettings=Object.entries(cfg.fontAxes||{}).map(([k,v])=>`"${k}" ${v}`).join(',');}return el;},'font-browser');
-extend.result('ensureBookFonts',async function(pending){await pending;await Promise.all(['header','titulillo','folio'].map(t=>ensureFace(selectedFace(book[t])).catch(()=>{})));},'font-browser');
+let fontBrowserTarget = null,
+  fontBrowserFamily = '',
+  fontBrowserVariant = '',
+  fontBrowserMatches = [],
+  fontBrowserSearch = '',
+  fontBrowserGeneration = 0;
+const fontBrowser = document.createElement('dialog');
+fontBrowser.id = 'fontBrowser';
+fontBrowser.innerHTML = `<div class="modal-header"><div><span class="eyebrow">MAQUETARIO · Aa</span><h1 id="fontBrowserTitle"></h1></div><button type="button" id="fontBrowserClose" class="icon-btn" aria-label="Cerrar">${icon('close')}</button></div><div class="font-browser-body"><input type="search" id="fontBrowserSearch"><div class="font-browser-columns"><div><p id="fontBrowserCount" class="help"></p><div id="fontBrowserList" role="listbox" tabindex="0"><div id="fontBrowserRows"></div></div></div><section class="font-browser-detail"><h2 id="fontBrowserFamily"></h2><label id="fontBrowserWeightLabel" for="fontBrowserStyle"></label><select id="fontBrowserStyle"></select><textarea id="fontBrowserSample" spellcheck="false">Aa Bb Gg · Maquetario 0123456789</textarea><div id="fontBrowserLarge" class="user-content"></div><p class="help" id="fontBrowserNotice"></p></section></div></div><div class="modal-actions"><button type="button" id="fontBrowserCancel" class="btn"></button><button type="button" id="fontBrowserApply" class="btn primary"></button></div>`;
+document.body.append(fontBrowser);
+function browserVariants(family) {
+  return familyFaces(family).flatMap((f) => [
+    { key: f.id, label: f.style, face: f, instance: null },
+    ...f.instances.map((i, n) => ({ key: f.id + '@' + n, label: i.name, face: f, instance: i })),
+  ]);
+}
+function browserCurrentVariant() {
+  const variants = browserVariants(fontBrowserFamily);
+  return (
+    variants.find((v) => v.key === fontBrowserVariant) ||
+    variants.find((v) => v.face.id === chooseDefaultFace(fontBrowserFamily)?.id) ||
+    variants[0]
+  );
+}
+function updateFontBrowserDetail() {
+  const generation = ++fontBrowserGeneration,
+    variants = browserVariants(fontBrowserFamily);
+  if (!variants.some((v) => v.key === fontBrowserVariant))
+    fontBrowserVariant =
+      variants.find((v) => v.face.id === chooseDefaultFace(fontBrowserFamily)?.id)?.key ||
+      variants[0]?.key ||
+      '';
+  $('#fontBrowserFamily').textContent = fontBrowserFamily;
+  $('#fontBrowserStyle').innerHTML = variants
+    .map(
+      (v) =>
+        `<option value="${v.key}" ${v.key === fontBrowserVariant ? 'selected' : ''}>${esc(v.label)}${v.face.axes.length ? ' · ' + fw().variable : ''}</option>`,
+    )
+    .join('');
+  $('#fontBrowserStyle').disabled = !variants.length;
+  const variant = browserCurrentVariant(),
+    sample = $('#fontBrowserLarge');
+  sample.textContent = $('#fontBrowserSample').value;
+  Object.assign(sample.style, {
+    fontFamily: `"${fontBrowserFamily.replaceAll('"', '')}"`,
+    fontWeight: String(variant?.instance?.coordinates?.wght ?? variant?.face.weight ?? 400),
+    fontStyle: variant?.face.italic ? 'italic' : 'normal',
+    fontVariationSettings: Object.entries(variant?.instance?.coordinates || {})
+      .map(([k, v]) => `"${k}" ${v}`)
+      .join(','),
+  });
+  $('#fontBrowserNotice').textContent = bw(
+    'Explorá sin modificar tu documento. Aplicar confirma la elección.',
+    'Browse without changing your document. Apply confirms your choice.',
+    'Explore sem alterar o documento. Aplicar confirma a escolha.',
+  );
+  if (variant)
+    ensureFace(variant.face)
+      .then(() => {
+        if (generation === fontBrowserGeneration)
+          sample.style.fontFamily = `"MQT_${variant.face.id}"`;
+      })
+      .catch(() => {
+        if (generation === fontBrowserGeneration)
+          $('#fontBrowserNotice').textContent = fw().fail + fontBrowserFamily;
+      });
+}
+function renderFontBrowserRows() {
+  const list = $('#fontBrowserList'),
+    rowHeight = 68,
+    first = Math.max(0, Math.floor(list.scrollTop / rowHeight) - 2),
+    last = Math.min(
+      fontBrowserMatches.length,
+      first + Math.ceil((list.clientHeight || 420) / rowHeight) + 5,
+    ),
+    rows = $('#fontBrowserRows');
+  rows.style.height = fontBrowserMatches.length * rowHeight + 'px';
+  rows.innerHTML = fontBrowserMatches
+    .slice(first, last)
+    .map((family, n) => {
+      const face = chooseDefaultFace(family),
+        count = familyFaces(family).length;
+      return `<button type="button" class="font-browser-row ${family === fontBrowserFamily ? 'active' : ''}" style="top:${(first + n) * rowHeight}px" data-browser-family="${esc(family)}" role="option" aria-selected="${family === fontBrowserFamily}"><span class="font-browser-name">${esc(family)}<small>${count || 1} ${fw().faces}</small></span><span class="font-browser-row-sample user-content" ${face ? `data-preview-face="${face.id}"` : ''} style="font-family:'${face ? 'MQT_' + face.id : esc(family)}'">Aa Bb Gg</span></button>`;
+    })
+    .join('');
+  rows.querySelectorAll('[data-browser-family]').forEach(
+    (b) =>
+      (b.onclick = () => {
+        fontBrowserFamily = b.dataset.browserFamily;
+        fontBrowserVariant = '';
+        updateFontBrowserDetail();
+        renderFontBrowserRows();
+      }),
+  );
+  const faces = [...rows.querySelectorAll('[data-preview-face]')];
+  let cursor = 0;
+  async function loadVisible() {
+    while (cursor < faces.length) {
+      const el = faces[cursor++],
+        face = nativeFaces.find((f) => f.id === el.dataset.previewFace);
+      if (!face) continue;
+      try {
+        await ensureFace(face);
+        if (el.isConnected) el.style.fontFamily = `"MQT_${face.id}"`;
+      } catch {
+        if (el.isConnected)
+          el.textContent = bw('Sin vista previa', 'Preview unavailable', 'Sem prévia');
+      }
+    }
+  }
+  for (let i = 0; i < 3; i++) loadVisible();
+}
+function filterFontBrowser() {
+  fontBrowserSearch = $('#fontBrowserSearch').value;
+  fontBrowserMatches = fontList.filter((f) =>
+    foldEditorial(f).includes(foldEditorial(fontBrowserSearch)),
+  );
+  $('#fontBrowserCount').textContent = `${fontBrowserMatches.length} ${fw().families}`;
+  $('#fontBrowserList').scrollTop = 0;
+  renderFontBrowserRows();
+}
+function openFontBrowser(select) {
+  if (select.disabled) return;
+  fontBrowserTarget = select;
+  fontBrowserFamily = select.value || fontList[0];
+  const o =
+    select.dataset.object === 'font'
+      ? selectObject()
+      : select.dataset.bind
+        ? get(select.dataset.bind.replace(/\.font$/, ''))
+        : null;
+  const f = o?.type === 'text' ? paragraphFormat(book, o, currentParagraph(o)) : o,
+    fontFace = f ? selectedFace(f) : null;
+  fontBrowserVariant = fontFace ? fontFace.id : '';
+  $('#fontBrowserTitle').textContent = bw(
+    'Elegí una tipografía',
+    'Choose a typeface',
+    'Escolha uma tipografia',
+  );
+  $('#fontBrowserSearch').placeholder = fw().search;
+  $('#fontBrowserSearch').setAttribute('aria-label', fw().search);
+  $('#fontBrowserWeightLabel').textContent = fw().weight;
+  $('#fontBrowserCancel').textContent = bw('Cancelar', 'Cancel', 'Cancelar');
+  $('#fontBrowserApply').textContent = bw(
+    'Aplicar tipografía',
+    'Apply typeface',
+    'Aplicar tipografia',
+  );
+  $('#fontBrowserSearch').value = '';
+  fontBrowserMatches = [...fontList];
+  fontBrowser.showModal();
+  filterFontBrowser();
+  const index = fontBrowserMatches.indexOf(fontBrowserFamily);
+  $('#fontBrowserList').scrollTop = Math.max(0, index * 68 - 100);
+  renderFontBrowserRows();
+  updateFontBrowserDetail();
+  $('#fontBrowserSearch').focus();
+}
+$('#fontBrowserClose').onclick = $('#fontBrowserCancel').onclick = () => fontBrowser.close();
+$('#fontBrowserSearch').oninput = filterFontBrowser;
+$('#fontBrowserList').onscroll = renderFontBrowserRows;
+$('#fontBrowserStyle').onchange = (e) => {
+  fontBrowserVariant = e.target.value;
+  updateFontBrowserDetail();
+};
+$('#fontBrowserSample').oninput = () =>
+  ($('#fontBrowserLarge').textContent = $('#fontBrowserSample').value);
+$('#fontBrowserApply').onclick = async () => {
+  const select = fontBrowserTarget;
+  if (!select?.isConnected) {
+    fontBrowser.close();
+    return;
+  }
+  const variant = browserCurrentVariant(),
+    family = fontBrowserFamily;
+  if (!family) return;
+  $('#fontBrowserApply').disabled = true;
+  try {
+    if (variant) await ensureFace(variant.face);
+    if (select.dataset.object === 'font') {
+      const o = selectObject();
+      if (!o || o.locked) return;
+      if (variant) await applyFace(o, variant.face, variant.instance);
+      else {
+        select.value = family;
+        select.dispatchEvent(new Event('change'));
+      }
+    } else if (select.dataset.bind?.endsWith('.font')) {
+      const c = get(select.dataset.bind.replace(/\.font$/, ''));
+      commit(() => {
+        c.font = family;
+        if (variant) {
+          c.fontFaceId = variant.face.id;
+          c.fontStyleName = variant.instance?.name || variant.face.style;
+          c.fontWeight = variant.instance?.coordinates?.wght ?? variant.face.weight;
+          c.fontItalic = variant.face.italic;
+          c.fontAxes = variant.instance?.coordinates || variations(variant.face);
+        }
+      }, false);
+    } else {
+      if (![...select.options].some((o) => o.value === family))
+        select.add(new Option(family, family));
+      select.value = family;
+      select.dispatchEvent(new Event('change'));
+    }
+    fontBrowser.close();
+  } catch (e) {
+    $('#fontBrowserNotice').textContent = e.message;
+  } finally {
+    $('#fontBrowserApply').disabled = false;
+  }
+};
+function decorateFontBrowsers(root = document) {
+  for (const select of root.querySelectorAll(
+    'select[data-object="font"],select[data-bind$=".font"],select#paragraphStyleFont',
+  )) {
+    if (select.dataset.browserHook) continue;
+    select.dataset.browserHook = '1';
+    select.classList.add('font-native-hidden');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'font-visual-select';
+    button.disabled = select.disabled;
+    button.textContent = select.value + ' ▾';
+    button.title = bw(
+      'Ver diseños de tipografías',
+      'Preview typeface designs',
+      'Ver desenhos das fontes',
+    );
+    button.onclick = () => openFontBrowser(select);
+    select.after(button);
+  }
+}
+decorateInspector(() => {
+  decorateFontBrowsers($('#inspectorContent'));
+}, 'font-browser');
+extend.after(
+  'modal',
+  function (...args) {
+    decorateFontBrowsers($('#modal'));
+  },
+  'font-browser',
+);
+extend.result(
+  'autoElement',
+  function (el, i, type, px, print = false) {
+    const cfg = book[type],
+      face = selectedFace(cfg);
+    if (el && face) {
+      el.style.fontFamily = `"MQT_${face.id}"`;
+      el.style.fontWeight = String(cfg.fontAxes?.wght ?? cfg.fontWeight ?? face.weight);
+      el.style.fontStyle = cfg.fontItalic ? 'italic' : 'normal';
+      el.style.fontVariationSettings = Object.entries(cfg.fontAxes || {})
+        .map(([k, v]) => `"${k}" ${v}`)
+        .join(',');
+    }
+    return el;
+  },
+  'font-browser',
+);
+extend.result(
+  'ensureBookFonts',
+  async function (pending) {
+    await pending;
+    await Promise.all(
+      ['header', 'titulillo', 'folio'].map((t) =>
+        ensureFace(selectedFace(book[t])).catch(() => {}),
+      ),
+    );
+  },
+  'font-browser',
+);
 decorateFontBrowsers($('#inspectorContent'));

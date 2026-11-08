@@ -27,7 +27,11 @@ const memoryStore = (): TokenStore & { value: string | null } => ({
   },
 });
 
-const device: Device = { id: 'equipo-de-prueba-1234', name: 'Notebook de prueba', platform: 'windows' };
+const device: Device = {
+  id: 'equipo-de-prueba-1234',
+  name: 'Notebook de prueba',
+  platform: 'windows',
+};
 
 /** Motiova falso: valida PKCE, rota el refresh (cada uno se usa una vez) y exige el bearer. */
 async function fakeMotiova() {
@@ -48,7 +52,12 @@ async function fakeMotiova() {
     const refresh = `ref-${state.seq}`;
     state.access.add(access);
     state.refresh.add(refresh);
-    return { access_token: access, refresh_token: refresh, token_type: 'bearer', user: { id: 'u1', email: 'ana@ejemplo.com', first_name: 'Ana', last_name: 'Pérez' } };
+    return {
+      access_token: access,
+      refresh_token: refresh,
+      token_type: 'bearer',
+      user: { id: 'u1', email: 'ana@ejemplo.com', first_name: 'Ana', last_name: 'Pérez' },
+    };
   };
   const server: Server = createServer(async (req, res) => {
     let raw = '';
@@ -58,12 +67,14 @@ async function fakeMotiova() {
       res.writeHead(status, { 'Content-Type': 'application/json' });
       res.end(data === undefined ? '' : JSON.stringify(data));
     };
-    const authed = () => state.access.has(String(req.headers.authorization ?? '').replace('Bearer ', ''));
+    const authed = () =>
+      state.access.has(String(req.headers.authorization ?? '').replace('Bearer ', ''));
     const path = (req.url ?? '').replace('/api/v1', '');
     if (path === '/desktop/token') {
       const challenge = state.codes.get(body.code);
       const computed = createHash('sha256').update(body.code_verifier).digest('base64url');
-      if (!challenge || challenge !== computed) return send(400, { detail: 'El link del programa no es válido.' });
+      if (!challenge || challenge !== computed)
+        return send(400, { detail: 'El link del programa no es válido.' });
       state.codes.delete(body.code);
       return send(200, issue());
     }
@@ -79,11 +90,33 @@ async function fakeMotiova() {
     if (!authed()) return send(401, { detail: 'No autenticado' });
     if (path === '/desktop/licenses') {
       if (!state.hasProduct) return send(403, { detail: 'Tu cuenta no tiene Maquetario' });
-      if (state.deviceLimit) return send(409, { detail: 'Ya usás Maquetario en 2 computadoras (A, B). Liberá una desde Mi cuenta.' });
-      return send(200, { license: `MQL1.licencia.${body.device_id}`, expires_at: '2026-11-15T00:00:00Z', product: body.product, edition: 'estandar', devices_in_use: 1, max_devices: 2 });
+      if (state.deviceLimit)
+        return send(409, {
+          detail: 'Ya usás Maquetario en 2 computadoras (A, B). Liberá una desde Mi cuenta.',
+        });
+      return send(200, {
+        license: `MQL1.licencia.${body.device_id}`,
+        expires_at: '2026-11-15T00:00:00Z',
+        product: body.product,
+        edition: 'estandar',
+        devices_in_use: 1,
+        max_devices: 2,
+      });
     }
     if (path === '/desktop/resources') {
-      return send(200, { resources: [{ slug: 'maquetario', title: 'Maquetario', license_code: 'maquetario', edition: 'estandar', max_devices: 2, devices_in_use: 1, latest: { version: '3.25.0', notes: 'Mejoras', files: [] } }] });
+      return send(200, {
+        resources: [
+          {
+            slug: 'maquetario',
+            title: 'Maquetario',
+            license_code: 'maquetario',
+            edition: 'estandar',
+            max_devices: 2,
+            devices_in_use: 1,
+            latest: { version: '3.25.0', notes: 'Mejoras', files: [] },
+          },
+        ],
+      });
     }
     if (path === '/desktop/licenses/release') {
       state.released.push(body.device_id);
@@ -102,7 +135,9 @@ const browser = (motiova: Awaited<ReturnType<typeof fakeMotiova>>) => async (url
   const params = new URL(url).searchParams;
   const code = `codigo-${Math.random().toString(36).slice(2)}`;
   motiova.state.codes.set(code, params.get('desafio')!);
-  const response = await fetch(`http://127.0.0.1:${params.get('puerto')}/callback?code=${code}&state=${params.get('estado')}`);
+  const response = await fetch(
+    `http://127.0.0.1:${params.get('puerto')}/callback?code=${code}&state=${params.get('estado')}`,
+  );
   assert.equal(response.status, 200);
 };
 
@@ -135,7 +170,10 @@ test('conectar, pedir la licencia, rotar el refresh y cerrar sesión', async () 
   const motiova = await fakeMotiova();
   try {
     const store = memoryStore();
-    const client = new MotiovaClient({ web: 'https://motiova.test', api: motiova.api, product: 'maquetario' }, store);
+    const client = new MotiovaClient(
+      { web: 'https://motiova.test', api: motiova.api, product: 'maquetario' },
+      store,
+    );
 
     const user = await client.connect(browser(motiova));
     assert.equal(user.email, 'ana@ejemplo.com');
@@ -171,7 +209,10 @@ test('errores de Motiova con mensaje listo para mostrar', async () => {
   const motiova = await fakeMotiova();
   try {
     const store = memoryStore();
-    const client = new MotiovaClient({ web: 'https://motiova.test', api: motiova.api, product: 'maquetario' }, store);
+    const client = new MotiovaClient(
+      { web: 'https://motiova.test', api: motiova.api, product: 'maquetario' },
+      store,
+    );
     await client.connect(browser(motiova));
 
     motiova.state.deviceLimit = true;
@@ -182,11 +223,18 @@ test('errores de Motiova con mensaje listo para mostrar', async () => {
     });
 
     motiova.state.hasProduct = false;
-    await assert.rejects(client.requestLicense(device), (error: MotiovaError) => error.code === 'no-product' && /no tiene Maquetario/.test(error.message));
+    await assert.rejects(
+      client.requestLicense(device),
+      (error: MotiovaError) =>
+        error.code === 'no-product' && /no tiene Maquetario/.test(error.message),
+    );
 
     // El refresh guardado ya no vale (por ejemplo, se usó desde otro lado): la sesión se cierra sola.
     motiova.state.refresh.clear();
-    await assert.rejects(client.accessToken(true), (error: MotiovaError) => error.code === 'signed-out');
+    await assert.rejects(
+      client.accessToken(true),
+      (error: MotiovaError) => error.code === 'signed-out',
+    );
     assert.equal(store.value, null);
   } finally {
     motiova.server.close();
@@ -199,8 +247,14 @@ test('sin conexión: error "offline"', async () => {
   motiova.server.close();
   const store = memoryStore();
   store.value = 'ref-guardado';
-  const client = new MotiovaClient({ web: 'https://motiova.test', api, product: 'maquetario' }, store);
-  await assert.rejects(client.requestLicense(device), (error: MotiovaError) => error.code === 'offline');
+  const client = new MotiovaClient(
+    { web: 'https://motiova.test', api, product: 'maquetario' },
+    store,
+  );
+  await assert.rejects(
+    client.requestLicense(device),
+    (error: MotiovaError) => error.code === 'offline',
+  );
   assert.equal(store.value, 'ref-guardado', 'sin conexión no se pierde la sesión');
 });
 
@@ -208,7 +262,9 @@ test('el callback ignora un estado ajeno y vence si nadie vuelve', async () => {
   const listener = await listenForCallback('estado-correcto-123456', 5_000);
   const wrong = await fetch(`http://127.0.0.1:${listener.port}/callback?code=abc&state=otro`);
   assert.equal(wrong.status, 400);
-  const right = await fetch(`http://127.0.0.1:${listener.port}/callback?code=el-codigo&state=estado-correcto-123456`);
+  const right = await fetch(
+    `http://127.0.0.1:${listener.port}/callback?code=el-codigo&state=estado-correcto-123456`,
+  );
   assert.equal(right.status, 200);
   assert.equal(await listener.code, 'el-codigo');
 

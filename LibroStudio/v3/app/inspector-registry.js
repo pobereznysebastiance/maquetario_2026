@@ -30,7 +30,9 @@
         if (inspectorPaused()) return;
         const host = $('#inspectorContent'),
           scroll = host.scrollTop,
-          open = new Map([...host.querySelectorAll('details')].map((d) => [inspectorDetailKey(d), d.open]));
+          open = new Map(
+            [...host.querySelectorAll('details')].map((d) => [inspectorDetailKey(d), d.open]),
+          );
         draw();
         for (const d of host.querySelectorAll('details')) {
           const key = inspectorDetailKey(d);

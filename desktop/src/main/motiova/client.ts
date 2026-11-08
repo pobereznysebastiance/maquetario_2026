@@ -97,7 +97,8 @@ const MESSAGES: Record<MotiovaErrorCode, string> = {
   offline: 'No pudimos conectarnos con Motiova. Revisá tu conexión a internet y volvé a intentar.',
   'signed-out': 'Tu sesión de Motiova terminó. Volvé a conectar Maquetario con tu cuenta.',
   'no-product': 'Tu cuenta de Motiova no tiene Maquetario.',
-  'device-limit': 'Ya usás Maquetario en todas las computadoras permitidas. Liberá una desde Mi cuenta, en Mis programas.',
+  'device-limit':
+    'Ya usás Maquetario en todas las computadoras permitidas. Liberá una desde Mi cuenta, en Mis programas.',
   unavailable: 'Motiova no puede emitir licencias en este momento. Probá en un rato.',
   cancelled: 'Se canceló la conexión con Motiova.',
   timeout: 'No llegó la confirmación desde el navegador. Volvé a intentar.',
@@ -115,7 +116,11 @@ export function createPkce(): { verifier: string; challenge: string; state: stri
 
 export function activationUrl(web: string, port: number, state: string, challenge: string): string {
   const url = new URL('/activar-programa', web.replace(/\/+$/, '') + '/');
-  url.search = new URLSearchParams({ puerto: String(port), estado: state, desafio: challenge }).toString();
+  url.search = new URLSearchParams({
+    puerto: String(port),
+    estado: state,
+    desafio: challenge,
+  }).toString();
   return url.toString();
 }
 
@@ -125,7 +130,13 @@ export function platformOf(nodePlatform: NodeJS.Platform): Platform {
 
 /** true si `candidate` es una versión más nueva que `current` (números separados por punto). */
 export function isNewer(candidate: string, current: string): boolean {
-  const parts = (v: string) => v.trim().replace(/^v/i, '').split(/[.+-]/).slice(0, 3).map((p) => Number.parseInt(p, 10) || 0);
+  const parts = (v: string) =>
+    v
+      .trim()
+      .replace(/^v/i, '')
+      .split(/[.+-]/)
+      .slice(0, 3)
+      .map((p) => Number.parseInt(p, 10) || 0);
   const a = parts(candidate);
   const b = parts(current);
   for (let i = 0; i < 3; i++) if ((a[i] ?? 0) !== (b[i] ?? 0)) return (a[i] ?? 0) > (b[i] ?? 0);
@@ -148,7 +159,11 @@ export interface CallbackListener {
  * Escucha en 127.0.0.1:<puerto libre>/callback hasta que el navegador vuelva con `code` y el
  * `state` esperado. Cualquier otro pedido se ignora.
  */
-export function listenForCallback(state: string, timeoutMs: number, signal?: AbortSignal): Promise<CallbackListener> {
+export function listenForCallback(
+  state: string,
+  timeoutMs: number,
+  signal?: AbortSignal,
+): Promise<CallbackListener> {
   return new Promise((resolveListener, rejectListener) => {
     let settle: { resolve: (code: string) => void; reject: (error: Error) => void } | null = null;
     const code = new Promise<string>((resolve, reject) => (settle = { resolve, reject }));
@@ -163,14 +178,27 @@ export function listenForCallback(state: string, timeoutMs: number, signal?: Abo
       const given = url.searchParams.get('code');
       if (url.searchParams.get('state') !== state || !given) {
         res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(PAGE('No se pudo conectar', 'El enlace no corresponde a este pedido. Volvé a Maquetario e intentá de nuevo.'));
+        res.end(
+          PAGE(
+            'No se pudo conectar',
+            'El enlace no corresponde a este pedido. Volvé a Maquetario e intentá de nuevo.',
+          ),
+        );
         return;
       }
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(PAGE('Listo', 'Maquetario ya está conectado con tu cuenta. Podés cerrar esta pestaña y volver al programa.'));
+      res.end(
+        PAGE(
+          'Listo',
+          'Maquetario ya está conectado con tu cuenta. Podés cerrar esta pestaña y volver al programa.',
+        ),
+      );
       finish(null, given);
     });
-    const timer = setTimeout(() => finish(new MotiovaError('timeout', MESSAGES.timeout)), timeoutMs);
+    const timer = setTimeout(
+      () => finish(new MotiovaError('timeout', MESSAGES.timeout)),
+      timeoutMs,
+    );
     const onAbort = () => finish(new MotiovaError('cancelled', MESSAGES.cancelled));
     signal?.addEventListener('abort', onAbort, { once: true });
     function finish(error: Error | null, value?: string) {
@@ -187,7 +215,11 @@ export function listenForCallback(state: string, timeoutMs: number, signal?: Abo
     server.listen(0, '127.0.0.1', () => {
       const address = server.address();
       const port = typeof address === 'object' && address ? address.port : 0;
-      resolveListener({ port, code, close: () => finish(new MotiovaError('cancelled', MESSAGES.cancelled)) });
+      resolveListener({
+        port,
+        code,
+        close: () => finish(new MotiovaError('cancelled', MESSAGES.cancelled)),
+      });
     });
   });
 }
@@ -214,7 +246,11 @@ export class MotiovaClient {
   user: MotiovaUser | null = null;
 
   constructor(config: MotiovaConfig, store: TokenStore, fetchImpl: typeof fetch = fetch) {
-    this.config = { ...config, web: config.web.replace(/\/+$/, ''), api: config.api.replace(/\/+$/, '') };
+    this.config = {
+      ...config,
+      web: config.web.replace(/\/+$/, ''),
+      api: config.api.replace(/\/+$/, ''),
+    };
     this.store = store;
     this.fetchImpl = fetchImpl;
   }
@@ -223,7 +259,12 @@ export class MotiovaClient {
     return !!(await this.store.load());
   }
 
-  private async request<T>(method: string, path: string, body?: unknown, token?: string): Promise<T> {
+  private async request<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    token?: string,
+  ): Promise<T> {
     let response: Response;
     try {
       response = await this.fetchImpl(`${this.config.api}${path}`, {
@@ -254,7 +295,8 @@ export class MotiovaClient {
                 ? 'offline'
                 : 'rejected';
     // El 401 de la API no trae un mensaje para la persona: se usa el propio.
-    const message = code === 'signed-out' || code === 'offline' ? MESSAGES[code] : (detail ?? MESSAGES[code]);
+    const message =
+      code === 'signed-out' || code === 'offline' ? MESSAGES[code] : (detail ?? MESSAGES[code]);
     throw new MotiovaError(code, message, response.status);
   }
 
@@ -262,9 +304,16 @@ export class MotiovaClient {
    * Login con el navegador (OAuth 2.0 + PKCE). `open` abre la URL en el navegador del sistema.
    * Guarda el refresh_token y deja el access_token en memoria.
    */
-  async connect(open: (url: string) => Promise<void> | void, options: { timeoutMs?: number; signal?: AbortSignal } = {}): Promise<MotiovaUser> {
+  async connect(
+    open: (url: string) => Promise<void> | void,
+    options: { timeoutMs?: number; signal?: AbortSignal } = {},
+  ): Promise<MotiovaUser> {
     const pkce = createPkce();
-    const listener = await listenForCallback(pkce.state, options.timeoutMs ?? 5 * 60 * 1000, options.signal);
+    const listener = await listenForCallback(
+      pkce.state,
+      options.timeoutMs ?? 5 * 60 * 1000,
+      options.signal,
+    );
     try {
       await open(activationUrl(this.config.web, listener.port, pkce.state, pkce.challenge));
     } catch (error) {
@@ -272,7 +321,11 @@ export class MotiovaClient {
       throw error;
     }
     const code = await listener.code;
-    const tokens = await this.request<{ access_token: string; refresh_token: string; user: MotiovaUser }>('POST', '/desktop/token', {
+    const tokens = await this.request<{
+      access_token: string;
+      refresh_token: string;
+      user: MotiovaUser;
+    }>('POST', '/desktop/token', {
       code,
       code_verifier: pkce.verifier,
     });
@@ -287,12 +340,17 @@ export class MotiovaClient {
    * sola vez, así que el nuevo se guarda antes de seguir. Un solo refresh a la vez.
    */
   async accessToken(force = false): Promise<string> {
-    if (!force && this.access && Date.now() - this.access.at < ACCESS_TTL_MS) return this.access.token;
+    if (!force && this.access && Date.now() - this.access.at < ACCESS_TTL_MS)
+      return this.access.token;
     this.refreshing ??= (async () => {
       const refresh = await this.store.load();
       if (!refresh) throw new MotiovaError('signed-out', MESSAGES['signed-out']);
       try {
-        const tokens = await this.request<{ access_token: string; refresh_token: string; user?: MotiovaUser }>('POST', '/auth/refresh', {
+        const tokens = await this.request<{
+          access_token: string;
+          refresh_token: string;
+          user?: MotiovaUser;
+        }>('POST', '/auth/refresh', {
           refresh_token: refresh,
         });
         await this.store.save(tokens.refresh_token);
@@ -301,7 +359,8 @@ export class MotiovaClient {
         return tokens.access_token;
       } catch (error) {
         // Refresh vencido o ya usado: la sesión no sirve más.
-        if (error instanceof MotiovaError && error.code === 'signed-out') await this.signOutLocally();
+        if (error instanceof MotiovaError && error.code === 'signed-out')
+          await this.signOutLocally();
         throw error;
       }
     })().finally(() => {
@@ -315,7 +374,8 @@ export class MotiovaClient {
     try {
       return await this.request<T>(method, path, body, await this.accessToken());
     } catch (error) {
-      if (!(error instanceof MotiovaError) || error.code !== 'signed-out' || !this.access) throw error;
+      if (!(error instanceof MotiovaError) || error.code !== 'signed-out' || !this.access)
+        throw error;
       this.access = null;
       return this.request<T>(method, path, body, await this.accessToken(true));
     }
@@ -334,11 +394,17 @@ export class MotiovaClient {
   /** El programa en la cuenta (edición, equipos y última versión), o null si la cuenta no lo tiene. */
   async resource(): Promise<Resource | null> {
     const { resources } = await this.authed<{ resources: Resource[] }>('GET', '/desktop/resources');
-    return resources.find((r) => r.license_code === this.config.product || r.slug === this.config.product) ?? null;
+    return (
+      resources.find(
+        (r) => r.license_code === this.config.product || r.slug === this.config.product,
+      ) ?? null
+    );
   }
 
   downloadLink(slug: string, platform: Platform): Promise<DownloadLink> {
-    return this.authed<DownloadLink>('POST', `/me/products/${encodeURIComponent(slug)}/download`, { platform });
+    return this.authed<DownloadLink>('POST', `/me/products/${encodeURIComponent(slug)}/download`, {
+      platform,
+    });
   }
 
   /**
@@ -347,9 +413,15 @@ export class MotiovaClient {
    */
   async release(device: Device): Promise<void> {
     try {
-      await this.authed<null>('POST', '/desktop/licenses/release', { product: this.config.product, device_id: device.id });
+      await this.authed<null>('POST', '/desktop/licenses/release', {
+        product: this.config.product,
+        device_id: device.id,
+      });
       const refresh = await this.store.load();
-      if (refresh) await this.request<null>('POST', '/auth/logout', { refresh_token: refresh }).catch(() => undefined);
+      if (refresh)
+        await this.request<null>('POST', '/auth/logout', { refresh_token: refresh }).catch(
+          () => undefined,
+        );
     } finally {
       await this.signOutLocally();
     }

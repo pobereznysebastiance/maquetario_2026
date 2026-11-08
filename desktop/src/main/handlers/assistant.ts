@@ -24,7 +24,10 @@ async function readConfig(): Promise<AulaConfig> {
 }
 
 async function classProfileUrl(): Promise<string> {
-  const profile = await readJson<{ serviceUrl?: unknown }>(join(exeDir(), 'maquetario-aula.json'), {});
+  const profile = await readJson<{ serviceUrl?: unknown }>(
+    join(exeDir(), 'maquetario-aula.json'),
+    {},
+  );
   return typeof profile.serviceUrl === 'string' ? profile.serviceUrl : '';
 }
 
@@ -36,7 +39,13 @@ function assistantUrl(url: string): URL {
     throw new Error('Usá una dirección HTTPS del servicio del aula.');
   }
   const loopback = ['localhost', '127.0.0.1', '[::1]'].includes(parsed.hostname);
-  if (parsed.username || parsed.password || parsed.search || parsed.hash || !(parsed.protocol === 'https:' || (parsed.protocol === 'http:' && loopback))) {
+  if (
+    parsed.username ||
+    parsed.password ||
+    parsed.search ||
+    parsed.hash ||
+    !(parsed.protocol === 'https:' || (parsed.protocol === 'http:' && loopback))
+  ) {
     throw new Error('Usá una dirección HTTPS del servicio del aula.');
   }
   return parsed;
@@ -46,7 +55,11 @@ export async function assistantStatus() {
   const config = await readConfig();
   const profile = await classProfileUrl();
   const endpoint = config.url ?? profile;
-  return { configured: endpoint.length > 0 && !!config.code, serviceUrl: endpoint, hasProfile: profile.length > 0 };
+  return {
+    configured: endpoint.length > 0 && !!config.code,
+    serviceUrl: endpoint,
+    hasProfile: profile.length > 0,
+  };
 }
 
 export async function configureAssistant(payload: { url?: unknown; code?: unknown }) {
@@ -55,15 +68,24 @@ export async function configureAssistant(payload: { url?: unknown; code?: unknow
   assistantUrl(url);
   const old = await readConfig();
   if (!code && old.url === url && old.code) code = old.code;
-  if (code.length < 8 || code.length > 200) throw new Error('Ingresá el código de aula provisto por tu docente.');
-  if (!safeStorage.isEncryptionAvailable()) throw new Error('Este equipo no permite guardar el código de forma segura.');
-  const config: AulaConfig = { url: url.replace(/\/+$/, ''), code, device: old.device ?? randomUUID().replaceAll('-', '') };
+  if (code.length < 8 || code.length > 200)
+    throw new Error('Ingresá el código de aula provisto por tu docente.');
+  if (!safeStorage.isEncryptionAvailable())
+    throw new Error('Este equipo no permite guardar el código de forma segura.');
+  const config: AulaConfig = {
+    url: url.replace(/\/+$/, ''),
+    code,
+    device: old.device ?? randomUUID().replaceAll('-', ''),
+  };
   await mkdir(dirname(configFile()), { recursive: true });
   await writeFile(configFile(), safeStorage.encryptString(JSON.stringify(config)));
   return assistantStatus();
 }
 
-export async function assistantReview(session: Session, payload: { consent?: unknown; document?: unknown }) {
+export async function assistantReview(
+  session: Session,
+  payload: { consent?: unknown; document?: unknown },
+) {
   if (session.assistantWorking) throw new Error('Hay una consulta en curso.');
   if (payload.consent !== true) throw new Error('Confirmá el envío de esta consulta.');
   const config = await readConfig();
@@ -90,8 +112,10 @@ export async function assistantReview(session: Session, payload: { consent?: unk
       throw new Error('No se pudo consultar al aula. Revisá la conexión o avisá a tu docente.');
     }
     if (response.status === 401) throw new Error('Código de aula incorrecto o vencido.');
-    if (response.status === 429) throw new Error('El aula alcanzó su límite de consultas. Intentá más tarde.');
-    if (!response.ok) throw new Error('No se pudo consultar al aula. Revisá la conexión o avisá a tu docente.');
+    if (response.status === 429)
+      throw new Error('El aula alcanzó su límite de consultas. Intentá más tarde.');
+    if (!response.ok)
+      throw new Error('No se pudo consultar al aula. Revisá la conexión o avisá a tu docente.');
     const text = await response.text();
     if (text.length > 200_000) throw new Error('Respuesta del aula demasiado grande.');
     return JSON.parse(text) as unknown;

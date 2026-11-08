@@ -1,9 +1,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
-import { canPackage, faceBytes, faceId, isOpenTypeCff, readFaces, unicodePoints } from '../src/main/fonts/opentype.ts';
+import {
+  canPackage,
+  faceBytes,
+  faceId,
+  isOpenTypeCff,
+  readFaces,
+  unicodePoints,
+} from '../src/main/fonts/opentype.ts';
 
-const dmSans = join(import.meta.dirname, '..', '..', 'LibroStudio', 'v3', 'app', 'fonts', 'DM-Sans-700.ttf');
+const dmSans = join(
+  import.meta.dirname,
+  '..',
+  '..',
+  'LibroStudio',
+  'v3',
+  'app',
+  'fonts',
+  'DM-Sans-700.ttf',
+);
 
 test('lee familia, estilo y peso', async () => {
   const [face, ...rest] = await readFaces(dmSans);

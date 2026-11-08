@@ -1,9 +1,189 @@
 'use strict';
-let panelSizes={};try{panelSizes=JSON.parse(localStorage.getItem('maquetario-panels')||'{}');}catch{}
-function applyPanelSizes(){const layout=$('.app-layout'),available=layout.clientWidth,gap=18;let left=Number(panelSizes.left)||0,right=Number(panelSizes.right)||0;if(left||right){left=Math.min(320,Math.max(160,left||210));right=Math.min(520,Math.max(290,right||356));if(left+right+gap>available-220){const reduce=left+right+gap-(available-220);right=Math.max(290,right-reduce);left=Math.max(150,Math.min(left,available-right-gap-220));}layout.style.gridTemplateColumns=`${left}px minmax(200px,1fr) ${right}px`;}else layout.style.gridTemplateColumns='';if(panelSizes.templates)$('.template-panel').style.height=Math.min(Math.max(125,panelSizes.templates),Math.max(125,$('.center').clientHeight*.42))+'px';requestAnimationFrame(renderPages);}
-function beginPanelResize(event,kind,handle){if(event.button!==0)return;event.preventDefault();finishEditing();const start={x:event.clientX,y:event.clientY,left:$('.leftpanel').getBoundingClientRect().width,right:$('.inspector').getBoundingClientRect().width,templates:$('.template-panel').getBoundingClientRect().height};handle.setPointerCapture(event.pointerId);document.body.classList.add('panel-resizing');handle.onpointermove=e=>{if(kind==='left'){panelSizes.left=start.left+(e.clientX-start.x);panelSizes.right=start.right;}if(kind==='right'){panelSizes.right=start.right-(e.clientX-start.x);panelSizes.left=start.left;}if(kind==='templates')panelSizes.templates=start.templates-(e.clientY-start.y);applyPanelSizes();};const end=e=>{if(handle.hasPointerCapture(e.pointerId))handle.releasePointerCapture(e.pointerId);handle.onpointermove=null;document.body.classList.remove('panel-resizing');localStorage.setItem('maquetario-panels',JSON.stringify(panelSizes));};handle.onpointerup=end;handle.onpointercancel=end;}
-for(const [kind,parent,label]of [['left','.leftpanel',bw('Ancho del panel de herramientas','Tools panel width','Largura do painel de ferramentas')],['right','.inspector',bw('Ancho del panel de propiedades','Properties panel width','Largura do painel de propriedades')],['templates','.template-panel',bw('Altura de las plantillas','Template area height','Altura das grades')]]){const handle=document.createElement('div');handle.className='panel-resizer resize-'+kind;handle.tabIndex=0;handle.setAttribute('role','separator');handle.setAttribute('aria-label',label);handle.setAttribute('aria-orientation',kind==='templates'?'horizontal':'vertical');handle.title=label+' · '+bw('Arrastrá para ajustar; doble clic para restablecer','Drag to resize; double-click to reset','Arraste para ajustar; clique duplo para redefinir');handle.onpointerdown=e=>beginPanelResize(e,kind,handle);handle.ondblclick=()=>{if(kind==='templates'){delete panelSizes.templates;$('.template-panel').style.height='';}else{delete panelSizes.left;delete panelSizes.right;}localStorage.setItem('maquetario-panels',JSON.stringify(panelSizes));applyPanelSizes();};handle.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const step=e.shiftKey?30:10;if(kind==='templates')panelSizes.templates=$('.template-panel').clientHeight+(e.key==='ArrowUp'?step:-step);else{panelSizes.left=$('.leftpanel').clientWidth;panelSizes.right=$('.inspector').clientWidth;panelSizes[kind]+=((kind==='left'?e.key==='ArrowRight':e.key==='ArrowLeft')?step:-step);}applyPanelSizes();localStorage.setItem('maquetario-panels',JSON.stringify(panelSizes));};$(parent).append(handle);}
-window.addEventListener('resize',applyPanelSizes);applyPanelSizes();
-extend.after('coverEditor',function(){if(!$('#coverPreview'))return;const bar=document.createElement('div');bar.className='cover-image-actions';bar.innerHTML=`<strong id="coverImageTarget"></strong><p>${bw('Seleccioná una zona del desplegado y cargá su imagen. Se adapta para cubrir esa zona.','Select an area in the spread and load its image. It scales to cover that area.','Selecione uma área e carregue a imagem. Ela se adapta para cobrir essa área.')}</p>`;$('#coverPreview').after(bar);/* Un solo par de botones de imagen: los de la zona pasan a la barra de la vista. */const add=$('#coverImage');add.innerHTML=`${icon('image')}${bw('Agregar / cambiar imagen','Add / replace image','Adicionar / trocar imagem')}`;bar.querySelector('strong').after(add,$('#coverRemoveImage'));updateCoverPreview();},'panel-resize');
-extend.after('updateCoverPreview',function(){if($('#coverImageTarget'))$('#coverImageTarget').textContent=coverNames()[coverPart];},'panel-resize');
-registerIntegrationTest(function(r){const old={...panelSizes},before=JSON.stringify(book),check=(v,m)=>{if(!v)throw Error(m);r.checks.push(m);};try{check($$('.panel-resizer').length===3,'Tres separadores de panel disponibles');panelSizes={left:230,right:390,templates:210};applyPanelSizes();check($('.app-layout').style.gridTemplateColumns.includes('230px'),'Ancho de panel ajustable');check($('.template-panel').style.height==='210px','Altura de plantillas ajustable');check(JSON.stringify(book)===before,'Ajustar paneles no modifica el documento');coverEditor();check(!!$('.cover-image-actions #coverImage')&&!!$('.cover-image-actions #coverRemoveImage')&&document.querySelectorAll('#coverImage,#coverRemoveImage').length===2,'Acciones de imagen junto a cubierta, una sola vez');coverPart='back';updateCoverPreview();check($('#coverImageTarget').textContent===coverNames().back,'Imagen identifica zona elegida');$('#modal').close();}finally{panelSizes=old;if(!old.templates)$('.template-panel').style.height='';applyPanelSizes();}return r;},'panel-resize');
+let panelSizes = {};
+try {
+  panelSizes = JSON.parse(localStorage.getItem('maquetario-panels') || '{}');
+} catch {}
+function applyPanelSizes() {
+  const layout = $('.app-layout'),
+    available = layout.clientWidth,
+    gap = 18;
+  let left = Number(panelSizes.left) || 0,
+    right = Number(panelSizes.right) || 0;
+  if (left || right) {
+    left = Math.min(320, Math.max(160, left || 210));
+    right = Math.min(520, Math.max(290, right || 356));
+    if (left + right + gap > available - 220) {
+      const reduce = left + right + gap - (available - 220);
+      right = Math.max(290, right - reduce);
+      left = Math.max(150, Math.min(left, available - right - gap - 220));
+    }
+    layout.style.gridTemplateColumns = `${left}px minmax(200px,1fr) ${right}px`;
+  } else layout.style.gridTemplateColumns = '';
+  if (panelSizes.templates)
+    $('.template-panel').style.height =
+      Math.min(
+        Math.max(125, panelSizes.templates),
+        Math.max(125, $('.center').clientHeight * 0.42),
+      ) + 'px';
+  requestAnimationFrame(renderPages);
+}
+function beginPanelResize(event, kind, handle) {
+  if (event.button !== 0) return;
+  event.preventDefault();
+  finishEditing();
+  const start = {
+    x: event.clientX,
+    y: event.clientY,
+    left: $('.leftpanel').getBoundingClientRect().width,
+    right: $('.inspector').getBoundingClientRect().width,
+    templates: $('.template-panel').getBoundingClientRect().height,
+  };
+  handle.setPointerCapture(event.pointerId);
+  document.body.classList.add('panel-resizing');
+  handle.onpointermove = (e) => {
+    if (kind === 'left') {
+      panelSizes.left = start.left + (e.clientX - start.x);
+      panelSizes.right = start.right;
+    }
+    if (kind === 'right') {
+      panelSizes.right = start.right - (e.clientX - start.x);
+      panelSizes.left = start.left;
+    }
+    if (kind === 'templates') panelSizes.templates = start.templates - (e.clientY - start.y);
+    applyPanelSizes();
+  };
+  const end = (e) => {
+    if (handle.hasPointerCapture(e.pointerId)) handle.releasePointerCapture(e.pointerId);
+    handle.onpointermove = null;
+    document.body.classList.remove('panel-resizing');
+    localStorage.setItem('maquetario-panels', JSON.stringify(panelSizes));
+  };
+  handle.onpointerup = end;
+  handle.onpointercancel = end;
+}
+for (const [kind, parent, label] of [
+  [
+    'left',
+    '.leftpanel',
+    bw('Ancho del panel de herramientas', 'Tools panel width', 'Largura do painel de ferramentas'),
+  ],
+  [
+    'right',
+    '.inspector',
+    bw(
+      'Ancho del panel de propiedades',
+      'Properties panel width',
+      'Largura do painel de propriedades',
+    ),
+  ],
+  [
+    'templates',
+    '.template-panel',
+    bw('Altura de las plantillas', 'Template area height', 'Altura das grades'),
+  ],
+]) {
+  const handle = document.createElement('div');
+  handle.className = 'panel-resizer resize-' + kind;
+  handle.tabIndex = 0;
+  handle.setAttribute('role', 'separator');
+  handle.setAttribute('aria-label', label);
+  handle.setAttribute('aria-orientation', kind === 'templates' ? 'horizontal' : 'vertical');
+  handle.title =
+    label +
+    ' · ' +
+    bw(
+      'Arrastrá para ajustar; doble clic para restablecer',
+      'Drag to resize; double-click to reset',
+      'Arraste para ajustar; clique duplo para redefinir',
+    );
+  handle.onpointerdown = (e) => beginPanelResize(e, kind, handle);
+  handle.ondblclick = () => {
+    if (kind === 'templates') {
+      delete panelSizes.templates;
+      $('.template-panel').style.height = '';
+    } else {
+      delete panelSizes.left;
+      delete panelSizes.right;
+    }
+    localStorage.setItem('maquetario-panels', JSON.stringify(panelSizes));
+    applyPanelSizes();
+  };
+  handle.onkeydown = (e) => {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+    e.preventDefault();
+    const step = e.shiftKey ? 30 : 10;
+    if (kind === 'templates')
+      panelSizes.templates =
+        $('.template-panel').clientHeight + (e.key === 'ArrowUp' ? step : -step);
+    else {
+      panelSizes.left = $('.leftpanel').clientWidth;
+      panelSizes.right = $('.inspector').clientWidth;
+      panelSizes[kind] += (kind === 'left' ? e.key === 'ArrowRight' : e.key === 'ArrowLeft')
+        ? step
+        : -step;
+    }
+    applyPanelSizes();
+    localStorage.setItem('maquetario-panels', JSON.stringify(panelSizes));
+  };
+  $(parent).append(handle);
+}
+window.addEventListener('resize', applyPanelSizes);
+applyPanelSizes();
+extend.after(
+  'coverEditor',
+  function () {
+    if (!$('#coverPreview')) return;
+    const bar = document.createElement('div');
+    bar.className = 'cover-image-actions';
+    bar.innerHTML = `<strong id="coverImageTarget"></strong><p>${bw('Seleccioná una zona del desplegado y cargá su imagen. Se adapta para cubrir esa zona.', 'Select an area in the spread and load its image. It scales to cover that area.', 'Selecione uma área e carregue a imagem. Ela se adapta para cobrir essa área.')}</p>`;
+    $('#coverPreview').after(bar);
+    /* Un solo par de botones de imagen: los de la zona pasan a la barra de la vista. */ const add =
+      $('#coverImage');
+    add.innerHTML = `${icon('image')}${bw('Agregar / cambiar imagen', 'Add / replace image', 'Adicionar / trocar imagem')}`;
+    bar.querySelector('strong').after(add, $('#coverRemoveImage'));
+    updateCoverPreview();
+  },
+  'panel-resize',
+);
+extend.after(
+  'updateCoverPreview',
+  function () {
+    if ($('#coverImageTarget')) $('#coverImageTarget').textContent = coverNames()[coverPart];
+  },
+  'panel-resize',
+);
+registerIntegrationTest(function (r) {
+  const old = { ...panelSizes },
+    before = JSON.stringify(book),
+    check = (v, m) => {
+      if (!v) throw Error(m);
+      r.checks.push(m);
+    };
+  try {
+    check($$('.panel-resizer').length === 3, 'Tres separadores de panel disponibles');
+    panelSizes = { left: 230, right: 390, templates: 210 };
+    applyPanelSizes();
+    check($('.app-layout').style.gridTemplateColumns.includes('230px'), 'Ancho de panel ajustable');
+    check($('.template-panel').style.height === '210px', 'Altura de plantillas ajustable');
+    check(JSON.stringify(book) === before, 'Ajustar paneles no modifica el documento');
+    coverEditor();
+    check(
+      !!$('.cover-image-actions #coverImage') &&
+        !!$('.cover-image-actions #coverRemoveImage') &&
+        document.querySelectorAll('#coverImage,#coverRemoveImage').length === 2,
+      'Acciones de imagen junto a cubierta, una sola vez',
+    );
+    coverPart = 'back';
+    updateCoverPreview();
+    check(
+      $('#coverImageTarget').textContent === coverNames().back,
+      'Imagen identifica zona elegida',
+    );
+    $('#modal').close();
+  } finally {
+    panelSizes = old;
+    if (!old.templates) $('.template-panel').style.height = '';
+    applyPanelSizes();
+  }
+  return r;
+}, 'panel-resize');

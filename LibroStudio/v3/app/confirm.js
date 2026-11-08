@@ -52,7 +52,8 @@
     for (const action of actions) {
       const button = document.createElement('button');
       button.value = action.id;
-      button.className = `btn ${action.variant === 'danger' ? 'danger' : action.variant === 'primary' ? 'primary' : ''}`.trim();
+      button.className =
+        `btn ${action.variant === 'danger' ? 'danger' : action.variant === 'primary' ? 'primary' : ''}`.trim();
       button.textContent = action.label;
       bar.append(button);
     }

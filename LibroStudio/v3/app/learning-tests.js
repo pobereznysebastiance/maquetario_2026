@@ -1,4 +1,103 @@
 'use strict';
-registerIntegrationTest(function(r){const prior=M.clone(book),priorSizes={...panelSizes},check=(ok,msg)=>{if(!ok)throw Error(msg);r.checks.push(msg);};try{check(editorialTerms.length===24,'Glosario con 24 términos');check(glossaryMatches('sangrado','production').some(t=>t[0]==='bleed'),'Buscar glosario sin depender de mayúsculas');check(glossaryMatches('reticula','layout').some(t=>t[0]==='grid'),'Buscar glosario sin tildes');const content=JSON.stringify(book);showGlossary('gutter');check($('#glossaryDefinition h2').textContent.includes('Medianil'),'Definición contextual de medianil');$('#glossarySearch').value='noexistezz';renderGlossary();check(!$('#glossaryDefinition').textContent,'Búsqueda sin resultados no conserva definición anterior');$('#modal').close();check(JSON.stringify(book)===content,'Glosario no altera el libro');book.cover=defaultCover();book.cover.parts.spine.direction='up';check(coverArtwork(book.cover,2,false).querySelector('[data-cover-part="spine"] .cover-text').style.transform.includes('-90deg'),'Lomo de abajo hacia arriba en salida');check(M.validate(JSON.parse(JSON.stringify(book))).cover.parts.spine.direction==='up','Orientación del lomo persiste al guardar');book.cover.parts.spine.direction='down';check(coverArtwork(book.cover,2,false).querySelector('[data-cover-part="spine"] .cover-text').style.transform.includes('90deg'),'Lomo de arriba hacia abajo en salida');coverEditor();check(!!$('#spineDirection'),'Selector visible de orientación del lomo');$('#spineDirection').value='up';$('#spineDirection').dispatchEvent(new Event('change'));check(coverDraft.parts.spine.direction==='up'&&coverPart==='spine','Selector aplica dirección al lomo elegido');$('#modal').close();showTab('design');check(!!$('.term-help'),'Ayuda contextual en categorías');renderBookRoute();check($$('.route-step-number').length===5,'Cinco pasos con números destacados');for(const big of [false,true]){document.body.classList.toggle('ui-large',big);for(const height of [165,210]){panelSizes.templates=height;applyPanelSizes();renderTemplates();const footer=$('.template-panel').getBoundingClientRect(),status=$('.statusbar').getBoundingClientRect(),list=$('#templates').getBoundingClientRect();check(footer.bottom<=status.top+1&&list.bottom<=status.top+1,'Plantillas separadas del estado: '+(big?'grande':'normal')+' '+height);}}}finally{book=prior;document.body.classList.remove('ui-large');panelSizes=priorSizes;$('.template-panel').style.height='';applyPanelSizes();render(true);}return r;},'learning-tests');
-window.prepareGlossaryPreview=function(){hideWelcome();if($('#modal').open)$('#modal').close();showGlossary('gutter');};
-window.prepareSpinePreview=function(){hideWelcome();if($('#modal').open)$('#modal').close();book.cover=defaultCover();book.cover.parts.spine.direction='up';coverEditor();const select=$('#spineDirection');select.scrollIntoView({block:'center'});};
+registerIntegrationTest(function (r) {
+  const prior = M.clone(book),
+    priorSizes = { ...panelSizes },
+    check = (ok, msg) => {
+      if (!ok) throw Error(msg);
+      r.checks.push(msg);
+    };
+  try {
+    check(editorialTerms.length === 24, 'Glosario con 24 términos');
+    check(
+      glossaryMatches('sangrado', 'production').some((t) => t[0] === 'bleed'),
+      'Buscar glosario sin depender de mayúsculas',
+    );
+    check(
+      glossaryMatches('reticula', 'layout').some((t) => t[0] === 'grid'),
+      'Buscar glosario sin tildes',
+    );
+    const content = JSON.stringify(book);
+    showGlossary('gutter');
+    check(
+      $('#glossaryDefinition h2').textContent.includes('Medianil'),
+      'Definición contextual de medianil',
+    );
+    $('#glossarySearch').value = 'noexistezz';
+    renderGlossary();
+    check(
+      !$('#glossaryDefinition').textContent,
+      'Búsqueda sin resultados no conserva definición anterior',
+    );
+    $('#modal').close();
+    check(JSON.stringify(book) === content, 'Glosario no altera el libro');
+    book.cover = defaultCover();
+    book.cover.parts.spine.direction = 'up';
+    check(
+      coverArtwork(book.cover, 2, false)
+        .querySelector('[data-cover-part="spine"] .cover-text')
+        .style.transform.includes('-90deg'),
+      'Lomo de abajo hacia arriba en salida',
+    );
+    check(
+      M.validate(JSON.parse(JSON.stringify(book))).cover.parts.spine.direction === 'up',
+      'Orientación del lomo persiste al guardar',
+    );
+    book.cover.parts.spine.direction = 'down';
+    check(
+      coverArtwork(book.cover, 2, false)
+        .querySelector('[data-cover-part="spine"] .cover-text')
+        .style.transform.includes('90deg'),
+      'Lomo de arriba hacia abajo en salida',
+    );
+    coverEditor();
+    check(!!$('#spineDirection'), 'Selector visible de orientación del lomo');
+    $('#spineDirection').value = 'up';
+    $('#spineDirection').dispatchEvent(new Event('change'));
+    check(
+      coverDraft.parts.spine.direction === 'up' && coverPart === 'spine',
+      'Selector aplica dirección al lomo elegido',
+    );
+    $('#modal').close();
+    showTab('design');
+    check(!!$('.term-help'), 'Ayuda contextual en categorías');
+    renderBookRoute();
+    check($$('.route-step-number').length === 5, 'Cinco pasos con números destacados');
+    for (const big of [false, true]) {
+      document.body.classList.toggle('ui-large', big);
+      for (const height of [165, 210]) {
+        panelSizes.templates = height;
+        applyPanelSizes();
+        renderTemplates();
+        const footer = $('.template-panel').getBoundingClientRect(),
+          status = $('.statusbar').getBoundingClientRect(),
+          list = $('#templates').getBoundingClientRect();
+        check(
+          footer.bottom <= status.top + 1 && list.bottom <= status.top + 1,
+          'Plantillas separadas del estado: ' + (big ? 'grande' : 'normal') + ' ' + height,
+        );
+      }
+    }
+  } finally {
+    book = prior;
+    document.body.classList.remove('ui-large');
+    panelSizes = priorSizes;
+    $('.template-panel').style.height = '';
+    applyPanelSizes();
+    render(true);
+  }
+  return r;
+}, 'learning-tests');
+window.prepareGlossaryPreview = function () {
+  hideWelcome();
+  if ($('#modal').open) $('#modal').close();
+  showGlossary('gutter');
+};
+window.prepareSpinePreview = function () {
+  hideWelcome();
+  if ($('#modal').open) $('#modal').close();
+  book.cover = defaultCover();
+  book.cover.parts.spine.direction = 'up';
+  coverEditor();
+  const select = $('#spineDirection');
+  select.scrollIntoView({ block: 'center' });
+};

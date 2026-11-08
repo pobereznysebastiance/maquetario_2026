@@ -35,7 +35,12 @@ export function exec<T = unknown>(session: Session, code: string): Promise<T> {
 export const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /** Espera a que una expresión de la página sea verdadera. */
-export async function waitFor(session: Session, expression: string, tries: number, everyMs: number): Promise<boolean> {
+export async function waitFor(
+  session: Session,
+  expression: string,
+  tries: number,
+  everyMs: number,
+): Promise<boolean> {
   for (let i = 0; i < tries; i++) {
     if ((await exec(session, `!!(${expression})`)) === true) return true;
     await delay(everyMs);
@@ -44,7 +49,11 @@ export async function waitFor(session: Session, expression: string, tries: numbe
 }
 
 /** Evita dos salidas a la vez (PDF, impresión, paquete). */
-export async function exclusive<T>(session: Session, message: string, work: () => Promise<T>): Promise<T> {
+export async function exclusive<T>(
+  session: Session,
+  message: string,
+  work: () => Promise<T>,
+): Promise<T> {
   if (session.busy) throw new Error(message);
   session.busy = true;
   try {

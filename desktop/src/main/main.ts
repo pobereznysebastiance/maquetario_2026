@@ -1,8 +1,22 @@
 // Proceso principal de Maquetario (Electron). Reemplaza a Host.cs.
-import { app, BrowserWindow, Menu, session as electronSession, type MenuItemConstructorOptions } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  Menu,
+  session as electronSession,
+  type MenuItemConstructorOptions,
+} from 'electron';
 import { join } from 'node:path';
 import { attachBridge } from './bridge.ts';
-import { APP_ORIGIN, args, argValue, isDev, isSelfTest, NOTICE_ORIGIN, rendererDir } from './env.ts';
+import {
+  APP_ORIGIN,
+  args,
+  argValue,
+  isDev,
+  isSelfTest,
+  NOTICE_ORIGIN,
+  rendererDir,
+} from './env.ts';
 import { warmFontCatalog } from './fonts/catalog.ts';
 import { describeFailure } from '@maquetario/license';
 import { checkLicense, licenseBlocks, licenseMessage } from './license.ts';
@@ -46,7 +60,8 @@ async function licenseGate(): Promise<boolean> {
     if (pick !== 'connect') return false;
     const waiting = openNotice({
       title: 'Seguí en el navegador',
-      message: 'Entrá a tu cuenta de Motiova y tocá Conectar. Cuando termine, Maquetario se abre solo.',
+      message:
+        'Entrá a tu cuenta de Motiova y tocá Conectar. Cuando termine, Maquetario se abre solo.',
       buttons: [{ id: 'cancel', label: 'Cancelar' }],
     });
     void waiting.choice.then((choice) => choice === 'cancel' && cancelConnect());
@@ -85,7 +100,8 @@ function lockDown(): void {
   ses.setPermissionCheckHandler(() => false);
   app.on('web-contents-created', (_event, contents) => {
     contents.setWindowOpenHandler(() => ({ action: 'deny' }));
-    const allowed = (url: string) => url.startsWith(`${APP_ORIGIN}/`) || url.startsWith(`${NOTICE_ORIGIN}/`);
+    const allowed = (url: string) =>
+      url.startsWith(`${APP_ORIGIN}/`) || url.startsWith(`${NOTICE_ORIGIN}/`);
     contents.on('will-navigate', (event, url) => {
       if (!allowed(url)) event.preventDefault();
     });
@@ -154,7 +170,8 @@ function createWindow(): Session {
     if (!url.startsWith(`${APP_ORIGIN}/`)) return;
     void showNotice({
       title: 'Maquetario no pudo iniciar',
-      message: 'No se pudo cargar el editor. Reinstalá Maquetario desde Motiova; tus proyectos no se modificaron.',
+      message:
+        'No se pudo cargar el editor. Reinstalá Maquetario desde Motiova; tus proyectos no se modificaron.',
       detail: `${description} (${code})`,
     }).then(() => app.quit());
   });
@@ -182,7 +199,10 @@ function onClose(session: Session, event: Electron.Event): void {
       message: 'Guardá la publicación antes de cerrar Maquetario.',
     });
   };
-  exec<boolean>(session, "typeof window.requestCloseConfirmation==='function'?(window.requestCloseConfirmation(),true):false")
+  exec<boolean>(
+    session,
+    "typeof window.requestCloseConfirmation==='function'?(window.requestCloseConfirmation(),true):false",
+  )
     .then((shown) => shown || fallback())
     .catch(fallback);
 }
@@ -203,7 +223,10 @@ app.whenReady().then(async () => {
   const preview = app.isPackaged ? undefined : argValue('capture-notice');
   if (preview) {
     // Desarrollo: guarda una imagen del aviso de licencia para revisar el diseño.
-    await captureNotice({ ...LICENSE_NOTICE(describeFailure('expired')), buttons: GATE_BUTTONS }, preview);
+    await captureNotice(
+      { ...LICENSE_NOTICE(describeFailure('expired')), buttons: GATE_BUTTONS },
+      preview,
+    );
     app.exit(0);
     return;
   }
@@ -226,7 +249,11 @@ app.whenReady().then(async () => {
     const session = main;
     session.win.webContents.once('did-finish-load', () => {
       void (renewed ? Promise.resolve(null) : renewAtStartup())
-        .then((update) => update && exec(session, `window.maquetarioUpdateAvailable?.(${JSON.stringify(update)})`))
+        .then(
+          (update) =>
+            update &&
+            exec(session, `window.maquetarioUpdateAvailable?.(${JSON.stringify(update)})`),
+        )
         .catch((error) => console.warn('[motiova]', error));
     });
   }

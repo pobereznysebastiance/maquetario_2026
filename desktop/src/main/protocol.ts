@@ -28,7 +28,10 @@ const MIME: Record<string, string> = {
 /** Debe llamarse antes de app.whenReady(). */
 export function registerScheme(): void {
   protocol.registerSchemesAsPrivileged([
-    { scheme: APP_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true, codeCache: true } },
+    {
+      scheme: APP_SCHEME,
+      privileges: { standard: true, secure: true, supportFetchAPI: true, codeCache: true },
+    },
   ]);
 }
 
@@ -71,7 +74,9 @@ async function serveFile(root: string, pathname: string, csp?: string): Promise<
         // Archivos locales: leer siempre la versión actual (si no, Ctrl+R muestra CSS viejo).
         'Cache-Control': 'no-store',
         'X-Content-Type-Options': 'nosniff',
-        ...(csp && extname(file).toLowerCase() === '.html' ? { 'Content-Security-Policy': csp } : {}),
+        ...(csp && extname(file).toLowerCase() === '.html'
+          ? { 'Content-Security-Policy': csp }
+          : {}),
       },
     });
   } catch {

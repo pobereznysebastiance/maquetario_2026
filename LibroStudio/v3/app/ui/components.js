@@ -23,7 +23,8 @@
      * @param {{label: string, id?: string, icon?: string, variant?: string, wide?: boolean, type?: string, value?: string, title?: string}} o
      */
     button(o) {
-      const variant = o.variant === 'primary' ? ' primary' : o.variant === 'danger' ? ' danger' : '';
+      const variant =
+        o.variant === 'primary' ? ' primary' : o.variant === 'danger' ? ' danger' : '';
       return `<button${attrs({ type: o.type || 'button', id: o.id, value: o.value, title: o.title, class: `btn${variant}${o.wide ? ' wide' : ''}` })}>${o.icon ? icon(o.icon) : ''}${html(o.label)}</button>`;
     },
 
@@ -48,7 +49,11 @@
 
     /** Molécula: opción de menú. Con checked muestra la marca de la opción elegida. */
     menuItem(o) {
-      const mark = o.icon ? icon(o.icon) : o.checked ? icon('check') : '<span class="menu-item-mark"></span>';
+      const mark = o.icon
+        ? icon(o.icon)
+        : o.checked
+          ? icon('check')
+          : '<span class="menu-item-mark"></span>';
       return `<button${attrs({ type: 'button', id: o.id, class: 'menu-item', role: o.checked === undefined ? 'menuitem' : 'menuitemradio', 'aria-checked': o.checked === undefined ? undefined : String(!!o.checked) })}>${mark}<span class="menu-item-text"><span class="menu-item-title">${html(o.title)}</span>${o.description ? `<span class="menu-item-description">${html(o.description)}</span>` : ''}</span></button>`;
     },
 

@@ -27,7 +27,10 @@ export function pdf(session: Session, page: PageGeometry): Promise<Buffer> {
  * fuentes y figuras estén listas. Devuelve el tamaño de página en mm.
  */
 export async function prepareOutput(session: Session, options: unknown): Promise<PageGeometry> {
-  const geometry = await exec<Partial<PageGeometry> | null>(session, `window.prepareOutput(${JSON.stringify(options)})`);
+  const geometry = await exec<Partial<PageGeometry> | null>(
+    session,
+    `window.prepareOutput(${JSON.stringify(options)})`,
+  );
   if (!geometry || !Number.isFinite(geometry.width) || !Number.isFinite(geometry.height)) {
     throw new Error('No se pudo preparar la salida.');
   }
@@ -41,7 +44,8 @@ export async function prepareOutput(session: Session, options: unknown): Promise
   return geometry as PageGeometry;
 }
 
-const clearPrint = (session: Session) => exec(session, 'window.clearPrint()').catch(() => undefined);
+const clearPrint = (session: Session) =>
+  exec(session, 'window.clearPrint()').catch(() => undefined);
 
 export interface PrinterReply {
   name: string;
@@ -66,7 +70,9 @@ export async function printers(session: Session): Promise<PrinterReply[]> {
 function print(session: Session, options: WebContentsPrintOptions): Promise<void> {
   return new Promise((resolve, reject) => {
     session.win.webContents.print(options, (success, reason) =>
-      success ? resolve() : reject(new Error(`No se pudo imprimir: ${reason || 'error desconocido'}`)),
+      success
+        ? resolve()
+        : reject(new Error(`No se pudo imprimir: ${reason || 'error desconocido'}`)),
     );
   });
 }
@@ -87,8 +93,10 @@ export function outputDocument(session: Session, payload: OutputPayload, physica
       const duplex = physical ? String(payload.duplex ?? 'one') : 'one';
       if (physical) {
         const available = await session.win.webContents.getPrintersAsync();
-        if (!available.some((p) => p.name === printer)) throw new Error('La impresora no está disponible.');
-        if (!Number.isInteger(copies) || copies < 1 || copies > 99) throw new Error('Copias: 1–99.');
+        if (!available.some((p) => p.name === printer))
+          throw new Error('La impresora no está disponible.');
+        if (!Number.isInteger(copies) || copies < 1 || copies > 99)
+          throw new Error('Copias: 1–99.');
       }
       const page = await prepareOutput(session, payload.options);
       if (physical) {
@@ -100,7 +108,10 @@ export function outputDocument(session: Session, payload: OutputPayload, physica
           printBackground: true,
           margins: { marginType: 'none' },
           // print() mide el papel en micrones.
-          pageSize: { width: Math.round(page.width * 1000), height: Math.round(page.height * 1000) },
+          pageSize: {
+            width: Math.round(page.width * 1000),
+            height: Math.round(page.height * 1000),
+          },
         });
         return { printed: true, printer };
       }
@@ -117,7 +128,10 @@ export function legacyExport(session: Session, payload: { width?: unknown; heigh
     try {
       await exec(session, 'window.preparePrint()');
       await delay(350);
-      const bytes = await pdf(session, { width: Number(payload.width), height: Number(payload.height) });
+      const bytes = await pdf(session, {
+        width: Number(payload.width),
+        height: Number(payload.height),
+      });
       return { base64: bytes.toString('base64') };
     } finally {
       await clearPrint(session);

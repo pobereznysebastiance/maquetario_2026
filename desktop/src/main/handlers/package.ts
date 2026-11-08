@@ -22,7 +22,12 @@ function collectImages(value: unknown, images: Set<string>): void {
   if (Array.isArray(value)) value.forEach((item) => collectImages(item, images));
   else if (value && typeof value === 'object') {
     for (const [key, item] of Object.entries(value)) {
-      if ((key === 'src' || key === 'image') && typeof item === 'string' && item.startsWith('data:image/')) images.add(item);
+      if (
+        (key === 'src' || key === 'image') &&
+        typeof item === 'string' &&
+        item.startsWith('data:image/')
+      )
+        images.add(item);
       else collectImages(item, images);
     }
   }
@@ -39,11 +44,17 @@ async function writePackagePdf(session: Session, file: string, options: unknown)
   await writeFile(file, await pdf(session, page));
 }
 
-export async function createProjectPackage(session: Session, parent: string, payload: PackageRequest) {
+export async function createProjectPackage(
+  session: Session,
+  parent: string,
+  payload: PackageRequest,
+) {
   const content = String(payload.project ?? '');
   if (content.length > MAX_PROJECT_BYTES) throw new Error('El proyecto supera 80 MB.');
   const project = JSON.parse(content) as Record<string, unknown>;
-  let name = cleanName(String(project.title ?? 'Proyecto')).trim().replace(/\.+$/, '');
+  let name = cleanName(String(project.title ?? 'Proyecto'))
+    .trim()
+    .replace(/\.+$/, '');
   if (name.length > 72) name = name.slice(0, 72).replace(/\.+$/, '');
   const filename = `Maquetario - ${name}`;
   const stage = join(parent, `.maquetario-${randomUUID().replaceAll('-', '')}`);
@@ -97,9 +108,25 @@ export async function createProjectPackage(session: Session, parent: string, pay
         omitted.push(label);
       }
     }
-    await writePackagePdf(session, join(stage, 'Interior.pdf'), { mode: 'reading', paper: 'book', fit: false, headers: true, folios: true });
-    if (hasCover) await writePackagePdf(session, join(stage, 'Cubierta.pdf'), { kind: 'cover', paper: 'actual', crop: true, fit: false });
-    await writeFile(join(stage, PACKAGE_MANIFEST), JSON.stringify({ project: projectFile, fonts: fontNames }), 'utf8');
+    await writePackagePdf(session, join(stage, 'Interior.pdf'), {
+      mode: 'reading',
+      paper: 'book',
+      fit: false,
+      headers: true,
+      folios: true,
+    });
+    if (hasCover)
+      await writePackagePdf(session, join(stage, 'Cubierta.pdf'), {
+        kind: 'cover',
+        paper: 'actual',
+        crop: true,
+        fit: false,
+      });
+    await writeFile(
+      join(stage, PACKAGE_MANIFEST),
+      JSON.stringify({ project: projectFile, fonts: fontNames }),
+      'utf8',
+    );
     const missing = [...new Set(omitted)];
     await writeFile(
       join(stage, 'LEEME.txt'),
@@ -117,9 +144,16 @@ export async function createProjectPackage(session: Session, parent: string, pay
   } finally {
     await exec(session, 'window.clearPrint()').catch(() => undefined);
     // Sólo se borra la carpeta temporal que creó esta operación.
-    if (dirname(resolve(stage)) === resolve(parent)) await rm(stage, { recursive: true, force: true });
+    if (dirname(resolve(stage)) === resolve(parent))
+      await rm(stage, { recursive: true, force: true });
   }
-  return { path: final, images: imageCount, fonts: fontNames.length, omitted: [...new Set(omitted)], cover: hasCover };
+  return {
+    path: final,
+    images: imageCount,
+    fonts: fontNames.length,
+    omitted: [...new Set(omitted)],
+    cover: hasCover,
+  };
 }
 
 export function packageProject(session: Session, payload: PackageRequest) {

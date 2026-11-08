@@ -1,34 +1,624 @@
 'use strict';
 // Labels are kept separate from document content: changing language never translates a manuscript.
-const bw=(es,en,pt)=>[es,en,pt][{es:0,en:1,pt:2}[LibroI18n.language]||0];
-const titleOfPart=p=>p.partName||p.section||bw('Página sin título','Untitled page','Página sem título');
-const workflowRoute=document.createElement('nav');workflowRoute.className='book-route';workflowRoute.setAttribute('aria-label','Libro');$('.documentbar').after(workflowRoute);
-function renderBookRoute(){workflowRoute.innerHTML=`<strong>${bw('TU LIBRO, PASO A PASO','YOUR BOOK, STEP BY STEP','SEU LIVRO, PASSO A PASSO')}</strong><span class="route-spacer"></span><button id="buildBook">① ${bw('Armar libro','Build book','Montar livro')}</button><button id="structureBook">② ${bw('Estructura','Structure','Estrutura')}</button><button id="reviewBook">③ ${bw('Revisar libro','Check book','Revisar livro')}</button><button id="outputBook">④ PDF / ${bw('Imprimir','Print','Imprimir')}</button>`;$('#buildBook').onclick=()=>bookBuilder();$('#structureBook').onclick=()=>showTab('structure');$('#reviewBook').onclick=()=>preflightDialog();$('#outputBook').onclick=()=>outputDialog('pdf');}
-const structureTab=document.createElement('button');structureTab.className='tab';structureTab.dataset.tab='structure';structureTab.setAttribute('role','tab');structureTab.onclick=()=>showTab('structure');$('.tabs').prepend(structureTab);
-function structurePanel(){const h=$('#inspectorContent'),items=book.pages.map((p,i)=>({p,i})).filter(({p,i})=>p.partName||p.section||i===0);h.innerHTML=section(bw('Estructura del libro','Book structure','Estrutura do livro'),'pages',`<p class="structure-summary">${book.pages.length} ${bw('páginas. Elegí una parte para ir a su comienzo.','pages. Choose a part to go to its start.','páginas. Escolha uma parte para ir ao início.')}</p><button id="structureBuild" class="btn wide">${bw('Armar otro libro…','Build another book…','Montar outro livro…')}</button>${items.map(({p,i},n)=>`<button class="structure-item ${active>=i&&active<(items[n+1]?.i??book.pages.length)?'current':''}" data-go-part="${i}"><small>${i+1}</small><span class="user-content">${esc(titleOfPart(p))}</span><em>${(items[n+1]?.i??book.pages.length)-i} p.</em></button>`).join('')}<p class="help">${bw('La página activa se marca con borde cobre. Páginas permite ocultar cornisas y folios solo en esa página.','The active page has a copper outline. Pages lets you hide headers and folios on that page.','A página ativa tem contorno cobre. Páginas permite ocultar cabeçalhos e fólios nessa página.')}</p>`);$('#structureBuild').onclick=()=>bookBuilder();$$('[data-go-part]').forEach(b=>b.onclick=()=>goToBookPage(Number(b.dataset.goPart)));}
-function goToBookPage(index){finishEditing();active=index;spread=Math.floor(index/(book.facing?2:1))*(book.facing?2:1);selected=null;multiSelection.clear();render(true);}
-registerInspectorPanel('structure',structurePanel,'book-workflow');decorateInspector(()=>{if(tab==='design')ruleControls();},'book-workflow');
-extend.after('render',function(full=true){renderBookRoute();structureTab.textContent=bw('Libro','Book','Livro');},'book-workflow');
-extend.result('autoElement',function(el,i,type,px,print=false){const c=book[type];if(!el)return null;el.classList.remove('rule');el.style.borderBottom='none';el.style.paddingBottom='0';if(c.rule){const line=document.createElement('span');line.className='mqt-rule';Object.assign(line.style,{position:'absolute',display:'block',left:((100-(c.ruleLength??100))/2)+'%',width:(c.ruleLength??100)+'%',height:'0',top:`calc(100% + ${(c.ruleGap??1.5)*px}px)`,borderTop:`${(c.ruleWidth??.25)*px}px ${c.ruleStyle||'solid'} ${c.ruleColor||'#77716C'}`});el.append(line);}return el;},'book-workflow');
-extend.result('paper',function(page,i,px,print=false){for(const o of book.pages[i].objects)if(o.decoration==='line'){const el=page.querySelector(`[data-id="${o.id}"]`);if(el){el.classList.remove('frame');el.style.background='transparent';el.style.border='none';el.querySelectorAll('.icon').forEach(x=>x.remove());const line=document.createElement('span');Object.assign(line.style,{position:'absolute',top:'50%',left:'0',width:'100%',borderTop:`${(o.lineWidth??.35)*px}px ${o.lineStyle||'solid'} ${o.lineColor||'#77716C'}`,pointerEvents:'none'});el.append(line);}}return page;},'book-workflow');
-function ruleControls(){const h=$('#inspectorContent'),box=document.createElement('section');box.className='section';box.innerHTML=`<div class="section-heading">${icon('header')}${bw('Misceláneas y líneas','Rules and ornaments','Linhas e ornamentos')}</div><p class="help">${bw('Son opcionales. Cada línea acompaña a su elemento automático y se guarda en el libro.','Optional. Each rule follows its automatic element and is saved with the book.','Opcionais. Cada linha acompanha seu elemento automático e é salva no livro.')}</p>${['header','titulillo','folio'].map(type=>`<div class="rule-settings"><label class="check-line"><input type="checkbox" data-rule="${type}.rule" ${book[type].rule?'checked':''}>${bw('Línea de ','Rule for ','Linha de ')}${type==='header'?bw('cornisa','header','cabeçalho'):type==='titulillo'?bw('titulillo','running title','título corrente'):bw('folio','folio','fólio')}</label>${book[type].rule?row(bw('Grosor · mm','Weight · mm','Espessura · mm'),`<input type="number" min="0.05" max="3" step="0.05" data-rule="${type}.ruleWidth" value="${book[type].ruleWidth??.25}">`)+row(bw('Largo · %','Length · %','Comprimento · %'),`<input type="number" min="1" max="100" data-rule="${type}.ruleLength" value="${book[type].ruleLength??100}">`)+row(bw('Separación · mm','Gap · mm','Distância · mm'),`<input type="number" min="0" max="20" step="0.5" data-rule="${type}.ruleGap" value="${book[type].ruleGap??1.5}">`)+row(bw('Color','Color','Cor'),`<input type="color" data-rule="${type}.ruleColor" value="${book[type].ruleColor||'#77716C'}">`)+row(bw('Trazo','Stroke','Traço'),`<select data-rule="${type}.ruleStyle">${[['solid',bw('Continuo','Solid','Contínuo')],['dashed',bw('Guiones','Dashed','Tracejado')],['dotted',bw('Puntos','Dotted','Pontilhado')]].map(([v,l])=>`<option value="${v}" ${book[type].ruleStyle===v?'selected':''}>${l}</option>`).join('')}</select>`):''}</div>`).join('')}<button id="insertFreeRule" class="btn wide">+ ${bw('Insertar línea libre en esta página','Insert a free rule on this page','Inserir linha livre nesta página')}</button>`;const sections=h.querySelectorAll(':scope>.section');(sections[1]||h.firstChild)?.before(box);box.querySelectorAll('[data-rule]').forEach(el=>el.onchange=()=>{if(el.type==='number'&&(!Number.isFinite(Number(el.value))||Number(el.value)<Number(el.min)||Number(el.value)>Number(el.max))){inspector();return;}commit(()=>set(el.dataset.rule,el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value):el.value),false);});$('#insertFreeRule').onclick=()=>commit(()=>{const o={id:M.uid(),type:'frame',decoration:'line',name:bw('Línea libre','Free rule','Linha livre'),x:book.margins.inside,y:book.height/2,w:Math.min(65,book.width-40),h:3,lineWidth:.35,lineColor:'#77716C'};book.pages[active].objects.push(o);selected=o.id;},false);}
+const bw = (es, en, pt) => [es, en, pt][{ es: 0, en: 1, pt: 2 }[LibroI18n.language] || 0];
+const titleOfPart = (p) =>
+  p.partName || p.section || bw('Página sin título', 'Untitled page', 'Página sem título');
+const workflowRoute = document.createElement('nav');
+workflowRoute.className = 'book-route';
+workflowRoute.setAttribute('aria-label', 'Libro');
+$('.documentbar').after(workflowRoute);
+function renderBookRoute() {
+  workflowRoute.innerHTML = `<strong>${bw('TU LIBRO, PASO A PASO', 'YOUR BOOK, STEP BY STEP', 'SEU LIVRO, PASSO A PASSO')}</strong><span class="route-spacer"></span><button id="buildBook">① ${bw('Armar libro', 'Build book', 'Montar livro')}</button><button id="structureBook">② ${bw('Estructura', 'Structure', 'Estrutura')}</button><button id="reviewBook">③ ${bw('Revisar libro', 'Check book', 'Revisar livro')}</button><button id="outputBook">④ PDF / ${bw('Imprimir', 'Print', 'Imprimir')}</button>`;
+  $('#buildBook').onclick = () => bookBuilder();
+  $('#structureBook').onclick = () => showTab('structure');
+  $('#reviewBook').onclick = () => preflightDialog();
+  $('#outputBook').onclick = () => outputDialog('pdf');
+}
+const structureTab = document.createElement('button');
+structureTab.className = 'tab';
+structureTab.dataset.tab = 'structure';
+structureTab.setAttribute('role', 'tab');
+structureTab.onclick = () => showTab('structure');
+$('.tabs').prepend(structureTab);
+function structurePanel() {
+  const h = $('#inspectorContent'),
+    items = book.pages
+      .map((p, i) => ({ p, i }))
+      .filter(({ p, i }) => p.partName || p.section || i === 0);
+  h.innerHTML = section(
+    bw('Estructura del libro', 'Book structure', 'Estrutura do livro'),
+    'pages',
+    `<p class="structure-summary">${book.pages.length} ${bw('páginas. Elegí una parte para ir a su comienzo.', 'pages. Choose a part to go to its start.', 'páginas. Escolha uma parte para ir ao início.')}</p><button id="structureBuild" class="btn wide">${bw('Armar otro libro…', 'Build another book…', 'Montar outro livro…')}</button>${items.map(({ p, i }, n) => `<button class="structure-item ${active >= i && active < (items[n + 1]?.i ?? book.pages.length) ? 'current' : ''}" data-go-part="${i}"><small>${i + 1}</small><span class="user-content">${esc(titleOfPart(p))}</span><em>${(items[n + 1]?.i ?? book.pages.length) - i} p.</em></button>`).join('')}<p class="help">${bw('La página activa se marca con borde cobre. Páginas permite ocultar cornisas y folios solo en esa página.', 'The active page has a copper outline. Pages lets you hide headers and folios on that page.', 'A página ativa tem contorno cobre. Páginas permite ocultar cabeçalhos e fólios nessa página.')}</p>`,
+  );
+  $('#structureBuild').onclick = () => bookBuilder();
+  $$('[data-go-part]').forEach((b) => (b.onclick = () => goToBookPage(Number(b.dataset.goPart))));
+}
+function goToBookPage(index) {
+  finishEditing();
+  active = index;
+  spread = Math.floor(index / (book.facing ? 2 : 1)) * (book.facing ? 2 : 1);
+  selected = null;
+  multiSelection.clear();
+  render(true);
+}
+registerInspectorPanel('structure', structurePanel, 'book-workflow');
+decorateInspector(() => {
+  if (tab === 'design') ruleControls();
+}, 'book-workflow');
+extend.after(
+  'render',
+  function (full = true) {
+    renderBookRoute();
+    structureTab.textContent = bw('Libro', 'Book', 'Livro');
+  },
+  'book-workflow',
+);
+extend.result(
+  'autoElement',
+  function (el, i, type, px, print = false) {
+    const c = book[type];
+    if (!el) return null;
+    el.classList.remove('rule');
+    el.style.borderBottom = 'none';
+    el.style.paddingBottom = '0';
+    if (c.rule) {
+      const line = document.createElement('span');
+      line.className = 'mqt-rule';
+      Object.assign(line.style, {
+        position: 'absolute',
+        display: 'block',
+        left: (100 - (c.ruleLength ?? 100)) / 2 + '%',
+        width: (c.ruleLength ?? 100) + '%',
+        height: '0',
+        top: `calc(100% + ${(c.ruleGap ?? 1.5) * px}px)`,
+        borderTop: `${(c.ruleWidth ?? 0.25) * px}px ${c.ruleStyle || 'solid'} ${c.ruleColor || '#77716C'}`,
+      });
+      el.append(line);
+    }
+    return el;
+  },
+  'book-workflow',
+);
+extend.result(
+  'paper',
+  function (page, i, px, print = false) {
+    for (const o of book.pages[i].objects)
+      if (o.decoration === 'line') {
+        const el = page.querySelector(`[data-id="${o.id}"]`);
+        if (el) {
+          el.classList.remove('frame');
+          el.style.background = 'transparent';
+          el.style.border = 'none';
+          el.querySelectorAll('.icon').forEach((x) => x.remove());
+          const line = document.createElement('span');
+          Object.assign(line.style, {
+            position: 'absolute',
+            top: '50%',
+            left: '0',
+            width: '100%',
+            borderTop: `${(o.lineWidth ?? 0.35) * px}px ${o.lineStyle || 'solid'} ${o.lineColor || '#77716C'}`,
+            pointerEvents: 'none',
+          });
+          el.append(line);
+        }
+      }
+    return page;
+  },
+  'book-workflow',
+);
+function ruleControls() {
+  const h = $('#inspectorContent'),
+    box = document.createElement('section');
+  box.className = 'section';
+  box.innerHTML = `<div class="section-heading">${icon('header')}${bw('Misceláneas y líneas', 'Rules and ornaments', 'Linhas e ornamentos')}</div><p class="help">${bw('Son opcionales. Cada línea acompaña a su elemento automático y se guarda en el libro.', 'Optional. Each rule follows its automatic element and is saved with the book.', 'Opcionais. Cada linha acompanha seu elemento automático e é salva no livro.')}</p>${[
+    'header',
+    'titulillo',
+    'folio',
+  ]
+    .map(
+      (type) =>
+        `<div class="rule-settings"><label class="check-line"><input type="checkbox" data-rule="${type}.rule" ${book[type].rule ? 'checked' : ''}>${bw('Línea de ', 'Rule for ', 'Linha de ')}${type === 'header' ? bw('cornisa', 'header', 'cabeçalho') : type === 'titulillo' ? bw('titulillo', 'running title', 'título corrente') : bw('folio', 'folio', 'fólio')}</label>${
+          book[type].rule
+            ? row(
+                bw('Grosor · mm', 'Weight · mm', 'Espessura · mm'),
+                `<input type="number" min="0.05" max="3" step="0.05" data-rule="${type}.ruleWidth" value="${book[type].ruleWidth ?? 0.25}">`,
+              ) +
+              row(
+                bw('Largo · %', 'Length · %', 'Comprimento · %'),
+                `<input type="number" min="1" max="100" data-rule="${type}.ruleLength" value="${book[type].ruleLength ?? 100}">`,
+              ) +
+              row(
+                bw('Separación · mm', 'Gap · mm', 'Distância · mm'),
+                `<input type="number" min="0" max="20" step="0.5" data-rule="${type}.ruleGap" value="${book[type].ruleGap ?? 1.5}">`,
+              ) +
+              row(
+                bw('Color', 'Color', 'Cor'),
+                `<input type="color" data-rule="${type}.ruleColor" value="${book[type].ruleColor || '#77716C'}">`,
+              ) +
+              row(
+                bw('Trazo', 'Stroke', 'Traço'),
+                `<select data-rule="${type}.ruleStyle">${[
+                  ['solid', bw('Continuo', 'Solid', 'Contínuo')],
+                  ['dashed', bw('Guiones', 'Dashed', 'Tracejado')],
+                  ['dotted', bw('Puntos', 'Dotted', 'Pontilhado')],
+                ]
+                  .map(
+                    ([v, l]) =>
+                      `<option value="${v}" ${book[type].ruleStyle === v ? 'selected' : ''}>${l}</option>`,
+                  )
+                  .join('')}</select>`,
+              )
+            : ''
+        }</div>`,
+    )
+    .join(
+      '',
+    )}<button id="insertFreeRule" class="btn wide">+ ${bw('Insertar línea libre en esta página', 'Insert a free rule on this page', 'Inserir linha livre nesta página')}</button>`;
+  const sections = h.querySelectorAll(':scope>.section');
+  (sections[1] || h.firstChild)?.before(box);
+  box.querySelectorAll('[data-rule]').forEach(
+    (el) =>
+      (el.onchange = () => {
+        if (
+          el.type === 'number' &&
+          (!Number.isFinite(Number(el.value)) ||
+            Number(el.value) < Number(el.min) ||
+            Number(el.value) > Number(el.max))
+        ) {
+          inspector();
+          return;
+        }
+        commit(
+          () =>
+            set(
+              el.dataset.rule,
+              el.type === 'checkbox'
+                ? el.checked
+                : el.type === 'number'
+                  ? Number(el.value)
+                  : el.value,
+            ),
+          false,
+        );
+      }),
+  );
+  $('#insertFreeRule').onclick = () =>
+    commit(() => {
+      const o = {
+        id: M.uid(),
+        type: 'frame',
+        decoration: 'line',
+        name: bw('Línea libre', 'Free rule', 'Linha livre'),
+        x: book.margins.inside,
+        y: book.height / 2,
+        w: Math.min(65, book.width - 40),
+        h: 3,
+        lineWidth: 0.35,
+        lineColor: '#77716C',
+      };
+      book.pages[active].objects.push(o);
+      selected = o.id;
+    }, false);
+}
 // Layout is measured with the very same paragraph renderer used by the editor and PDF.
-function measureBookText(b,o){const prior=book;let page;try{book=b;const p=M.page();p.objects=[o];b.pages.push(p);page=paper(b.pages.length-1,96/25.4,true);Object.assign(page.style,{position:'fixed',left:'-10000px',top:'0',display:'block',visibility:'hidden'});document.body.append(page);const t=page.querySelector('.text-content');return t.scrollHeight<=t.clientHeight+1;}finally{page?.remove();if(b.pages.at(-1)?.objects[0]===o)b.pages.pop();book=prior;}}
-function novelText(b,text,x,y,w,h,style='body'){const o=M.text(text,x,y,w,h,11);o.leading=15;o.color='#29252A';o.paragraphMap=text.split('\n').map(()=>({styleId:style,overrides:{}}));return o;}
-function manuscriptParts(source){const parts=[];let current=null;for(const line of source.replace(/\r/g,'').split('\n')){if(/^#\s+/.test(line)){current={title:line.replace(/^#\s+/, '').trim(),paragraphs:[]};parts.push(current);}else if(line.trim()){if(!current){current={title:bw('Capítulo 1','Chapter 1','Capítulo 1'),paragraphs:[]};parts.push(current);}current.paragraphs.push(line.trim());}}return parts.filter(p=>p.paragraphs.length);}
-function composeNovel(data){const parts=manuscriptParts(data.source);if(!parts.length)throw Error(bw('Pegá el texto de al menos un capítulo.','Paste at least one chapter.','Cole o texto de pelo menos um capítulo.'));if(data.source.length>500000)throw Error(bw('El manuscrito supera 500.000 caracteres.','The manuscript exceeds 500,000 characters.','O manuscrito supera 500.000 caracteres.'));const b=M.create();b.title=data.title;b.chapter='';b.author=data.author;b.pages=[];b.grid={enabled:false,rows:1,cols:1,gapX:0,gapY:0,fit:'margins'};b.margins={top:22,bottom:22,inside:23,outside:20};b.header.rule=!!data.rule;b.header.size=8;b.header.distance=12;b.header.font='Georgia';b.header.odd='{section}';b.header.even='{book}';b.folio.distance=12;b.titulillo.enabled=false;
-b.paragraphStyles=[{id:'body',name:bw('Cuerpo de novela','Novel body','Corpo do romance'),properties:{font:'Georgia',size:11,leading:15,align:'justify',lastAlign:'left',firstIndent:4,spaceAfter:1.3}},{id:'chapter',name:bw('Título de capítulo','Chapter title','Título de capítulo'),properties:{font:'Georgia',size:25,leading:30,align:'left',firstIndent:0,spaceAfter:0}},{id:'front',name:bw('Preliminares','Front matter','Preliminares'),properties:{font:'Georgia',size:11,leading:16,align:'center',firstIndent:0,spaceAfter:2}}];
-const front=(label,content,y=65,size=18)=>{const p=M.page();p.partName=label;p.hideHeader=p.hideTitle=p.hideFolio=true;const o=novelText(b,content,23,y,102,110,'front');o.paragraphMap.forEach(m=>m.overrides={size,leading:size*1.5});p.objects=[o];b.pages.push(p);return p;};
-front(bw('Portadilla','Half title','Falsa folha de rosto'),data.title,75,21);if(data.blanks)front(bw('Blanco de cortesía','Blank verso','Verso em branco'),'');front(bw('Portada','Title page','Folha de rosto'),data.title+'\n\n'+data.author+'\n\n'+bw('NOVELA','NOVEL','ROMANCE'),48,19);front(bw('Legales','Copyright','Créditos'),data.legal||bw('Edición de prueba\nTexto de demostración. Revisá y completá los datos editoriales antes de publicar.','Proof edition\nSample text. Review and complete publication details before publishing.','Edição de prova\nTexto de demonstração. Revise e complete os dados editoriais antes de publicar.'),100,9);
-if(data.dedication)front(bw('Dedicatoria','Dedication','Dedicatória'),data.dedication,80,12);if(data.epigraph)front(bw('Epígrafe','Epigraph','Epígrafe'),data.epigraph,70,12);
-let tocPage;if(data.toc){tocPage=front(bw('Índice','Contents','Sumário'),'');const o=M.text('',23,28,102,155,11);o.leading=20;o.toc=true;tocPage.objects=[o];}b.toc={title:bw('Índice','Contents','Sumário'),includeSections:false,includeHeadings:false,entries:[]};
-const startPart=part=>{const p=M.page();p.partName=p.section=part.title;b.pages.push(p);b.toc.entries.push({id:M.uid(),label:part.title,pageId:p.id});const heading=novelText(b,part.title,23,35,102,33,'chapter');p.objects=[heading];return p;};
-for(const part of parts){let p=startPart(part),first=true,queue=[...part.paragraphs],continuation=false;while(queue.length){const y=first?76:22,h=210-22-y-1,texts=[],maps=[];while(queue.length){const para=queue[0],candidate=novelText(b,[...texts,para].join('\n'),23,y,102,h);candidate.paragraphMap=[...maps,{styleId:'body',overrides:continuation?{firstIndent:0}:{}}];if(measureBookText(b,candidate)){texts.push(para);maps.push(candidate.paragraphMap.at(-1));queue.shift();continuation=false;continue;}if(texts.length)break;const words=para.split(/\s+/);let low=1,high=words.length,best=0;while(low<=high){const mid=Math.floor((low+high)/2),test=novelText(b,words.slice(0,mid).join(' '),23,y,102,h);test.paragraphMap=[{styleId:'body',overrides:continuation?{firstIndent:0}:{}}];if(measureBookText(b,test)){best=mid;low=mid+1;}else high=mid-1;}if(!best)throw Error(bw('Una palabra no cabe en la caja. Revisá el manuscrito.','A word does not fit. Review the manuscript.','Uma palavra não cabe. Revise o manuscrito.'));texts.push(words.slice(0,best).join(' '));maps.push({styleId:'body',overrides:continuation?{firstIndent:0}:{}});queue[0]=words.slice(best).join(' ');if(!queue[0])queue.shift();continuation=true;break;}
-const o=novelText(b,texts.join('\n'),23,y,102,h);o.paragraphMap=maps;p.objects.push(o);if(queue.length){p=M.page();b.pages.push(p);first=false;}if(b.pages.length>198)throw Error(bw('El libro supera el límite de 200 páginas. Dividí el manuscrito.','The book exceeds 200 pages. Split the manuscript.','O livro supera 200 páginas. Divida o manuscrito.'));}}
-if(data.thanks)front(bw('Agradecimientos','Acknowledgements','Agradecimentos'),data.thanks,45,11);if(data.colophon)front(bw('Colofón','Colophon','Colofão'),data.colophon,100,9);if(b.pages.length%2&&data.blanks)front(bw('Blanco final','Final blank','Branco final'),'');return M.validate(b);}
-function installNovel(b){finishEditing();commit(()=>{book=b;active=spread=0;selected=null;hasDocument=true;multiSelection.clear();paragraphScope={id:null,index:-1};},true);refreshEmptyCanvas();if(native)nativeCall('newProject').catch(()=>{});showTab('structure');}
-function bookBuilder(sample=false){const run=()=>{hideWelcome();dialogVariant('book-builder');const d=sample?novelSample():{title:'',author:'',source:''};modal(bw('Dale estructura a tu novela','Give your novel a structure','Dê estrutura ao seu romance'),`<div class="builder-steps"><span>1 · ${bw('Datos','Details','Dados')}</span><span>2 · ${bw('Partes y manuscrito','Parts and manuscript','Partes e manuscrito')}</span><span>3 · ${bw('Crear y revisar','Create and review','Criar e revisar')}</span></div><p class="builder-intro">${bw('Prepará todas las partes en un solo lugar. El manuscrito se distribuye según el espacio real de las páginas A5 y queda editable, con estilos vinculados.','Prepare every part in one place. The manuscript is distributed using real A5 page space and remains editable with linked styles.','Prepare todas as partes em um lugar. O manuscrito é distribuído pelo espaço real das páginas A5 e fica editável, com estilos vinculados.')}</p><div class="modal-grid">${control(bw('Título','Title','Título'),'novelTitle',d.title,'text','','')}${control(bw('Autor/a','Author','Autor/a'),'novelAuthor',d.author,'text','','')}</div><div class="builder-parts"><label class="check-line"><input id="novelToc" type="checkbox" checked>${bw('Índice automático','Automatic contents','Sumário automático')}</label><label class="check-line"><input id="novelBlanks" type="checkbox" checked>${bw('Blancos de cortesía','Blank versos','Versos em branco')}</label><label class="check-line"><input id="novelRule" type="checkbox">${bw('Línea en cornisas','Header rules','Linhas nos cabeçalhos')}</label></div><details><summary>${bw('Dedicatoria, epígrafe, legales y cierre','Dedication, epigraph, copyright and closing','Dedicatória, epígrafe, créditos e encerramento')}</summary>${[['dedication',bw('Dedicatoria','Dedication','Dedicatória')],['epigraph',bw('Epígrafe','Epigraph','Epígrafe')],['legal',bw('Legales','Copyright','Créditos')],['thanks',bw('Agradecimientos','Acknowledgements','Agradecimentos')],['colophon',bw('Colofón','Colophon','Colofão')]].map(([key,label])=>`<label class="builder-label" for="novel-${key}">${label}</label><textarea id="novel-${key}" class="builder-short">${esc(d[key]||'')}</textarea>`).join('')}</details><label class="builder-label" for="novelSource">${bw('Manuscrito · empezá cada capítulo con # Título','Manuscript · begin each chapter with # Title','Manuscrito · inicie cada capítulo com # Título')}</label><textarea id="novelSource" class="builder-source" placeholder="# Capítulo 1&#10;Primer párrafo…&#10;&#10;# Capítulo 2&#10;…">${esc(d.source)}</textarea><button type="button" id="novelSample" class="quiet">${bw('Cargar novela de prueba','Load test novel','Carregar romance de teste')} ↗</button><p class="help">${bw('Crea un libro nuevo; el proyecto actual se conserva hasta confirmar. No hay reflujo automático entre cajas después de editar. Revisar libro detecta texto sobrante en todas las páginas.','Creates a new book; the current project stays until you confirm. Frames do not automatically reflow after editing. Check book finds overset text on all pages.','Cria um livro novo; o projeto atual fica até confirmar. As caixas não redistribuem texto após editar. Revisar livro detecta texto excedente em todas as páginas.')}</p>`,async()=>{const data={title:$('#novelTitle').value.trim(),author:$('#novelAuthor').value.trim(),source:$('#novelSource').value,toc:$('#novelToc').checked,blanks:$('#novelBlanks').checked,rule:$('#novelRule').checked};for(const key of ['dedication','epigraph','legal','thanks','colophon'])data[key]=$('#novel-'+key).value.trim();if(!data.title||data.title.length>250||data.author.length>250)throw Error(bw('Completá un título de hasta 250 caracteres.','Enter a title up to 250 characters.','Informe um título de até 250 caracteres.'));$('#modalApply').disabled=true;$('#modalApply').textContent=bw('Componiendo…','Composing…','Compondo…');await new Promise(r=>setTimeout(r,30));try{const b=composeNovel(data);installNovel(b);toast(bw('Libro creado. Revisá cada parte desde Libro.','Book created. Review every part in Book.','Livro criado. Revise cada parte em Livro.'));}finally{$('#modalApply').disabled=false;$('#modalApply').textContent=bw('Crear novela','Create novel','Criar romance');}},bw('Crear novela','Create novel','Criar romance'),'MAQUETARIO · ATELIER');$('#novelSample').onclick=()=>{const s=novelSample();$('#novelTitle').value=s.title;$('#novelAuthor').value=s.author;$('#novelSource').value=s.source;for(const key of ['dedication','epigraph','legal','thanks','colophon'])$('#novel-'+key).value=s[key]||'';};};if(dirty){confirmChanges(run);}else run();}
-function preflightBook(){finishEditing();const issues=[],prior=book;for(let i=0;i<book.pages.length;i++){let p;try{p=paper(i,96/25.4,true);Object.assign(p.style,{position:'fixed',left:'-10000px',top:'0',display:'block',visibility:'hidden'});document.body.append(p);for(const o of book.pages[i].objects){if(o.hidden)continue;if(o.x+o.w>book.width+.1||o.y+o.h>book.height+.1)issues.push({page:i,kind:'bounds'});if(o.type==='text'){const el=p.querySelector(`[data-id="${o.id}"] .text-content`);if(el&&el.scrollHeight>el.clientHeight+2)issues.push({page:i,kind:'overflow'});}}}finally{p?.remove();}}return issues;}
-function preflightDialog(){if(!hasDocument){settings(true);return;}const issues=preflightBook();modal(bw('Revisar el libro completo','Check the whole book','Revisar o livro completo'),`<p class="builder-intro">${book.pages.length} ${bw('páginas revisadas. Este control comprueba texto sobrante y objetos fuera de página.','pages checked. This checks overset text and objects outside the page.','páginas revisadas. Este controle verifica texto excedente e objetos fora da página.')}</p>${issues.length?issues.map(issue=>`<div class="preflight-item warn">${bw('Página','Page','Página')} ${issue.page+1} · ${issue.kind==='overflow'?bw('Texto sobrante','Overset text','Texto excedente'):bw('Objeto fuera de página','Object outside page','Objeto fora da página')}<button type="button" class="preflight-link" data-issue-page="${issue.page}">${bw('Ir a la página','Go to page','Ir à página')}</button></div>`).join(''):`<div class="preflight-item ok">✓ ${bw('Sin desbordamientos ni objetos fuera de página.','No overset text or objects outside the page.','Sem texto excedente nem objetos fora da página.')}</div>`}<p class="help">${bw('Revisá también ortografía, cortes de párrafo y calidad de imágenes. Cambiar un estilo puede hacer que sobre texto: repetí este control antes de exportar.','Also review spelling, paragraph breaks and image quality. Style changes may cause overset text: repeat this check before exporting.','Revise também ortografia, quebras de parágrafo e qualidade de imagens. Alterar um estilo pode causar excesso: repita este controle antes de exportar.')}</p>`,()=>{setTimeout(()=>outputDialog('pdf'),30);},bw('Revisar salida PDF','Review PDF output','Revisar saída PDF'));$$('[data-issue-page]').forEach(b=>b.onclick=()=>{$('#modal').close();goToBookPage(Number(b.dataset.issuePage));showTab('text');});}
-extend.result('showWelcome',async function(pending){await pending;if($('#welcomeNew')){const b=document.createElement('button');b.className='btn';b.id='welcomeNovel';b.textContent=bw('Armar una novela','Build a novel','Montar um romance');b.onclick=()=>bookBuilder();$('.welcome-actions').append(b);}},'book-workflow');window.showWelcome=showWelcome;
-renderBookRoute();structureTab.textContent=bw('Libro','Book','Livro');
+function measureBookText(b, o) {
+  const prior = book;
+  let page;
+  try {
+    book = b;
+    const p = M.page();
+    p.objects = [o];
+    b.pages.push(p);
+    page = paper(b.pages.length - 1, 96 / 25.4, true);
+    Object.assign(page.style, {
+      position: 'fixed',
+      left: '-10000px',
+      top: '0',
+      display: 'block',
+      visibility: 'hidden',
+    });
+    document.body.append(page);
+    const t = page.querySelector('.text-content');
+    return t.scrollHeight <= t.clientHeight + 1;
+  } finally {
+    page?.remove();
+    if (b.pages.at(-1)?.objects[0] === o) b.pages.pop();
+    book = prior;
+  }
+}
+function novelText(b, text, x, y, w, h, style = 'body') {
+  const o = M.text(text, x, y, w, h, 11);
+  o.leading = 15;
+  o.color = '#29252A';
+  o.paragraphMap = text.split('\n').map(() => ({ styleId: style, overrides: {} }));
+  return o;
+}
+function manuscriptParts(source) {
+  const parts = [];
+  let current = null;
+  for (const line of source.replace(/\r/g, '').split('\n')) {
+    if (/^#\s+/.test(line)) {
+      current = { title: line.replace(/^#\s+/, '').trim(), paragraphs: [] };
+      parts.push(current);
+    } else if (line.trim()) {
+      if (!current) {
+        current = { title: bw('Capítulo 1', 'Chapter 1', 'Capítulo 1'), paragraphs: [] };
+        parts.push(current);
+      }
+      current.paragraphs.push(line.trim());
+    }
+  }
+  return parts.filter((p) => p.paragraphs.length);
+}
+function composeNovel(data) {
+  const parts = manuscriptParts(data.source);
+  if (!parts.length)
+    throw Error(
+      bw(
+        'Pegá el texto de al menos un capítulo.',
+        'Paste at least one chapter.',
+        'Cole o texto de pelo menos um capítulo.',
+      ),
+    );
+  if (data.source.length > 500000)
+    throw Error(
+      bw(
+        'El manuscrito supera 500.000 caracteres.',
+        'The manuscript exceeds 500,000 characters.',
+        'O manuscrito supera 500.000 caracteres.',
+      ),
+    );
+  const b = M.create();
+  b.title = data.title;
+  b.chapter = '';
+  b.author = data.author;
+  b.pages = [];
+  b.grid = { enabled: false, rows: 1, cols: 1, gapX: 0, gapY: 0, fit: 'margins' };
+  b.margins = { top: 22, bottom: 22, inside: 23, outside: 20 };
+  b.header.rule = !!data.rule;
+  b.header.size = 8;
+  b.header.distance = 12;
+  b.header.font = 'Georgia';
+  b.header.odd = '{section}';
+  b.header.even = '{book}';
+  b.folio.distance = 12;
+  b.titulillo.enabled = false;
+  b.paragraphStyles = [
+    {
+      id: 'body',
+      name: bw('Cuerpo de novela', 'Novel body', 'Corpo do romance'),
+      properties: {
+        font: 'Georgia',
+        size: 11,
+        leading: 15,
+        align: 'justify',
+        lastAlign: 'left',
+        firstIndent: 4,
+        spaceAfter: 1.3,
+      },
+    },
+    {
+      id: 'chapter',
+      name: bw('Título de capítulo', 'Chapter title', 'Título de capítulo'),
+      properties: {
+        font: 'Georgia',
+        size: 25,
+        leading: 30,
+        align: 'left',
+        firstIndent: 0,
+        spaceAfter: 0,
+      },
+    },
+    {
+      id: 'front',
+      name: bw('Preliminares', 'Front matter', 'Preliminares'),
+      properties: {
+        font: 'Georgia',
+        size: 11,
+        leading: 16,
+        align: 'center',
+        firstIndent: 0,
+        spaceAfter: 2,
+      },
+    },
+  ];
+  const front = (label, content, y = 65, size = 18) => {
+    const p = M.page();
+    p.partName = label;
+    p.hideHeader = p.hideTitle = p.hideFolio = true;
+    const o = novelText(b, content, 23, y, 102, 110, 'front');
+    o.paragraphMap.forEach((m) => (m.overrides = { size, leading: size * 1.5 }));
+    p.objects = [o];
+    b.pages.push(p);
+    return p;
+  };
+  front(bw('Portadilla', 'Half title', 'Falsa folha de rosto'), data.title, 75, 21);
+  if (data.blanks) front(bw('Blanco de cortesía', 'Blank verso', 'Verso em branco'), '');
+  front(
+    bw('Portada', 'Title page', 'Folha de rosto'),
+    data.title + '\n\n' + data.author + '\n\n' + bw('NOVELA', 'NOVEL', 'ROMANCE'),
+    48,
+    19,
+  );
+  front(
+    bw('Legales', 'Copyright', 'Créditos'),
+    data.legal ||
+      bw(
+        'Edición de prueba\nTexto de demostración. Revisá y completá los datos editoriales antes de publicar.',
+        'Proof edition\nSample text. Review and complete publication details before publishing.',
+        'Edição de prova\nTexto de demonstração. Revise e complete os dados editoriais antes de publicar.',
+      ),
+    100,
+    9,
+  );
+  if (data.dedication)
+    front(bw('Dedicatoria', 'Dedication', 'Dedicatória'), data.dedication, 80, 12);
+  if (data.epigraph) front(bw('Epígrafe', 'Epigraph', 'Epígrafe'), data.epigraph, 70, 12);
+  let tocPage;
+  if (data.toc) {
+    tocPage = front(bw('Índice', 'Contents', 'Sumário'), '');
+    const o = M.text('', 23, 28, 102, 155, 11);
+    o.leading = 20;
+    o.toc = true;
+    tocPage.objects = [o];
+  }
+  b.toc = {
+    title: bw('Índice', 'Contents', 'Sumário'),
+    includeSections: false,
+    includeHeadings: false,
+    entries: [],
+  };
+  const startPart = (part) => {
+    const p = M.page();
+    p.partName = p.section = part.title;
+    b.pages.push(p);
+    b.toc.entries.push({ id: M.uid(), label: part.title, pageId: p.id });
+    const heading = novelText(b, part.title, 23, 35, 102, 33, 'chapter');
+    p.objects = [heading];
+    return p;
+  };
+  for (const part of parts) {
+    let p = startPart(part),
+      first = true,
+      queue = [...part.paragraphs],
+      continuation = false;
+    while (queue.length) {
+      const y = first ? 76 : 22,
+        h = 210 - 22 - y - 1,
+        texts = [],
+        maps = [];
+      while (queue.length) {
+        const para = queue[0],
+          candidate = novelText(b, [...texts, para].join('\n'), 23, y, 102, h);
+        candidate.paragraphMap = [
+          ...maps,
+          { styleId: 'body', overrides: continuation ? { firstIndent: 0 } : {} },
+        ];
+        if (measureBookText(b, candidate)) {
+          texts.push(para);
+          maps.push(candidate.paragraphMap.at(-1));
+          queue.shift();
+          continuation = false;
+          continue;
+        }
+        if (texts.length) break;
+        const words = para.split(/\s+/);
+        let low = 1,
+          high = words.length,
+          best = 0;
+        while (low <= high) {
+          const mid = Math.floor((low + high) / 2),
+            test = novelText(b, words.slice(0, mid).join(' '), 23, y, 102, h);
+          test.paragraphMap = [
+            { styleId: 'body', overrides: continuation ? { firstIndent: 0 } : {} },
+          ];
+          if (measureBookText(b, test)) {
+            best = mid;
+            low = mid + 1;
+          } else high = mid - 1;
+        }
+        if (!best)
+          throw Error(
+            bw(
+              'Una palabra no cabe en la caja. Revisá el manuscrito.',
+              'A word does not fit. Review the manuscript.',
+              'Uma palavra não cabe. Revise o manuscrito.',
+            ),
+          );
+        texts.push(words.slice(0, best).join(' '));
+        maps.push({ styleId: 'body', overrides: continuation ? { firstIndent: 0 } : {} });
+        queue[0] = words.slice(best).join(' ');
+        if (!queue[0]) queue.shift();
+        continuation = true;
+        break;
+      }
+      const o = novelText(b, texts.join('\n'), 23, y, 102, h);
+      o.paragraphMap = maps;
+      p.objects.push(o);
+      if (queue.length) {
+        p = M.page();
+        b.pages.push(p);
+        first = false;
+      }
+      if (b.pages.length > 198)
+        throw Error(
+          bw(
+            'El libro supera el límite de 200 páginas. Dividí el manuscrito.',
+            'The book exceeds 200 pages. Split the manuscript.',
+            'O livro supera 200 páginas. Divida o manuscrito.',
+          ),
+        );
+    }
+  }
+  if (data.thanks)
+    front(bw('Agradecimientos', 'Acknowledgements', 'Agradecimentos'), data.thanks, 45, 11);
+  if (data.colophon) front(bw('Colofón', 'Colophon', 'Colofão'), data.colophon, 100, 9);
+  if (b.pages.length % 2 && data.blanks)
+    front(bw('Blanco final', 'Final blank', 'Branco final'), '');
+  return M.validate(b);
+}
+function installNovel(b) {
+  finishEditing();
+  commit(() => {
+    book = b;
+    active = spread = 0;
+    selected = null;
+    hasDocument = true;
+    multiSelection.clear();
+    paragraphScope = { id: null, index: -1 };
+  }, true);
+  refreshEmptyCanvas();
+  if (native) nativeCall('newProject').catch(() => {});
+  showTab('structure');
+}
+function bookBuilder(sample = false) {
+  const run = () => {
+    hideWelcome();
+    dialogVariant('book-builder');
+    const d = sample ? novelSample() : { title: '', author: '', source: '' };
+    modal(
+      bw(
+        'Dale estructura a tu novela',
+        'Give your novel a structure',
+        'Dê estrutura ao seu romance',
+      ),
+      `<div class="builder-steps"><span>1 · ${bw('Datos', 'Details', 'Dados')}</span><span>2 · ${bw('Partes y manuscrito', 'Parts and manuscript', 'Partes e manuscrito')}</span><span>3 · ${bw('Crear y revisar', 'Create and review', 'Criar e revisar')}</span></div><p class="builder-intro">${bw('Prepará todas las partes en un solo lugar. El manuscrito se distribuye según el espacio real de las páginas A5 y queda editable, con estilos vinculados.', 'Prepare every part in one place. The manuscript is distributed using real A5 page space and remains editable with linked styles.', 'Prepare todas as partes em um lugar. O manuscrito é distribuído pelo espaço real das páginas A5 e fica editável, com estilos vinculados.')}</p><div class="modal-grid">${control(bw('Título', 'Title', 'Título'), 'novelTitle', d.title, 'text', '', '')}${control(bw('Autor/a', 'Author', 'Autor/a'), 'novelAuthor', d.author, 'text', '', '')}</div><div class="builder-parts"><label class="check-line"><input id="novelToc" type="checkbox" checked>${bw('Índice automático', 'Automatic contents', 'Sumário automático')}</label><label class="check-line"><input id="novelBlanks" type="checkbox" checked>${bw('Blancos de cortesía', 'Blank versos', 'Versos em branco')}</label><label class="check-line"><input id="novelRule" type="checkbox">${bw('Línea en cornisas', 'Header rules', 'Linhas nos cabeçalhos')}</label></div><details><summary>${bw('Dedicatoria, epígrafe, legales y cierre', 'Dedication, epigraph, copyright and closing', 'Dedicatória, epígrafe, créditos e encerramento')}</summary>${[
+        ['dedication', bw('Dedicatoria', 'Dedication', 'Dedicatória')],
+        ['epigraph', bw('Epígrafe', 'Epigraph', 'Epígrafe')],
+        ['legal', bw('Legales', 'Copyright', 'Créditos')],
+        ['thanks', bw('Agradecimientos', 'Acknowledgements', 'Agradecimentos')],
+        ['colophon', bw('Colofón', 'Colophon', 'Colofão')],
+      ]
+        .map(
+          ([key, label]) =>
+            `<label class="builder-label" for="novel-${key}">${label}</label><textarea id="novel-${key}" class="builder-short">${esc(d[key] || '')}</textarea>`,
+        )
+        .join(
+          '',
+        )}</details><label class="builder-label" for="novelSource">${bw('Manuscrito · empezá cada capítulo con # Título', 'Manuscript · begin each chapter with # Title', 'Manuscrito · inicie cada capítulo com # Título')}</label><textarea id="novelSource" class="builder-source" placeholder="# Capítulo 1&#10;Primer párrafo…&#10;&#10;# Capítulo 2&#10;…">${esc(d.source)}</textarea><button type="button" id="novelSample" class="quiet">${bw('Cargar novela de prueba', 'Load test novel', 'Carregar romance de teste')} ↗</button><p class="help">${bw('Crea un libro nuevo; el proyecto actual se conserva hasta confirmar. No hay reflujo automático entre cajas después de editar. Revisar libro detecta texto sobrante en todas las páginas.', 'Creates a new book; the current project stays until you confirm. Frames do not automatically reflow after editing. Check book finds overset text on all pages.', 'Cria um livro novo; o projeto atual fica até confirmar. As caixas não redistribuem texto após editar. Revisar livro detecta texto excedente em todas as páginas.')}</p>`,
+      async () => {
+        const data = {
+          title: $('#novelTitle').value.trim(),
+          author: $('#novelAuthor').value.trim(),
+          source: $('#novelSource').value,
+          toc: $('#novelToc').checked,
+          blanks: $('#novelBlanks').checked,
+          rule: $('#novelRule').checked,
+        };
+        for (const key of ['dedication', 'epigraph', 'legal', 'thanks', 'colophon'])
+          data[key] = $('#novel-' + key).value.trim();
+        if (!data.title || data.title.length > 250 || data.author.length > 250)
+          throw Error(
+            bw(
+              'Completá un título de hasta 250 caracteres.',
+              'Enter a title up to 250 characters.',
+              'Informe um título de até 250 caracteres.',
+            ),
+          );
+        $('#modalApply').disabled = true;
+        $('#modalApply').textContent = bw('Componiendo…', 'Composing…', 'Compondo…');
+        await new Promise((r) => setTimeout(r, 30));
+        try {
+          const b = composeNovel(data);
+          installNovel(b);
+          toast(
+            bw(
+              'Libro creado. Revisá cada parte desde Libro.',
+              'Book created. Review every part in Book.',
+              'Livro criado. Revise cada parte em Livro.',
+            ),
+          );
+        } finally {
+          $('#modalApply').disabled = false;
+          $('#modalApply').textContent = bw('Crear novela', 'Create novel', 'Criar romance');
+        }
+      },
+      bw('Crear novela', 'Create novel', 'Criar romance'),
+      'MAQUETARIO · ATELIER',
+    );
+    $('#novelSample').onclick = () => {
+      const s = novelSample();
+      $('#novelTitle').value = s.title;
+      $('#novelAuthor').value = s.author;
+      $('#novelSource').value = s.source;
+      for (const key of ['dedication', 'epigraph', 'legal', 'thanks', 'colophon'])
+        $('#novel-' + key).value = s[key] || '';
+    };
+  };
+  if (dirty) {
+    confirmChanges(run);
+  } else run();
+}
+function preflightBook() {
+  finishEditing();
+  const issues = [],
+    prior = book;
+  for (let i = 0; i < book.pages.length; i++) {
+    let p;
+    try {
+      p = paper(i, 96 / 25.4, true);
+      Object.assign(p.style, {
+        position: 'fixed',
+        left: '-10000px',
+        top: '0',
+        display: 'block',
+        visibility: 'hidden',
+      });
+      document.body.append(p);
+      for (const o of book.pages[i].objects) {
+        if (o.hidden) continue;
+        if (o.x + o.w > book.width + 0.1 || o.y + o.h > book.height + 0.1)
+          issues.push({ page: i, kind: 'bounds' });
+        if (o.type === 'text') {
+          const el = p.querySelector(`[data-id="${o.id}"] .text-content`);
+          if (el && el.scrollHeight > el.clientHeight + 2)
+            issues.push({ page: i, kind: 'overflow' });
+        }
+      }
+    } finally {
+      p?.remove();
+    }
+  }
+  return issues;
+}
+function preflightDialog() {
+  if (!hasDocument) {
+    settings(true);
+    return;
+  }
+  const issues = preflightBook();
+  modal(
+    bw('Revisar el libro completo', 'Check the whole book', 'Revisar o livro completo'),
+    `<p class="builder-intro">${book.pages.length} ${bw('páginas revisadas. Este control comprueba texto sobrante y objetos fuera de página.', 'pages checked. This checks overset text and objects outside the page.', 'páginas revisadas. Este controle verifica texto excedente e objetos fora da página.')}</p>${issues.length ? issues.map((issue) => `<div class="preflight-item warn">${bw('Página', 'Page', 'Página')} ${issue.page + 1} · ${issue.kind === 'overflow' ? bw('Texto sobrante', 'Overset text', 'Texto excedente') : bw('Objeto fuera de página', 'Object outside page', 'Objeto fora da página')}<button type="button" class="preflight-link" data-issue-page="${issue.page}">${bw('Ir a la página', 'Go to page', 'Ir à página')}</button></div>`).join('') : `<div class="preflight-item ok">✓ ${bw('Sin desbordamientos ni objetos fuera de página.', 'No overset text or objects outside the page.', 'Sem texto excedente nem objetos fora da página.')}</div>`}<p class="help">${bw('Revisá también ortografía, cortes de párrafo y calidad de imágenes. Cambiar un estilo puede hacer que sobre texto: repetí este control antes de exportar.', 'Also review spelling, paragraph breaks and image quality. Style changes may cause overset text: repeat this check before exporting.', 'Revise também ortografia, quebras de parágrafo e qualidade de imagens. Alterar um estilo pode causar excesso: repita este controle antes de exportar.')}</p>`,
+    () => {
+      setTimeout(() => outputDialog('pdf'), 30);
+    },
+    bw('Revisar salida PDF', 'Review PDF output', 'Revisar saída PDF'),
+  );
+  $$('[data-issue-page]').forEach(
+    (b) =>
+      (b.onclick = () => {
+        $('#modal').close();
+        goToBookPage(Number(b.dataset.issuePage));
+        showTab('text');
+      }),
+  );
+}
+extend.result(
+  'showWelcome',
+  async function (pending) {
+    await pending;
+    if ($('#welcomeNew')) {
+      const b = document.createElement('button');
+      b.className = 'btn';
+      b.id = 'welcomeNovel';
+      b.textContent = bw('Armar una novela', 'Build a novel', 'Montar um romance');
+      b.onclick = () => bookBuilder();
+      $('.welcome-actions').append(b);
+    }
+  },
+  'book-workflow',
+);
+window.showWelcome = showWelcome;
+renderBookRoute();
+structureTab.textContent = bw('Libro', 'Book', 'Livro');

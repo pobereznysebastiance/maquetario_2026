@@ -20,7 +20,11 @@
       'Continue no navegador: entre na sua conta Motiova e toque em Conectar.',
     ],
     cancel: ['Cancelar', 'Cancel', 'Cancelar'],
-    connected: ['Maquetario quedó conectado con tu cuenta.', 'Maquetario is now connected to your account.', 'O Maquetario foi conectado à sua conta.'],
+    connected: [
+      'Maquetario quedó conectado con tu cuenta.',
+      'Maquetario is now connected to your account.',
+      'O Maquetario foi conectado à sua conta.',
+    ],
     edition: ['Edición', 'Edition', 'Edição'],
     computers: ['Computadoras', 'Computers', 'Computadores'],
     computersOf: ['{n} de {max}', '{n} of {max}', '{n} de {max}'],
@@ -30,17 +34,33 @@
       'This computer’s license is not active. Connect again to renew it.',
       'A licença deste computador não está ativa. Conecte de novo para renová-la.',
     ],
-    signOut: ['Cerrar sesión en esta computadora', 'Sign out on this computer', 'Sair neste computador'],
+    signOut: [
+      'Cerrar sesión en esta computadora',
+      'Sign out on this computer',
+      'Sair neste computador',
+    ],
     signOutShort: ['Cerrar sesión', 'Sign out', 'Sair'],
     thisComputer: ['Esta computadora', 'This computer', 'Este computador'],
-    signOutHelp: ['Libera esta computadora para usar Maquetario en otra.', 'Frees this computer to use Maquetario on another one.', 'Libera este computador para usar o Maquetario em outro.'],
+    signOutHelp: [
+      'Libera esta computadora para usar Maquetario en otra.',
+      'Frees this computer to use Maquetario on another one.',
+      'Libera este computador para usar o Maquetario em outro.',
+    ],
     signOutConfirm: [
       'Vas a liberar esta computadora. Para volver a usar Maquetario acá vas a tener que conectar tu cuenta otra vez.',
       'This computer will be freed. To use Maquetario here again you will need to connect your account.',
       'Este computador será liberado. Para usar o Maquetario aqui de novo, será preciso conectar sua conta.',
     ],
-    signedOut: ['Cerraste la sesión en esta computadora.', 'You signed out on this computer.', 'Você saiu neste computador.'],
-    update: ['Hay una versión nueva: {v}', 'A new version is available: {v}', 'Há uma versão nova: {v}'],
+    signedOut: [
+      'Cerraste la sesión en esta computadora.',
+      'You signed out on this computer.',
+      'Você saiu neste computador.',
+    ],
+    update: [
+      'Hay una versión nueva: {v}',
+      'A new version is available: {v}',
+      'Há uma versão nova: {v}',
+    ],
     download: ['Descargar', 'Download', 'Baixar'],
     downloading: ['Descargando…', 'Downloading…', 'Baixando…'],
     downloaded: [
@@ -50,7 +70,11 @@
     ],
     interfaceSection: ['Interfaz', 'Interface', 'Interface'],
     rulers: ['Reglas', 'Rulers', 'Réguas'],
-    rulersHelp: ['Mostrar las reglas horizontal y vertical (Ctrl+R).', 'Show horizontal and vertical rulers (Ctrl+R).', 'Mostrar as réguas horizontal e vertical (Ctrl+R).'],
+    rulersHelp: [
+      'Mostrar las reglas horizontal y vertical (Ctrl+R).',
+      'Show horizontal and vertical rulers (Ctrl+R).',
+      'Mostrar as réguas horizontal e vertical (Ctrl+R).',
+    ],
     language: ['Idioma', 'Language', 'Idioma'],
     interface: ['Tamaño de la interfaz', 'Interface size', 'Tamanho da interface'],
     interfaceHelp: [
@@ -68,7 +92,11 @@
     ],
     noFolders: ['Ninguna carpeta agregada.', 'No folders added.', 'Nenhuma pasta adicionada.'],
     addFolder: ['Agregar carpeta…', 'Add folder…', 'Adicionar pasta…'],
-    desktopOnly: ['Disponible en la app de escritorio.', 'Available in the desktop app.', 'Disponível no app para desktop.'],
+    desktopOnly: [
+      'Disponible en la app de escritorio.',
+      'Available in the desktop app.',
+      'Disponível no app para desktop.',
+    ],
     about: ['Acerca de', 'About', 'Sobre'],
     workspace: ['Espacio de trabajo', 'Workspace', 'Espaço de trabalho'],
     workspaceMode: ['Espacio activo', 'Active workspace', 'Espaço ativo'],
@@ -95,8 +123,10 @@
     return `<section class="settings-section"${id ? ` id="settings-section-${id}"` : ''}><h3 class="settings-section-title">${title}</h3>${body}</section>`;
   }
 
-  const fill = (key, values) => Object.entries(values).reduce((s, [k, v]) => s.replace(`{${k}}`, v), t(key));
-  const editionName = (value) => (value === 'estandar' ? bw('Estándar', 'Standard', 'Padrão') : value || '');
+  const fill = (key, values) =>
+    Object.entries(values).reduce((s, [k, v]) => s.replace(`{${k}}`, v), t(key));
+  const editionName = (value) =>
+    value === 'estandar' ? bw('Estándar', 'Standard', 'Padrão') : value || '';
 
   /** Cuenta de Motiova: conectar, estado de la licencia de este equipo y versión nueva. */
   function accountBody(status) {
@@ -106,16 +136,35 @@
       return `<p class="settings-note">${t('noAccount')}</p><button type="button" class="btn primary" id="settingsConnect">${t('connect')}</button>`;
     }
     const lang = document.documentElement.lang || 'es';
-    const until = status.validUntil ? new Date(status.validUntil).toLocaleDateString(lang, { day: 'numeric', month: 'long' }) : '';
+    const until = status.validUntil
+      ? new Date(status.validUntil).toLocaleDateString(lang, { day: 'numeric', month: 'long' })
+      : '';
     const value = (v) => `<span class="settings-value">${esc(v)}</span>`;
     return (
       row(status.email || status.name || '', value(editionName(status.edition)), t('edition')) +
-      (status.maxDevices ? row(t('computers'), value(fill('computersOf', { n: status.devicesInUse ?? 1, max: status.maxDevices }))) : '') +
-      (status.licenseValid ? (until ? row(t('expires'), value(until)) : '') : `<p class="settings-note">${t('invalid')}</p>`) +
-      (status.update
-        ? row(fill('update', { v: status.update.version }), `<button type="button" class="btn" id="settingsDownloadUpdate">${t('download')}</button>`, status.update.notes || '')
+      (status.maxDevices
+        ? row(
+            t('computers'),
+            value(fill('computersOf', { n: status.devicesInUse ?? 1, max: status.maxDevices })),
+          )
         : '') +
-      row(t('thisComputer'), `<button type="button" class="btn" id="settingsSignOut">${t('signOutShort')}</button>`, t('signOutHelp'))
+      (status.licenseValid
+        ? until
+          ? row(t('expires'), value(until))
+          : ''
+        : `<p class="settings-note">${t('invalid')}</p>`) +
+      (status.update
+        ? row(
+            fill('update', { v: status.update.version }),
+            `<button type="button" class="btn" id="settingsDownloadUpdate">${t('download')}</button>`,
+            status.update.notes || '',
+          )
+        : '') +
+      row(
+        t('thisComputer'),
+        `<button type="button" class="btn" id="settingsSignOut">${t('signOutShort')}</button>`,
+        t('signOutHelp'),
+      )
     );
   }
 
@@ -140,7 +189,12 @@
     const signOut = $('#settingsSignOut');
     if (signOut) {
       signOut.onclick = async () => {
-        const ok = await confirmAction({ title: t('signOut'), message: t('signOutConfirm'), confirmLabel: t('signOut'), danger: true });
+        const ok = await confirmAction({
+          title: t('signOut'),
+          message: t('signOutConfirm'),
+          confirmLabel: t('signOut'),
+          danger: true,
+        });
         if (!ok) return;
         signOut.disabled = true;
         try {
@@ -171,7 +225,11 @@
 
   function foldersBody() {
     if (!MaquetarioHost.available) return `<p class="settings-note">${t('desktopOnly')}</p>`;
-    const folders = Array.isArray(window.fontFolders) ? window.fontFolders : typeof fontFolders !== 'undefined' ? fontFolders : [];
+    const folders = Array.isArray(window.fontFolders)
+      ? window.fontFolders
+      : typeof fontFolders !== 'undefined'
+        ? fontFolders
+        : [];
     const list = folders.length
       ? `<ul class="settings-list">${folders.map((f) => `<li class="settings-list-item user-content" title="${esc(f)}">${esc(f)}</li>`).join('')}</ul>`
       : `<p class="settings-note">${t('noFolders')}</p>`;
@@ -181,14 +239,40 @@
   function workspaceBody() {
     const ws = window.MaquetarioWorkspace;
     if (!ws) return '';
-    const names = { simple: bw('Inicial', 'Starter', 'Inicial'), default: bw('Predeterminado', 'Default', 'Padrão'), custom: bw('Personalizado', 'Custom', 'Personalizado') };
-    const select = `<select id="settingsWorkspace">${Object.entries(names).map(([id, n]) => `<option value="${id}">${esc(n)}</option>`).join('')}</select>`;
-    const groups = [['tools', t('tools')], ['tabs', t('tabs')], ['zones', t('zones')]];
+    const names = {
+      simple: bw('Inicial', 'Starter', 'Inicial'),
+      default: bw('Predeterminado', 'Default', 'Padrão'),
+      custom: bw('Personalizado', 'Custom', 'Personalizado'),
+    };
+    const select = `<select id="settingsWorkspace">${Object.entries(names)
+      .map(([id, n]) => `<option value="${id}">${esc(n)}</option>`)
+      .join('')}</select>`;
+    const groups = [
+      ['tools', t('tools')],
+      ['tabs', t('tabs')],
+      ['zones', t('zones')],
+    ];
     const items = ws.items();
     const lists = groups
-      .map(([group, title]) => `<div class="settings-checklist"><h4 class="settings-checklist-title">${esc(title)}</h4>${items.filter((i) => i.group === group).map((i) => UI.checkItem({ item: i.id, label: i.label, checked: ws.isVisible(i.id), disabled: i.locked })).join('')}</div>`)
+      .map(
+        ([group, title]) =>
+          `<div class="settings-checklist"><h4 class="settings-checklist-title">${esc(title)}</h4>${items
+            .filter((i) => i.group === group)
+            .map((i) =>
+              UI.checkItem({
+                item: i.id,
+                label: i.label,
+                checked: ws.isVisible(i.id),
+                disabled: i.locked,
+              }),
+            )
+            .join('')}</div>`,
+      )
       .join('');
-    return row(t('workspaceMode'), select) + `<p class="settings-help">${t('workspaceHelp')}</p><div class="settings-checklists">${lists}</div>`;
+    return (
+      row(t('workspaceMode'), select) +
+      `<p class="settings-help">${t('workspaceHelp')}</p><div class="settings-checklists">${lists}</div>`
+    );
   }
 
   async function openSettings(focusSection) {
@@ -197,7 +281,10 @@
     let info = null;
     let account = null;
     if (MaquetarioHost.available) {
-      [info, account] = await Promise.all([nativeCall('appInfo').catch(() => null), nativeCall('motiovaStatus').catch(() => null)]);
+      [info, account] = await Promise.all([
+        nativeCall('appInfo').catch(() => null),
+        nativeCall('motiovaStatus').catch(() => null),
+      ]);
     }
     const language = LibroI18n.language;
     const large = document.body.classList.contains('ui-large');
@@ -215,7 +302,15 @@
             `<select id="settingsInterfaceSize"><option value="standard">${t('comfortable')}</option><option value="large">${t('large')}</option></select>`,
             t('interfaceHelp'),
           ) +
-          row(t('rulers'), UI.checkItem({ id: 'settingsRulers', label: '', checked: MaquetarioRulers.isVisible() }), t('rulersHelp')),
+          row(
+            t('rulers'),
+            UI.checkItem({
+              id: 'settingsRulers',
+              label: '',
+              checked: MaquetarioRulers.isVisible(),
+            }),
+            t('rulersHelp'),
+          ),
       ) +
       `<div id="settings-section-workspace">${section(t('workspace'), workspaceBody())}</div>` +
       section(t('fonts'), `<p class="settings-help">${t('fontsHelp')}</p>${foldersBody()}`) +
@@ -274,7 +369,16 @@
   /** Lo llama el proceso principal al abrir, si Motiova tiene una versión más nueva. */
   window.maquetarioUpdateAvailable = (update) => {
     if (!update || !update.version) return;
-    toast(fill('update', { v: update.version }) + ' · ' + bw('Descargala desde Configuración → Cuenta.', 'Download it from Settings → Account.', 'Baixe em Configurações → Conta.'), 'info');
+    toast(
+      fill('update', { v: update.version }) +
+        ' · ' +
+        bw(
+          'Descargala desde Configuración → Cuenta.',
+          'Download it from Settings → Account.',
+          'Baixe em Configurações → Conta.',
+        ),
+      'info',
+    );
   };
 
   window.openSettings = openSettings;

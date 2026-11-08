@@ -1,0 +1,8 @@
+# Generados o de terceros
+node_modules/
+desktop/dist/
+desktop/release/
+LibroStudio/v3/app/pdf-lib.min.js
+LibroStudio/v3/app/sample-image.js
+*.min.js
+LibroStudio/v3/app/hyphenation/

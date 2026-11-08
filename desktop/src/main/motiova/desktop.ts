@@ -77,7 +77,8 @@ class SecureTokenStore implements TokenStore {
 }
 
 let client: MotiovaClient | null = null;
-const motiova = (): MotiovaClient => (client ??= new MotiovaClient(config(), new SecureTokenStore()));
+const motiova = (): MotiovaClient =>
+  (client ??= new MotiovaClient(config(), new SecureTokenStore()));
 
 const licenseFile = (): string => join(motiovaDir(), 'licenses', 'maquetario.lic');
 
@@ -130,7 +131,9 @@ let lastUpdate: UpdateInfo | null = null;
 
 function updateFrom(resource: Resource | null): UpdateInfo | null {
   const latest: ReleaseInfo | null | undefined = resource?.latest;
-  return latest && isNewer(latest.version, appVersion()) ? { version: latest.version, notes: latest.notes ?? '' } : null;
+  return latest && isNewer(latest.version, appVersion())
+    ? { version: latest.version, notes: latest.notes ?? '' }
+    : null;
 }
 
 export async function accountStatus(): Promise<AccountStatus> {
@@ -161,7 +164,12 @@ async function syncLicense(): Promise<void> {
     // Sin la lista de recursos igual hay licencia: no se interrumpe por esto.
   }
   if (lastResource) {
-    lastResource = { ...lastResource, devices_in_use: issued.devices_in_use, max_devices: issued.max_devices, edition: issued.edition };
+    lastResource = {
+      ...lastResource,
+      devices_in_use: issued.devices_in_use,
+      max_devices: issued.max_devices,
+      edition: issued.edition,
+    };
   }
 }
 
@@ -228,16 +236,23 @@ export async function downloadUpdate(): Promise<{ path: string; version: string 
   try {
     response = await fetch(link.url);
   } catch {
-    throw new MotiovaError('offline', 'No pudimos bajar la versión nueva. Revisá tu conexión y volvé a intentar.');
+    throw new MotiovaError(
+      'offline',
+      'No pudimos bajar la versión nueva. Revisá tu conexión y volvé a intentar.',
+    );
   }
-  if (!response.ok || !response.body) throw new MotiovaError('rejected', 'El link de descarga venció. Volvé a intentar.');
+  if (!response.ok || !response.body)
+    throw new MotiovaError('rejected', 'El link de descarga venció. Volvé a intentar.');
   const hash = createHash('sha256');
   const body = Readable.fromWeb(response.body as import('node:stream/web').ReadableStream);
   body.on('data', (chunk: Buffer) => hash.update(chunk));
   await pipeline(body, createWriteStream(partial));
   if (hash.digest('hex') !== link.sha256.toLowerCase()) {
     await rm(partial, { force: true });
-    throw new MotiovaError('rejected', 'El archivo descargado no coincide con el publicado. Volvé a intentar.');
+    throw new MotiovaError(
+      'rejected',
+      'El archivo descargado no coincide con el publicado. Volvé a intentar.',
+    );
   }
   await rename(partial, target);
   shell.showItemInFolder(target);

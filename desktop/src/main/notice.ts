@@ -29,8 +29,13 @@ export function showNotice(options: NoticeOptions): Promise<string | null> {
 }
 
 /** Igual que showNotice, pero también se puede cerrar desde afuera (p. ej. "Seguí en el navegador…"). */
-export function openNotice(options: NoticeOptions): { choice: Promise<string | null>; close: () => void } {
-  const buttons = options.buttons?.length ? options.buttons : [{ id: 'close', label: 'Cerrar', primary: true }];
+export function openNotice(options: NoticeOptions): {
+  choice: Promise<string | null>;
+  close: () => void;
+} {
+  const buttons = options.buttons?.length
+    ? options.buttons
+    : [{ id: 'close', label: 'Cerrar', primary: true }];
   const win = new BrowserWindow({
     width: WIDTH,
     height: HEIGHT,
@@ -88,7 +93,13 @@ export function openNotice(options: NoticeOptions): { choice: Promise<string | n
 /** Para revisar el diseño sin provocar el error real (sólo en desarrollo). */
 export async function captureNotice(options: NoticeOptions, file: string): Promise<void> {
   const { writeFile } = await import('node:fs/promises');
-  const win = new BrowserWindow({ width: WIDTH, height: HEIGHT, frame: false, show: false, webPreferences: { preload: join(__dirname, 'notice-preload.cjs'), sandbox: true } });
+  const win = new BrowserWindow({
+    width: WIDTH,
+    height: HEIGHT,
+    frame: false,
+    show: false,
+    webPreferences: { preload: join(__dirname, 'notice-preload.cjs'), sandbox: true },
+  });
   const payload = encodeURIComponent(JSON.stringify({ ...options, buttons: options.buttons }));
   await win.loadURL(`${NOTICE_ORIGIN}/notice.html#${payload}`);
   await new Promise((r) => setTimeout(r, 300));

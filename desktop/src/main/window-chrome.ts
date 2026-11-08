@@ -17,7 +17,8 @@ function supportsMica(): boolean {
 export function windowMaterial(): WindowMaterial {
   // Desarrollo: MAQUETARIO_WINDOW_MATERIAL=none fuerza la ventana sólida (diagnóstico).
   const forced = process.env.MAQUETARIO_WINDOW_MATERIAL;
-  if (!app.isPackaged && (forced === 'none' || forced === 'mica' || forced === 'vibrancy')) return forced;
+  if (!app.isPackaged && (forced === 'none' || forced === 'mica' || forced === 'vibrancy'))
+    return forced;
   if (process.platform === 'darwin') return 'vibrancy';
   return supportsMica() ? 'mica' : 'none';
 }
@@ -50,6 +51,10 @@ export function windowChromeOptions(): {
     return { options, material, controls: 'inset-left' };
   }
   options.titleBarStyle = 'hidden';
-  options.titleBarOverlay = { color: 'rgba(0,0,0,0)', symbolColor: CONTROL_SYMBOLS, height: TITLE_BAR_HEIGHT };
+  options.titleBarOverlay = {
+    color: 'rgba(0,0,0,0)',
+    symbolColor: CONTROL_SYMBOLS,
+    height: TITLE_BAR_HEIGHT,
+  };
   return { options, material, controls: 'overlay-right' };
 }
