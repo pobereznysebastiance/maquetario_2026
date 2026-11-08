@@ -163,6 +163,7 @@
 
   /* ── Capas (z-index) ─────────────────────────────────────── */
   --layer-canvas: 0;
+  --layer-ruler: 2; /* reglas, sobre el lienzo y debajo de la barra de zoom */
   --layer-chrome: 10;
   --layer-resizer: 25; /* bordes de paneles: arriba de la barra de cada panel */
   --layer-popover: 100;
@@ -188,6 +189,16 @@
   --cover-label-width: 100px;
   --number-column: 20px; /* columna de números (estructura, figuras) */
   --label-column: 58px;
+  --ruler-size: 18px; /* reglas del lienzo */
+  --ruler-tick: 10px;
+  --ruler-tick-length: 5px;
+  --ruler-type: 7px;
+  --ruler-leading: 10px;
+  --switch-width: 29px;
+  --switch-height: 16px;
+  --switch-knob: 12px;
+  --toast-offset: 42px; /* distancia del aviso al borde inferior */
+  --canvas-hint-inset: 24px;
 }
 
 /* Escala tipográfica de la interfaz, con los roles de la de macOS (Human Interface Guidelines).

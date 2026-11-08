@@ -29,3 +29,8 @@
   width: var(--control-sm);
   height: var(--control-sm);
 }
+
+.zoom input {
+  height: var(--space-3xs);
+  cursor: pointer;
+}

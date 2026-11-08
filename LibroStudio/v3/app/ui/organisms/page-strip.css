@@ -44,3 +44,21 @@
   color: var(--text-tertiary);
   font-size: var(--type-footnote);
 }
+
+/* ── Migrado de studio.css: tira de páginas ── */
+.pages-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.thumbnails {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  min-height: 0;
+  overflow-y: auto;
+}
+.thumb {
+  flex-shrink: 0;
+}

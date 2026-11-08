@@ -50,3 +50,26 @@
 .left-bottom .version {
   color: var(--text-secondary);
 }
+
+/* ── Migrado de studio.css: panel izquierdo ── */
+.leftpanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.tools {
+  display: flex;
+  flex-direction: column;
+  border-bottom: var(--border-width) solid;
+}
+.tool {
+  text-align: left;
+}
+.left-bottom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.version {
+  margin-left: auto;
+}

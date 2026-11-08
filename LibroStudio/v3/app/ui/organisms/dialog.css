@@ -124,3 +124,48 @@ dialog .modal-actions {
 .format-option.active strong {
   color: var(--text-mark);
 }
+
+/* ── Migrado de studio.css ── */
+.eyebrow {
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps);
+}
+.modal-header .icon-btn {
+  font-size: var(--type-2xl);
+}
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+.modal-grid .control label {
+  display: block;
+  margin-bottom: var(--space-xs);
+  color: var(--text-secondary);
+}
+.modal-grid input,
+.modal-grid select {
+  width: 100%;
+}
+.modal-grid .full {
+  grid-column: 1 / -1;
+}
+.format-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.format-option strong,
+.format-option small {
+  display: block;
+}
+.format-option strong {
+  font-weight: var(--weight-medium);
+}
+.format-option small {
+  margin-top: var(--space-2xs);
+  color: var(--text-tertiary);
+}
+.inline-error {
+  line-height: var(--leading-ui);
+}

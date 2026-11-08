@@ -26,3 +26,11 @@
   border-color: var(--line-subtle);
   background: var(--material-bar);
 }
+.statusbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+#overflowStatus {
+  color: var(--status-warning);
+}

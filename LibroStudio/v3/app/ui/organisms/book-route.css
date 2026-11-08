@@ -45,3 +45,34 @@
 #activePageStatus {
   color: var(--text-mark);
 }
+
+/* ── Migrado de studio.css: barra del documento ── */
+.documentbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+}
+.documentbar > div {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.document-dot {
+  width: var(--space-xs);
+  height: var(--space-xs);
+  border-radius: var(--space-3xs);
+}
+#documentName {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.doc-format {
+  padding-left: var(--space-sm);
+  border-left: var(--border-width) solid var(--line-default);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}

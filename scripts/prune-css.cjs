@@ -33,7 +33,8 @@ if (json === '--contar') {
 // --ver: muestra el selector de cada clave sin tocar nada.
 if (process.argv.includes('--ver')) {
   const cache = {};
-  for (const k of dead) { const [f, i] = k.split('#'); cache[f] ??= split(fs.readFileSync(path.join(dir, f), 'utf8')).rules; console.log(k, selectorOf(cache[f][i]).slice(0, 90)); }
+  const full = process.argv.includes('--texto'); // la regla completa, no sólo el selector
+  for (const k of dead) { const [f, i] = k.split('#'); cache[f] ??= split(fs.readFileSync(path.join(dir, f), 'utf8')).rules; const r = cache[f][i].replace(/\/\*[\s\S]*?\*\//g, '').trim(); console.log(k, full ? r.slice(0, 400) : selectorOf(r).slice(0, 90)); }
   process.exit(0);
 }
 for (const file of [...new Set(dead.map((k) => k.split('#')[0]))]) {

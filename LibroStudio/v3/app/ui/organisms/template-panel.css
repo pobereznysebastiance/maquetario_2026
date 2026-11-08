@@ -64,3 +64,20 @@
 .template-dimensions {
   color: var(--text-mark);
 }
+.template-panel {
+  flex-shrink: 0;
+}
+.template-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.chevron {
+  margin-left: var(--space-xs);
+  color: var(--text-tertiary);
+}
+.template {
+  padding: 0;
+  border: 0;
+  background: none;
+}

@@ -156,7 +156,10 @@
       const withKids = targets(rule);
       if (!withKids.length) continue;
       const own = withKids.filter(([el, pseudo]) => { try { return pseudo || flat(rule).some((r) => split(r.selectorText).some((p) => el.matches(p.replace(PSEUDO, '').trim() || '*'))); } catch { return true; } });
-      for (const prop of [...rule.style]) {
+      // Las declaraciones tal como están escritas (con sus formas cortas): una forma corta con var()
+      // deja vacías sus propiedades largas en el CSSOM y, recorriendo [...rule.style], no se detectaba.
+      const written = rule.style.cssText.split(/;(?![^(]*\))/).map((d) => d.split(':')[0].trim()).filter(Boolean);
+      for (const prop of written) {
         if (prop.startsWith('--')) continue;
         const pairs = INHERITED.test(prop) ? withKids : own;
         if (!pairs.length) continue;

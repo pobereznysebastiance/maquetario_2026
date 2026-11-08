@@ -37,7 +37,7 @@ Sigue (etapa 2 de `arquitectura.md`): sacar del build de producción las pruebas
 
 ## 2. Vaciar la capa legacy
 
-`npm run lint:design` informa la deuda: **556 colores** (eran 965), 111 anchos fijos (eran 137), 62 `!important`, 111 estilos desde JS. Legacy: 75,8 KB (eran 98,9). Criterio: cuando una pieza ya está en su organismo de `ui/`, borrar sus reglas de las hojas viejas.
+`npm run lint:design` informa la deuda: **440 colores** (eran 965), 62 `!important`, 111 estilos desde JS. Legacy: 62,6 KB (eran 98,9). Criterio: cuando una pieza ya está en su organismo de `ui/`, borrar sus reglas de las hojas viejas.
 
 ### Método
 
@@ -47,7 +47,7 @@ Sigue (etapa 2 de `arquitectura.md`): sacar del build de producción las pruebas
 4. Para migrar una pieza: `legacyProps('estado')` dice qué declaración exacta de cada regla sigue pesando; sólo esas pasan a `ui/`, con tokens.
 5. Guardar las capturas de la autoprueba antes, correr `npm run self-test` y comparar con `npx electron scripts/compare-captures.cjs <antes> <después> <salida>` (`UMBRAL=4` para lo fino). PDF y JSON de verificación tienen que salir idénticos.
 
-**Lo que la sonda no ve** (y la autoprueba sí encontró): el estado real de la barra superior en Electron (controles de ventana), elementos dentro de algo oculto (sus estilos cambian pero no se ven), anchos de barra de desplazamiento, y propiedades cortas con `var()` en `ui/` (el CSSOM deja vacías las largas). `prune-css.cjs` nunca borra `html`, `body`, `:root`, `*`, `@font-face`, `@media`, impresión ni `::-webkit-*`.
+**Lo que la sonda no ve** (y la autoprueba sí encontró): el estado real de la barra superior en Electron (controles de ventana), elementos dentro de algo oculto (sus estilos cambian pero no se ven), anchos de barra de desplazamiento, y formas cortas con `var()` (`border-radius: var(--radius-lg)`, `border-top: 1px solid var(--line)`): el CSSOM deja vacías sus propiedades largas. `legacyProps` ya recorre las declaraciones como están escritas, pero conviene revisar en vivo las formas cortas con `var()` de lo que se borra (así se perdieron las esquinas y la perilla del interruptor, y se recuperaron). `prune-css.cjs` nunca borra `html`, `body`, `:root`, `*`, `@font-face`, `@media`, impresión ni `::-webkit-*`.
 
 Cuidado al migrar una regla de varios selectores: la sonda la marca efectiva si pesa en uno solo. Pasar los demás a una capa de `ui/` les gana a otros organismos (pasó con `.tool#indexTool`). Portar selector por selector.
 
@@ -56,13 +56,15 @@ Cuidado al migrar una regla de varios selectores: la sonda la marca efectiva si 
 - `glass.css` (145 → 11 reglas) y `crystal.css` (47 → 9): queda sólo lo que dibuja el libro en el editor (papel, selección, página activa, imán, figuras, sombra del pliego), la impresión y el aviso flotante.
 - Organismos nuevos: `organisms/book-route.css` (ruta del libro y barra del documento) y `organisms/structure.css` (estructura y revisión previa). Lo demás se sumó a barra superior, herramientas, inspector (alineación, capas, índice, color de figura), campos, interruptor, diálogos (salida, glifos, armador, figuras), bienvenida, tutorial y ventana.
 - Barrido de reglas muertas en las otras 21 hojas: 158 reglas menos.
+- `readability.css` (130 → 56 reglas) y `studio.css` (192 → 111) migradas por pieza: armazón de barra, panel izquierdo, tira de páginas, área central y reglas del lienzo, inspector, interruptor, campos con unidad, diálogos, cubierta, tutorial, bienvenida y aviso. Molécula nueva `panel-resizer.css`. Medidas de componentes como tokens en `semantic.css`.
+- En `studio.css` queda a propósito: lo que dibuja el libro (pliego, página, objetos, guías, grilla, elementos automáticos, miniaturas, `#printRoot`) y los resets de elemento (`*`, `html`, `body`, `button`, `input`, `select`, `svg.icon`), que en una capa de `ui/` le ganarían a todo lo viejo; se mueven a `base.css` cuando legacy esté vacío.
 - Cambios visuales buscados: colores de tokens (dorado `--text-mark`, verde agua `--accent`, superficies `--surface-*`), alineación activa con contorno verde agua en lugar de relleno lleno, interruptor dorado liso (sin degradé), estructura un poco más compacta.
 
 ### Queda
 
 - `#toast` en `glass.css`: `molecules/status.css` ya lo define, pero quitar la regla vieja cambió el aviso en una captura; entender por qué antes de borrarla.
 - Reglas de la barra superior y de la barra del documento en `editorial.css`, `maquetario.css`, `output.css` y `readability.css`: migrarlas cuando se revise `organisms/topbar.css`, probando en Electron (la sonda no ve los controles de ventana).
-- Las otras 21 hojas tienen unas 450 reglas efectivas: migrarlas por pieza con el mismo método (`legacyProps`), empezando por `readability.css` (117 reglas) y `studio.css` (185).
+- Las otras 19 hojas tienen unas 300 reglas efectivas: migrarlas por pieza con el mismo método (`legacyProps`). Las más grandes: `workspace.css`, `page-priority.css`, `editorial-learning.css`, `canvas-navigation.css`.
 - La bienvenida crea una "escultura" que siempre queda oculta (`book-workflow.js`, `.welcome-sculpture`): sacar ese código y la regla que la oculta.
 - `.eyebrow` (texto chico sobre un título) va contra las reglas de diseño: revisar dónde aparece y sacarlo.
 

@@ -318,3 +318,120 @@
 .inspector-content small {
   font-size: var(--type-sm);
 }
+
+/* ── Migrado de studio.css: armazón del inspector ── */
+.inspector {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.tabs {
+  display: flex;
+}
+.tab {
+  position: relative;
+  border: 0;
+  border-right: var(--border-width) solid var(--line-subtle);
+}
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  height: var(--space-3xs);
+}
+.inspector-content {
+  flex: 1;
+  min-height: 0;
+}
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+}
+.pair label {
+  padding-left: var(--space-3xs);
+}
+.segmented {
+  display: flex;
+}
+.segmented button {
+  flex: 1;
+  padding: var(--space-xs) var(--space-2xs);
+}
+.wide {
+  width: 100%;
+  margin-top: var(--space-sm);
+}
+.help {
+  margin: var(--space-sm) 0 0;
+}
+.alignment {
+  display: flex;
+  gap: var(--space-2xs);
+}
+.alignment button {
+  border: var(--border-width) solid;
+  border-radius: var(--radius-sm);
+}
+.field-full {
+  display: block;
+  width: 100%;
+  margin: var(--space-sm) 0;
+}
+.section details summary {
+  margin-top: var(--space-xs);
+  cursor: pointer;
+}
+.inspector-foot {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-sm);
+  border-top: var(--border-width) solid var(--line-subtle);
+}
+.inspector-foot .icon {
+  color: var(--text-tertiary);
+}
+.selection-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+  padding: var(--space-sm) var(--space-sm);
+  border: var(--border-width) solid;
+  border-radius: var(--radius-md);
+}
+.page-action {
+  display: flex;
+  gap: var(--space-xs);
+}
+.page-action .btn {
+  flex: 1;
+}
+/* Resumen del documento en la pestaña Páginas. */
+.page-info {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-field);
+}
+.page-info strong {
+  display: block;
+  font-size: var(--type-title1);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-large);
+  font-variant-numeric: tabular-nums;
+}
+.page-info small {
+  color: var(--text-tertiary);
+}
+.page-info .icon {
+  color: var(--text-tertiary);
+}
+.check-line {
+  display: flex;
+  align-items: center;
+  margin: var(--space-sm) 0;
+}

@@ -120,3 +120,50 @@ select,
 textarea {
   font-size: var(--type-md);
 }
+
+/* Interruptor: casilla oculta y una pista con perilla. */
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: var(--switch-width);
+  height: var(--switch-height);
+}
+.switch input {
+  position: absolute;
+  width: var(--border-width);
+  height: var(--border-width);
+  opacity: 0;
+}
+.switch span {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background-color var(--duration-base) var(--ease-out);
+}
+.switch span::after {
+  content: '';
+  position: absolute;
+  top: var(--space-3xs);
+  left: var(--space-3xs);
+  width: var(--switch-knob);
+  height: var(--switch-knob);
+  border-radius: 50%;
+  background: var(--text-primary);
+  box-shadow: var(--elevation-1);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+/* Campo con unidad (mm, pt) dentro del borde. */
+.unit-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.unit {
+  position: absolute;
+  top: 50%;
+  right: var(--space-sm);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
