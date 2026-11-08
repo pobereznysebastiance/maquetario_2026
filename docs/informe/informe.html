@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Maquetario · Informe técnico de la rama version-juan</title>
+<style>
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-400.ttf'); font-weight: 400; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-500.ttf'); font-weight: 500; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-600.ttf'); font-weight: 600; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-700.ttf'); font-weight: 700; }
+
+@page { size: A4; margin: 22mm 20mm 20mm 22mm; }
+
+:root {
+  --ink: #1d2a2f;
+  --ink-soft: #4b5b60;
+  --ink-faint: #7a8a8d;
+  --rule: #d5dcdc;
+  --petrol: #17272d;
+  --teal: #1f9e8d;
+  --gold: #b9823e;
+  --shade: #f2f4f2;
+}
+
+* { box-sizing: border-box; }
+html { font-family: 'DM Sans', 'Segoe UI', sans-serif; color: var(--ink); font-size: 10.2pt; line-height: 1.52; }
+body { margin: 0; }
+h1, h2, h3 { font-weight: 600; color: var(--petrol); line-height: 1.2; break-after: avoid; }
+h1 { font-size: 22pt; margin: 0 0 4mm; letter-spacing: -0.015em; }
+h2 { font-size: 13.5pt; margin: 9mm 0 3mm; padding-top: 3mm; border-top: 0.6pt solid var(--rule); }
+h3 { font-size: 10.8pt; margin: 5mm 0 1.5mm; }
+p { margin: 0 0 2.6mm; text-wrap: pretty; }
+ul, ol { margin: 0 0 2.6mm; padding-left: 5mm; }
+li { margin-bottom: 1mm; }
+code { font-family: Consolas, 'Cascadia Mono', monospace; font-size: 8.8pt; background: var(--shade); padding: 0 1mm; border-radius: 1mm; }
+strong { font-weight: 600; }
+
+.cover { height: 247mm; display: flex; flex-direction: column; break-after: page; }
+.cover-brand { display: flex; align-items: center; gap: 3mm; font-weight: 600; font-size: 11pt; color: var(--petrol); }
+.cover-brand img { width: 9mm; height: 9mm; }
+.cover-title { margin-top: 62mm; }
+.cover-title h1 { font-size: 27pt; max-width: 150mm; }
+.cover-title p { font-size: 12pt; color: var(--ink-soft); max-width: 140mm; }
+.cover-rule { width: 22mm; height: 0.9mm; background: var(--gold); margin: 7mm 0; }
+.cover-meta { margin-top: auto; display: grid; grid-template-columns: 34mm 1fr; row-gap: 1.6mm; font-size: 9.4pt; }
+.cover-meta dt { color: var(--ink-faint); }
+.cover-meta dd { margin: 0; }
+
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9pt; break-inside: avoid; }
+th, td { text-align: left; vertical-align: top; padding: 1.6mm 2mm; border-bottom: 0.5pt solid var(--rule); }
+th { font-weight: 600; color: var(--petrol); border-bottom: 0.9pt solid var(--petrol); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.decision { margin: 4mm 0 5mm; break-inside: avoid; }
+.decision h3 { margin-top: 0; }
+.decision dl { display: grid; grid-template-columns: 30mm 1fr; column-gap: 4mm; row-gap: 1.4mm; margin: 0; font-size: 9.6pt; }
+.decision dt { color: var(--ink-faint); font-weight: 500; }
+.decision dd { margin: 0; }
+
+figure { margin: 3mm 0 5mm; break-inside: avoid; }
+figure .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+figure img { width: 100%; border: 0.5pt solid var(--rule); display: block; }
+figcaption { font-size: 8.6pt; color: var(--ink-faint); margin-top: 1.6mm; }
+.label { font-size: 8.4pt; color: var(--ink-soft); margin-bottom: 1mm; }
+
+.note { font-size: 9.2pt; color: var(--ink-soft); }
+.page-break { break-before: page; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="cover-brand"><img src="../../LibroStudio/v3/app/maquetario.svg" alt=""> Maquetario</div>
+  <div class="cover-title">
+    <h1>Informe técnico de la rama <code style="font-size:inherit;background:none;padding:0">version-juan</code></h1>
+    <div class="cover-rule"></div>
+    <p>Migración del programa de escritorio a Electron, sistema de diseño, seguridad y preparación para la distribución desde Motiova. Qué se hizo, por qué, y qué queda pendiente.</p>
+  </div>
+  <dl class="cover-meta">
+    <dt>Proyecto</dt><dd>Maquetario 3.24 · creado por Sebastián Poberezny</dd>
+    <dt>Preparado por</dt><dd>Juan Cruz Canteros · Tiny Studio</dd>
+    <dt>Fecha</dt><dd>7 de noviembre de 2026</dd>
+    <dt>Repositorio</dt><dd>pobereznysebastiance/maquetario_2026 · rama version-juan (desde main, commit 479e5f0)</dd>
+    <dt>Estado</dt><dd>13 commits · autoprueba completa en verde (23 pasos) · pruebas unitarias y control de diseño en verde</dd>
+  </dl>
+</section>
+
+<h2 style="border-top:0;padding-top:0;margin-top:0">1. Resumen</h2>
+<p>El objetivo de esta etapa fue llevar Maquetario de una aplicación de Windows funcional a una base que se pueda vender, mantener y hacer crecer: que funcione también en macOS, que se instale desde Motiova con una licencia, que su interfaz tenga un sistema de diseño en lugar de estilos acumulados, y que cada cambio se pueda verificar automáticamente.</p>
+<p>No se tocó la lógica editorial: el modelo del libro, la composición, la separación silábica, las reglas editoriales y la salida a PDF siguen siendo las de la versión 3.24. Lo que cambió es el programa que las aloja, la forma en que se organizan los estilos y la infraestructura de calidad alrededor.</p>
+<table>
+  <tr><th>Área</th><th>Antes</th><th>Ahora</th></tr>
+  <tr><td>Programa de escritorio</td><td>C# + WebView2, sólo Windows</td><td>Electron + TypeScript; Windows, macOS y Linux. El C# sigue compilando durante la transición.</td></tr>
+  <tr><td>Distribución</td><td>Ejecutable suelto</td><td>Un archivo por versión, una carpeta, sin administrador; ejecutable endurecido y con verificación de integridad.</td></tr>
+  <tr><td>Licencias</td><td>No existían</td><td>Formato de licencia firmada (Ed25519) verificable sin conexión, listo para el launcher de Motiova.</td></tr>
+  <tr><td>Estilos</td><td>23 hojas que se pisaban entre sí</td><td>Sistema de diseño por capas (tokens, átomos, moléculas, organismos, plantillas) con control automático.</td></tr>
+  <tr><td>Verificación</td><td>Autoprueba en C# con ventanas visibles</td><td>Autoprueba de 23 pasos sobre la app real (PDF incluidos), capturas en 5 resoluciones y pruebas unitarias.</td></tr>
+</table>
+
+<h2>2. Programa de escritorio</h2>
+
+<div class="decision">
+  <h3>2.1 Electron en lugar de C#/WebView2</h3>
+  <dl>
+    <dt>Decisión</dt><dd>Reemplazar el host en C# por Electron con el proceso principal en TypeScript. La interfaz (HTML, CSS y JS de <code>LibroStudio/v3/app</code>) se mantiene tal cual.</dd>
+    <dt>Motivo</dt><dd>La maquetación se compone con el motor del navegador. Para que un libro corte las líneas igual en todas las computadoras hace falta el mismo motor en todas: Electron lleva el mismo Chromium a Windows y macOS. Además resuelve instaladores, firma, notarización y actualizaciones con herramientas maduras.</dd>
+    <dt>Alternativas</dt><dd><strong>Tauri</strong>: binario más chico, pero en macOS usa WebKit y las líneas pueden cortar distinto; descartado para una herramienta de maquetación. <strong>Seguir en C#</strong>: limita a Windows, y buena parte de los diseñadores editoriales trabaja en Mac.</dd>
+    <dt>Consecuencias</dt><dd>El programa pesa más (unos 320 MB sin comprimir). A cambio, la interfaz no se reescribió: se mantuvo el mismo protocolo de mensajes que usaba WebView2.</dd>
+  </dl>
+</div>
+
+<div class="decision">
+  <h3>2.2 Mismo protocolo, una capa de host</h3>
+  <dl>
+    <dt>Decisión</dt><dd>La interfaz habla con el programa sólo a través de <code>host.js</code> (<code>MaquetarioHost</code>), que detecta si corre en Electron, en el C# anterior o en un navegador. Las 26 acciones del C# (guardar, abrir, fuentes, PDF, impresión, paquete, asistente, portapapeles) se portaron una por una a módulos de <code>desktop/src/main/handlers</code>.</dd>
+    <dt>Motivo</dt><dd>Permite migrar sin cortar el desarrollo: la misma interfaz funciona en los dos programas mientras dure la transición, y el resto del código no sabe en qué programa corre.</dd>
+    <dt>Consecuencias</dt><dd>El lector de fuentes OpenType se portó de C# a TypeScript conservando el mismo identificador de cada fuente, para que los proyectos y paquetes existentes sigan encontrando sus tipografías.</dd>
+  </dl>
+</div>
+
+<div class="decision">
+  <h3>2.3 Datos y perfiles</h3>
+  <dl>
+    <dt>Decisión</dt><dd>Preferencias, recientes y carpetas de fuentes en la carpeta de datos del usuario; la autoprueba usa un perfil propio.</dd>
+    <dt>Motivo</dt><dd>Al compartir perfil, la autoprueba heredaba preferencias de la persona (por ejemplo, el modo continuo) y chocaba con una ventana abierta. Es el mismo criterio que ya tenía la versión C# con <code>BrowserData-selftest</code>.</dd>
+  </dl>
+</div>
+
+<h2>3. Seguridad y distribución</h2>
+<p>El criterio fue que la página no pueda hacer nada que no esté expresamente permitido, y que el programa instalado no se pueda modificar ni usar para otra cosa.</p>
+<table>
+  <tr><th>Medida</th><th>Qué evita</th></tr>
+  <tr><td>Aislamiento de contexto, sandbox global (<code>app.enableSandbox</code>), sin integración con Node</td><td>Que código de la página acceda al sistema.</td></tr>
+  <tr><td>Esquema propio <code>maquetario://</code> con control de rutas</td><td>Que se lean archivos fuera de la carpeta de la interfaz.</td></tr>
+  <tr><td>Lista cerrada de 26 acciones y validación del remitente de cada mensaje</td><td>Que la página pida operaciones no previstas.</td></tr>
+  <tr><td>Política de contenido (meta y cabecera), sin red, sin plugins ni marcos, <code>nosniff</code></td><td>Ejecución de código inyectado y conexiones externas.</td></tr>
+  <tr><td>Navegación, redirecciones, ventanas nuevas y permisos bloqueados</td><td>Que la app salga de su propio contenido.</td></tr>
+  <tr><td>Fuses de Electron: sin modo Node, sin <code>NODE_OPTIONS</code>, carga sólo desde <code>app.asar</code> con verificación de integridad</td><td>Usar el ejecutable para correr otro código o modificar la interfaz instalada. Verificado: con un byte cambiado en el paquete, la app no abre.</td></tr>
+  <tr><td>Límites de tamaño en guardar y exportar</td><td>Bloqueos por archivos desmedidos.</td></tr>
+</table>
+
+<div class="decision">
+  <h3>3.1 Licencias firmadas</h3>
+  <dl>
+    <dt>Decisión</dt><dd>Formato <code>MQL1.&lt;datos&gt;.&lt;firma&gt;</code> con firma Ed25519 (<code>packages/license</code>). Motiova firma con su clave privada; Maquetario verifica con la pública, sin conexión, hasta el vencimiento. Incluye producto, edición, versión mayor cubierta, equipo y vencimiento.</dd>
+    <dt>Motivo</dt><dd>La clave privada nunca sale del servidor, así que la licencia no se puede fabricar. La verificación local permite trabajar sin internet durante el período de la licencia.</dd>
+    <dt>Estado</dt><dd>Implementado y probado (licencia válida, vencida, de otra versión y faltante). Queda en modo apagado hasta que exista el launcher; el modo se fija al compilar y no se puede cambiar en una instalación.</dd>
+  </dl>
+</div>
+
+<div class="decision">
+  <h3>3.2 Instalación desde Motiova</h3>
+  <dl>
+    <dt>Decisión</dt><dd>El launcher descarga un único archivo por versión, verifica su firma y lo descomprime en una carpeta (<code>Motiova/apps/maquetario/&lt;versión&gt;</code>). Las versiones se instalan una al lado de la otra para poder volver atrás. Al iniciar sesión, el launcher consulta si hay una versión nueva. También se genera un instalador de un clic, por usuario y sin pedir administrador.</dd>
+    <dt>Motivo</dt><dd>Instalación simple, sin pasos adicionales (Electron no necesita WebView2 ni .NET) y actualizaciones controladas por quien tiene la sesión.</dd>
+    <dt>Pendiente</dt><dd>Certificado de firma de código. Sin firma, Windows muestra "editor desconocido"; pedir permisos de administrador no lo evita. Opciones: Azure Trusted Signing o un certificado OV/EV en Windows, y cuenta de Apple Developer con notarización en macOS.</dd>
+  </dl>
+</div>
+
+<h2 class="page-break">4. Sistema de diseño</h2>
+<p>El diagnóstico inicial fue que la interfaz no tenía un sistema, sino una acumulación: cada función nueva traía su hoja de estilos y pisaba a la anterior (<code>studio.css</code>, luego <code>maquetario.css</code>, <code>glass.css</code>, <code>crystal.css</code>).</p>
+<table>
+  <tr><th>Medida</th><th class="num">Diagnóstico inicial</th><th class="num">Hoy</th></tr>
+  <tr><td>Colores distintos escritos a mano</td><td class="num">633</td><td class="num">0 en el sistema nuevo</td></tr>
+  <tr><td>Archivos que redefinían el botón</td><td class="num">15</td><td class="num">1 componente</td></tr>
+  <tr><td>Tamaños de letra distintos</td><td class="num">34 (88 usos de 7 a 10 px)</td><td class="num">escala de 9 roles</td></tr>
+  <tr><td>Radios distintos</td><td class="num">31</td><td class="num">3 (4, 6 y 8 px)</td></tr>
+  <tr><td>Cadenas de <code>onchange</code> del idioma pisándose</td><td class="num">7</td><td class="num">0</td></tr>
+</table>
+
+<div class="decision">
+  <h3>4.1 Capas de cascada y atomic design</h3>
+  <dl>
+    <dt>Decisión</dt><dd>Un único punto de entrada (<code>ui/index.css</code>) con capas: <code>legacy</code> &lt; tokens &lt; base &lt; átomos &lt; moléculas &lt; organismos &lt; plantillas. Todo el CSS anterior quedó en la capa <code>legacy</code>, sin borrar nada.</dd>
+    <dt>Motivo</dt><dd>Lo nuevo gana sin <code>!important</code> y sin pelear especificidad, y se puede migrar pantalla por pantalla sin romper el resto. Cuando una pieza ya no depende de <code>legacy</code>, su regla vieja se borra.</dd>
+    <dt>Componentes</dt><dd>Átomos: botón, campo, ícono, esqueleto de carga. Moléculas: acción con descripción, fila de preferencia, opción de menú, casilla, avisos con estado, manija y plegado de secciones. Organismos: barra superior, paneles, inspector, diálogo, menú, barra de estado, tira de páginas, bienvenida, asistente, entre otros. El marcado de los componentes se genera desde <code>ui/components.js</code>, con la misma API que tendrán como componentes de React.</dd>
+  </dl>
+</div>
+
+<div class="decision">
+  <h3>4.2 Tokens y control automático</h3>
+  <dl>
+    <dt>Decisión</dt><dd>Colores, espacios, tipografía, radios, sombras y materiales viven en <code>ui/tokens</code>. <code>npm run lint:design</code> falla si aparece un color o una medida suelta en el sistema nuevo, e informa la deuda que queda en <code>legacy</code>.</dd>
+    <dt>Motivo</dt><dd>Sin un control, el sistema se vuelve a degradar con el primer apuro. Con él, la deuda sólo puede bajar.</dd>
+  </dl>
+</div>
+
+<div class="decision">
+  <h3>4.3 Identidad y criterio visual</h3>
+  <dl>
+    <dt>Decisión</dt><dd>Paleta del instalador (petróleo, verde agua, filete dorado, DM Sans); tipografía con los roles de la escala de macOS (Footnote, Callout, Body, Headline, Title 3/2/1); radios sutiles; material translúcido real del sistema (Mica en Windows 11, vibrancy en macOS) en lugar de vidrio dibujado con CSS; colores de estado derivados de la marca (ladrillo, dorado, salvia, verde agua claro).</dd>
+    <dt>Motivo</dt><dd>El vidrio dibujado con desenfoques apilados era caro de pintar y genérico. El material del sistema lo calcula el sistema operativo. La página del libro nunca queda detrás de un vidrio, para juzgar bien el color.</dd>
+    <dt>Respetado</dt><dd>Las pruebas de legibilidad existentes (títulos de sección de 16 px o más, ayudas de 12 px o más) siguen pasando; la escala se ajustó a ellas.</dd>
+  </dl>
+</div>
+
+<figure>
+  <div class="pair">
+    <div><div class="label">Antes</div><img src="img/editor-antes.png" alt="Editor antes"></div>
+    <div><div class="label">Ahora</div><img src="img/editor-despues.png" alt="Editor ahora"></div>
+  </div>
+  <figcaption>Editor con el libro de ejemplo. Barra compacta, paneles pegados al borde, inspector por secciones sin tarjetas anidadas. La página del libro no cambia.</figcaption>
+</figure>
+
+<figure>
+  <div class="pair">
+    <div><div class="label">Antes</div><img src="img/asistente-antes.png" alt="Asistente antes"></div>
+    <div><div class="label">Ahora</div><img src="img/asistente-despues.png" alt="Asistente ahora"></div>
+  </div>
+  <figcaption>Asistente editorial. Se quitaron la tarjeta con degradé, la etiqueta superior y el dorado forzado; los hallazgos se leen como filas con un punto de estado.</figcaption>
+</figure>
+
+<h2 class="page-break">5. Funciones nuevas en la interfaz</h2>
+<ul>
+  <li><strong>Configuración</strong>: cuenta y licencia de Motiova, idioma, tamaño de la interfaz, reglas, espacio de trabajo, carpetas de fuentes y datos de la versión. Reúne preferencias que estaban sueltas en la barra.</li>
+  <li><strong>Espacios de trabajo</strong>: Inicial (lo esencial para empezar), Predeterminado (todo) y Personalizado (selección guardada). Pensado para que un estudiante no se encuentre con todas las herramientas el primer día.</li>
+  <li><strong>Inspector</strong>: secciones que se reordenan arrastrando o con Alt + flechas, y que se pliegan; el estado se recuerda por pestaña.</li>
+  <li><strong>Confirmaciones</strong> para acciones que pierden trabajo, con el foco en Cancelar; mientras están abiertas, los atajos de la app no reciben teclas.</li>
+  <li><strong>Reglas ocultables</strong> con Ctrl+R, como en InDesign.</li>
+  <li><strong>Barra de título integrada</strong> a la barra de Maquetario, respetando el área real de los botones de ventana en cualquier escala de pantalla.</li>
+</ul>
+<figure>
+  <img src="img/configuracion.png" alt="Configuración" style="max-width:120mm">
+  <figcaption>Configuración: secciones de arriba hacia abajo, una fila por preferencia.</figcaption>
+</figure>
+
+<h2>6. Arquitectura interna de la interfaz</h2>
+<div class="decision">
+  <h3>6.1 Pruebas fuera del programa distribuido</h3>
+  <dl>
+    <dt>Decisión</dt><dd>Las 13 hojas de pruebas ya no se cargan en <code>index.html</code>; las carga <code>test-loader.js</code> sólo en modo autoprueba, y el paquete distribuido no las incluye.</dd>
+    <dt>Motivo</dt><dd>El código de prueba no debe viajar al usuario. Se verificó antes que ningún módulo de producción dependiera de ellas.</dd>
+  </dl>
+</div>
+<div class="decision">
+  <h3>6.2 Del reemplazo de funciones globales a eventos</h3>
+  <dl>
+    <dt>Decisión</dt><dd>Las 7 cadenas en las que cada módulo pisaba el <code>onchange</code> del selector de idioma pasaron a escuchar un evento (<code>maquetario:language</code>). El orden de ejecución es el mismo que antes.</dd>
+    <dt>Motivo</dt><dd>Con el patrón anterior, el comportamiento dependía del orden de 65 etiquetas <code>&lt;script&gt;</code> y un módulo podía romper a otro sin aviso. Es el primer caso resuelto de un patrón que todavía aparece 127 veces (ver sección 8).</dd>
+  </dl>
+</div>
+
+<h2>7. Calidad y verificación</h2>
+<table>
+  <tr><th>Herramienta</th><th>Qué verifica</th></tr>
+  <tr><td><code>npm run self-test</code></td><td>23 pasos sobre la app real: pruebas de integración de la interfaz, guardado, recientes, fuentes del sistema, siete PDF reales (lectura, índice, marcas, tipografía, párrafos, novela, cubierta), confirmaciones, espacios de trabajo, reglas, paquete del proyecto y capturas en 1366×768, 1536×864, 1920×1080, 2560×1440 y 3840×2160 con control de desborde horizontal. Cada paso tiene límite de tiempo.</td></tr>
+  <tr><td><code>npm test</code></td><td>Licencias (8 casos), lector de fuentes OpenType (4 casos) y control del sistema de diseño.</td></tr>
+  <tr><td><code>npm run typecheck</code></td><td>Tipos del programa de escritorio y del paquete de licencias.</td></tr>
+</table>
+<p>La autoprueba también corre sobre el ejecutable empaquetado. Se comparó la salida PDF con la de la versión C#: mismas páginas y formatos. El tamaño de hoja puede diferir entre 0,1 y 0,3 mm en ambas versiones por redondeo de Chromium; se corrige fijando las cajas del PDF en la etapa de salida para imprenta.</p>
+
+<h2>8. Pendientes y decisiones abiertas</h2>
+<h3>Deuda medida (sale en cada <code>npm test</code>)</h3>
+<table>
+  <tr><th>Deuda en el código heredado</th><th class="num">Cantidad</th></tr>
+  <tr><td>Funciones globales reemplazadas por otro módulo</td><td class="num">127</td></tr>
+  <tr><td>Anchos fijos en px</td><td class="num">137</td></tr>
+  <tr><td>Estilos escritos desde JavaScript</td><td class="num">111</td></tr>
+  <tr><td><code>!important</code></td><td class="num">63</td></tr>
+  <tr><td>Colores escritos a mano en la capa legacy</td><td class="num">965</td></tr>
+</table>
+<h3>Etapas siguientes</h3>
+<ol>
+  <li>Terminar la migración de pantallas al sistema de diseño (cubierta, tutorial, glosario, índice, capas) y selectores propios.</li>
+  <li>TypeScript y módulos ES para la interfaz, eliminando los reemplazos de funciones globales; migraciones explícitas del formato <code>.mqt</code>.</li>
+  <li>Componentes de React sobre los mismos tokens y clases, con revisión de experiencia de uso (observaciones en <code>docs/evaluacion-uso.md</code>).</li>
+  <li>Motor de composición propio (HarfBuzz, justificación Knuth-Plass) y PDF para imprenta: CMYK, PDF/X, cajas de corte y sangrado exactas.</li>
+  <li>Launcher y backend en Motiova: sesión, accesos a recursos, descargas firmadas y emisión de licencias.</li>
+</ol>
+<h3>Decisiones que necesitan definición</h3>
+<ul>
+  <li>Qué controla la licencia: edición o plan, o número de versión comprada. El formato admite ambas.</li>
+  <li>Pago único o suscripción, y cuántos días puede funcionar sin conexión.</li>
+  <li>Compra del certificado de firma de código y de la cuenta de Apple Developer.</li>
+</ul>
+
+<h2>9. Cómo probarlo</h2>
+<p>En la raíz del repositorio, con Node 22 o posterior:</p>
+<table>
+  <tr><td><code>npm install</code></td><td>Una vez.</td></tr>
+  <tr><td><code>npm run dev</code></td><td>Abre Maquetario en modo desarrollo. Los cambios de interfaz se ven con Ctrl+R; las herramientas de desarrollo con F12.</td></tr>
+  <tr><td><code>npm test</code> · <code>npm run self-test</code></td><td>Pruebas unitarias y autoprueba completa.</td></tr>
+  <tr><td><code>npm run dist</code></td><td>Instalador y archivo para el launcher en <code>desktop/release</code>.</td></tr>
+</table>
+<p class="note">La documentación de referencia está en <code>docs/arquitectura.md</code> (estructura, contrato con el launcher, instalación y firma), <code>docs/plan-interfaz.md</code> (sistema de diseño) y <code>PRODUCT.md</code> (usuarios, propósito y criterios del producto).</p>
+
+</body>
+</html>
