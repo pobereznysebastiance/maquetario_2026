@@ -153,6 +153,10 @@ Sin firma, Windows muestra "editor desconocido" (SmartScreen) y macOS bloquea la
 - **macOS**: cuenta de Apple Developer (Developer ID) y notarización. electron-builder firma y notariza con `CSC_LINK` + `APPLE_ID` / `APPLE_APP_SPECIFIC_PASSWORD` / `APPLE_TEAM_ID`.
 - El launcher también va firmado, y verifica que cada versión descargada esté firmada con el mismo certificado antes de abrirla.
 
+## Registro de extensiones (hecho)
+
+Las 127 cadenas en las que un módulo reemplazaba una función global (`const anterior = f; f = function () {…}`) se convirtieron a `extend('f', anterior => function () {…}, 'módulo')` (`LibroStudio/v3/app/extend.js`). El orden de ejecución es el mismo; ninguna pieza reasigna funciones globales y `MaquetarioExtensions.list()` muestra qué módulo extiende cada función. `npm run lint:design` cuenta los reemplazos hechos a mano para que no vuelvan.
+
 ## Próximo paso de arquitectura: el inspector como registro
 
 `inspector()` es la función más reemplazada por otros módulos (12 veces; el patrón completo aparece 127 veces, ver `npm run lint:design`). Relevamiento de las 12 cadenas:
