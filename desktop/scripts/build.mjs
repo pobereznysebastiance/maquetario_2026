@@ -13,8 +13,15 @@ const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 const licenseMode = pkg.maquetario?.licenseMode ?? 'enforce';
 if (!['off', 'warn', 'enforce'].includes(licenseMode)) throw new Error(`licenseMode inválido: ${licenseMode}`);
 
+// Dónde está Motiova: producción en la app empaquetada; "dev" (Motiova local) en desarrollo.
+const motiova = pkg.maquetario?.motiova;
+const isUrl = (value) => typeof value === 'string' && /^https?:\/\/[^\s]+$/.test(value);
+if (![motiova?.web, motiova?.api, motiova?.dev?.web, motiova?.dev?.api].every(isUrl)) {
+  throw new Error('Falta maquetario.motiova (web, api, dev.web, dev.api) en desktop/package.json');
+}
+
 const common = {
-  define: { __LICENSE_MODE__: JSON.stringify(licenseMode) },
+  define: { __LICENSE_MODE__: JSON.stringify(licenseMode), __MOTIOVA__: JSON.stringify(motiova) },
   bundle: true,
   platform: 'node',
   format: 'cjs',

@@ -2,10 +2,12 @@
 import { app, BrowserWindow, Menu, session as electronSession, type MenuItemConstructorOptions } from 'electron';
 import { join } from 'node:path';
 import { attachBridge } from './bridge.ts';
-import { APP_ORIGIN, argValue, isDev, isSelfTest, NOTICE_ORIGIN, rendererDir } from './env.ts';
+import { APP_ORIGIN, args, argValue, isDev, isSelfTest, NOTICE_ORIGIN, rendererDir } from './env.ts';
 import { warmFontCatalog } from './fonts/catalog.ts';
+import { describeFailure } from '@maquetario/license';
 import { checkLicense, licenseBlocks, licenseMessage } from './license.ts';
-import { captureNotice, showNotice, type NoticeOptions } from './notice.ts';
+import { cancelConnect, connectAccount, renewAtStartup } from './motiova/desktop.ts';
+import { captureNotice, openNotice, showNotice, type NoticeOptions } from './notice.ts';
 import { handleScheme, registerScheme } from './protocol.ts';
 import { runSelfTest } from './selftest.ts';
 import { createSession, exec, type Session } from './session.ts';
@@ -28,6 +30,38 @@ const LICENSE_NOTICE = (message: string): NoticeOptions => ({
   title: 'Maquetario necesita una licencia activa',
   message,
 });
+const GATE_BUTTONS = [
+  { id: 'quit', label: 'Salir' },
+  { id: 'connect', label: 'Conectar con Motiova', primary: true },
+];
+
+/**
+ * Sin licencia válida (modo "enforce"): en vez de cerrarse, ofrece conectar la cuenta de Motiova.
+ * Devuelve true cuando ya hay licencia; false si la persona eligió salir.
+ */
+async function licenseGate(): Promise<boolean> {
+  let message = licenseMessage();
+  for (;;) {
+    const pick = await showNotice({ ...LICENSE_NOTICE(message), buttons: GATE_BUTTONS });
+    if (pick !== 'connect') return false;
+    const waiting = openNotice({
+      title: 'Seguí en el navegador',
+      message: 'Entrá a tu cuenta de Motiova y tocá Conectar. Cuando termine, Maquetario se abre solo.',
+      buttons: [{ id: 'cancel', label: 'Cancelar' }],
+    });
+    void waiting.choice.then((choice) => choice === 'cancel' && cancelConnect());
+    try {
+      await connectAccount();
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+      continue;
+    } finally {
+      waiting.close();
+    }
+    if (!licenseBlocks()) return true;
+    message = licenseMessage();
+  }
+}
 
 function applicationMenu(): void {
   if (process.platform !== 'darwin') {
@@ -90,8 +124,9 @@ function createWindow(): Session {
       webSecurity: true,
       spellcheck: false,
       devTools: isDev,
-      // El self-test captura la ventana aunque no esté visible.
-      backgroundThrottling: !isSelfTest,
+      // El self-test captura la ventana aunque no esté visible. En desarrollo, --no-throttle hace lo
+      // mismo para las herramientas que miden la interfaz por CDP (scripts/app-cdp.mjs) con la ventana minimizada.
+      backgroundThrottling: !isSelfTest && !(isDev && args.includes('--no-throttle')),
     },
   });
   const session = createSession(win);
@@ -168,19 +203,33 @@ app.whenReady().then(async () => {
   const preview = app.isPackaged ? undefined : argValue('capture-notice');
   if (preview) {
     // Desarrollo: guarda una imagen del aviso de licencia para revisar el diseño.
-    await captureNotice(LICENSE_NOTICE('Tu licencia venció. Abrí Maquetario desde Motiova para renovarla (necesita conexión).'), preview);
+    await captureNotice({ ...LICENSE_NOTICE(describeFailure('expired')), buttons: GATE_BUTTONS }, preview);
     app.exit(0);
     return;
   }
 
   checkLicense();
+  let renewed = false;
   if (licenseBlocks() && !isSelfTest) {
-    await showNotice(LICENSE_NOTICE(licenseMessage()));
-    app.quit();
-    return;
+    // Con sesión y conexión, la licencia vencida se renueva sola antes de pedir nada.
+    await renewAtStartup().catch(() => null);
+    renewed = true;
+    if (licenseBlocks() && !(await licenseGate())) {
+      app.quit();
+      return;
+    }
   }
   void warmFontCatalog();
   main = createWindow();
+  if (!isSelfTest) {
+    // Al abrir con conexión: renueva la licencia (dura 7 días sin conexión) y avisa si hay versión nueva.
+    const session = main;
+    session.win.webContents.once('did-finish-load', () => {
+      void (renewed ? Promise.resolve(null) : renewAtStartup())
+        .then((update) => update && exec(session, `window.maquetarioUpdateAvailable?.(${JSON.stringify(update)})`))
+        .catch((error) => console.warn('[motiova]', error));
+    });
+  }
   if (isSelfTest) {
     main.win.webContents.once('did-finish-load', () => {
       void runSelfTest(main!).then((ok) => {

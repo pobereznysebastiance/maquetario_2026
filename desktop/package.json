@@ -24,7 +24,15 @@
     "typescript": "^7.0.2"
   },
   "maquetario": {
-    "licenseMode": "off"
+    "licenseMode": "off",
+    "motiova": {
+      "web": "https://motiova.com",
+      "api": "https://api.motiova.com/api/v1",
+      "dev": {
+        "web": "http://localhost:5183",
+        "api": "http://localhost:8010/api/v1"
+      }
+    }
   },
   "build": {
     "appId": "com.motiova.maquetario",

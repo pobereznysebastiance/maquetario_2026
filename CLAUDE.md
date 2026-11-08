@@ -1,6 +1,6 @@
 # Maquetario · instrucciones para trabajar en este repo
 
-Editor de maquetación editorial creado por Sebastián Poberezny. Rama de trabajo: `version-juan` (Juan Cruz Canteros, Tiny Studio). Se distribuirá y cobrará desde Motiova con un launcher y licencia firmada.
+Editor de maquetación editorial creado por Sebastián Poberezny. Rama de trabajo: `version-juan` (Juan Cruz Canteros, Tiny Studio). Se vende en Motiova: el programa se conecta con la cuenta y recibe una licencia firmada por equipo (`desktop/src/main/motiova/`; el launcher puede venir después).
 
 ## Antes de empezar
 

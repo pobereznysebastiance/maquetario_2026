@@ -12,6 +12,7 @@ import { chooseFontFolder, fontGlyphs } from './handlers/fonts.ts';
 import { legacyExport, outputDocument, printers, savePdf } from './handlers/output.ts';
 import { packageProject } from './handlers/package.ts';
 import { appInfo, newProject, openProject, openRecent, saveProject, setDirty } from './handlers/project.ts';
+import { accountStatus, cancelConnect, connectAccount, downloadUpdate, releaseAccount } from './motiova/desktop.ts';
 import type { Session } from './session.ts';
 
 type Payload = Record<string, unknown>;
@@ -51,6 +52,13 @@ const handlers: Record<string, Handler> = {
   assistantStatus: () => assistantStatus(),
   assistantConfigure: (_s, p) => configureAssistant(p),
   assistantReview: (s, p) => assistantReview(s, p),
+
+  // Cuenta de Motiova: licencia de este equipo y versiones nuevas (motiova/desktop.ts).
+  motiovaStatus: () => accountStatus(),
+  motiovaConnect: () => connectAccount(),
+  motiovaCancel: () => cancelConnect(),
+  motiovaRelease: () => releaseAccount(),
+  motiovaDownloadUpdate: () => downloadUpdate(),
 
   closeSaved: (s) => {
     if (s.dirty) return false;

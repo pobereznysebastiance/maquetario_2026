@@ -25,6 +25,11 @@ const HEIGHT = 380;
 
 /** Muestra el aviso y devuelve el id del botón elegido, o null si se cerró. */
 export function showNotice(options: NoticeOptions): Promise<string | null> {
+  return openNotice(options).choice;
+}
+
+/** Igual que showNotice, pero también se puede cerrar desde afuera (p. ej. "Seguí en el navegador…"). */
+export function openNotice(options: NoticeOptions): { choice: Promise<string | null>; close: () => void } {
   const buttons = options.buttons?.length ? options.buttons : [{ id: 'close', label: 'Cerrar', primary: true }];
   const win = new BrowserWindow({
     width: WIDTH,
@@ -58,13 +63,14 @@ export function showNotice(options: NoticeOptions): Promise<string | null> {
     }),
   );
 
-  return new Promise((resolve) => {
+  let finish: (choice: string | null) => void = () => undefined;
+  const choice = new Promise<string | null>((resolve) => {
     let settled = false;
-    const finish = (choice: string | null) => {
+    finish = (picked: string | null) => {
       if (settled) return;
       settled = true;
       ipcMain.removeListener('notice:choose', onChoose);
-      resolve(choice);
+      resolve(picked);
       if (!win.isDestroyed()) win.close();
     };
     const onChoose = (event: IpcMainEvent, id: unknown) => {
@@ -76,6 +82,7 @@ export function showNotice(options: NoticeOptions): Promise<string | null> {
     win.once('ready-to-show', () => win.show());
     void win.loadURL(`${NOTICE_ORIGIN}/notice.html#${payload}`);
   });
+  return { choice, close: () => finish(null) };
 }
 
 /** Para revisar el diseño sin provocar el error real (sólo en desarrollo). */

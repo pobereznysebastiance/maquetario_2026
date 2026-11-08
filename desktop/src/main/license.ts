@@ -1,12 +1,13 @@
-// Verificación de la licencia que entrega el launcher de Motiova.
+// Verificación de la licencia de Motiova. La pide la propia app al conectar la cuenta
+// (motiova/desktop.ts) y, más adelante, también podrá dejarla el launcher.
 //
-// Contrato con el launcher (ver docs/arquitectura.md):
+// Contrato (ver docs/arquitectura.md):
 // - La licencia es un archivo de texto "MQL1.…" en <appData>/Motiova/licenses/maquetario.lic,
 //   o la ruta que llegue con --license-file=<ruta>.
 // - Si existe <appData>/Motiova/device.json ({"deviceId": "..."}), la licencia tiene que ser de ese equipo.
 //
 // Modos (desktop/package.json → maquetario.licenseMode):
-// - "off":     no se verifica (hoy, hasta que exista el launcher).
+// - "off":     no bloquea ni avisa (hoy, hasta la versión a la venta); sí se verifica para mostrarla en Cuenta.
 // - "warn":    se verifica y sólo se registra en consola.
 // - "enforce": sin licencia válida, la app no abre.
 import { app } from 'electron';
@@ -63,15 +64,18 @@ function deviceId(): string | undefined {
   }
 }
 
+/**
+ * Lee y verifica la licencia. Se verifica en todos los modos (la sección Cuenta muestra si está
+ * vigente); sólo en "enforce" impide abrir la app. Se vuelve a llamar al recibir una licencia nueva.
+ */
 export function checkLicense(): { mode: LicenseMode; result: LicenseResult | null } {
   const selected = mode();
-  if (selected === 'off') return (current = { mode: selected, result: null });
   const file = argValue('license-file') ?? join(motiovaDir(), 'licenses', 'maquetario.lic');
   const token = readText(file);
   const result: LicenseResult = token
     ? verifyLicense(token, { publicKeys: publicKeys(), product: 'maquetario', appVersion: appVersion(), deviceId: deviceId() })
     : { ok: false, reason: 'missing' };
-  if (!result.ok) console.warn(`[licencia] ${result.reason}: ${describeFailure(result.reason)}`);
+  if (!result.ok && selected !== 'off') console.warn(`[licencia] ${result.reason}: ${describeFailure(result.reason)}`);
   return (current = { mode: selected, result });
 }
 
@@ -81,7 +85,7 @@ export const licenseMessage = (): string =>
 
 /** Lo que la interfaz puede mostrar (sin datos sensibles más allá de la cuenta). */
 export function licenseSummary(): null | { mode: LicenseMode; valid: boolean; edition?: string; email?: string; expires?: string } {
-  if (current.mode === 'off') return null;
+  if (!current.result) return null;
   const claims: LicenseClaims | undefined = current.result?.ok ? current.result.claims : undefined;
   return {
     mode: current.mode,

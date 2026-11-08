@@ -93,13 +93,15 @@ Observaciones en `docs/evaluacion-uso.md` (13 puntos). Las más visibles: la eti
 
 ## 4. Distribución
 
-- Launcher y backend en Motiova (contrato en `docs/arquitectura.md` → "Licencias y launcher" e "Instalación y actualizaciones").
-- Activar `licenseMode: "enforce"` en `desktop/package.json` cuando exista el launcher.
-- Firma de código: certificado de Windows (Azure Trusted Signing u OV/EV) y Apple Developer.
+- **Hecho (08-nov):** la conexión con Motiova va desde el propio programa (Configuración → Cuenta, y el aviso de arranque en modo enforce): login con PKCE, licencia de este equipo, renovación al abrir, versión nueva y cerrar sesión. Contrato en `docs/arquitectura.md` → "Licencias y conexión con Motiova". El backend de Motiova ya está.
+- **Para probar contra Motiova local:** levantar Motiova (`localhost:5183` y `localhost:8010`, con la clave dev: `npm run license:dev-keys`) y `npm run dev`; la app apunta ahí en desarrollo.
+- **Para la versión a la venta:** confirmar las URLs de producción en `desktop/package.json → maquetario.motiova` (hoy `https://motiova.com` y `https://api.motiova.com/api/v1`), poner `licenseMode: "enforce"`, sumar la clave pública de producción que mande Motiova, y entregar versión + notas + un instalador firmado por sistema.
+- Firma de código: certificado de Windows (Azure Trusted Signing u OV/EV) y Apple Developer. Definir quién los gestiona y avisar a Motiova.
+- Launcher: más adelante, con los mismos endpoints.
 
-## Decisiones abiertas
+## Decisiones cerradas
 
-Edición o versión en la licencia; pago único o suscripción; días sin conexión.
+Pago único con actualizaciones (`maxMajor: null`), edición `estandar`, 2 computadoras por compra, 7 días sin conexión. Detalle en `docs/arquitectura.md`.
 
 ## Informe para Seba
 

@@ -54,30 +54,38 @@ Acciones disponibles (todas en `bridge.ts`): `ready`, `appInfo`, `dirty`, `local
 
 Fuente única: `desktop/package.json` → `version`. La app la informa con `appInfo`. (El `.exe` C# todavía la tiene escrita a mano; se elimina con él.)
 
-## Licencias y launcher de Motiova
+## Licencias y conexión con Motiova
 
-### Flujo previsto
+### Conexión desde el programa (primera versión, sin launcher)
+
+Maquetario hace él mismo la conexión con la cuenta (`desktop/src/main/motiova/`): no hace falta esperar al launcher. El detalle de cada endpoint (respuestas y errores) está en el repo de Motiova: `docs/SOFTWARE_08-NOV_LICENCIAS.md`.
 
 ```
-motiova.com/recursos/maquetario → descarga "Motiova Launcher"
-Launcher → abre el navegador del sistema en motiova.com (Google o contraseña)
-        → vuelve con un código (OAuth 2.0 + PKCE, redirección a 127.0.0.1:<puerto>)
-        → canjea el código por tokens de Motiova
-        → GET /desktop/resources: qué recursos, edición y versiones le corresponden
-        → descarga la versión (link firmado de corta duración), verifica sha256 y firma
-        → POST /desktop/licenses: recibe la licencia firmada para este equipo
-        → escribe la licencia y abre Maquetario
+Configuración → Cuenta → "Conectar con Motiova" (o el aviso de arranque, en modo enforce)
+  → abre el navegador en {WEB}/activar-programa?puerto=<p>&estado=<state>&desafio=<challenge>   (PKCE S256)
+  → escucha en 127.0.0.1:<p>/callback, verifica el estado y canjea: POST /desktop/token {code, code_verifier}
+  → guarda el refresh_token cifrado con el almacén del sistema (safeStorage: DPAPI / Keychain / libsecret)
+  → crea <appData>/Motiova/device.json una sola vez y pide POST /desktop/licenses {product, device_id, device_name, platform}
+  → guarda la licencia en <appData>/Motiova/licenses/maquetario.lic y la aplica sin reiniciar
+Al abrir con conexión: POST /auth/refresh (cada refresh se usa una vez: siempre se guarda el nuevo),
+  renueva la licencia y mira GET /desktop/resources; si hay versión nueva, avisa y se descarga desde Cuenta.
+"Cerrar sesión en esta computadora": POST /desktop/licenses/release + POST /auth/logout, y borra licencia y token.
 ```
 
-El login lo hace **Motiova**, no Google directo: el launcher nunca ve credenciales de Google y las compras ya están asociadas al usuario de Motiova.
+- **Dónde está Motiova:** `desktop/package.json → maquetario.motiova` (`web`, `api` y `dev` para Motiova local en `localhost:5183` / `localhost:8010`). Se fija al compilar; en desarrollo se puede cambiar con `MOTIOVA_WEB` / `MOTIOVA_API`, en una instalación no.
+- **Errores:** Motiova responde `{"detail": "texto listo para mostrar"}`; la app lo muestra tal cual (403 sin compra, 409 tope de equipos, 503 sin clave de firma). Sin conexión, el arranque no se interrumpe y la licencia guardada sigue valiendo hasta vencer.
+- **Login:** lo hace Motiova, no Google directo: el programa nunca ve credenciales de Google.
+- **Pruebas:** `desktop/test/motiova.test.ts` contra un Motiova falso (PKCE, rotación del refresh, errores, callback). Probado también de punta a punta en la app con una licencia firmada con la clave de desarrollo.
+- **Launcher:** puede venir más adelante con los mismos endpoints y los mismos archivos; en Motiova no cambia nada.
 
-### Contrato launcher → Maquetario
+### Archivos compartidos
 
 | Qué | Dónde |
 |---|---|
 | Licencia | `<appData>/Motiova/licenses/maquetario.lic` (o `--license-file=<ruta>`) |
-| Equipo | `<appData>/Motiova/device.json` → `{"deviceId": "..."}` |
-| Versiones instaladas | `<localAppData>/Motiova/apps/maquetario/<versión>/` (lado a lado, para volver atrás) |
+| Equipo | `<appData>/Motiova/device.json` → `{"deviceId": "..."}` (el mismo que firma la licencia) |
+| Sesión (refresh_token cifrado) | `<userData>/motiova.session` (`%APPDATA%/Maquetario` en Windows) |
+| Versiones instaladas (launcher) | `<localAppData>/Motiova/apps/maquetario/<versión>/` (lado a lado, para volver atrás) |
 
 `<appData>` es `%APPDATA%` en Windows y `~/Library/Application Support` en macOS.
 
@@ -93,9 +101,9 @@ El login lo hace **Motiova**, no Google directo: el launcher nunca ve credencial
 
 `desktop/package.json → maquetario.licenseMode` (se fija al compilar, no se puede cambiar en una instalación):
 
-- `off`: no se verifica. **Valor actual**, hasta que exista el launcher.
+- `off`: no bloquea ni avisa; la licencia igual se verifica para mostrarla en Cuenta. **Valor actual**, hasta la versión a la venta.
 - `warn`: se verifica y se registra.
-- `enforce`: sin licencia válida, la app no abre.
+- `enforce`: sin licencia válida, la app no abre el editor: el aviso de arranque ofrece **Conectar con Motiova** (y antes intenta renovarla sola si hay sesión y conexión).
 
 Para probar en desarrollo:
 
@@ -107,19 +115,26 @@ MAQUETARIO_LICENSE_MODE=enforce npx electron desktop --license-file=licencia-pru
 
 Ninguna verificación del lado del cliente es inviolable: el objetivo es que el uso legítimo sea simple y que copiar la app dé trabajo.
 
-### Pendiente en Motiova (backend)
+### Motiova (backend): hecho el 08-nov
 
-- Recursos descargables y sus versiones publicadas (archivo en Bunny, sha256, firma, canal, versión mínima del launcher).
-- Accesos a recursos (como `CourseAccessGrant`) y `OrderItem` que pueda apuntar a un curso o a un recurso.
-- Endpoints: autorizar dispositivo y canjear el código, listar recursos, link de descarga firmado, emitir y renovar licencias, dar de baja equipos.
-- El asistente con IA pasa por Motiova con la sesión del usuario (reemplaza el código de aula).
+Endpoints de login del programa, recursos, descarga, licencias y liberación de equipos, probados contra `verifyLicense` (válida, otro equipo, vencida y adulterada). Pendiente del lado de Motiova: que el asistente con IA pase por Motiova con la sesión del usuario (reemplaza el código de aula).
 
-### Decisiones abiertas
+### Decisiones (cerradas el 08-nov)
 
-- Qué controla la licencia: **edición/plan** (`edition`) o **versión comprada** (`maxMajor`). El formato soporta las dos.
-- Pago único o suscripción (define cuánto dura la licencia).
-- Cuántos días puede funcionar sin conexión.
-- Certificado de firma de código (Windows) y cuenta de Apple Developer (notarización en macOS).
+- **Pago único**, con todas las actualizaciones incluidas: `maxMajor: null`.
+- Edición **`estandar`** (se cambia en el CRM de Motiova).
+- **Hasta 2 computadoras** por compra. Se liberan desde Mi cuenta → Mis programas, o con "Cerrar sesión en esta computadora".
+- **7 días sin conexión**: la licencia vence a la semana y se renueva cada vez que se abre con internet.
+- Los archivos se bajan **del servidor de Motiova** (no de Bunny), con link de 10 minutos y sha256.
+- En la licencia, `product: "maquetario"`.
+- Devolución o contracargo: la licencia queda revocada y la que ya estaba en la computadora deja de valer al vencer.
+
+### Entrega de cada versión a Motiova
+
+- Número de versión (`desktop/package.json → version`) y notas de cambios en castellano, para quien usa el programa.
+- Un instalador por sistema: Windows `.exe` firmado; macOS `.dmg` firmado y notarizado; Linux `.AppImage` si sale.
+- Para la versión a la venta: `licenseMode: "enforce"` y la clave pública de producción en `desktop/src/main/license-keys.ts` → `PRODUCTION_PUBLIC_KEYS['<kid>']` (la manda Motiova al generarla; la privada nunca sale del servidor).
+- Pendiente: certificado de firma de código de Windows (o Azure Trusted Signing) y cuenta de Apple Developer, antes de vender. Hay que definir quién los gestiona.
 
 ## Instalación y actualizaciones
 
@@ -130,12 +145,15 @@ Ninguna verificación del lado del cliente es inviolable: el objetivo es que el 
 - Fuera de esa carpeta sólo quedan las preferencias (`userData`) y la licencia (`<appData>/Motiova/`), para poder actualizar sin perderlas.
 - También se genera un instalador clásico (NSIS en Windows, DMG en macOS) para quien no use el launcher. Se instala por usuario: **no pide permisos de administrador**.
 
-### Chequeo de actualizaciones (al iniciar sesión)
+### Chequeo de actualizaciones
+
+**Hoy (sin launcher):** al abrir con conexión y la cuenta conectada, Maquetario pide `GET /desktop/resources`. Si `latest.version` es más nueva que la instalada, muestra un aviso y en Configuración → Cuenta aparece **Descargar**: baja el instalador del sistema con `POST /me/products/maquetario/download`, verifica el sha256 antes de dejarlo y lo muestra en la carpeta Descargas. La instalación la hace la persona con ese instalador.
+
+**Con el launcher (más adelante):**
 
 1. Cada vez que la persona inicia sesión en el launcher (y al abrirlo, si la sesión sigue activa), el launcher pide `GET /desktop/resources`, que responde la última versión a la que tiene derecho para cada recurso.
 2. Si hay una versión más nueva que la instalada, el launcher la descarga e instala **al lado** de la actual, sin tocarla.
 3. La próxima vez que se abre Maquetario, abre la versión nueva. Si algo falla, el launcher vuelve a la anterior.
-4. Maquetario no se actualiza solo ni se conecta para eso: lo hace el launcher, que es quien tiene la sesión.
 
 ### Endurecimiento del ejecutable
 

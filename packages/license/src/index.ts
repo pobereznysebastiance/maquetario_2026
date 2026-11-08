@@ -170,16 +170,16 @@ export function issueLicense(claims: LicenseClaims, privateKeyPem: string): stri
 export function describeFailure(reason: LicenseFailure): string {
   switch (reason) {
     case 'expired':
-      return 'Tu licencia venció. Abrí Maquetario desde Motiova para renovarla (necesita conexión).';
+      return 'Tu licencia necesita renovarse. Conectate a internet y conectá Maquetario con tu cuenta de Motiova.';
     case 'version-not-covered':
       return 'Tu licencia no incluye esta versión de Maquetario.';
     case 'wrong-device':
-      return 'Esta licencia pertenece a otro equipo. Iniciá sesión en Motiova desde esta computadora.';
+      return 'Esta licencia es de otra computadora. Conectá Maquetario con tu cuenta de Motiova en esta.';
     case 'wrong-product':
       return 'La licencia es de otro producto de Motiova.';
     case 'not-yet-valid':
       return 'La licencia todavía no es válida. Revisá la fecha y hora de la computadora.';
     default:
-      return 'No encontramos una licencia válida. Abrí Maquetario desde Motiova.';
+      return 'Para usar Maquetario, conectalo con tu cuenta de Motiova.';
   }
 }

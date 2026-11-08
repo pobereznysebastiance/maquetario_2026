@@ -9,13 +9,45 @@
     done: ['Listo', 'Done', 'Pronto'],
     account: ['Cuenta', 'Account', 'Conta'],
     noAccount: [
-      'Todavía no hay una cuenta conectada. Cuando abras Maquetario desde Motiova vas a ver acá tu cuenta y tu licencia.',
-      'No account connected yet. When you open Maquetario from Motiova, your account and license will appear here.',
-      'Ainda não há conta conectada. Ao abrir o Maquetario pelo Motiova, sua conta e licença aparecerão aqui.',
+      'Conectá Maquetario con tu cuenta de Motiova. Se abre el navegador para entrar; la licencia queda en esta computadora, funciona 7 días sin conexión y se renueva sola cada vez que abrís Maquetario con internet.',
+      'Connect Maquetario to your Motiova account. Your browser opens to sign in; the license stays on this computer, works 7 days offline and renews itself whenever you open Maquetario online.',
+      'Conecte o Maquetario à sua conta Motiova. O navegador abre para entrar; a licença fica neste computador, funciona 7 dias sem conexão e se renova sozinha sempre que você abre o Maquetario com internet.',
     ],
+    connect: ['Conectar con Motiova', 'Connect with Motiova', 'Conectar com o Motiova'],
+    connecting: [
+      'Seguí en el navegador: entrá a tu cuenta de Motiova y tocá Conectar.',
+      'Continue in your browser: sign in to Motiova and click Connect.',
+      'Continue no navegador: entre na sua conta Motiova e toque em Conectar.',
+    ],
+    cancel: ['Cancelar', 'Cancel', 'Cancelar'],
+    connected: ['Maquetario quedó conectado con tu cuenta.', 'Maquetario is now connected to your account.', 'O Maquetario foi conectado à sua conta.'],
     edition: ['Edición', 'Edition', 'Edição'],
-    expires: ['Licencia válida hasta', 'License valid until', 'Licença válida até'],
-    invalid: ['La licencia no es válida en este equipo.', 'The license is not valid on this computer.', 'A licença não é válida neste computador.'],
+    computers: ['Computadoras', 'Computers', 'Computadores'],
+    computersOf: ['{n} de {max}', '{n} of {max}', '{n} de {max}'],
+    expires: ['Funciona sin conexión hasta', 'Works offline until', 'Funciona sem conexão até'],
+    invalid: [
+      'La licencia de esta computadora no está vigente. Volvé a conectar para renovarla.',
+      'This computer’s license is not active. Connect again to renew it.',
+      'A licença deste computador não está ativa. Conecte de novo para renová-la.',
+    ],
+    signOut: ['Cerrar sesión en esta computadora', 'Sign out on this computer', 'Sair neste computador'],
+    signOutShort: ['Cerrar sesión', 'Sign out', 'Sair'],
+    thisComputer: ['Esta computadora', 'This computer', 'Este computador'],
+    signOutHelp: ['Libera esta computadora para usar Maquetario en otra.', 'Frees this computer to use Maquetario on another one.', 'Libera este computador para usar o Maquetario em outro.'],
+    signOutConfirm: [
+      'Vas a liberar esta computadora. Para volver a usar Maquetario acá vas a tener que conectar tu cuenta otra vez.',
+      'This computer will be freed. To use Maquetario here again you will need to connect your account.',
+      'Este computador será liberado. Para usar o Maquetario aqui de novo, será preciso conectar sua conta.',
+    ],
+    signedOut: ['Cerraste la sesión en esta computadora.', 'You signed out on this computer.', 'Você saiu neste computador.'],
+    update: ['Hay una versión nueva: {v}', 'A new version is available: {v}', 'Há uma versão nova: {v}'],
+    download: ['Descargar', 'Download', 'Baixar'],
+    downloading: ['Descargando…', 'Downloading…', 'Baixando…'],
+    downloaded: [
+      'Listo: el instalador de la versión {v} está en tu carpeta Descargas.',
+      'Done: the installer for version {v} is in your Downloads folder.',
+      'Pronto: o instalador da versão {v} está na sua pasta Downloads.',
+    ],
     interfaceSection: ['Interfaz', 'Interface', 'Interface'],
     rulers: ['Reglas', 'Rulers', 'Réguas'],
     rulersHelp: ['Mostrar las reglas horizontal y vertical (Ctrl+R).', 'Show horizontal and vertical rulers (Ctrl+R).', 'Mostrar as réguas horizontal e vertical (Ctrl+R).'],
@@ -59,20 +91,82 @@
 
   const row = (label, control, help) => UI.settingRow({ label, control, help });
 
-  function section(title, body) {
-    return `<section class="settings-section"><h3 class="settings-section-title">${title}</h3>${body}</section>`;
+  function section(title, body, id) {
+    return `<section class="settings-section"${id ? ` id="settings-section-${id}"` : ''}><h3 class="settings-section-title">${title}</h3>${body}</section>`;
   }
 
-  function accountBody(info) {
-    const license = info && info.license;
-    if (!license || !license.valid) {
-      return `<p class="settings-note">${license && !license.valid ? t('invalid') : t('noAccount')}</p>`;
+  const fill = (key, values) => Object.entries(values).reduce((s, [k, v]) => s.replace(`{${k}}`, v), t(key));
+  const editionName = (value) => (value === 'estandar' ? bw('Estándar', 'Standard', 'Padrão') : value || '');
+
+  /** Cuenta de Motiova: conectar, estado de la licencia de este equipo y versión nueva. */
+  function accountBody(status) {
+    if (!MaquetarioHost.available) return `<p class="settings-note">${t('desktopOnly')}</p>`;
+    if (!status) return `<p class="settings-note">${t('noAccount')}</p>`;
+    if (!status.connected) {
+      return `<p class="settings-note">${t('noAccount')}</p><button type="button" class="btn primary" id="settingsConnect">${t('connect')}</button>`;
     }
-    const expires = license.expires ? new Date(license.expires).toLocaleDateString(document.documentElement.lang || 'es') : '';
+    const lang = document.documentElement.lang || 'es';
+    const until = status.validUntil ? new Date(status.validUntil).toLocaleDateString(lang, { day: 'numeric', month: 'long' }) : '';
+    const value = (v) => `<span class="settings-value">${esc(v)}</span>`;
     return (
-      row(license.email || '', `<span class="settings-value">${esc(license.edition || '')}</span>`, t('edition')) +
-      (expires ? row(t('expires'), `<span class="settings-value">${esc(expires)}</span>`) : '')
+      row(status.email || status.name || '', value(editionName(status.edition)), t('edition')) +
+      (status.maxDevices ? row(t('computers'), value(fill('computersOf', { n: status.devicesInUse ?? 1, max: status.maxDevices }))) : '') +
+      (status.licenseValid ? (until ? row(t('expires'), value(until)) : '') : `<p class="settings-note">${t('invalid')}</p>`) +
+      (status.update
+        ? row(fill('update', { v: status.update.version }), `<button type="button" class="btn" id="settingsDownloadUpdate">${t('download')}</button>`, status.update.notes || '')
+        : '') +
+      row(t('thisComputer'), `<button type="button" class="btn" id="settingsSignOut">${t('signOutShort')}</button>`, t('signOutHelp'))
     );
+  }
+
+  /** Botones de la sección Cuenta. Cada acción vuelve a armar el panel con el estado nuevo. */
+  function wireAccount() {
+    const connect = $('#settingsConnect');
+    if (connect) {
+      connect.onclick = async () => {
+        const body = $('#settings-section-account');
+        const title = body.querySelector('.settings-section-title').outerHTML;
+        body.innerHTML = `${title}<p class="settings-note">${t('connecting')}</p><button type="button" class="btn" id="settingsCancelConnect">${t('cancel')}</button>`;
+        $('#settingsCancelConnect').onclick = () => nativeCall('motiovaCancel');
+        try {
+          await nativeCall('motiovaConnect');
+          toast(t('connected'));
+        } catch (error) {
+          if (!/cancel/i.test(error.message)) toast(error.message, 'error');
+        }
+        openSettings('account');
+      };
+    }
+    const signOut = $('#settingsSignOut');
+    if (signOut) {
+      signOut.onclick = async () => {
+        const ok = await confirmAction({ title: t('signOut'), message: t('signOutConfirm'), confirmLabel: t('signOut'), danger: true });
+        if (!ok) return;
+        signOut.disabled = true;
+        try {
+          await nativeCall('motiovaRelease');
+          toast(t('signedOut'));
+        } catch (error) {
+          toast(error.message, 'error');
+        }
+        openSettings('account');
+      };
+    }
+    const download = $('#settingsDownloadUpdate');
+    if (download) {
+      download.onclick = async () => {
+        download.disabled = true;
+        download.textContent = t('downloading');
+        try {
+          const result = await nativeCall('motiovaDownloadUpdate');
+          toast(fill('downloaded', { v: result.version }));
+        } catch (error) {
+          toast(error.message, 'error');
+        }
+        download.disabled = false;
+        download.textContent = t('download');
+      };
+    }
   }
 
   function foldersBody() {
@@ -101,18 +195,15 @@
     // Volver a armar el panel (al cambiar idioma o carpetas) requiere cerrarlo antes: showModal falla si ya está abierto.
     if ($('#modal').open) $('#modal').close();
     let info = null;
+    let account = null;
     if (MaquetarioHost.available) {
-      try {
-        info = await nativeCall('appInfo');
-      } catch {
-        info = null;
-      }
+      [info, account] = await Promise.all([nativeCall('appInfo').catch(() => null), nativeCall('motiovaStatus').catch(() => null)]);
     }
     const language = LibroI18n.language;
     const large = document.body.classList.contains('ui-large');
     const body =
       `<div class="settings">` +
-      section(t('account'), accountBody(info)) +
+      section(t('account'), accountBody(account), 'account') +
       section(
         t('interfaceSection'),
         row(
@@ -137,6 +228,7 @@
     modal(t('title'), body, () => true, t('done'), '');
     dialogVariant('settings-modal');
     icons();
+    wireAccount();
 
     const languageSelect = $('#settingsLanguage');
     const workspaceSelect = $('#settingsWorkspace');
@@ -178,6 +270,12 @@
       };
     }
   }
+
+  /** Lo llama el proceso principal al abrir, si Motiova tiene una versión más nueva. */
+  window.maquetarioUpdateAvailable = (update) => {
+    if (!update || !update.version) return;
+    toast(fill('update', { v: update.version }) + ' · ' + bw('Descargala desde Configuración → Cuenta.', 'Download it from Settings → Account.', 'Baixe em Configurações → Conta.'), 'info');
+  };
 
   window.openSettings = openSettings;
   window.setLanguage = setLanguage;
