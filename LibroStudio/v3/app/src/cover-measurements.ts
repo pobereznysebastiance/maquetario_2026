@@ -1,5 +1,61 @@
-'use strict';
-function coverMeasurementRows(c) {
+// Medidas de la cubierta: tabla de cada zona (tamaño final y píxeles a 300 ppp) en el editor de
+// cubierta, ficha descargable y ajuste de imagen por zona (cubrir o mostrar completa).
+// También prepara las escenas de las capturas de promoción (preparePromoScene).
+//
+// coverMeasurementRows y coverMeasurementText son globales porque las usa
+// tests/cover-measurements-tests.js; preparePromoScene, porque la llama el anfitrión C# (Host.cs).
+//
+// Fuente TypeScript: se compila a build/cover-measurements.js (desktop/scripts/build.mjs).
+
+/** Una zona de la cubierta (texto, tipografía e imagen). La define publications.js, todavía en JS. */
+export interface CoverDesignPart {
+  text: string;
+  size: number;
+  color: string;
+  y: number;
+  align: 'left' | 'center' | 'right' | string;
+  image?: string;
+  imageFit?: 'cover' | 'contain' | string;
+  [extra: string]: any;
+}
+
+/** Cubierta del libro (book.cover y coverDraft). La define publications.js, todavía en JS. */
+export interface CoverDesign {
+  spine: number;
+  leftFlap: number;
+  rightFlap: number;
+  bleed: number;
+  wrap?: number;
+  safe: number;
+  background: string;
+  /** backFlap, back, spine, front, frontFlap. */
+  parts: Record<string, CoverDesignPart>;
+  [extra: string]: any;
+}
+
+/** Zona del desplegado: posición y ancho en mm (coverGeometry de publications.js). */
+export interface CoverGeometryPart {
+  id: string;
+  x: number;
+  w: number;
+}
+
+export interface CoverMeasurementRow extends CoverGeometryPart {
+  height: number;
+  pixelW: number;
+  pixelH: number;
+}
+
+declare global {
+  /** Tamaño final de cada zona de la cubierta, con su equivalente en píxeles a 300 ppp. */
+  var coverMeasurementRows: (c: CoverDesign) => CoverMeasurementRow[];
+  /** Ficha de medidas de la cubierta en texto plano (la que se descarga). */
+  var coverMeasurementText: (c: CoverDesign) => string;
+  /** Deja la interfaz en una escena de las capturas de promoción. */
+  var preparePromoScene: (scene: string) => Promise<void>;
+}
+
+function coverMeasurementRows(c: CoverDesign): CoverMeasurementRow[] {
   return coverGeometry(c).parts.map((p) => ({
     ...p,
     height: book.height,
@@ -7,7 +63,8 @@ function coverMeasurementRows(c) {
     pixelH: Math.round((book.height / 25.4) * 300),
   }));
 }
-function coverMeasurementText(c) {
+globalThis.coverMeasurementRows = coverMeasurementRows;
+function coverMeasurementText(c: CoverDesign): string {
   const g = coverGeometry(c);
   return [
     'MAQUETARIO · ' + book.title,
@@ -28,9 +85,10 @@ function coverMeasurementText(c) {
     ),
   ].join('\n');
 }
-function refreshCoverMeasurements() {
+globalThis.coverMeasurementText = coverMeasurementText;
+function refreshCoverMeasurements(): void {
   if (!$('#coverMeasureTable')) return;
-  const c = coverDraft,
+  const c = coverDraft!,
     g = coverGeometry(c);
   $('#coverMeasureTable').innerHTML =
     `<thead><tr><th>${bw('Zona', 'Area', 'Área')}</th><th>${bw('Tamaño final', 'Trim size', 'Tamanho final')} · ${documentUnit()}</th><th>${bw('Imagen a 300 ppp · px', 'Image at 300 ppi · px', 'Imagem a 300 ppp · px')}</th></tr></thead><tbody>${coverMeasurementRows(
@@ -65,7 +123,7 @@ extend.after(
     $('#coverDimensions').after(panel);
     $('#downloadCoverSpecs').onclick = () =>
       download(
-        new Blob(['\ufeff' + coverMeasurementText(coverDraft)], {
+        new Blob(['﻿' + coverMeasurementText(coverDraft!)], {
           type: 'text/plain;charset=utf-8',
         }),
         book.title + ' - medidas cubierta.txt',
@@ -74,8 +132,8 @@ extend.after(
     fit.className = 'cover-image-fit';
     fit.innerHTML = `${bw('Ajuste de imagen', 'Image fit', 'Ajuste de imagem')} <select id="coverImageFit"><option value="cover">${bw('Cubrir zona · recorta excedente', 'Cover area · crop excess', 'Cobrir área · cortar excesso')}</option><option value="contain">${bw('Mostrar imagen completa', 'Show entire image', 'Mostrar imagem inteira')}</option></select>`;
     $('.cover-image-actions').append(fit);
-    $('#coverImageFit').onchange = (e) => {
-      coverDraft.parts[coverPart].imageFit = e.target.value;
+    $('#coverImageFit').onchange = (e: Event) => {
+      coverDraft!.parts[coverPart].imageFit = (e.target as HTMLSelectElement).value;
       updateCoverPreview();
     };
     refreshCoverMeasurements();
@@ -84,16 +142,16 @@ extend.after(
 );
 extend.result(
   'coverArtwork',
-  function (art, c, px, guides = false, crop = false) {
-    art.querySelectorAll('[data-cover-part]').forEach((region) => {
+  function (art: HTMLElement, c: CoverDesign, px: number, guides = false, crop = false) {
+    art.querySelectorAll<HTMLElement>('[data-cover-part]').forEach((region) => {
       const img = region.querySelector('img');
-      if (img) img.style.objectFit = c.parts[region.dataset.coverPart].imageFit || 'cover';
+      if (img) img.style.objectFit = c.parts[region.dataset.coverPart!].imageFit || 'cover';
     });
     return art;
   },
   'cover-measurements',
 );
-window.preparePromoScene = async function (scene) {
+globalThis.preparePromoScene = async function (scene: string): Promise<void> {
   hideWelcome();
   closeTutorial();
   if ($('#modal').open) $('#modal').close();
@@ -126,7 +184,7 @@ window.preparePromoScene = async function (scene) {
     const canvas = document.createElement('canvas');
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
-    canvas.getContext('2d').drawImage(img, 0, 0);
+    canvas.getContext('2d')!.drawImage(img, 0, 0);
     book.cover.parts.front.image = canvas.toDataURL('image/png');
     book.cover.parts.front.text = book.title;
     book.cover.parts.front.color = '#153D42';

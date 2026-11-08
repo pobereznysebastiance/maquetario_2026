@@ -1,18 +1,29 @@
-'use strict';
+// Imágenes colocadas: arrastrar archivos (PNG, JPG, WebP o SVG) sobre una página o pegarlos desde el
+// portapapeles (también SVG copiado desde Illustrator) los coloca como objetos de imagen.
+// No publica nada: todo lo que define se usa sólo acá.
+//
+// Fuente TypeScript: se compila a build/placed-artwork.js (desktop/scripts/build.mjs).
+import type { Page } from './model.ts';
 
-const artworkTypes = {
+interface PlacedImage {
+  src: string;
+  name: string;
+  ratio: number;
+}
+
+const artworkTypes: Record<string, string> = {
   svg: 'image/svg+xml',
   png: 'image/png',
   jpg: 'image/jpeg',
   jpeg: 'image/jpeg',
   webp: 'image/webp',
 };
-const artworkType = (file) =>
+const artworkType = (file: File): string | undefined =>
   Object.values(artworkTypes).includes(file.type)
     ? file.type
-    : artworkTypes[file.name.split('.').pop().toLowerCase()];
+    : artworkTypes[file.name.split('.').pop()!.toLowerCase()];
 
-async function loadPlacedArtwork(file) {
+async function loadPlacedArtwork(file: File): Promise<PlacedImage> {
   const type = artworkType(file);
   if (!type || file.size > 16000000)
     throw Error(
@@ -24,9 +35,9 @@ async function loadPlacedArtwork(file) {
     );
   // SVG is embedded as an image, never inserted as active markup.
   const data = new Blob([file], { type });
-  const src = await new Promise((resolve, reject) => {
+  const src = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
+    reader.onload = () => resolve(reader.result as string);
     reader.onerror = reject;
     reader.readAsDataURL(data);
   });
@@ -36,11 +47,15 @@ async function loadPlacedArtwork(file) {
   return { src, name: file.name, ratio: image.naturalWidth / image.naturalHeight };
 }
 
-async function placeArtwork(files, page, position) {
+async function placeArtwork(
+  files: File[],
+  page: Page,
+  position?: { x: number; y: number },
+): Promise<void> {
   const publication = book;
   // Project files above the native open limit cannot be reopened.
   let remaining = 78000000 - JSON.stringify(book, null, 2).length;
-  const images = [];
+  const images: PlacedImage[] = [];
   for (const file of Array.from(files).slice(0, Math.min(30, 300 - page.objects.length))) {
     if ((file.size * 4) / 3 + 1000 > remaining) continue;
     try {
@@ -96,26 +111,28 @@ async function placeArtwork(files, page, position) {
     );
 }
 
-function clearDropTarget() {
+function clearDropTarget(): void {
   $('#spread .artwork-drop-target')?.classList.remove('artwork-drop-target');
 }
 document.addEventListener('dragover', (event) => {
   if (!event.dataTransfer?.types.includes('Files')) return;
   event.preventDefault();
-  const page = !canvasUnavailable() && !preview && event.target.closest('#spread .page');
+  const page =
+    !canvasUnavailable() && !preview && (event.target as Element).closest('#spread .page');
   clearDropTarget();
   event.dataTransfer.dropEffect = page ? 'copy' : 'none';
   if (page) page.classList.add('artwork-drop-target');
 });
 document.addEventListener('dragleave', (event) => {
-  if (!event.relatedTarget || !event.relatedTarget.closest?.('#spread .page')) clearDropTarget();
+  if (!event.relatedTarget || !(event.relatedTarget as Element).closest?.('#spread .page'))
+    clearDropTarget();
 });
 document.addEventListener('drop', (event) => {
   clearDropTarget();
   const files = Array.from(event.dataTransfer?.files || []);
   if (!files.length) return;
   event.preventDefault();
-  const element = event.target.closest('#spread .page');
+  const element = (event.target as Element).closest<HTMLElement>('#spread .page');
   if (!element || canvasUnavailable() || preview) return;
   const rect = element.getBoundingClientRect();
   void placeArtwork(files, book.pages[Number(element.dataset.page)], {
@@ -124,7 +141,7 @@ document.addEventListener('drop', (event) => {
   });
 });
 
-function clipboardSvg(text) {
+function clipboardSvg(text: string | null | undefined): File | null {
   if (!text || text.length > 16000000) return null;
   if (text?.includes('&lt;svg')) {
     text = new DOMParser().parseFromString(text, 'text/html').body.textContent;

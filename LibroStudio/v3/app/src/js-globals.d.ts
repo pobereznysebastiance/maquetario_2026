@@ -1,8 +1,6 @@
 // Globales que define el JavaScript de la interfaz (studio.js, paragraphs.js, fonts.js…) y usan
 // las fuentes de src/. Sólo los ve el chequeo estricto de src/: en el chequeo del JS se ven las
 // definiciones reales. Cuando un archivo pasa a src/, sus globales salen de acá.
-import type { Book, BookObject, LibroModelApi } from './model.ts';
-import type { NovelSample } from './novel-sample.ts';
 
 /** Una lección del tutorial (title, body y task: castellano, inglés y portugués). */
 interface GuideLesson {
@@ -14,6 +12,9 @@ interface GuideLesson {
   task: string[];
   action: string;
 }
+import type { Book, BookObject, LibroModelApi } from './model.ts';
+import type { NovelSample } from './novel-sample.ts';
+import type { CoverDesign, CoverGeometryPart } from './cover-measurements.ts';
 
 declare global {
   // ── studio.js ──
@@ -108,7 +109,52 @@ declare global {
 
   // ── font-browser.js ──
   const fontBrowser: HTMLDialogElement;
+
+  /** Primera página del pliego visible. */
+  var spread: number;
+  /** Id del objeto seleccionado. */
+  var selected: string | null;
+  /** Herramienta activa ('select', 'hand', 'text'…). */
+  var tool: string;
+  /** Vista previa (sin guías ni controles). */
+  var preview: boolean;
+  /** Cambios sin guardar. */
+  var dirty: boolean;
+
+  function settingsNew(isNew?: boolean): void;
+  function download(blob: Blob, name: string): void;
+
+  // ── publications.js: cubierta ──
+  var coverDraft: CoverDesign | null;
+  /** Zona de la cubierta elegida en el editor (backFlap, back, spine, front, frontFlap). */
+  var coverPart: string;
+  function defaultCover(): CoverDesign;
+  /** Nombre de cada zona de la cubierta en el idioma actual. */
+  function coverNames(): Record<string, string>;
+  /** Sangrado más demasía, en mm. */
+  function coverExtension(c: CoverDesign): number;
+  function coverGeometry(c: CoverDesign): {
+    parts: CoverGeometryPart[];
+    width: number;
+    height: number;
+  };
+  function updateCoverPreview(): void;
+  function coverEditor(): void;
+  function coverOutputDialog(): void;
+
+  // ── canvas-navigation.js ──
+  /** El lienzo no acepta acciones (bienvenida, sin documento, ocupado o con un diálogo abierto). */
+  function canvasUnavailable(): boolean;
+  /** Si el evento viene de un campo de texto (input, textarea, select o contenteditable). */
+  function canvasInputTarget(target: EventTarget | null): boolean;
+
+  function showWelcome(): Promise<void>;
+  function bookBuilder(sample?: boolean): void;
+  function gridGallery(): void;
+  function openSettings(focusSection?: string): Promise<void>;
 }
+
+export {};
 
 export {};
 

@@ -32,7 +32,7 @@
   border-left: var(--border-width) solid var(--line-subtle);
 }
 
-/* Espacios de trabajo (workspace.js): lo que el espacio elegido no muestra. */
+/* Espacios de trabajo (src/workspace.ts): lo que el espacio elegido no muestra. */
 [data-workspace-hidden] {
   display: none;
 }

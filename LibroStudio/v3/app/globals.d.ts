@@ -17,7 +17,6 @@ declare var onDialogClose: (fn: () => void) => void;
 
 // ── Modelo, idioma y anfitrión ──
 declare var setLanguage: any;
-declare var MaquetarioWorkspace: any;
 declare var maquetarioUpdateAvailable: any;
 declare var chrome: any;
 
@@ -36,7 +35,6 @@ declare var shapeOutputReady: any;
 declare var maquetarioSelfTest: boolean;
 declare var maquetarioTestsReady: true | 'missing' | undefined;
 declare var showHandlePreview: any;
-declare var preparePromoScene: any;
 declare var prepareBlankCreatePreview: any;
 declare var prepareGlassShapePreview: any;
 declare var prepareLargeOutputPreview: any;
