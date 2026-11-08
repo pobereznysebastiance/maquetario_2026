@@ -272,3 +272,66 @@
   font-size: var(--type-body);
   line-height: var(--leading-text);
 }
+
+/* ── Migrado de canvas-navigation.css: cerrar con cambios sin guardar ── */
+.close-publication-message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: 0;
+}
+.close-publication-symbol {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--control-lg);
+  height: var(--control-lg);
+  border: var(--border-width) solid var(--status-warning-line);
+  border-radius: var(--radius-lg);
+  background: var(--status-warning-surface);
+}
+.close-publication-symbol .icon {
+  color: var(--text-mark);
+}
+.close-publication-message h2 {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--type-lg);
+  font-weight: var(--weight-medium);
+  overflow-wrap: anywhere;
+}
+/* La ayuda (.help) conserva su propio margen. */
+.close-publication-message p:not(.help) {
+  margin: var(--space-xs) 0;
+  color: var(--text-secondary);
+  font-size: var(--type-md);
+  line-height: var(--leading-text);
+}
+.close-publication-modal .modal-actions {
+  flex-wrap: wrap;
+}
+.close-publication-modal .close-without-save {
+  margin-right: auto;
+}
+.close-publication-modal .inline-error:empty {
+  display: none;
+}
+
+/* ── Migrado de editorial-learning.css: lectura del lomo (cubierta) ── */
+.spine-direction {
+  --spine-select-min: 240px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--status-warning-line);
+  border-radius: var(--radius-lg);
+}
+.spine-direction strong {
+  color: var(--text-mark);
+  font-size: var(--type-title3);
+}
+.spine-direction select {
+  flex: 1 1 0%;
+  min-width: var(--spine-select-min);
+}

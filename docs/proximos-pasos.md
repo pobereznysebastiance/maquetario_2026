@@ -53,6 +53,12 @@ Sigue (etapa 2 de `arquitectura.md`): sacar del build de producción las pruebas
 
 **Antes de borrar o migrar, siempre:** (1) emular 1536 × 1024 en el panel del navegador (a 1024 px se activan las reglas @media (max-width:1250px) y tapan a las de base: así se perdió el tamaño del título de la bienvenida); (2) abrir los paneles que arrancan plegados (plantillas con #toggleGridStrip, recorrido con #toggleWorkflow): con el panel de plantillas plegado su regla base parecía muerta y se borró; (3) comparar con `scripts/style-snapshot.js` antes y después (`styleSnapshot` / `styleDiff`), no sólo con las capturas de la autoprueba, que no cubren esos estados.
 
+**Al portar, las @media también** (encontrado en la tanda del 8-nov): una regla de `ui/` le gana a cualquier `@media` vieja, así que la variante de pantalla baja o angosta de lo portado se pierde (el glosario se estiraba, la bienvenida perdía su título compacto). Portar la `@media` junto con la regla base, cambiando las variables locales. Para encontrarlas: cruzar las `@media` de legacy con las reglas de `ui/` de igual selector y propiedad. Y comparar `style-snapshot` en dos tamaños: `APP_CDP_SIZE=1366x768` (entran `max-height: 850px` y `max-width: 1350px`) además de 1536 × 1024.
+
+**La sonda no ve lo que se dibuja tarde** (lista del glosario) ni lo dinámico (`:hover`): antes de borrar, leer el texto original de cada regla y confirmar que cada declaración que no se porta la cubre `ui/`. `style-snapshot` ahora recorre también glosario, cerrar sin guardar, modo foco e interfaz grande.
+
+**Capturas de la autoprueba:** su tamaño depende de la ventana real; si cambia la pantalla o su escala durante la corrida, salen de tamaños distintos y no se pueden comparar. Ahí vale `style-snapshot` (la vista la fija `app-cdp`).
+
 Cuidado al migrar una regla de varios selectores: la sonda la marca efectiva si pesa en uno solo. Pasar los demás a una capa de `ui/` les gana a otros organismos (pasó con `.tool#indexTool`). Portar selector por selector.
 
 ### Hecho

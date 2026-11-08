@@ -76,3 +76,61 @@
   color: var(--text-tertiary);
   white-space: nowrap;
 }
+
+/* ── Migrado de editorial-learning.css y page-priority.css: ruta del libro y barra del documento ── */
+.book-route {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.book-route button {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.book-route .route-spacer {
+  display: none;
+}
+.route-step-number {
+  display: inline-grid;
+  place-items: center;
+  background: var(--text-mark);
+  color: var(--text-on-accent);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  box-shadow: var(--material-edge);
+}
+.book-route button:hover .route-step-number {
+  background: var(--accent);
+}
+.workflow-collapsed .book-route {
+  display: none !important;
+}
+#toggleWorkflow,
+#learnEditorial,
+#documentSettings {
+  white-space: nowrap;
+}
+.documentbar {
+  gap: var(--space-sm);
+  padding: 0 var(--space-md);
+  overflow: hidden;
+}
+.documentbar #documentName {
+  --document-name-max: 150px;
+  max-width: var(--document-name-max);
+}
+.documentbar #documentSettings {
+  margin-left: auto;
+}
+.doc-format {
+  --doc-format-max: 180px;
+  display: none;
+  max-width: var(--doc-format-max);
+  overflow: hidden;
+}
+
+@media (max-width: 1180px) {
+  .documentbar #documentName {
+    --document-name-max: 90px;
+  }
+}

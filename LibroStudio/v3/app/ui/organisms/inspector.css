@@ -435,3 +435,82 @@
   align-items: center;
   margin: var(--space-sm) 0;
 }
+
+/* ── Migrado de workspace.css y page-priority.css: pestañas, pie y capas ── */
+.tabs {
+  flex-shrink: 0;
+}
+.tabs .tab.active::after {
+  right: var(--space-xs);
+  left: var(--space-xs);
+}
+.inspector-foot {
+  min-height: 0;
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--type-sm);
+}
+#inspectorContent [data-object-geometry] {
+  width: 100%;
+}
+#inspectorContent .pair label {
+  display: block;
+  margin-bottom: var(--space-xs);
+}
+.layer-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  margin: var(--space-xs) 0;
+  padding: var(--space-sm) var(--space-2xs);
+  border-width: var(--border-width);
+  border-style: solid;
+  border-radius: var(--radius-sm);
+  cursor: default;
+}
+.layer-grip {
+  color: var(--text-tertiary);
+  font-size: var(--type-xl);
+}
+.layer-name {
+  flex: 1 1 0%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Migrado de canvas-navigation.css: páginas con ajustes propios ── */
+.individual-page-settings {
+  border-color: var(--status-warning-line) !important;
+}
+.page-only-tag {
+  display: inline-block;
+  padding: var(--space-2xs) var(--space-sm);
+  border: var(--border-width) solid var(--status-warning-line);
+  border-radius: var(--radius-md);
+  background: var(--status-warning-surface);
+  color: var(--text-mark);
+  font-size: var(--type-xs);
+}
+.page-visibility-control {
+  --page-visibility-height: 42px;
+  min-height: var(--page-visibility-height);
+  padding-bottom: var(--space-sm);
+  border-bottom: var(--border-width) solid var(--line-subtle);
+}
+.page-visibility-control input {
+  --page-visibility-check: 18px;
+  flex-shrink: 0;
+  width: var(--page-visibility-check);
+  height: var(--page-visibility-check);
+}
+.page-visibility-control span {
+  font-size: var(--type-body);
+}
+.page-visibility-control small {
+  display: block;
+  margin-top: var(--space-xs);
+  color: var(--text-mark);
+  font-size: var(--type-sm) !important;
+  line-height: var(--leading-text);
+}

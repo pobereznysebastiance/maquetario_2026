@@ -16,7 +16,12 @@
     'border-top-left-radius', 'box-shadow', 'opacity', 'visibility', 'overflow-x', 'overflow-y', 'z-index', 'cursor', 'outline-color', 'outline-style'];
   const SKIP = '#spread, #spread *, #printRoot, #printRoot *, .thumb-pages, .thumb-pages *, script, style, svg *';
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  const close = () => { try { $('#modal')?.open && $('#modal').close(); } catch {} try { closeTutorial(); } catch {} };
+  const close = () => {
+    try { $('#modal')?.open && $('#modal').close(); } catch {}
+    try { closeTutorial(); } catch {}
+    if (document.body.classList.contains('focused')) $('#fullscreen')?.click();
+    if (document.body.classList.contains('ui-large')) try { setReadability('standard'); } catch {}
+  };
   const sel = (type) => { const o = book.pages.flatMap((p) => p.objects).find((o) => o.type === type); active = book.pages.findIndex((p) => p.objects.includes(o)); selected = o.id; render(true); };
   const STATES = [
     ['bienvenida', () => { close(); showWelcome(); }],
@@ -30,6 +35,11 @@
     ['recorrido abierto', () => { for (let i = 0; i < 2 && document.body.classList.contains('workflow-collapsed'); i++) $('#toggleWorkflow')?.click(); }],
     ['configuración', () => { close(); settingsNew(false); }], ['salida', () => { close(); outputDialog('pdf'); }],
     ['cubierta', () => { close(); coverEditor(); }], ['tutorial', () => { close(); startTutorial(0); }],
+    // Diálogos y modos que se dibujan aparte (sin ellos, lo migrado de sus hojas no se compara).
+    ['glosario', async () => { close(); showGlossary(); await wait(400); }],
+    ['cerrar sin guardar', () => { close(); prepareCloseNoticePreview(); }],
+    ['foco', () => { close(); $('#fullscreen')?.click(); }],
+    ['interfaz grande', () => { close(); setReadability('large'); }],
   ];
   // Ruta estable de un elemento: id o etiqueta.clases con su posición entre hermanos.
   const key = (el) => { const parts = []; for (let e = el; e && e !== document.body; e = e.parentElement) { if (e.id) { parts.unshift('#' + e.id); break; } const i = [...(e.parentElement?.children || [])].indexOf(e); parts.unshift(e.tagName.toLowerCase() + (e.classList.length ? '.' + [...e.classList].sort().join('.') : '') + ':' + i); } return parts.join('>'); };

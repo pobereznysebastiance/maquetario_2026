@@ -62,3 +62,9 @@
 .thumb {
   flex-shrink: 0;
 }
+
+/* ── Migrado de page-priority.css ── */
+.thumb {
+  --thumb-width: 144px;
+  width: var(--thumb-width);
+}

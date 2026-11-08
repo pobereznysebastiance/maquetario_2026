@@ -81,3 +81,13 @@
 .tools {
   border-color: var(--line-subtle);
 }
+/* ── Migrado de page-priority.css y workspace.css ── */
+.tools {
+  max-height: 55vh;
+}
+#tools [data-tool='text'] > span {
+  white-space: nowrap;
+}
+.tool[data-tool='select'].active {
+  cursor: default;
+}

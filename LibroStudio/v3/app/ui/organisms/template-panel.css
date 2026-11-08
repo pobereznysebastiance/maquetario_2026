@@ -149,3 +149,32 @@
   flex-shrink: 0;
   line-height: var(--leading-ui);
 }
+
+/* ── Migrado de editorial-learning.css, page-priority.css y canvas-navigation.css ── */
+.template-panel .resize-templates {
+  flex: 0 0 auto;
+}
+.template-heading > span > .chevron {
+  display: none;
+}
+.template-heading #fullscreen span {
+  --fullscreen-label-max: 91px;
+  max-width: var(--fullscreen-label-max);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Plegado: gana a la altura que deja panel-resize.js en línea. */
+.templates-collapsed .template-panel {
+  --templates-collapsed-height: 48px;
+  height: var(--templates-collapsed-height) !important;
+  min-height: var(--templates-collapsed-height) !important;
+}
+.templates-collapsed #templates {
+  display: none !important;
+}
+
+@media (max-width: 1350px) {
+  .template-heading #fullscreen span {
+    --fullscreen-label-max: 66px;
+  }
+}

@@ -67,3 +67,71 @@
 .tutorial-jump {
   height: var(--control-lg);
 }
+
+/* ── Migrado de workspace.css: tarjeta y recorrido del tutorial ── */
+.tutorial-card {
+  --tutorial-card-bottom: 45px;
+  --tutorial-card-left: 220px;
+  position: fixed;
+  bottom: var(--tutorial-card-bottom);
+  left: var(--tutorial-card-left);
+  z-index: 55;
+}
+.tutorial-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tutorial-progress span {
+  display: block;
+  height: 100%;
+}
+.tutorial-body {
+  padding: var(--space-lg);
+}
+.tutorial-body h2 {
+  margin: 0 0 var(--space-md);
+}
+.tutorial-body p {
+  margin: var(--space-sm) 0;
+}
+.tutorial-exercise {
+  margin-top: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  line-height: var(--leading-text);
+}
+.tutorial-nav {
+  display: flex;
+  gap: var(--space-sm);
+  padding: 0 var(--space-lg) var(--space-lg);
+}
+.tutorial-nav .btn.primary {
+  margin-left: auto;
+}
+.tutorial-jump {
+  width: calc(100% - 2 * var(--space-lg));
+  margin: 0 var(--space-lg) var(--space-md);
+}
+.tutorial-action {
+  display: block;
+  margin-top: var(--space-md);
+  padding: var(--space-3xs) 0;
+  border: 0;
+  background: none;
+}
+.tutorial-note {
+  padding: 0 var(--space-lg) var(--space-md);
+}
+/* Elemento que señala el paso: contorno de foco por encima de cualquier otro. */
+.tour-target {
+  position: relative;
+  z-index: 3;
+  outline: var(--focus-ring-width) solid var(--focus-ring) !important;
+  outline-offset: var(--space-3xs);
+}
+
+@media (max-width: 1250px) {
+  .tutorial-card {
+    --tutorial-card-left: 195px;
+  }
+}

@@ -132,3 +132,66 @@ body[data-rulers='hidden'] #spreadStage {
   padding: var(--space-3xs) 0;
   writing-mode: vertical-rl;
 }
+
+/* ── Migrado de page-priority.css y editorial-learning.css: columnas, ayuda del lienzo y modo foco ── */
+.app-layout {
+  --layout-left: 184px;
+  --layout-center-min: 250px;
+  --layout-right: 320px;
+  grid-template-columns: var(--layout-left) minmax(var(--layout-center-min), 1fr) var(--layout-right);
+}
+.ui-large .app-layout {
+  --layout-left: 200px;
+  --layout-center-min: 240px;
+  --layout-right: 360px;
+}
+.canvas-hint {
+  bottom: var(--space-2xs);
+  font-size: var(--type-xs);
+}
+/* Modo foco ("Ampliar área"): sólo el lienzo. Gana a lo que panel-resize.js deja en línea. */
+.focused .app-layout {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.focused .center {
+  grid-column: 1;
+  width: 100%;
+  min-width: 0;
+}
+.focused :is(.leftpanel, .inspector) {
+  display: none !important;
+}
+.focused .template-heading {
+  --focused-heading-height: 47px;
+  flex-basis: var(--focused-heading-height);
+  min-height: var(--focused-heading-height);
+}
+.focused #gridLibrary {
+  display: none;
+}
+.focused .template-panel {
+  --focused-templates-height: 49px;
+  height: var(--focused-templates-height) !important;
+  min-height: var(--focused-templates-height) !important;
+}
+.focused :is(.templates, .resize-templates) {
+  display: none !important;
+}
+.focused .book-route {
+  justify-content: center;
+}
+.focused .documentbar > div {
+  flex: 1 1 0%;
+}
+.focused .canvas-hint {
+  white-space: nowrap;
+}
+
+/* Hasta 1350 px de ancho, paneles un poco más angostos (interfaz grande conserva los suyos). */
+@media (max-width: 1350px) {
+  .app-layout {
+    --layout-left: 174px;
+    --layout-center-min: 220px;
+    --layout-right: 310px;
+  }
+}

@@ -34,3 +34,23 @@
 #overflowStatus {
   color: var(--status-warning);
 }
+
+/* ── Migrado de editorial-learning.css y page-priority.css: una línea que recorta la selección ── */
+.statusbar {
+  --statusbar-min: 27px;
+  position: relative;
+  z-index: var(--layer-ruler);
+  min-height: var(--statusbar-min);
+  overflow: hidden;
+}
+.statusbar > span {
+  flex-shrink: 0;
+}
+.statusbar .status-spacer {
+  flex: 1 1 auto;
+}
+.statusbar #selectionText {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

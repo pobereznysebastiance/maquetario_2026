@@ -3,3 +3,14 @@
 .field-row {
   margin-block: var(--space-sm);
 }
+
+/* ── Migrado de page-priority.css: el control no ocupa más de la mitad de la fila ── */
+.field-row input,
+.field-row select,
+.field-row > .unit-wrap {
+  max-width: 56%;
+}
+/* El campo con unidad ocupa todo su contenedor (también en las parejas de márgenes). */
+.unit-wrap input {
+  max-width: 100%;
+}

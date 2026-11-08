@@ -34,3 +34,12 @@
   height: var(--space-3xs);
   cursor: pointer;
 }
+
+/* ── Migrado de canvas-navigation.css ── */
+#canvasZoomValue {
+  --zoom-value-min: 43px;
+  min-width: var(--zoom-value-min);
+  color: var(--text-mark);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}

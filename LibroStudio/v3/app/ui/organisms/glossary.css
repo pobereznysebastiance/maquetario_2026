@@ -49,3 +49,68 @@
   color: var(--text-primary);
   font-size: var(--type-headline);
 }
+
+/* ── Migrado de editorial-learning.css: filtros y disposición del glosario ── */
+.glossary-filters {
+  --glossary-filter-max: 240px;
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+.glossary-filters input,
+.glossary-filters select {
+  --glossary-filter-height: 40px;
+  height: var(--glossary-filter-height);
+}
+.glossary-filters input {
+  --glossary-search-min: 100px;
+  flex: 1 1 0%;
+  min-width: var(--glossary-search-min);
+}
+.glossary-filters select {
+  max-width: var(--glossary-filter-max);
+}
+.glossary-layout {
+  --glossary-nav-width: 245px;
+  --glossary-min-height: 360px;
+  display: grid;
+  grid-template-columns: var(--glossary-nav-width) 1fr;
+  gap: var(--space-xl);
+  min-height: var(--glossary-min-height);
+}
+.glossary-layout nav {
+  --glossary-nav-max: 430px;
+  max-height: var(--glossary-nav-max);
+  padding-right: var(--space-md);
+  overflow: auto;
+}
+.glossary-layout nav button {
+  display: block;
+  width: 100%;
+  margin-bottom: var(--space-2xs);
+  background: none;
+  line-height: var(--leading-ui);
+  text-align: left;
+}
+.glossary-example p {
+  margin: var(--space-xs) 0;
+}
+
+/* Pantalla baja o angosta: lista más corta; en angosta, una sola columna. */
+@media (max-height: 850px) {
+  .glossary-layout nav {
+    --glossary-nav-max: 320px;
+  }
+}
+@media (max-width: 700px) {
+  .glossary-layout {
+    grid-template-columns: 1fr;
+  }
+  .glossary-layout nav {
+    --glossary-nav-max: 170px;
+    border: 0;
+  }
+  .glossary-filters {
+    flex-wrap: wrap;
+  }
+}

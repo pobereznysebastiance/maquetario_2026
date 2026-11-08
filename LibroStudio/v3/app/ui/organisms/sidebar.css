@@ -73,3 +73,8 @@
 .version {
   margin-left: auto;
 }
+
+/* ── Migrado de page-priority.css ── */
+.leftpanel {
+  padding-top: var(--space-sm);
+}
