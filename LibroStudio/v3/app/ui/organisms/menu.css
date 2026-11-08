@@ -1,0 +1,31 @@
+/* Organismo: menú desplegable (popover nativo). Se cierra solo al hacer clic afuera o con Escape.
+   Material de menú: el más opaco, para leerse sobre cualquier fondo. */
+.menu {
+  --menu-width: 260px;
+  width: var(--menu-width);
+  margin: 0;
+  padding: var(--space-2xs);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-md);
+  background: var(--material-popover);
+  backdrop-filter: var(--material-blur-popover);
+  color: var(--text-primary);
+  box-shadow: var(--elevation-2);
+}
+.menu-separator {
+  height: var(--border-width);
+  margin: var(--space-2xs) var(--space-xs);
+  border: 0;
+  background: var(--line-subtle);
+}
+
+/* Menú de espacio de trabajo: debajo de su botón de la barra. */
+#workspace {
+  anchor-name: --workspace-button;
+}
+#workspaceMenu {
+  position-anchor: --workspace-button;
+  inset: auto;
+  top: calc(anchor(bottom) + var(--space-2xs));
+  left: anchor(left);
+}

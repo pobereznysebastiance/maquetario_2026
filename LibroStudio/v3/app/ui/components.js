@@ -46,6 +46,17 @@
       return `<div class="skeleton" role="status" aria-busy="true" aria-label="${html(o.label || '')}">${'<span class="skeleton-line"></span>'.repeat(lines)}</div>`;
     },
 
+    /** Molécula: opción de menú. Con checked muestra la marca de la opción elegida. */
+    menuItem(o) {
+      const mark = o.icon ? icon(o.icon) : o.checked ? icon('check') : '<span class="menu-item-mark"></span>';
+      return `<button${attrs({ type: 'button', id: o.id, class: 'menu-item', role: o.checked === undefined ? 'menuitem' : 'menuitemradio', 'aria-checked': o.checked === undefined ? undefined : String(!!o.checked) })}>${mark}<span class="menu-item-text"><span class="menu-item-title">${html(o.title)}</span>${o.description ? `<span class="menu-item-description">${html(o.description)}</span>` : ''}</span></button>`;
+    },
+
+    /** Molécula: casilla con etiqueta (listas de opciones que se prenden y apagan). */
+    checkItem(o) {
+      return `<label class="check-item"><input${attrs({ type: 'checkbox', id: o.id, 'data-item': o.item, checked: !!o.checked, disabled: !!o.disabled })}><span>${html(o.label)}</span></label>`;
+    },
+
     /** Molécula: fila de preferencia (etiqueta y ayuda a la izquierda, control a la derecha). */
     settingRow(o) {
       return `<div class="setting-row"><div class="setting-row-label">${html(o.label)}${o.help ? `<p class="setting-row-help">${html(o.help)}</p>` : ''}</div><div class="setting-row-control">${o.control}</div></div>`;

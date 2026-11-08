@@ -1,0 +1,17 @@
+/* Molécula: casilla con etiqueta (UI.checkItem). */
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: var(--control-sm);
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  cursor: pointer;
+}
+.check-item:has(input:disabled) {
+  color: var(--text-disabled);
+  cursor: default;
+}
+.check-item input {
+  margin: 0;
+}

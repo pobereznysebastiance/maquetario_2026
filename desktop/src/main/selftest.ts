@@ -133,6 +133,23 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     if (!r.closed || r.value !== false || !r.toolKept || !r.pagesKept) throw new Error(result);
     return ['Cancelar cierra y no confirma', 'Las teclas no llegan a los atajos de la app'];
   });
+  await step('espacios de trabajo', async () => {
+    const result = await exec<string>(
+      session,
+      "(()=>{const W=MaquetarioWorkspace,h=s=>document.querySelector(s)?.hasAttribute('data-workspace-hidden');W.setMode('simple');const simple={frame:h('[data-tool=\"frame\"]'),select:h('[data-tool=\"select\"]'),objectTab:h('.tab[data-tab=\"object\"]'),templates:h('.template-panel')};W.setVisible('tool:frame',true);const custom={mode:W.mode(),frame:h('[data-tool=\"frame\"]')};W.setMode('default');const any=document.querySelectorAll('[data-workspace-hidden]').length;return JSON.stringify({simple,custom,any});})()",
+    );
+    const r = JSON.parse(result);
+    const ok = r.simple.frame && !r.simple.select && r.simple.objectTab && r.simple.templates && r.custom.mode === 'custom' && !r.custom.frame && r.any === 0;
+    if (!ok) throw new Error(result);
+    await exec(session, 'MaquetarioWorkspace.toggleMenu()');
+    await delay(250);
+    await capture('menu-espacios.png');
+    await exec(session, "document.querySelector('#workspaceMenu').hidePopover(); openSettings('workspace')");
+    await delay(400);
+    await capture('configuracion-espacio.png');
+    await exec(session, "document.querySelector('#modal').close()");
+    return ['Inicial oculta lo avanzado', 'Personalizado guarda la selección', 'Predeterminado muestra todo'];
+  });
   await step('PDF de cubierta', async () => {
     await exec(session, 'window.prepareCoverProof()');
     await delay(300);

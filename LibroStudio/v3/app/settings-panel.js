@@ -36,6 +36,16 @@
     addFolder: ['Agregar carpeta…', 'Add folder…', 'Adicionar pasta…'],
     desktopOnly: ['Disponible en la app de escritorio.', 'Available in the desktop app.', 'Disponível no app para desktop.'],
     about: ['Acerca de', 'About', 'Sobre'],
+    workspace: ['Espacio de trabajo', 'Workspace', 'Espaço de trabalho'],
+    workspaceMode: ['Espacio activo', 'Active workspace', 'Espaço ativo'],
+    workspaceHelp: [
+      'Tocá cualquier casilla para armar tu espacio Personalizado. El libro no cambia.',
+      'Tick any box to build your Custom workspace. The book does not change.',
+      'Marque qualquer caixa para montar seu espaço Personalizado. O livro não muda.',
+    ],
+    tools: ['Herramientas', 'Tools', 'Ferramentas'],
+    tabs: ['Pestañas del inspector', 'Inspector tabs', 'Abas do inspetor'],
+    zones: ['Zonas', 'Areas', 'Áreas'],
     createdBy: ['Creado por', 'Created by', 'Criado por'],
   };
   const t = (key) => bw(...text[key]);
@@ -72,7 +82,20 @@
     return `${list}<button type="button" class="btn" id="settingsAddFolder"><span data-icon="folder"></span>${t('addFolder')}</button>`;
   }
 
-  async function openSettings() {
+  function workspaceBody() {
+    const ws = window.MaquetarioWorkspace;
+    if (!ws) return '';
+    const names = { simple: bw('Inicial', 'Starter', 'Inicial'), default: bw('Predeterminado', 'Default', 'Padrão'), custom: bw('Personalizado', 'Custom', 'Personalizado') };
+    const select = `<select id="settingsWorkspace">${Object.entries(names).map(([id, n]) => `<option value="${id}">${esc(n)}</option>`).join('')}</select>`;
+    const groups = [['tools', t('tools')], ['tabs', t('tabs')], ['zones', t('zones')]];
+    const items = ws.items();
+    const lists = groups
+      .map(([group, title]) => `<div class="settings-checklist"><h4 class="settings-checklist-title">${esc(title)}</h4>${items.filter((i) => i.group === group).map((i) => UI.checkItem({ item: i.id, label: i.label, checked: ws.isVisible(i.id), disabled: i.locked })).join('')}</div>`)
+      .join('');
+    return row(t('workspaceMode'), select) + `<p class="settings-help">${t('workspaceHelp')}</p><div class="settings-checklists">${lists}</div>`;
+  }
+
+  async function openSettings(focusSection) {
     // Volver a armar el panel (al cambiar idioma o carpetas) requiere cerrarlo antes: showModal falla si ya está abierto.
     if ($('#modal').open) $('#modal').close();
     let info = null;
@@ -100,6 +123,7 @@
             t('interfaceHelp'),
           ),
       ) +
+      `<div id="settings-section-workspace">${section(t('workspace'), workspaceBody())}</div>` +
       section(t('fonts'), `<p class="settings-help">${t('fontsHelp')}</p>${foldersBody()}`) +
       section(
         t('about'),
@@ -113,6 +137,22 @@
     icons();
 
     const languageSelect = $('#settingsLanguage');
+    const workspaceSelect = $('#settingsWorkspace');
+    if (workspaceSelect) {
+      workspaceSelect.value = MaquetarioWorkspace.mode();
+      workspaceSelect.onchange = () => {
+        MaquetarioWorkspace.setMode(workspaceSelect.value);
+        openSettings('workspace');
+      };
+      $$('#modalBody .check-item input[data-item]').forEach((box) => {
+        box.onchange = () => {
+          MaquetarioWorkspace.setVisible(box.dataset.item, box.checked);
+          workspaceSelect.value = MaquetarioWorkspace.mode();
+        };
+      });
+    }
+    if (focusSection) $(`#settings-section-${focusSection}`)?.scrollIntoView({ block: 'start' });
+
     languageSelect.value = language;
     languageSelect.onchange = () => {
       setLanguage(languageSelect.value);

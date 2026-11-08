@@ -42,6 +42,8 @@
 @import url('molecules/action-item.css') layer(molecules);
 @import url('molecules/setting-row.css') layer(molecules);
 @import url('molecules/term-help.css') layer(molecules);
+@import url('molecules/menu-item.css') layer(molecules);
+@import url('molecules/check-item.css') layer(molecules);
 @import url('organisms/topbar.css') layer(organisms);
 @import url('organisms/settings.css') layer(organisms);
 @import url('organisms/sidebar.css') layer(organisms);
@@ -50,5 +52,6 @@
 @import url('organisms/welcome.css') layer(organisms);
 @import url('organisms/zoom-bar.css') layer(organisms);
 @import url('organisms/dialog.css') layer(organisms);
+@import url('organisms/menu.css') layer(organisms);
 @import url('templates/window.css') layer(templates);
 @import url('templates/workspace.css') layer(templates);
