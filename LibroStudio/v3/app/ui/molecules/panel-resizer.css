@@ -45,3 +45,11 @@
   width: var(--resizer-grip-wide);
   height: var(--resizer-grip-thin);
 }
+
+/* ── Migrado de readability.css ── */
+.panel-resizer:is(:hover, :focus-visible) {
+  background: var(--surface-selected-strong);
+}
+.panel-resizing {
+  user-select: none;
+}

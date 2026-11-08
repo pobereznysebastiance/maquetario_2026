@@ -839,3 +839,102 @@
 .binding-estimate[open] summary {
   margin-bottom: var(--space-md);
 }
+
+/* ── Migrado de canvas-navigation.css: atajos para moverse por la maqueta ── */
+.canvas-shortcut-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.canvas-shortcut-table :is(th, td) {
+  padding: var(--space-md) 0;
+  border-bottom: var(--border-width) solid var(--line-default);
+  font-size: var(--type-md);
+}
+.canvas-shortcut-table th {
+  padding-right: var(--space-lg);
+  color: var(--text-mark);
+  text-align: left;
+  white-space: nowrap;
+}
+.canvas-shortcut-table td {
+  line-height: 1.6;
+}
+
+/* ── Migrado de package-proof.css: ficha de medidas ── */
+.cover-tabs button[hidden] {
+  display: none;
+}
+.cover-sheet-layout {
+  --cover-sheet-aside-min: 210px;
+  display: grid;
+  grid-template-columns: minmax(var(--cover-sheet-aside-min), 1fr) minmax(0, 2fr);
+  gap: var(--space-lg);
+}
+.cover-sheet-layout aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+#coverSheetPreview {
+  --cover-sheet-preview-min: 350px;
+  --cover-sheet-preview-height: min(50vh, 570px);
+  display: grid;
+  place-items: center;
+  height: var(--cover-sheet-preview-height);
+  min-height: var(--cover-sheet-preview-min);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-canvas);
+  overflow: hidden;
+}
+@media (max-width: 730px) {
+  .cover-sheet-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Migrado de readability.css: galería de grillas ── */
+.grid-gallery-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+.grid-card {
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-lg);
+  text-align: left;
+}
+.grid-card:is(:hover, .active) {
+  border-color: var(--text-mark);
+  background: var(--status-warning-surface);
+}
+.grid-card .template-art {
+  margin-top: auto;
+  margin-right: auto;
+  margin-left: auto;
+}
+.grid-card strong {
+  display: block;
+  margin: var(--space-sm) 0;
+  font-size: var(--type-md);
+}
+.grid-card small {
+  display: block;
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  line-height: var(--leading-text);
+}
+
+/* ── Migrado de category-design.css: funciones de los estilos en la pauta ── */
+.rule-style-input {
+  display: grid;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-md);
+}
+.rule-style-input label {
+  display: grid;
+  gap: var(--space-2xs);
+}

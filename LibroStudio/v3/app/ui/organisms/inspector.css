@@ -642,3 +642,55 @@
   border: var(--border-width) solid var(--line-default);
   border-radius: var(--radius-md);
 }
+
+/* ── Migrado de editorial.css, maquetario.css, workspace.css y studio.css: índice, capas e insignias ── */
+.toc-list {
+  display: grid;
+  gap: var(--space-xs);
+  margin: var(--space-md) 0;
+}
+.toc-entry {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-field);
+  font-size: var(--type-xs);
+}
+.toc-entry > span {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.toc-entry strong {
+  color: var(--text-accent);
+  font-weight: var(--weight-medium);
+}
+.toc-entry .icon-btn {
+  --toc-icon-size: 18px;
+  width: var(--toc-icon-size);
+  height: var(--toc-icon-size);
+  font-size: var(--type-lg);
+}
+.toc-entry .btn {
+  color: var(--text-mark);
+}
+.layer-row.drop-target {
+  --layer-drop-line: 3px;
+  border-top-width: var(--layer-drop-line);
+}
+.layer-row.is-hidden .layer-name {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+.section-heading .tiny {
+  margin-left: auto;
+  padding: var(--space-3xs) var(--space-2xs);
+  border: var(--border-width) solid var(--status-warning-line);
+  border-radius: var(--radius-sm);
+  background: var(--status-warning-surface);
+  color: var(--text-mark);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-regular);
+}

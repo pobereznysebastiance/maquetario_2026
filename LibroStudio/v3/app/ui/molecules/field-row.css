@@ -22,3 +22,8 @@
   justify-content: space-between;
   gap: var(--space-sm);
 }
+
+/* ── Migrado de readability.css: campo con unidad en una fila ── */
+.field-row > .unit-wrap {
+  width: var(--field-width);
+}

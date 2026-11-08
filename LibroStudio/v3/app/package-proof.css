@@ -1,20 +1,3 @@
 
 .mqt-paragraph { overflow-wrap: normal; word-break: normal; }
-.cover-tabs button[hidden] { display: none; }
-.cover-sheet-dialog { width: min(940px, 94vw); }
-.cover-sheet-layout { display: grid; grid-template-columns: minmax(210px, 1fr) minmax(0, 2fr); gap: 18px; }
-.cover-sheet-layout aside { display: flex; flex-direction: column; gap: 10px; }
-#coverSheetPreview {
-  display: grid;
-  place-items: center;
-  min-height: 350px;
-  height: min(50vh, 570px);
-  overflow: hidden;
-  background: #0D252C;
-  border: 1px solid #68B3AA55;
-  border-radius:var(--radius-lg);
-}
 #coverSheetPreview .print-page { background: white; box-shadow: 0 4px 18px #0008; }
-@media (max-width: 730px) {
-  .cover-sheet-layout { grid-template-columns: 1fr; }
-}

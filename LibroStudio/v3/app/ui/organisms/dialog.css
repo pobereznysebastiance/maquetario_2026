@@ -214,3 +214,8 @@ dialog .modal-actions {
 .format-option strong {
   color: var(--text-primary);
 }
+
+/* ── Migrado de package-proof.css: ficha de medidas de la cubierta ── */
+.cover-sheet-dialog {
+  width: min(var(--dialog-cover-sheet-width), 94vw);
+}

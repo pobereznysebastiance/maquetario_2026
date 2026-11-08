@@ -1,6 +1,6 @@
-/* Base: sólo lo que es de todo el documento.
-   Ojo: por estar en una capa superior a "legacy", una regla de elemento acá
-   (button, input…) pisaría todos los estilos viejos. Por eso no hay ninguna. */
+/* Base: lo que es de todo el documento y el reinicio de los elementos.
+   Está en una capa superior a "legacy": una regla de elemento acá pisa lo viejo. Ya se puede porque
+   en legacy sólo queda lo que dibuja el libro y la impresión, que no usa botones ni campos. */
 html {
   background: var(--surface-window);
 }
@@ -55,4 +55,39 @@ body {
 }
 :is(p, li, small, .help-text):not(:is(#spread, #printRoot, .thumbnails) *) {
   text-wrap: pretty;
+}
+
+/* ── Migrado de studio.css: reinicio de elementos ── */
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+button,
+input,
+select,
+textarea {
+  color: inherit;
+  font: inherit;
+}
+button {
+  cursor: pointer;
+  transition:
+    background var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out);
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+button:hover {
+  color: var(--text-primary);
+}
+:is(input:not([type='range'], [type='checkbox'], [type='file']), select):hover {
+  border-color: var(--line-strong);
 }

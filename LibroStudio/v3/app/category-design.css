@@ -1,8 +1,0 @@
-:root { --control-radius: 6px; --panel-radius: 10px; }
-body :is(dialog,.topbar,.leftpanel,.center,.inspector,.tutorial-card) { border-radius: var(--panel-radius); }
-body :is(.btn,.tool,.icon-btn,.format-option,.tool-action,button.quiet,input:not([type=range]),select,textarea) {
-  border-radius: var(--control-radius);
-}
-body .close-publication-modal { border-radius:var(--radius-lg); }
-.rule-style-input { display: grid; gap: 8px; padding: 12px; border: 1px solid #71bdb544; border-radius:var(--radius-md); }
-.rule-style-input label { display: grid; gap: 4px; }

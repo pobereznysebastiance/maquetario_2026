@@ -45,6 +45,16 @@
     ['buscador de fuentes', async () => { close(); sel('text'); showTab('text'); await wait(200); const s = $('#inspectorContent select[data-object="font"], #inspectorContent select.font-native-hidden'); if (s) openFontBrowser(s); await wait(500); }],
     ['glifos', async () => { close(); sel('text'); showFontGlyphs(); await wait(500); }],
     ['reglas internas', () => { close(); editorialRulesDialog(); }],
+    ['galería de grillas', () => { close(); gridGallery(); }],
+    ['atajos', () => { close(); [...document.querySelectorAll('button')].find((b) => /Atajos de navegación/.test(b.title))?.click(); }],
+    // Se abre desde la cubierta: necesita una (el libro de ejemplo no trae).
+    ['ficha de medidas', () => { close(); book.cover = book.cover || defaultCover(); coverSheetDialog('pdf'); }],
+    // Recientes con proyectos (la lista real depende del equipo): se dibuja con la misma plantilla.
+    ['recientes', () => {
+      close(); showWelcome();
+      const list = $('#recentProjects');
+      if (list) list.innerHTML = ['El atlas de las casas vacías', 'Borrador sin título'].map((name, i) => `<button class="recent-project ${i ? 'missing' : ''}"><span class="recent-cover">${icon('pages')}</span><span class="recent-details user-content"><strong>${name}</strong><small>C:\\Libros\\${i ? 'borrador' : 'atlas'}.mqt</small></span><span class="recent-date">${i ? 'No encontrado' : '8/11/2026'}</span><span class="recent-arrow">↗</span></button>`).join('');
+    }],
     // Último: reemplaza el libro por uno en blanco.
     ['sin documento', () => { close(); hideWelcome(); activateBlankDocument(); }],
   ];

@@ -289,3 +289,60 @@
     gap: 3vw;
   }
 }
+
+/* ── Migrado de workspace.css y readability.css: proyectos recientes ── */
+.recent-project {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  padding: var(--space-md) 0;
+  border: 0;
+  border-bottom: var(--border-width) solid var(--line-default);
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+}
+.recent-project:hover {
+  background: var(--surface-control);
+}
+.recent-cover {
+  --recent-cover-width: 32px;
+  --recent-cover-height: 37px;
+  display: grid;
+  place-items: center;
+  width: var(--recent-cover-width);
+  height: var(--recent-cover-height);
+  border-width: var(--border-width);
+  border-style: solid;
+}
+.recent-details {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+.recent-details strong {
+  display: block;
+  margin-bottom: var(--space-2xs);
+  font-size: var(--type-lg);
+  font-weight: var(--weight-medium);
+}
+.recent-details small {
+  --recent-path-max: 260px;
+  display: block;
+  max-width: var(--recent-path-max);
+  color: var(--text-tertiary);
+  font-size: var(--type-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.recent-date {
+  color: var(--text-tertiary);
+  font-size: var(--type-sm);
+}
+.recent-arrow {
+  font-size: var(--type-lg);
+}
+.recent-project.missing .recent-details {
+  opacity: 0.5;
+}

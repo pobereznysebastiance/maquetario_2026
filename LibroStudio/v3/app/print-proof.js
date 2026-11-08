@@ -117,9 +117,7 @@ function coverSheetDialog(destination) {
     void sendOutput(destination,{options,copies,printer,duplex:'one'});
     return false;
   },printing?w.send:w.save);
-  const dialog = $('#modal');
-  dialog.classList.add('cover-sheet-dialog');
-  dialog.addEventListener('close',()=>dialog.classList.remove('cover-sheet-dialog'),{once:true});
+  dialogVariant('cover-sheet-dialog');
   function refresh() {
     const box = $('#coverSheetPreview'), options = config();
     $('#outputError').textContent = '';

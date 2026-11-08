@@ -226,3 +226,9 @@ select option {
 .folio-placement .field-row .unit-wrap input {
   --unit-input-pad: 35px;
 }
+
+/* ── Migrado de studio.css: el foco del interruptor se ve en la pista (la casilla es invisible) ── */
+.switch input:focus-visible + span {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}

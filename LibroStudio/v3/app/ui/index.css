@@ -27,7 +27,6 @@
 @import url('../test-feedback.css') layer(legacy);
 @import url('../package-proof.css') layer(legacy);
 @import url('../document-view.css') layer(legacy);
-@import url('../category-design.css') layer(legacy);
 
 /* Sistema de diseño */
 @import url('tokens/primitives.css') layer(tokens);
