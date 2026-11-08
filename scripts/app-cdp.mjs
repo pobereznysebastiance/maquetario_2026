@@ -12,7 +12,7 @@
 //
 // Mientras dura cada llamada la vista se fija en 1536 × 1024 a escala 1 (como pide el método de
 // docs/proximos-pasos.md), sin importar el tamaño de la ventana ni la escala de la pantalla.
-// APP_CDP_SIZE=0 lo desactiva. Con la ventana minimizada Chromium no dibuja: las capturas esperan.
+// APP_CDP_SIZE=1920x1020 usa otra medida (la de la autoprueba); APP_CDP_SIZE=0 lo desactiva. Con la ventana minimizada Chromium no dibuja: las capturas esperan.
 // APP_CDP_TIMEOUT: segundos de espera (60 por defecto; la sonda legacy en hojas grandes tarda más).
 import { readFileSync, writeFileSync } from 'node:fs'
 
@@ -49,7 +49,8 @@ setTimeout(() => {
 }, timeout * 1000).unref()
 
 if (process.env.APP_CDP_SIZE !== '0') {
-  await send('Emulation.setDeviceMetricsOverride', { width: 1536, height: 1024, deviceScaleFactor: 1, mobile: false })
+  const [width, height] = (process.env.APP_CDP_SIZE || '1536x1024').split('x').map(Number)
+  await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false })
 }
 
 const evaluate = async (expression) => {

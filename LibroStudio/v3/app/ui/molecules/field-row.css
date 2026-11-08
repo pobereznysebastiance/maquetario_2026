@@ -1,0 +1,5 @@
+/* Molécula: fila de campo (etiqueta a la izquierda, control a la derecha) en diálogos y paneles.
+   El inspector le pone su propia grilla y espaciado en organisms/inspector.css. */
+.field-row {
+  margin-block: var(--space-sm);
+}
