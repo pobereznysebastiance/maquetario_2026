@@ -37,7 +37,9 @@ Sigue (etapa 2 de `arquitectura.md`): sacar del build de producción las pruebas
 
 ## 2. Vaciar la capa legacy
 
-`npm run lint:design` informa la deuda: **440 colores** (eran 965), 62 `!important`, 111 estilos desde JS. Legacy: 62,6 KB (eran 98,9). Criterio: cuando una pieza ya está en su organismo de `ui/`, borrar sus reglas de las hojas viejas.
+**Estado (8-nov, fin del día):** la interfaz ya no tiene nada en legacy. Quedan **18,5 KB en 21 hojas, 97 colores** (eran 98,9 KB y 965 colores al empezar): lo que dibuja el libro en el editor (pliego, página, objetos, tiradores, guías, imán, figuras, miniaturas, página activa, vista continua), la impresión (`@media print`, `#printRoot`, hojas de la vista previa), `@font-face` de DM Sans, las variables de `:root` que usa eso, y `@media` viejas ya anuladas por `ui/`. `npm run lint:design` informa la deuda que queda.
+
+Criterio: cuando una pieza ya está en su organismo de `ui/`, borrar sus reglas de las hojas viejas.
 
 ### Método
 
@@ -79,19 +81,22 @@ Cuidado al migrar una regla de varios selectores: la sonda la marca efectiva si 
 - Avisos con tipo: `toast(mensaje, 'success' | 'info' | 'warning' | 'error')`, color e ícono por tipo; las 44 llamadas pasan el suyo. La regla vieja de `#toast` en `glass.css` se borró sin cambio visible.
 - `scripts/app-cdp.mjs` para medir y capturar sobre la app de escritorio.
 
+### Hecho el 8-nov (tandas 3 a 5)
+
+- Interfaz migrada por completo: workspace, page-priority, editorial-learning, canvas-navigation, revisión de salida, asistente, paneles del inspector, pestañas por categoría, buscador y biblioteca de fuentes, glifos, pauta tipográfica, cubierta, ficha de medidas, galería de grillas, atajos, recientes, tutorial, barra superior y átomos (campo de color, campo con unidad, interruptor, tecla `kbd`). Barrido de 81 reglas muertas. `fonts.css` y `category-design.css` quedaron vacías y se quitaron.
+- Reinicio de elementos (`*`, `html/body`, botones y campos) a `base.css`.
+- Escultura oculta de la bienvenida y `.welcome-eyebrow`: fuera.
+- Pauta tipográfica: el interlineado ya no muestra decimales de más (19,6 pt).
+- `scripts/app-cdp.mjs`: `APP_CDP_SIZE` y `APP_CDP_TIMEOUT`. Electron en desarrollo con `--no-throttle` para que la sonda no se frene con la ventana minimizada (de 50 minutos a 3).
+- `style-snapshot.js` recorre además: glosario, cerrar sin guardar, foco, interfaz grande, asistente, buscador de fuentes, glifos, pauta tipográfica, galería, atajos, ficha de medidas, recientes y sin documento.
+
+**Errores que se repitieron y cómo evitarlos:** (1) portar declaraciones que en legacy ya no pesaban (`ui/` les ganaba) las hace ganar y cambia la interfaz: portar sólo lo que marca `legacyProps`, y por texto sólo lo que la sonda no recorre; (2) `width: 100%` en grillas dentro de flex y `background: none` en botones a veces no salen en `legacyProps` pero hacen falta: revisar el texto original; (3) formas cortas (`border:`) que pisan el `border-color` que el organismo ya tenía: usar propiedades largas.
+
 ### Para retomar (orden sugerido)
 
-1. La tanda workspace, page-priority, editorial-learning, canvas-navigation se rehace desde cero (el `git stash` quedó en la otra compu y no se recupera). Método completo: app de escritorio con `scripts/app-cdp.mjs`, `styleSnapshot` antes de tocar nada (con `localStorage` limpio y dos fotos de base), migrar, foto después y comparar.
-2. Al portar una regla, buscar antes si una regla vieja más específica le ganaba (en `ui/` la portada pasa a ganar siempre). Así se agrandaron los botones de la bienvenida y la ayuda de fuentes, y el diálogo de salida pasó a dos columnas; ya corregido.
-3. Seguir con las hojas restantes de a una o dos por tanda.
-4. Diálogos que todavía son columnas largas: Configuración del libro (820 × 747, casi cuadrado: formatos a la izquierda y campos a la derecha), asistente, glosario. En Cubierta, "Imagen de esta zona / Quitar imagen" aparece dos veces (arriba y abajo de la zona): dejar una.
-5. Después de vaciar legacy: etapa 2 de `arquitectura.md` (pruebas fuera del build, TypeScript y módulos).
-
-### Queda
-- Reglas de la barra superior y de la barra del documento en `editorial.css`, `maquetario.css`, `output.css` y `readability.css`: migrarlas cuando se revise `organisms/topbar.css`, probando en Electron (la sonda no ve los controles de ventana).
-- Las otras 19 hojas tienen unas 300 reglas efectivas: migrarlas por pieza con el mismo método (`legacyProps`). Las más grandes: `workspace.css`, `page-priority.css`, `editorial-learning.css`, `canvas-navigation.css`.
-- La bienvenida crea una "escultura" que siempre queda oculta (`book-workflow.js`, `.welcome-sculpture`): sacar ese código y la regla que la oculta.
-- `.eyebrow` (texto chico sobre un título) va contra las reglas de diseño: revisar dónde aparece y sacarlo.
+1. **Lo que dibuja el libro y la impresión** (lo último de legacy): pasarlo a su propia hoja de `ui/` (por ejemplo `ui/book/`), en una capa del mismo lugar que hoy ocupa legacy (debajo de `tokens`), con los colores del papel, guías y selección como tokens de valor exacto. Verificar con la autoprueba: los PDF y JSON de verificación tienen que salir idénticos, y comparar capturas del editor (el lienzo no lo cubre `style-snapshot`). Con legacy vacío, sacar la capa y los `:root` viejos.
+2. Diálogos que todavía son columnas largas: Configuración del libro (formatos a la izquierda y campos a la derecha), glosario. En Cubierta, "Imagen de esta zona / Quitar imagen" aparece dos veces (arriba y abajo de la zona): dejar una.
+3. Después: etapa 2 de `arquitectura.md` (pruebas fuera del build, TypeScript y módulos).
 
 ## 3. Experiencia de uso
 
