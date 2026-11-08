@@ -1,12 +1,48 @@
-'use strict';
-let shapeKind = 'rect';
-const shapeNames = {
+// Figuras: rectángulo, rectángulo redondeado, elipse y polígono, que sirven de fondo o de
+// contenedor de una imagen. Herramienta Figuras (elegir y arrastrar sobre la página, con Shift
+// para proporciones iguales), dibujo en el lienzo y en la salida, panel de relleno y trazo en
+// Objeto, y validación de sus campos en el modelo.
+//
+// Publica shapeKind, shapeNames y newShape (los usa tests/shapes-tests.js, que también cambia
+// shapeKind: por eso vive en globalThis), shapeChooser (captura de Host.cs),
+// prepareGlassShapePreview (captura) y shapeOutputReady (lo espera el anfitrión antes de imprimir).
+//
+// Ojo con el orden: este archivo reemplaza M.validate envolviendo al anterior, al cargar (después
+// de master-refinement, que lo envolvió antes).
+//
+// Fuente TypeScript: se compila a build/shapes.js (desktop/scripts/build.mjs).
+import type { Book, BookObject, LibroModelApi } from './model.ts';
+import type { OutputConfig, OutputInfo } from './output.ts';
+
+/** Nombre de cada figura: castellano, inglés y portugués. */
+type ShapeLabels = [string, string, string];
+
+/** Lo que hace falta para dibujar una figura (la del selector no tiene posición). */
+type ShapeObject = Pick<BookObject, 'id' | 'type' | 'w' | 'h'> & { [extra: string]: any };
+
+declare global {
+  /** Figura que dibuja la herramienta Figuras (rect, round, ellipse o polygon). */
+  var shapeKind: string;
+  var shapeNames: Record<string, ShapeLabels>;
+  /** Figura nueva del tipo shapeKind, con relleno y trazo por defecto. */
+  var newShape: (x: number, y: number, w: number, h: number) => BookObject;
+  /** Diálogo para elegir la figura que se va a dibujar. */
+  var shapeChooser: () => void;
+  /** Arma la página de muestra con figuras, para la captura. */
+  var prepareGlassShapePreview: () => void;
+  /** Las imágenes dentro de figuras terminaron de cargar (lo espera el anfitrión). */
+  var shapeOutputReady: boolean;
+}
+
+globalThis.shapeKind = 'rect';
+const shapeNames: Record<string, ShapeLabels> = {
   rect: ['Rectángulo', 'Rectangle', 'Retângulo'],
   round: ['Rectángulo redondeado', 'Rounded rectangle', 'Retângulo arredondado'],
   ellipse: ['Elipse / círculo', 'Ellipse / circle', 'Elipse / círculo'],
   polygon: ['Polígono', 'Polygon', 'Polígono'],
 };
-function shapePoints(o, inset = 0) {
+globalThis.shapeNames = shapeNames;
+function shapePoints(o: ShapeObject, inset = 0): string {
   const cx = o.w / 2,
     cy = o.h / 2,
     rx = Math.max(0.01, cx - inset),
@@ -17,7 +53,7 @@ function shapePoints(o, inset = 0) {
     return `${cx + rx * Math.cos(a)},${cy + ry * Math.sin(a)}`;
   }).join(' ');
 }
-function shapePath(o) {
+function shapePath(o: ShapeObject): string {
   const stroke = o.strokeWidth ?? 0.5,
     inset = stroke / 2,
     w = Math.max(0.01, o.w - stroke),
@@ -27,17 +63,17 @@ function shapePath(o) {
   if (o.shape === 'polygon') return `<polygon points="${shapePoints(o, inset)}"/>`;
   return `<rect x="${inset}" y="${inset}" width="${w}" height="${h}" rx="${o.shape === 'round' ? Math.min(o.cornerRadius ?? 5, w / 2, h / 2) : 0}"/>`;
 }
-function shapeSvg(o) {
+function shapeSvg(o: ShapeObject): string {
   const path = shapePath(o),
     clip = 'clip-shape-' + o.id;
   return `<svg class="editorial-shape-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${o.w} ${o.h}" preserveAspectRatio="none"><defs><clipPath id="${clip}">${path}</clipPath></defs><g fill="${o.fill || 'none'}" stroke="none">${path}</g>${o.type === 'image' ? `<image href="${esc(o.src)}" x="0" y="0" width="${o.w}" height="${o.h}" preserveAspectRatio="${o.imageFit === 'contain' ? 'xMidYMid meet' : 'xMidYMid slice'}" clip-path="url(#${clip})"/>` : ''}<g fill="none" stroke="${o.stroke || 'none'}" stroke-width="${o.strokeWidth ?? 0.5}" ${o.strokeStyle === 'dashed' ? 'stroke-dasharray="3 2"' : o.strokeStyle === 'dotted' ? 'stroke-dasharray=".2 1.5" stroke-linecap="round"' : ''}>${path}</g></svg>`;
 }
 extend.result(
   'paper',
-  function (page, index, px, print = false) {
+  function (page: HTMLElement, index: number, px: number, print = false): HTMLElement {
     for (const o of book.pages[index].objects) {
       if (!o.shape) continue;
-      const el = page.querySelector(`[data-id="${o.id}"]`);
+      const el = page.querySelector<HTMLElement>(`[data-id="${o.id}"]`);
       if (!el) continue;
       el.classList.remove('frame');
       el.classList.add('editorial-shape');
@@ -47,7 +83,10 @@ extend.result(
       el.style.opacity = '1';
       el.querySelectorAll(':scope > .icon,:scope > img').forEach((n) => n.remove());
       el.insertAdjacentHTML('afterbegin', shapeSvg(o));
-      el.querySelector('.editorial-shape-svg').style.opacity = (o.opacity ?? 100) / 100;
+      // String() da el mismo texto que el estilo al recibir un número.
+      el.querySelector<SVGElement>('.editorial-shape-svg')!.style.opacity = String(
+        (o.opacity ?? 100) / 100,
+      );
       const badge = el.querySelector('.object-badge');
       if (badge) badge.textContent = bw(...shapeNames[o.shape]);
     }
@@ -55,8 +94,8 @@ extend.result(
   },
   'shapes',
 );
-const beforeShapeValidation = M.validate;
-M.validate = function (input) {
+const beforeShapeValidation: LibroModelApi['validate'] = M.validate;
+M.validate = function (input: any): Book {
   const b = beforeShapeValidation(input);
   for (const p of b.pages)
     for (const o of p.objects) {
@@ -71,7 +110,7 @@ M.validate = function (input) {
           ['cornerRadius', 0, 100],
           ['opacity', 0, 100],
           ['sides', 3, 12],
-        ])
+        ] as const)
           if (
             o[key] !== undefined &&
             (!Number.isFinite(o[key]) ||
@@ -86,7 +125,7 @@ M.validate = function (input) {
     }
   return b;
 };
-function shapeChooser() {
+function shapeChooser(): void {
   if (!hasDocument) {
     settings(true);
     return;
@@ -107,7 +146,7 @@ function shapeChooser() {
   $$('[data-shape-kind]').forEach(
     (b) =>
       (b.onclick = () => {
-        shapeKind = b.dataset.shapeKind;
+        shapeKind = b.dataset.shapeKind!;
         $('#modal').close();
         finishEditing();
         selected = null;
@@ -125,6 +164,7 @@ function shapeChooser() {
       }),
   );
 }
+globalThis.shapeChooser = shapeChooser;
 const shapeTool = document.createElement('button');
 shapeTool.type = 'button';
 shapeTool.className = 'tool';
@@ -134,7 +174,7 @@ shapeTool.innerHTML = icon('frame') + '<span>' + bw('Figuras', 'Shapes', 'Figura
 shapeTool.title = bw('Figuras y contenedores', 'Shapes and containers', 'Figuras e contêineres');
 shapeTool.onclick = shapeChooser;
 $('[data-tool="frame"]').after(shapeTool);
-function newShape(x, y, w, h) {
+function newShape(x: number, y: number, w: number, h: number): BookObject {
   return {
     id: M.uid(),
     type: 'frame',
@@ -153,11 +193,12 @@ function newShape(x, y, w, h) {
     sides: 6,
   };
 }
+globalThis.newShape = newShape;
 extend.instead(
   'pageDown',
   () => tool === 'shape',
-  function (e, index, page) {
-    if (preview || busy || e.button !== 0 || e.target.closest('.paper-object')) return;
+  function (e: PointerEvent, index: number, page: HTMLElement) {
+    if (preview || busy || e.button !== 0 || (e.target as Element).closest('.paper-object')) return;
     e.preventDefault();
     e.stopPropagation();
     finishEditing();
@@ -172,7 +213,7 @@ extend.instead(
     let rect = { x: start.x, y: start.y, w: 1, h: 1 },
       moved = false;
     page.setPointerCapture(e.pointerId);
-    const move = (ev) => {
+    const move = (ev: PointerEvent) => {
       const x = Math.max(0, Math.min(book.width, (ev.clientX - bounds.left) / scale)),
         y = Math.max(0, Math.min(book.height, (ev.clientY - bounds.top) / scale));
       let dx = x - start.x,
@@ -197,7 +238,7 @@ extend.instead(
       });
       ghost.innerHTML = shapeSvg(newShape(0, 0, rect.w, rect.h));
     };
-    const end = (ev) => {
+    const end = (ev: PointerEvent) => {
       page.removeEventListener('pointermove', move);
       page.removeEventListener('pointerup', end);
       page.removeEventListener('pointercancel', cancel);
@@ -220,7 +261,7 @@ extend.instead(
       showTab('object');
       $('#spread').style.cursor = 'default';
     };
-    const cancel = (ev) => {
+    const cancel = (ev: PointerEvent) => {
       page.removeEventListener('pointermove', move);
       page.removeEventListener('pointerup', end);
       page.removeEventListener('pointercancel', cancel);
@@ -233,7 +274,7 @@ extend.instead(
   },
   'shapes',
 );
-function shapeAppearance() {
+function shapeAppearance(): void {
   if (tab !== 'object') return;
   const o = selectObject(),
     host = $('#inspectorContent');
@@ -262,24 +303,29 @@ function shapeAppearance() {
       .join('')}</select>`,
   )}${row(bw('Opacidad · %', 'Opacity · %', 'Opacidade · %'), `<input type="number" min="0" max="100" step="1" data-shape-prop="opacity" value="${o.opacity ?? 100}">`)}${o.shape === 'round' ? row(bw('Radio · mm', 'Radius · mm', 'Raio · mm'), `<input type="number" min="0" max="100" step="0.5" data-shape-prop="cornerRadius" value="${o.cornerRadius ?? 5}">`) : ''}${o.shape === 'polygon' ? row(bw('Lados', 'Sides', 'Lados'), `<input type="number" min="3" max="12" step="1" data-shape-prop="sides" value="${o.sides ?? 6}">`) : ''}<div class="page-action"><button type="button" class="btn" id="shapeSwapColors">⇄ ${bw('Intercambiar', 'Swap', 'Trocar')}</button><button type="button" class="btn" id="shapePlaceImage">${bw('Colocar imagen…', 'Place image…', 'Inserir imagem…')}</button></div><p class="help">${bw('La figura puede ser fondo o contenedor de una imagen. Usá Al fondo para ubicarla detrás de un texto.', 'The shape can be a background or an image container. Use To back to put it behind text.', 'A figura pode ser fundo ou contêiner de imagem. Use Para trás para colocá-la atrás do texto.')}</p>`;
   host.querySelector('.section')?.after(box);
-  box.querySelectorAll('input,select,button').forEach((el) => (el.disabled = !!o.locked));
+  box
+    .querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLButtonElement>(
+      'input,select,button',
+    )
+    .forEach((el) => (el.disabled = !!o.locked));
   function init() {
-    if (!o.shape) {
-      o.shape = 'rect';
-      o.fill = 'none';
-      o.stroke = '#153D42';
-      o.strokeWidth = 0.5;
+    if (!o!.shape) {
+      o!.shape = 'rect';
+      o!.fill = 'none';
+      o!.stroke = '#153D42';
+      o!.strokeWidth = 0.5;
     }
   }
-  box.querySelectorAll('[data-shape-prop]').forEach(
+  // Campos numéricos, de color y selectores: type, value, min y max alcanzan para los tres.
+  box.querySelectorAll<HTMLInputElement>('[data-shape-prop]').forEach(
     (el) =>
       (el.onchange = () => {
         const v = el.type === 'number' ? Number(el.value) : el.value;
         if (
           el.type === 'number' &&
           (!Number.isFinite(v) ||
-            v < Number(el.min) ||
-            v > Number(el.max) ||
+            (v as number) < Number(el.min) ||
+            (v as number) > Number(el.max) ||
             (el.dataset.shapeProp === 'sides' && !Number.isInteger(v)))
         ) {
           inspector();
@@ -287,16 +333,16 @@ function shapeAppearance() {
         }
         commit(() => {
           init();
-          o[el.dataset.shapeProp] = v;
+          o[el.dataset.shapeProp!] = v;
         }, false);
       }),
   );
-  box.querySelectorAll('[data-shape-none]').forEach(
+  box.querySelectorAll<HTMLInputElement>('[data-shape-none]').forEach(
     (el) =>
       (el.onchange = () =>
         commit(() => {
           init();
-          o[el.dataset.shapeNone] = el.checked
+          o[el.dataset.shapeNone!] = el.checked
             ? 'none'
             : el.dataset.shapeNone === 'fill'
               ? '#D8EBE5'
@@ -321,9 +367,9 @@ function shapeAppearance() {
 }
 decorateInspector(() => {
   shapeAppearance();
-  shapeTool.querySelector('span').textContent = bw('Figuras', 'Shapes', 'Figuras');
+  shapeTool.querySelector('span')!.textContent = bw('Figuras', 'Shapes', 'Figuras');
 }, 'shapes');
-window.prepareGlassShapePreview = function () {
+globalThis.prepareGlassShapePreview = function () {
   hideWelcome();
   if ($('#modal').open) $('#modal').close();
   if (fontBrowser.open) fontBrowser.close();
@@ -361,7 +407,7 @@ window.prepareGlassShapePreview = function () {
 
 extend.result(
   'prepareOutput',
-  function (result, config) {
+  function (result: OutputInfo, config: OutputConfig): OutputInfo {
     window.shapeOutputReady = false;
     const sources = book.pages.flatMap((p) =>
       p.objects.filter((o) => o.shape && o.type === 'image' && !o.hidden).map((o) => o.src),
@@ -377,3 +423,5 @@ extend.result(
   },
   'shapes',
 );
+
+export {};

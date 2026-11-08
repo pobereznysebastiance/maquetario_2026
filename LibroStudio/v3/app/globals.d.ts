@@ -27,12 +27,9 @@ declare var hyphenationPatternsPt: any;
 declare var PDFLib: any;
 
 // ── Salida y autoprueba (las llama desktop/src/main/selftest.ts) ──
-declare var outputReady: any;
 declare var fontOutputReady: any;
-declare var shapeOutputReady: any;
 declare var maquetarioSelfTest: boolean;
 declare var maquetarioTestsReady: true | 'missing' | undefined;
-declare var prepareGlassShapePreview: any;
 
 interface Navigator {
   windowControlsOverlay?: any;

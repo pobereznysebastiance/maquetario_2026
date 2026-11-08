@@ -1,4 +1,80 @@
-'use strict';
+// Salida del interior: diálogo de imprimir o exportar PDF (orden de páginas, papel, marcas de
+// corte y de plegado, guías, copias y doble faz), armado de las hojas en #printRoot para que el
+// anfitrión las imprima o las pase a PDF, vista previa de la primera cara, lista de impresoras y
+// envío. Suma el botón Imprimir a la barra y el atajo Ctrl+P.
+//
+// Publica sus funciones (globalThis + declare global) porque las usan otros archivos, las pruebas
+// y el anfitrión (window.prepareOutput), y porque varias se extienden por nombre: prepareOutput
+// (cubierta, fuentes, figuras), outputPreview y outputDialog. Por eso se definen directamente
+// sobre globalThis y adentro se llaman por el global: así cada llamada pasa por las extensiones,
+// igual que cuando eran funciones de un script clásico.
+//
+// Fuente TypeScript: se compila a build/output.js (desktop/scripts/build.mjs).
+import type { Language } from './i18n.ts';
+
+/** Opciones de una salida. El diálogo las trae todas; la autoprueba y la cubierta (kind = 'cover') piden sólo algunas. */
+export interface OutputConfig {
+  kind?: string;
+  mode?: string;
+  paper?: string;
+  fit?: boolean;
+  crop?: boolean;
+  staples?: boolean;
+  grid?: boolean;
+  guides?: boolean;
+  margins?: boolean;
+  headers?: boolean;
+  folios?: boolean;
+}
+
+/** Opciones tal como salen del diálogo de salida. */
+export interface OutputDialogConfig extends OutputConfig {
+  mode: string;
+  paper: string;
+  fit: boolean;
+  crop: boolean;
+  grid: boolean;
+  guides: boolean;
+  margins: boolean;
+  headers: boolean;
+  folios: boolean;
+}
+
+/** Medidas de la hoja de salida (mm) y qué páginas van en cada cara. */
+export interface OutputGeometry {
+  width: number;
+  height: number;
+  ratio: number;
+  faces: number[][];
+  vertical: boolean;
+  columns: number;
+  rows: number;
+  booklet: boolean;
+}
+
+/** Lo que devuelve prepareOutput: medidas de la hoja (mm), cantidad de caras y escala. */
+export interface OutputInfo {
+  width: number;
+  height: number;
+  faces: number;
+  scale: number;
+}
+
+/** Impresora tal como la informa el anfitrión. */
+interface InstalledPrinter {
+  name: string;
+  defaultPrinter: boolean;
+  duplex: boolean;
+}
+
+/** Pedido de salida al anfitrión (type y no interface: nativeCall pide un objeto indexable). */
+export type OutputJob = {
+  options: OutputConfig;
+  printer?: string;
+  copies: number;
+  duplex: string;
+};
+
 const outputWords = {
   es: {
     print: 'Imprimir',
@@ -121,9 +197,36 @@ const outputWords = {
     guidesNote: 'A grade pode ser impressa mesmo quando está oculta no editor.',
   },
 };
-const ow = () => outputWords[globalThis.LibroI18n?.language || 'es'];
-let installedPrinters = [];
-function outputConfigFromDialog() {
+export type OutputWords = (typeof outputWords)['es'];
+
+declare global {
+  /** Textos de la salida en el idioma actual. */
+  var ow: () => OutputWords;
+  var outputConfigFromDialog: () => OutputDialogConfig;
+  /** Papel estándar (mm), girado para que la pieza entre a mayor escala. */
+  var outputPaperDimensions: (
+    format: string,
+    artworkWidth: number,
+    artworkHeight: number,
+    pad?: number,
+  ) => [number, number];
+  /** Lanza un error legible si el libro no entra en el papel con esas opciones. */
+  var outputGeometry: (config: OutputConfig) => OutputGeometry;
+  /** Marcas de corte alrededor del formato final (mm). */
+  var cropSvg: (x: number, y: number, w: number, h: number, pw: number, ph: number) => string;
+  /** Arma las hojas de salida en #printRoot. */
+  var prepareOutput: (config: OutputConfig) => OutputInfo;
+  var outputPreview: () => void;
+  var readPrinters: () => Promise<void>;
+  var outputDialog: (destination: string) => Promise<void>;
+  var sendOutput: (destination: string, config: OutputJob) => Promise<void>;
+  /** Las imágenes de la salida terminaron de cargar (lo espera el anfitrión antes de imprimir). */
+  var outputReady: boolean;
+}
+
+globalThis.ow = () => outputWords[(globalThis.LibroI18n?.language || 'es') as Language];
+let installedPrinters: InstalledPrinter[] = [];
+globalThis.outputConfigFromDialog = function () {
   const config = {
     mode: $('#outMode').value,
     paper: $('#outPaper').value,
@@ -137,18 +240,21 @@ function outputConfigFromDialog() {
     folios: $('#outFolios').checked,
   };
   return config;
-}
-function outputPaperDimensions(format, artworkWidth, artworkHeight, pad = 0) {
-  const [width, height] = {
-    A5: [148, 210],
-    A4: [210, 297],
-    A3: [297, 420],
-    Letter: [215.9, 279.4],
-  }[format] || [210, 297];
-  const scale = (w, h) => Math.min((w - 2 * pad) / artworkWidth, (h - 2 * pad) / artworkHeight);
+};
+globalThis.outputPaperDimensions = function (format, artworkWidth, artworkHeight, pad = 0) {
+  const [width, height] = (
+    {
+      A5: [148, 210],
+      A4: [210, 297],
+      A3: [297, 420],
+      Letter: [215.9, 279.4],
+    } as Record<string, [number, number]>
+  )[format] || [210, 297];
+  const scale = (w: number, h: number) =>
+    Math.min((w - 2 * pad) / artworkWidth, (h - 2 * pad) / artworkHeight);
   return scale(height, width) > scale(width, height) ? [height, width] : [width, height];
-}
-function outputGeometry(config) {
+};
+globalThis.outputGeometry = function (config) {
   const booklet = config.mode === 'booklet',
     double = booklet || config.mode === 'spreads';
   const vertical = double && verticalSpread();
@@ -159,16 +265,17 @@ function outputGeometry(config) {
     trimHeight = book.height * rows;
   let width = trimWidth + 2 * pad,
     height = trimHeight + 2 * pad;
+  // Sin papel indicado, el cuadro de papeles cae en A4, como antes.
   if (config.paper !== 'book')
-    [width, height] = outputPaperDimensions(config.paper, trimWidth, trimHeight, pad);
+    [width, height] = outputPaperDimensions(config.paper as string, trimWidth, trimHeight, pad);
   const ratio = Math.min((width - 2 * pad) / trimWidth, (height - 2 * pad) / trimHeight, 1);
   if (ratio <= 0 || (!config.fit && ratio < 0.999)) throw Error(ow().sizeError);
   const pages = book.pages.map((_, i) => [i]);
   const spreads = pages.filter(([i]) => i % 2 === 0).map(([i]) => [i, i + 1]);
   const faces = booklet ? M.impose(book.pages.length) : double ? spreads : pages;
   return { width, height, ratio: config.fit ? ratio : 1, faces, vertical, columns, rows, booklet };
-}
-function overlaySvg(index, config, px) {
+};
+function overlaySvg(index: number, config: OutputConfig, px: number): string {
   const b = book,
     g = b.grid,
     m = M.margins(b, index),
@@ -191,8 +298,8 @@ function overlaySvg(index, config, px) {
           : `<path d="M0 ${line.position}H${b.width}" stroke="#526EB3" stroke-width=".15"/>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" class="output-guides" viewBox="0 0 ${b.width} ${b.height}" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">${children}</svg>`;
 }
-function cropSvg(x, y, w, h, pw, ph) {
-  let lines = [];
+globalThis.cropSvg = function (x, y, w, h, pw, ph) {
+  let lines: string[] = [];
   const length = 4,
     gap = 1.5;
   for (const a of [x, x + w])
@@ -205,8 +312,15 @@ function cropSvg(x, y, w, h, pw, ph) {
       );
     }
   return `<svg xmlns="http://www.w3.org/2000/svg" class="crop-marks" viewBox="0 0 ${pw} ${ph}" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"><path d="${lines.join(' ')}" fill="none" stroke="#111" stroke-width=".15"/></svg>`;
-}
-function foldMarks(geometry, x, y, w, h, config) {
+};
+function foldMarks(
+  geometry: OutputGeometry,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  config: OutputConfig,
+): string {
   if (!geometry.booklet || (!config.crop && !config.staples)) return '';
   const vertical = geometry.vertical;
   const x1 = vertical ? x : x + w / 2;
@@ -240,7 +354,7 @@ function foldMarks(geometry, x, y, w, h, config) {
     '</svg>'
   );
 }
-function prepareOutput(config) {
+globalThis.prepareOutput = function (config) {
   finishEditing();
   const geometry = outputGeometry(config),
     px = 96 / 25.4,
@@ -302,12 +416,12 @@ function prepareOutput(config) {
     faces: geometry.faces.length,
     scale: geometry.ratio,
   };
-}
+};
 
-function outputPreview() {
+globalThis.outputPreview = function () {
   try {
     const info = prepareOutput(outputConfigFromDialog()),
-      sheet = $('#printRoot .output-sheet').cloneNode(true),
+      sheet = $('#printRoot .output-sheet').cloneNode(true) as HTMLElement,
       k = Math.min(430 / ((info.width * 96) / 25.4), 210 / ((info.height * 96) / 25.4));
     sheet.style.transform = `scale(${k})`;
     sheet.style.transformOrigin = 'top left';
@@ -317,17 +431,17 @@ function outputPreview() {
     $('#outputError').textContent = '';
     $('#modalApply').disabled = false;
   } catch (error) {
-    $('#outputError').textContent = error.message;
+    $('#outputError').textContent = (error as Error).message;
     $('#modalApply').disabled = true;
   } finally {
     clearPrint();
   }
-}
-async function readPrinters() {
+};
+globalThis.readPrinters = async function () {
   const w = ow(),
     selectedPrinter = $('#outPrinter')?.value;
   try {
-    const result = await nativeCall('printers');
+    const result: InstalledPrinter[] = await nativeCall('printers');
     installedPrinters = result;
     const select = $('#outPrinter');
     if (!select) return;
@@ -347,10 +461,10 @@ async function readPrinters() {
       select.append(option);
     }
   } catch (error) {
-    if ($('#outputError')) $('#outputError').textContent = error.message;
+    if ($('#outputError')) $('#outputError').textContent = (error as Error).message;
   }
-}
-async function outputDialog(destination) {
+};
+globalThis.outputDialog = async function (destination) {
   const w = ow(),
     print = destination === 'print';
   modal(
@@ -396,7 +510,7 @@ async function outputDialog(destination) {
   const syncStaples = () => {
     const box = $('#outStaples');
     box.disabled = $('#outMode').value !== 'booklet';
-    box.closest('label').hidden = box.disabled;
+    box.closest('label')!.hidden = box.disabled;
   };
   $('#outMode').addEventListener('change', syncStaples);
   syncStaples();
@@ -405,12 +519,12 @@ async function outputDialog(destination) {
     readPrinters();
   }
   outputPreview();
-}
-async function sendOutput(destination, config) {
+};
+globalThis.sendOutput = async function (destination, config) {
   const w = ow();
   if (busy) return;
   busy = true;
-  document.querySelector('main').inert = true;
+  document.querySelector('main')!.inert = true;
   $('#printButton').disabled = $('#export').disabled = true;
   toast(w.wait, 'info');
   try {
@@ -436,13 +550,13 @@ async function sendOutput(destination, config) {
       );
     }
   } catch (error) {
-    toast(w.error + error.message, 'error');
+    toast(w.error + (error as Error).message, 'error');
   } finally {
     busy = false;
-    document.querySelector('main').inert = false;
+    document.querySelector('main')!.inert = false;
     $('#printButton').disabled = $('#export').disabled = false;
   }
-}
+};
 const printButton = document.createElement('button');
 printButton.id = 'printButton';
 printButton.className = 'btn';

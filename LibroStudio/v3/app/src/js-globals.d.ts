@@ -2,19 +2,6 @@
 // las fuentes de src/. Sólo los ve el chequeo estricto de src/: en el chequeo del JS se ven las
 // definiciones reales. Cuando un archivo pasa a src/, sus globales salen de acá.
 
-/** Opciones del diálogo de salida (output.js → outputConfigFromDialog). */
-interface OutputDialogConfig {
-  mode: string;
-  paper: string;
-  fit: boolean;
-  crop: boolean;
-  staples?: boolean;
-  grid: boolean;
-  guides: boolean;
-  margins: boolean;
-  headers: boolean;
-  folios: boolean;
-}
 import type { Book, BookObject, LibroModelApi } from './model.ts';
 import type { NovelSample } from './novel-sample.ts';
 import type { CoverDesign, CoverGeometryPart } from './cover-measurements.ts';
@@ -81,14 +68,6 @@ declare global {
   /** Revisión del libro: objetos fuera de la página y cajas de texto desbordadas. */
   function preflightBook(): { page: number; kind: 'bounds' | 'overflow' }[];
 
-  // ── output.js ──
-  function prepareOutput(config: Record<string, unknown>): {
-    width: number;
-    height: number;
-    faces: number;
-    scale: number;
-  };
-
   // ── paragraphs.js ──
   function paragraphPatch(values: Record<string, unknown>): void;
 
@@ -134,27 +113,6 @@ declare global {
   /** Valida el contenido de un proyecto y lo carga como libro actual. */
   function loadProject(content: string): void;
   function clearPrint(): void;
-
-  // ── output.js ──
-  function outputConfigFromDialog(): OutputDialogConfig;
-  function outputPaperDimensions(
-    format: string,
-    artworkWidth: number,
-    artworkHeight: number,
-    pad?: number,
-  ): [number, number];
-  function outputGeometry(config: OutputDialogConfig): {
-    width: number;
-    height: number;
-    ratio: number;
-    faces: number[][];
-    vertical: boolean;
-    columns: number;
-    rows: number;
-    booklet: boolean;
-  };
-  function outputPreview(): void;
-  function outputDialog(destination: string): Promise<void>;
 
   // ── fonts.js ──
   /** Caras que trae el paquete del proyecto abierto (van antes que las del sistema). */
@@ -291,9 +249,6 @@ declare global {
   function updateSnapButton(): void;
 
   // ── output.js ──
-  var ow: () => Record<string, string>;
-  function readPrinters(): Promise<void>;
-  function sendOutput(destination: string, config: Record<string, any>): Promise<void>;
 
   function coverOverflow(c: any): boolean;
 
