@@ -6,3 +6,4 @@ LibroStudio/v3/app/pdf-lib.min.js
 LibroStudio/v3/app/sample-image.js
 *.min.js
 LibroStudio/v3/app/hyphenation/
+LibroStudio/v3/app/build/

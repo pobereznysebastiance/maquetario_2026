@@ -3,7 +3,7 @@ const M = LibroModel,
   /** @type {(selector: string) => UIElement} */
   $ = (s) => document.querySelector(s),
   /** @type {(selector: string) => UIElement[]} */
-  $$ = (s) => [...document.querySelectorAll(s)];
+  $$ = (s) => /** @type {UIElement[]} */ ([...document.querySelectorAll(s)]);
 const paths = {
   file: 'M6 3h8l4 4v14H6z M14 3v5h5',
   folder: 'M3 7h7l2-3h7v5 M2 9h20l-3 12H3z',

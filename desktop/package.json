@@ -49,7 +49,11 @@
         "filter": [
           "**/*",
           "!**/*-tests.js",
-          "!tests/**"
+          "!tests/**",
+          "!src/**",
+          "!build/*.map",
+          "!tsconfig.json",
+          "!globals.d.ts"
         ]
       }
     ],

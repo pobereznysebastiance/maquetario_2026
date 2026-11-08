@@ -9,8 +9,11 @@
     "noEmit": true,
     "strict": false,
     "skipLibCheck": true,
-    "types": []
+    "types": [],
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true
   },
-  "include": ["*.js", "ui/*.js", "globals.d.ts"],
+  "include": ["*.js", "ui/*.js", "globals.d.ts", "src/**/*.ts"],
   "exclude": ["pdf-lib.min.js", "sample-image.js", "tests"]
 }

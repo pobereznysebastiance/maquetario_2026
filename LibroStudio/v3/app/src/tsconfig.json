@@ -1,0 +1,17 @@
+{
+  // Fuentes TypeScript de la interfaz: estrictas. Las compila desktop/scripts/build.mjs a ../build/.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": ["**/*.ts"]
+}

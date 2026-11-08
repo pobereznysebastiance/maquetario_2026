@@ -81,8 +81,13 @@ Verificado al mudar: `style-snapshot` idéntico con las hojas viejas y con `book
    - Las 11 funciones globales que se reasignaban a mano (`inspector`, `paper`, `startEditing`, `gridSvg`, `canvasAnchor`, `restoreCanvasAnchor`, `setZoom`, `objectDown`, `moveObject`, `renderTemplates`, `offerRecovery`) pasan por `extend`. Nueva forma `extend.replace(f, fn, origen)` para el reemplazo completo. La de `inspector` es `extend.around` registrada después de la de `inspector-registry`: queda por fuera de todo, igual que antes. `lint:design` cuenta `f = function` en el nivel superior para que no vuelva.
    - `$()` y `$$()` tipados (`UIElement`: `HTMLElement` con el resto libre). Al tiparlos aparecen los manejadores que leen `e.target.value` sin decir qué control es (unos 290 avisos en total): se resuelven archivo por archivo con `// @ts-check`.
    - Ojo: la prueba de navegación de la vista continua guarda posiciones de desplazamiento que dependen del tamaño de la pantalla; si cambia el monitor, `verificacion-navegacion.json` cambia aunque el código no.
-4. **Pasar a `.ts` y a módulos**, empezando por lo que no toca la pantalla: el modelo `M` (`model.js`), `editorial-rules.js`, `document-units.js`. Al final, `import` en lugar de globales y esbuild arma un solo archivo.
-
+4. **Pasar a `.ts` y a módulos** (en curso).
+   - Armado: las fuentes van en `LibroStudio/v3/app/src/*.ts`; `desktop/scripts/build.mjs` las compila con esbuild a `app/build/` (generado, fuera de git) y `index.html` carga `build/<archivo>.js`. Lo corren `npm run dev`, `self-test` y `dist`; el instalador lleva `build/` sin `src/` ni mapas.
+   - Por ahora cada archivo compila a un script que publica su global (`globalThis.X = …` con `declare global` para el tipo), así el resto de la app no cambia. Cuando estén pasados los que dependen entre sí, se cambia a `import` y un solo punto de entrada.
+   - Tipos: `src/` es estricto y entra en `npm run typecheck` (0 errores). El chequeo del JS (`typecheck:app`) incluye `src/`, así que el JS ya ve los tipos reales de lo pasado.
+   - Hecho: **`model.ts`** (el modelo del libro: tipos `Book`, `Page`, `BookObject`, `AutoElement`, `TocEntry`). Comparado con el viejo en Node con el mismo azar: mismas salidas en todas sus funciones. Sigue siendo un objeto común porque `master-refinement.js` y `shapes.js` reemplazan `M.validate` (pendiente: pasarlo a un registro de validaciones).
+   - Siguen: `editorial-rules.js`, `document-units.js`, `extend.js` y `test-registry.js`.
+   - La versión C# (`LibroStudio/v3/Host*.cs`) no compila `src/`: necesita que `build/` exista. Se retira al cerrar la etapa 1.
 ## 3. Experiencia de uso
 
 Observaciones en `docs/evaluacion-uso.md` (13 puntos). Las más visibles: la etiqueta "Página activa N" pintada sobre el papel, las siete pestañas del inspector, y las muchas puertas de ayuda (Tutorial, Aprender, Recorrido, "?", glosario).

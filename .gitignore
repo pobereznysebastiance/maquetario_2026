@@ -22,3 +22,6 @@ node_modules/
 /desktop/dist/
 /desktop/release/
 /packages/license/dev-keys/
+
+# Interfaz compilada (desktop/scripts/build.mjs)
+/LibroStudio/v3/app/build/

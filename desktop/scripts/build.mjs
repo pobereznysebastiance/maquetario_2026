@@ -1,8 +1,8 @@
-// Compila el proceso principal y el preload de Electron con esbuild.
-// La interfaz (LibroStudio/v3/app) no se compila: en desarrollo se carga
-// directo desde su carpeta y al empaquetar se copia como recurso.
+// Compila con esbuild el proceso principal y el preload de Electron, y las fuentes TypeScript
+// de la interfaz (LibroStudio/v3/app/src → app/build). El resto de la interfaz (los .js) se
+// carga tal cual: en desarrollo desde su carpeta y al empaquetar se copia como recurso.
 import { build } from 'esbuild';
-import { cpSync, readFileSync, rmSync } from 'node:fs';
+import { cpSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -49,6 +49,24 @@ await Promise.all([
     outfile: join(root, 'dist/notice-preload.cjs'),
   }),
 ]);
+
+// Interfaz: las fuentes TypeScript (LibroStudio/v3/app/src) se compilan a app/build, que carga
+// index.html. Cada archivo es por ahora un script que publica su global (como los .js de al lado).
+const ui = join(root, '../LibroStudio/v3/app');
+rmSync(join(ui, 'build'), { recursive: true, force: true });
+await build({
+  entryPoints: readdirSync(join(ui, 'src'))
+    .filter((f) => f.endsWith('.ts') && !f.endsWith('.d.ts'))
+    .map((f) => join(ui, 'src', f)),
+  outdir: join(ui, 'build'),
+  bundle: true,
+  format: 'iife',
+  platform: 'browser',
+  target: 'chrome140',
+  charset: 'utf8',
+  sourcemap: 'linked',
+  logLevel: 'info',
+});
 
 // Avisos de sistema: página estática + ilustración del instalador + DM Sans de la interfaz.
 const notice = join(root, 'dist/notice');
