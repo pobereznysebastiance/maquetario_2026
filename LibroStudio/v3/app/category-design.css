@@ -34,7 +34,6 @@ body .inspector .tabs { overflow: hidden; align-items: stretch; }
 .folio-placement .field-row .unit-wrap { width: 100%; max-width: none; }
 .folio-placement .field-row .unit-wrap input { width: 100%; padding-right: 35px !important; }
 .folio-placement .field-row input[type=range] { grid-column: 1/-1; width: 100%; max-width: none; accent-color: #64d3bf; }
-.editorial-rules-dialog { width: min(1260px,95vw); }
 .editorial-rules-table thead { background: #172e35; color: #f0cb94; }
 .editorial-rules-table tbody tr:nth-child(even) { background: #ffffff06; }
 .editorial-rules-table td:first-of-type { min-width: 115px; }

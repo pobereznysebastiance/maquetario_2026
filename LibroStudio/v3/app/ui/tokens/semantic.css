@@ -189,6 +189,19 @@
   --template-heading-height: 44px;
   --tutorial-card-width: 420px;
   --dialog-builder-width: 760px;
+  /* Diálogos: apaisados (más anchos que altos). Cada variante declara su ancho. */
+  --dialog-width: 820px;
+  --dialog-max-height: 90vh;
+  --dialog-settings-width: 980px;
+  --dialog-output-width: 1460px;
+  --dialog-cover-width: 1040px;
+  --dialog-assistant-width: 1140px;
+  --dialog-glossary-width: 930px;
+  --dialog-glyph-width: 1050px;
+  --dialog-grid-gallery-width: 900px;
+  --dialog-rules-width: 1260px;
+  --dialog-close-width: 460px;
+  --font-browser-width: 960px;
   --builder-source-height: 190px;
   --builder-short-height: 55px;
   --shape-preview-width: 150px;

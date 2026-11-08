@@ -1,5 +1,8 @@
 /* Organismo: explorador de fuentes. La fuente elegida se marca con fondo de selección
    (antes, una franja dorada a la izquierda). */
+#fontBrowser {
+  width: min(var(--font-browser-width), 95vw);
+}
 .font-browser-row {
   border-radius: var(--radius-sm);
 }

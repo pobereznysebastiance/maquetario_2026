@@ -10,6 +10,42 @@ dialog {
   box-shadow: var(--elevation-3);
   backdrop-filter: none;
 }
+/* Tamaño: apaisado por defecto; el contenido largo se desplaza dentro de la hoja.
+   Las variantes (clase puesta con dialogVariant) declaran su ancho; el selector de elemento
+   pesa menos que cualquier clase, así que una variante siempre le gana. */
+dialog {
+  width: min(var(--dialog-width), 92vw);
+  max-height: var(--dialog-max-height);
+  overflow: auto;
+}
+.output-modal {
+  width: min(var(--dialog-output-width), 97vw);
+  max-width: 97vw;
+  max-height: 96vh;
+  overflow: hidden;
+}
+.cover-modal {
+  width: min(var(--dialog-cover-width), 95vw);
+}
+.assistant-modal {
+  width: min(var(--dialog-assistant-width), 96vw);
+}
+.glossary-modal {
+  width: min(var(--dialog-glossary-width), 95vw);
+}
+.glyph-real-modal {
+  width: min(var(--dialog-glyph-width), 96vw);
+}
+.grid-gallery {
+  width: min(var(--dialog-grid-gallery-width), 94vw);
+}
+.editorial-rules-dialog {
+  width: min(var(--dialog-rules-width), 95vw);
+}
+/* Cerrar con cambios sin guardar: una pregunta, compacta como una confirmación. */
+.close-publication-modal {
+  width: min(var(--dialog-close-width), 94vw);
+}
 dialog::backdrop {
   background: var(--material-scrim);
   backdrop-filter: none;

@@ -1,8 +1,8 @@
-/* Organismo: Configuración. Secciones de arriba hacia abajo, una fila por preferencia:
-   etiqueta (y ayuda) a la izquierda, control a la derecha. Sin tarjetas anidadas. */
+/* Organismo: Configuración. Apaisada, en dos columnas: a la izquierda las secciones cortas
+   (cuenta, interfaz, carpetas, acerca de) y a la derecha Espacio de trabajo, que es la más larga.
+   Una fila por preferencia: etiqueta (y ayuda) a la izquierda, control a la derecha. Sin tarjetas. */
 .settings-modal {
-  --settings-width: 560px;
-  width: min(var(--settings-width), 92vw);
+  width: min(var(--dialog-settings-width), 94vw);
   max-width: none;
 }
 .settings-modal .modal-actions button[value='cancel'] {
@@ -10,9 +10,40 @@
 }
 
 .settings {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  align-items: start;
+  column-gap: var(--space-2xl);
   min-width: 0;
+}
+.settings > .settings-section {
+  grid-column: 1;
+}
+#settings-section-workspace {
+  grid-column: 2;
+  grid-row: 1 / span 4;
+  padding-left: var(--space-2xl);
+  border-left: var(--border-width) solid var(--line-subtle);
+}
+#settings-section-workspace > .settings-section {
+  padding-top: var(--space-xs);
+  border-top: 0;
+}
+/* Pantalla angosta: vuelve a una sola columna. */
+@media (max-width: 900px) {
+  .settings {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #settings-section-workspace {
+    grid-column: 1;
+    grid-row: auto;
+    padding-left: 0;
+    border-left: 0;
+  }
+  #settings-section-workspace > .settings-section {
+    padding-top: var(--space-xl);
+    border-top: var(--border-width) solid var(--line-subtle);
+  }
 }
 
 .settings-section {
@@ -85,7 +116,7 @@
 
 /* Espacio de trabajo: casillas en columnas (herramientas · pestañas · zonas). */
 .settings-checklists {
-  --settings-checklist-min: 150px;
+  --settings-checklist-min: 130px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(var(--settings-checklist-min), 1fr));
   gap: var(--space-lg);
