@@ -15,7 +15,9 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-::selection {
+/* Selección de texto de la interfaz. Dentro del libro no: el papel es claro y el texto claro
+   no se leería; la selección del papel la define ui/book/page.css. */
+:not(:is(#spread, #printRoot, .thumbnails, #coverPreview) *)::selection {
   background: var(--selection);
   color: var(--text-primary);
 }

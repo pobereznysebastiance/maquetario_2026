@@ -26,6 +26,7 @@
   --book-frame-fill: #f3f2ef;
   --book-frame-text: #9a9da5;
   --book-editing-wash: #fff9;
+  --book-text-selection: #2eb9ac59; /* selección de texto sobre el papel: sólo fondo, la tinta no cambia */
   --book-overflow-line: #e36f6f;
   --book-overflow-text: #c54848;
   --book-overflow-fill: white;

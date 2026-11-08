@@ -214,3 +214,11 @@
     0 var(--spread-shadow-priority-y) var(--spread-shadow-priority-blur) var(--book-shadow),
     0 0 var(--spread-glow-blur) var(--book-spread-glow);
 }
+
+/* Texto seleccionado sobre el papel: un fondo verde agua translúcido y la tinta de cada texto
+   (currentColor; sin declararlo, la selección hereda el color claro de la interfaz),
+   así se lee igual que sin seleccionar. */
+:is(#spread, #coverPreview) ::selection {
+  background: var(--book-text-selection);
+  color: currentColor;
+}
