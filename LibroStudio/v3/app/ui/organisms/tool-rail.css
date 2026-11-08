@@ -1,0 +1,79 @@
+/* Organismo: herramientas (columna izquierda). Una fila por herramienta: ícono · nombre · atajo.
+   Activa: fondo de selección y una línea de acento a la izquierda. Ninguna herramienta tiene
+   color propio (antes "Índice" y "Capas" llevaban colores distintos). */
+.tools {
+  gap: var(--space-3xs);
+  padding: var(--space-sm);
+}
+.tool {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  height: var(--control-md);
+  min-height: var(--control-md);
+  padding: 0 var(--space-sm);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  font-weight: var(--weight-medium);
+  box-shadow: none;
+  transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+.tool:hover {
+  background: var(--surface-control);
+  color: var(--text-primary);
+}
+.tool.active {
+  background: var(--surface-selected);
+  border: 0;
+  color: var(--text-primary);
+  box-shadow: none;
+}
+.tool.active::before {
+  content: '';
+  position: absolute;
+  inset-block: var(--space-xs);
+  left: 0;
+  width: var(--space-3xs);
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+}
+.tool .icon {
+  width: var(--icon-md);
+  height: var(--icon-md);
+}
+.tool.active .icon {
+  color: var(--accent);
+}
+.tool .shortcut {
+  margin-left: auto;
+  color: var(--text-disabled);
+  font-size: var(--type-2xs);
+  font-variant-numeric: tabular-nums;
+}
+.tool.active .shortcut {
+  color: var(--text-tertiary);
+}
+
+/* Herramientas que abren vistas (índice, capas, cubierta): separadas por una línea. */
+.tool#indexTool,
+#layersTool,
+#coverTool {
+  color: var(--text-secondary);
+}
+.tool#indexTool {
+  margin-top: var(--space-md);
+  padding-top: 0;
+  border-top: 0;
+}
+.tool#indexTool::after {
+  content: '';
+  position: absolute;
+  top: calc(-1 * var(--space-xs));
+  inset-inline: var(--space-sm);
+  height: var(--border-width);
+  background: var(--line-subtle);
+}

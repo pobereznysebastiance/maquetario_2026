@@ -54,5 +54,9 @@
 @import url('organisms/zoom-bar.css') layer(organisms);
 @import url('organisms/dialog.css') layer(organisms);
 @import url('organisms/menu.css') layer(organisms);
+@import url('organisms/tool-rail.css') layer(organisms);
+@import url('organisms/page-strip.css') layer(organisms);
+@import url('organisms/statusbar.css') layer(organisms);
+@import url('organisms/template-panel.css') layer(organisms);
 @import url('templates/window.css') layer(templates);
 @import url('templates/workspace.css') layer(templates);

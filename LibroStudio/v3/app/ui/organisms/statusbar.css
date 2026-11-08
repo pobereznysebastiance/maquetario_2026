@@ -1,0 +1,17 @@
+/* Organismo: barra de estado (página, selección, unidades, guardado). Discreta y en una línea. */
+.statusbar {
+  --statusbar-height: 28px;
+  height: var(--statusbar-height);
+  gap: var(--space-lg);
+  padding: 0 var(--space-lg);
+  border-top: var(--border-width) solid var(--line-subtle);
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.statusbar .status-dot,
+.left-bottom .status-dot {
+  background: var(--accent);
+}

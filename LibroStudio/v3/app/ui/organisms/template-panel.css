@@ -1,0 +1,30 @@
+/* Organismo: franja de plantillas de grilla (debajo de la mesa de trabajo). */
+.template-panel {
+  border-top: var(--border-width) solid var(--line-subtle);
+  background: transparent;
+}
+.template-heading {
+  gap: var(--space-sm);
+  padding: 0 var(--space-md);
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+}
+.template {
+  border-radius: var(--radius-md);
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+}
+.template:hover {
+  color: var(--text-primary);
+}
+.template .template-art {
+  border-radius: var(--radius-sm);
+}
+.template.active .template-art {
+  border-color: var(--accent);
+  background: var(--surface-selected);
+  box-shadow: none;
+}
+.template.active {
+  color: var(--text-primary);
+}
