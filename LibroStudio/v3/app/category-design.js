@@ -79,7 +79,7 @@ document.addEventListener('keydown',event=>{
   }
 },true);
 new ResizeObserver(()=>{closeCategoryMenu();refreshCategoryTabs();}).observe(categoryTabs);
-extend('showTab',tabBeforeCategoryDesign=>function(name){ tabBeforeCategoryDesign(name);refreshCategoryTabs(); },'category-design');
+extend.after('showTab',function(name){refreshCategoryTabs(); },'category-design');
 extend.after('render',function(full=true){refreshCategoryTabs(); },'category-design');
 document.addEventListener('maquetario:language',()=>{refreshCategoryTabs();});
 for (const [selector,name] of [['[data-tool="folio"]','folio'],['[data-tool="header"]','header'],

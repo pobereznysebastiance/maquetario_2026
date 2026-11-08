@@ -43,8 +43,7 @@ function adaptLengthControls(root) {
   }
 }
 decorateInspector(()=>{adaptLengthControls($('#inspectorContent')); },'document-units');
-extend('modal',unitsModal=>function(...args){
-  unitsModal(...args);
+extend.after('modal',function(...args){
   if ($('#modal').open && !$('#pageUnits')) adaptLengthControls($('#modalBody'));
 },'document-units');
 extend.after('coverEditor',function(){
@@ -53,8 +52,7 @@ extend.after('coverEditor',function(){
 
 
 const statusUnit = $('.statusbar .status-spacer').nextElementSibling;
-extend('updateStatus',unitStatus=>function(){
-  unitStatus();
+extend.after('updateStatus',function(){
   statusUnit.textContent = bw('Unidades','Units','Unidades')+': '+documentUnit();
   const object = selectObject();
   if (object) {

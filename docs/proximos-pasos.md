@@ -12,23 +12,28 @@ npm run self-test   # 25+ pasos sobre la app real; capturas en %APPDATA%\Maqueta
 
 Commits en castellano, sin líneas de autoría de IA.
 
-## 1. Inspector como registro (hecho) → seguir con las otras funciones
+## 1. Extensiones declaradas (hecho)
 
-Las 17 extensiones de `inspector` pasan por el registro (`inspector-registry.js`): `decorateInspector`, `registerInspectorPanel` (Estructura, Objeto, Capas) y `pauseInspectorWhile` (ajuste en vivo de maestras). El scroll y los `<details>` abiertos se conservan una sola vez, por fuera de toda la cadena (`extend.around`). Ningún módulo llama `extend('inspector', …)` directamente.
+Una **cadena** es una función global que varios módulos extienden, cada uno envolviendo a la versión anterior (por ejemplo, 7 módulos agregan algo a `render()`). Antes cada eslabón era una envoltura escrita a mano; ahora dice qué hace:
 
-También hechas, con tres formas declaradas en `extend.js` (la cadena se compone igual que antes):
+| Forma (`extend.js`) | Qué hace | Dónde |
+|---|---|---|
+| `extend.after(f, fn)` | corre después, con los mismos argumentos | `render`, `coverEditor`, `setTool`, `updateStatus`, `modal`, `thumbs`… |
+| `extend.before(f, fn)` | corre antes | `objectDown`, `upObject`, `outputDialog`, `pageDown`… |
+| `extend.result(f, (resultado, ...args) => resultado)` | ajusta lo que devuelve; con `async` puede esperarlo | `paper`, `autoElement`, `prepareOutput`, `coverArtwork`, `showWelcome`, `saveProject`… |
+| `extend.instead(f, cuándo, fn)` | en ese caso reemplaza (rutas y guardas) | cubierta en `prepareOutput`, objetos bloqueados, sin documento… |
+| `extend.around(f, fn)` | envuelve la cadena completa, siempre por fuera | estado del inspector |
 
-- `extend.after(nombre, fn)`: corre después, con los mismos argumentos. `render` (7), `coverEditor` (7).
-- `extend.result(nombre, (resultado, ...args) => resultado)`: ajusta lo que devuelve. `paper` (7), `autoElement` (5), `prepareOutput` (3).
-- `extend.instead(nombre, cuándo, fn)`: una ruta. Cubierta en `prepareOutput`; `registerInspectorPanel` se apoya en ella.
+Encima de esas formas:
 
-Los PDF y capturas de la autoprueba salen idénticos byte a byte antes y después de convertir `paper`, `prepareOutput` y `autoElement`.
+- Inspector (`inspector-registry.js`): `decorateInspector`, `registerInspectorPanel` (Estructura, Objeto, Capas), `pauseInspectorWhile`. El scroll y los `<details>` abiertos se conservan una sola vez.
+- Pruebas (`test-registry.js`): `registerIntegrationTest`, `registerNavigationTest`, `registerFontTest`. Las 25 cadenas de pruebas pasaron al registro.
 
-Quedan 84 cadenas con fábrica a mano (`extend('f', anterior => function …)`) en 36 funciones. 25 son pruebas (`runIntegrationTests` 19, `runNavigationTests` 4, `runFontIntegrationTests` 2) y van a un registro de pruebas (`registerIntegrationTest`). El resto, de una a tres por función, se convierte con las mismas tres formas. Para contarlas:
+Quedan **13 envolturas de verdad** con `extend(f, anterior => …)`: miran el estado antes y después, o llaman a la anterior en el medio, y ahí la envoltura es la forma correcta. Son `renderPages` (2), `finishEditing` (2), `settingsNew` (2), `outputPreview` (2), `outputDialog`, `objectDown`, `commit`, `applyFace` y `startTutorial`. `npm run lint:design` las cuenta ("envolturas extend() escritas a mano"): una nueva tiene que justificarse.
 
-```bash
-grep -oh "extend('[A-Za-z]*'" LibroStudio/v3/app/*.js | sort | uniq -c | sort -rn
-```
+Al cerrar la conversión, los PDF y los JSON de verificación de la autoprueba salieron idénticos a los de antes, y las capturas difieren como mucho en 1/255 por canal (suavizado del renderizado).
+
+Sigue (etapa 2 de `arquitectura.md`): sacar del build de producción las pruebas que todavía viven dentro de módulos de la app (`output.js`, `shapes.js`, `layout-tools.js`…), pasándolas a archivos `*-tests.js`; después TypeScript y módulos.
 
 ## 2. Vaciar la capa legacy
 

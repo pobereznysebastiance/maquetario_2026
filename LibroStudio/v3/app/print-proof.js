@@ -40,9 +40,10 @@ extend.after('coverEditor',function(){
   updateCoverPreview();
 },'print-proof');
 
-extend('updateCoverPreview',coverPreviewBeforeFlaps=>function(){
+extend.before('updateCoverPreview',function(){
   if (coverDraft && !coverGeometry(coverDraft).parts.some(part => part.id === coverPart)) coverPart = 'front';
-  coverPreviewBeforeFlaps();
+},'print-proof');
+extend.after('updateCoverPreview',function(){
   for (const toggle of $$('[data-flap]')) toggle.checked = coverDraft[toggle.dataset.flap] > 0;
   if ($('#coverPreview')) {
     const parts = new Set(coverGeometry(coverDraft).parts.map(part => part.id));

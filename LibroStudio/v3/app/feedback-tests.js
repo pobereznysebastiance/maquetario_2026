@@ -1,7 +1,6 @@
 'use strict';
 
-extend('runNavigationTests',navigationBeforeFeedback=>async function(){
-  const result = await navigationBeforeFeedback();
+registerNavigationTest(async function(result){
   const check = (condition, message) => {
     if (!condition) throw Error(message);
     result.checks.push(message);

@@ -11,6 +11,6 @@ const helpButton=document.createElement('button');helpButton.className='quiet';h
 document.addEventListener('maquetario:language',()=>{helpButton.innerHTML=icon('help')+'<span>'+ww().tutorial+'</span>';});
 document.addEventListener('keydown',e=>{if(welcomeVisible&&e.ctrlKey&&['p','s','z','y'].includes(e.key.toLowerCase())){e.preventDefault();e.stopImmediatePropagation();}},true);
 window.showWelcome=showWelcome;window.hideWelcome=hideWelcome;
-extend('saveProject',recentSave=>async function(){const saved=await recentSave();if(saved&&native)try{welcomeInfo=await nativeCall('appInfo');}catch{}return saved;},'welcome');window.saveProject=saveProject;
+extend.result('saveProject',async function(pending){const saved=await pending;if(saved&&native)try{welcomeInfo=await nativeCall('appInfo');}catch{}return saved;},'welcome');
 async function initializeWelcome(){for(let i=0;i<100&&!native;i++)await new Promise(r=>setTimeout(r,100));if(!native)return;try{welcomeInfo=await nativeCall('appInfo');if(!welcomeInfo.selftest)await showWelcome();}catch(error){toast(error.message);}}
 initializeWelcome();

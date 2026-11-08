@@ -26,7 +26,7 @@ decorateInspector(()=>{if(tab!=='text'&&tab!=='design')return;const host=$('#ins
 extend.result('paper',function(result,i,px,print=false){for(const o of book.pages[i].objects){if(o.type!=='text')continue;const el=result.querySelector(`[data-id="${o.id}"]`),face=selectedFace(o);if(!el)continue;if(face&&!fontLoadErrors.has(face.id))el.style.fontFamily=`"MQT_${face.id}", "${o.font}"`;el.style.fontWeight=String(o.fontAxes?.wght??o.fontWeight??(o.bold?700:face?.weight||400));el.style.fontStyle=o.fontItalic||o.italic?'italic':'normal';el.style.fontVariationSettings=Object.entries(o.fontAxes||{}).filter(([k,v])=>/^[\x20-\x7e]{4}$/.test(k)&&Number.isFinite(v)).map(([k,v])=>`"${k}" ${v}`).join(',');}return result;},'fonts');
 extend.result('autoElement',function(result,i,type,px,print=false){const face=chooseDefaultFace(book[type].font);if(result&&face&&!fontLoadErrors.has(face.id))result.style.fontFamily=`"MQT_${face.id}", "${book[type].font}"`;return result;},'fonts');
 extend.result('prepareOutput',function(result,config){window.outputReady=false;window.fontOutputReady=false;Promise.all([ensureBookFonts(),...[...$('#printRoot').querySelectorAll('img')].map(im=>im.decode().catch(()=>{}))]).then(()=>{window.outputReady=true;window.fontOutputReady=true;});return result;},'fonts');
-extend('loadProject',beforeFontLoadProject=>function(content){beforeFontLoadProject(content);ensureBookFonts().then(()=>renderPages());},'fonts');
+extend.after('loadProject',function(content){ensureBookFonts().then(()=>renderPages());},'fonts');
 window.fontLibraryReady=false;
 async function startFontLibrary(){for(let n=0;n<100&&!native;n++)await new Promise(r=>setTimeout(r,100));if(native)await obtainFonts();fontLibraryReady=true;}
 fontCatalogPromise=startFontLibrary();

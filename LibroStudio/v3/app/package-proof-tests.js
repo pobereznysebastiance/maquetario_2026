@@ -1,7 +1,6 @@
 'use strict';
 
-extend('runNavigationTests',navigationBeforePackageProof=>async function(){
-  const report = await navigationBeforePackageProof();
+registerNavigationTest(async function(report){
   const verify = (condition,message) => {
     if (!condition) throw Error(message);
     report.checks.push(message);

@@ -54,7 +54,19 @@
       origin,
     );
 
-  // Ajustar lo que devuelve la función: fn(resultado, ...args) devuelve el resultado final
+  // Correr fn antes de la función, con los mismos argumentos.
+  extend.before = (name, fn, origin = '') =>
+    extend(
+      name,
+      (previous) =>
+        function (...args) {
+          fn.apply(this, args);
+          return previous.apply(this, args);
+        },
+      origin,
+    );
+
+  // Ajustar lo que devuelve la función (si fn es async, recibe la promesa y puede esperarla): fn(resultado, ...args) devuelve el resultado final
   // (normalmente el mismo objeto, modificado).
   extend.result = (name, fn, origin = '') =>
     extend(

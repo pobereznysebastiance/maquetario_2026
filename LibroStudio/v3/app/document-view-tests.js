@@ -1,6 +1,5 @@
 'use strict';
-extend('runNavigationTests',beforeDocumentViewTests=>async function(){
-  const report = await beforeDocumentViewTests();
+registerNavigationTest(async function(report){
   const check = (condition,message)=>{
     if (!condition) throw Error(message);
     report.checks.push(message);

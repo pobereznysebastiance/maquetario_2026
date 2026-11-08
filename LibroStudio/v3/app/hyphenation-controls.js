@@ -37,8 +37,7 @@ function bindParagraphHyphenation(object, formats) {
 }
 
 // While typing, use the original manuscript so discretionary hyphens never enter it.
-extend('startEditing',startBeforeHyphenation=>function(element){
-  startBeforeHyphenation(element);
+extend.after('startEditing',function(element){
   if (editing !== element) return;
   const object = selectObject();
   if (!object || object.type !== 'text' || object.id !== element.dataset.id) return;

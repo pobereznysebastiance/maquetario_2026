@@ -1,6 +1,5 @@
 'use strict';
-extend('runNavigationTests',beforeCategoryTests=>async function(){
-  const result = await beforeCategoryTests();
+registerNavigationTest(async function(result){
   const check = (value,label)=>{if(!value) throw Error(label);result.checks.push(label);};
   const original = {book,active,spread,selected,tab,dirty};
   try {

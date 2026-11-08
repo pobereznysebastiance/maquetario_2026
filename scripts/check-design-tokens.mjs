@@ -62,6 +62,9 @@ const debt = {
     allJs,
     /(?:const|let)\s+\w+\s*=\s*(?:window\.)?(\w+)\s*;\s*(?:window\.)?\1\s*=\s*(?:async\s*)?function/g,
   ),
+  // extend('f', anterior => …) con la envoltura escrita a mano. Lo que tiene forma de
+  // antes/después/resultado/ruta va con extend.before/after/result/instead o con los registros.
+  'envolturas extend() escritas a mano': count(allJs, /\bextend\('\w+',\s*\w+\s*=>/g),
   'cadenas de onchange sobre #language': count(allJs, /\$\('#language'\)\.onchange\s*=\s*function/g),
   'anchos fijos en px en el CSS legacy (width/min-width)': count(legacyCss, /(?:^|[;{\s])(?:min-)?width:\s*\d+px/g),
   '!important en el CSS legacy': count(legacyCss, /!important/g),
