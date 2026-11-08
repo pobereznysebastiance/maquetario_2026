@@ -1,5 +1,38 @@
+// Legibilidad y retículas: "Guardar como…" (Ctrl+Mayús+S), el tamaño de la interfaz (cómodo o
+// grande) y la biblioteca de retículas que reemplaza a las plantillas de studio.js.
+//
+// setReadability, gridPresets, applyGridPreset y gridGallery son globales: los usan
+// settings-panel.ts, cover-measurements.js, las pruebas (tests/readability-tests.js,
+// tests/feedback-tests.js) y scripts/style-snapshot.js.
+//
+// Fuente TypeScript: se compila a build/readability.js (desktop/scripts/build.mjs).
 'use strict';
-async function saveProjectAs() {
+
+/** Retícula de la biblioteca: columnas (c), filas (r) y medianiles (gx, gy) en mm. */
+export interface GridPreset {
+  id: string;
+  /** Nombre en castellano, inglés y portugués. */
+  name: [string, string, string];
+  c: number;
+  r: number;
+  gx: number;
+  gy: number;
+  /** Para qué sirve, en los tres idiomas. */
+  use: [string, string, string];
+}
+
+declare global {
+  /** Tamaño de la interfaz: 'large' agranda menús y controles; cualquier otro valor, cómodo. */
+  var setReadability: (value: string) => void;
+  /** Las diez retículas de la biblioteca. */
+  var gridPresets: GridPreset[];
+  /** Aplica una retícula de la biblioteca (sin mover objetos). */
+  var applyGridPreset: (id: string) => void;
+  /** Abre la biblioteca de retículas. */
+  var gridGallery: () => void;
+}
+
+async function saveProjectAs(): Promise<boolean> {
   if (!hasDocument) {
     settings(true);
     return false;
@@ -26,7 +59,7 @@ async function saveProjectAs() {
     );
     return true;
   } catch (e) {
-    toast(e.message, 'error');
+    toast((e as Error).message, 'error');
     return false;
   }
 }
@@ -47,14 +80,15 @@ document.addEventListener(
   },
   true,
 );
-function setReadability(value) {
+function setReadability(value: string): void {
   const big = value === 'large';
   document.body.classList.toggle('ui-large', big);
   localStorage.setItem('maquetario-readability', big ? 'large' : 'standard');
   requestAnimationFrame(() => renderPages());
 }
+globalThis.setReadability = setReadability;
 setReadability(localStorage.getItem('maquetario-readability') || 'standard');
-const gridPresets = [
+const gridPresets: GridPreset[] = [
   {
     id: 'manuscript',
     name: ['Manuscrito', 'Manuscript', 'Manuscrito'],
@@ -158,14 +192,15 @@ const gridPresets = [
     use: ['Agrupaciones de 2, 3, 4 o 6', 'Groups of 2, 3, 4 or 6', 'Grupos de 2, 3, 4 ou 6'],
   },
 ];
-function gridPresetMini(p) {
+globalThis.gridPresets = gridPresets;
+function gridPresetMini(p: GridPreset): string {
   return Array.from(
     { length: 2 },
     () =>
       `<span class="grid-mini-page" style="grid-template-columns:repeat(${p.c},1fr);grid-template-rows:repeat(${p.r},1fr)">${'<i></i>'.repeat(p.c * p.r)}</span>`,
   ).join('');
 }
-function applyGridPreset(id) {
+function applyGridPreset(id: string): void {
   const p = gridPresets.find((p) => p.id === id);
   if (!p) return;
   commit(() => {
@@ -193,7 +228,8 @@ function applyGridPreset(id) {
     ),
   );
 }
-function gridGallery() {
+globalThis.applyGridPreset = applyGridPreset;
+function gridGallery(): void {
   modal(
     bw('Biblioteca de retículas', 'Grid library', 'Biblioteca de grades'),
     `<p class="builder-intro">${bw('Elegí una base y personalizá sus medianiles desde Diseño. Cada miniatura muestra columnas y filas reales.', 'Choose a starting point and customize gutters in Design. Each thumbnail shows actual rows and columns.', 'Escolha uma base e personalize os espaços em Design. Cada miniatura mostra linhas e colunas reais.')}</p><div class="grid-gallery-list">${gridPresets.map((p) => `<button type="button" class="grid-card ${book.grid.cols === p.c && book.grid.rows === p.r ? 'active' : ''}" data-grid-card="${p.id}"><div class="template-art">${gridPresetMini(p)}</div><strong>${bw(...p.name)}</strong><small>${p.c} ${bw('columnas', 'columns', 'colunas')} · ${p.r} ${bw('filas', 'rows', 'linhas')}<br>${bw(...p.use)}</small></button>`).join('')}</div><p class="help">${bw('Bases 2×4, 5×4, 3×6, 6×6 y 4×8: referencia The Vignelli Canon (Vignelli Center, RIT). Las demás son variantes de Maquetario. Son guías de composición; no crean cajas ni modifican el contenido.', '2×4, 5×4, 3×6, 6×6 and 4×8 bases reference The Vignelli Canon (Vignelli Center, RIT). Others are Maquetario variants. These are composition guides; they do not create frames or alter content.', 'Bases 2×4, 5×4, 3×6, 6×6 e 4×8: referência The Vignelli Canon (Vignelli Center, RIT). As demais são variantes do Maquetario. São guias de composição; não criam caixas nem alteram conteúdo.')}</p>`,
@@ -204,12 +240,13 @@ function gridGallery() {
   $$('[data-grid-card]').forEach(
     (b) =>
       (b.onclick = () => {
-        applyGridPreset(b.dataset.gridCard);
+        applyGridPreset(b.dataset.gridCard!);
         $('#modal').close();
         showTab('design');
       }),
   );
 }
+globalThis.gridGallery = gridGallery;
 extend.replace(
   'renderTemplates',
   function () {
@@ -221,7 +258,7 @@ extend.replace(
       )
       .join('');
     $$('[data-grid-preset]').forEach(
-      (b) => (b.onclick = () => applyGridPreset(b.dataset.gridPreset)),
+      (b) => (b.onclick = () => applyGridPreset(b.dataset.gridPreset!)),
     );
     let library = $('#gridLibrary');
     if (!library) {
@@ -235,8 +272,8 @@ extend.replace(
   },
   'readability',
 );
-function readabilityLabels() {
-  saveAsButton.querySelector('span').textContent = bw('Guardar como…', 'Save as…', 'Salvar como…');
+function readabilityLabels(): void {
+  saveAsButton.querySelector('span')!.textContent = bw('Guardar como…', 'Save as…', 'Salvar como…');
   saveAsButton.title = bw(
     'Guardar como… · Ctrl+Mayús+S',
     'Save as… · Ctrl+Shift+S',

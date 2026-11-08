@@ -16,8 +16,6 @@ declare var dialogVariant: (name: string) => void;
 declare var onDialogClose: (fn: () => void) => void;
 
 // ── Modelo, idioma y anfitrión ──
-declare var setLanguage: any;
-declare var maquetarioUpdateAvailable: any;
 declare var chrome: any;
 
 // ── Fuentes y separación silábica ──

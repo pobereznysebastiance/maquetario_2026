@@ -12,9 +12,6 @@ interface GuideLesson {
   task: string[];
   action: string;
 }
-import type { Book, BookObject, LibroModelApi } from './model.ts';
-import type { NovelSample } from './novel-sample.ts';
-import type { CoverDesign, CoverGeometryPart } from './cover-measurements.ts';
 
 /** Cara tipográfica tal como la manda el anfitrión (desktop/src/main/fonts/opentype.ts → FontFace). */
 interface NativeFontFace {
@@ -37,6 +34,9 @@ interface OutputDialogConfig {
   headers: boolean;
   folios: boolean;
 }
+import type { Book, BookObject, LibroModelApi } from './model.ts';
+import type { NovelSample } from './novel-sample.ts';
+import type { CoverDesign, CoverGeometryPart } from './cover-measurements.ts';
 
 declare global {
   // ── studio.js ──
@@ -172,8 +172,6 @@ declare global {
 
   function showWelcome(): Promise<void>;
   function bookBuilder(sample?: boolean): void;
-  function gridGallery(): void;
-  function openSettings(focusSection?: string): Promise<void>;
 
   // ── studio.js ──
   /** Hay una salida o un paquete en curso. */
@@ -218,7 +216,49 @@ declare global {
 
   // ── print-proof.js ──
   function coverSheetDialog(destination: string): void;
+
+  /** Avisa al anfitrión si hay cambios sin guardar y actualiza el indicador. */
+  function syncNative(): void;
+  /** Diálogo de formato del libro (nuevo o existente). */
+  function settings(isNew?: boolean): void;
+  /** Sección del inspector; enabled es la ruta del interruptor, si tiene. */
+  function section(
+    title: string,
+    key: string,
+    body: string,
+    enabled?: string | null,
+    badge?: string,
+  ): string;
+  function row(label: string, content: string): string;
+  function control(
+    label: string,
+    id: string,
+    value: string | number,
+    type?: string,
+    min?: string | number,
+    max?: string | number,
+    full?: boolean,
+  ): string;
+  /** Guarda el estado para deshacer. */
+  function snapshot(): void;
+  /** Marca cambios sin guardar y programa la copia de recuperación. */
+  function changed(): void;
+  function preparePrint(): void;
+  function render(full?: boolean): void;
+  function renderTemplates(): void;
+  /** Dibuja los íconos de los [data-icon]. */
+  function icons(): void;
+
+  // ── welcome.js ──
+  var welcomeVisible: boolean;
+
+  // ── fonts.js ──
+  /** Carpetas de fuentes agregadas por el usuario. */
+  var fontFolders: string[];
+  function obtainFonts(action?: string): Promise<void>;
 }
+
+export {};
 
 export {};
 

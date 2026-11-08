@@ -1,9 +1,30 @@
+// Editorial: la pestaña Índice (tabla de contenidos dibujada en el papel y en el PDF), los
+// controles extra de texto (tracking, sangría, espacio entre párrafos, glifos) y las guías
+// individuales del libro. Agrega el botón Índice a la barra de herramientas.
+//
+// ensureToc es global porque la usa tests/editorial-tests.js; prepareIndexPrint, porque la
+// llama la autoprueba (desktop/src/main/selftest.ts).
+//
+// La envoltura de inspector (extend.around) tiene que registrarse después de la de
+// inspector-registry, para quedar por fuera: index.html carga este archivo justo después.
+//
+// Fuente TypeScript: se compila a build/editorial.js (desktop/scripts/build.mjs).
 'use strict';
-function ensureToc() {
+import type { BookObject, TocConfig } from './model.ts';
+
+declare global {
+  /** Configuración del índice del libro; la crea con los valores por defecto si no existe. */
+  var ensureToc: () => TocConfig;
+  /** Prepara la impresión de prueba con un índice en la tercera página (autoprueba). */
+  var prepareIndexPrint: () => void;
+}
+
+function ensureToc(): TocConfig {
   if (!book.toc) book.toc = M.clone(M.tocConfig(book));
   return book.toc;
 }
-function tocPanel() {
+globalThis.ensureToc = ensureToc;
+function tocPanel(): string {
   const config = M.tocConfig(book),
     entries = M.tocEntries(book),
     o = selectObject();
@@ -36,13 +57,14 @@ extend.around(
         scroll = host.scrollTop;
       host.innerHTML = tocPanel();
       host.scrollTop = scroll;
-      $('#tocTitle').onchange = (e) => commit(() => (ensureToc().title = e.target.value), false);
+      $('#tocTitle').onchange = (e) =>
+        commit(() => (ensureToc().title = (e.target as HTMLInputElement).value), false);
       $('#tocSections').onchange = (e) =>
-        commit(() => (ensureToc().includeSections = e.target.checked), false);
+        commit(() => (ensureToc().includeSections = (e.target as HTMLInputElement).checked), false);
       $('#tocHeadings').onchange = (e) =>
-        commit(() => (ensureToc().includeHeadings = e.target.checked), false);
+        commit(() => (ensureToc().includeHeadings = (e.target as HTMLInputElement).checked), false);
       $('#markHeading').onclick = () =>
-        commit(() => (selectObject().heading = !selectObject().heading), false);
+        commit(() => (selectObject()!.heading = !selectObject()!.heading), false);
       $('#insertToc').onclick = () =>
         commit(() => {
           let existing = book.pages[active].objects.find((o) => o.toc);
@@ -88,7 +110,7 @@ extend.around(
     },
   'editorial',
 );
-function renderToc(el, o, px) {
+function renderToc(el: HTMLElement, o: BookObject, px: number): void {
   const content = el.querySelector('.text-content');
   if (!content) return;
   content.replaceChildren();
@@ -117,19 +139,19 @@ function renderToc(el, o, px) {
 // Índice dibujado en el papel; tracking, sangría y espacio entre párrafos de los textos.
 extend.result(
   'paper',
-  (page, i, px) => {
+  (page: HTMLElement, i: number, px: number) => {
     for (const o of book.pages[i].objects) {
-      const el = page.querySelector(`[data-id="${o.id}"]`);
+      const el = page.querySelector<HTMLElement>(`[data-id="${o.id}"]`)!;
       if (o.toc) renderToc(el, o, px);
       if (o.type === 'text' && !o.toc) {
-        const content = el.querySelector('.text-content');
+        const content = el.querySelector<HTMLElement>('.text-content')!;
         content.style.letterSpacing =
           ((((o.tracking || 0) / 1000) * o.size * 25.4) / 72) * px + 'px';
         if (o.spaceAfter) {
           content.replaceChildren();
           for (const line of o.text.split('\n')) {
             const p = document.createElement('div');
-            p.textContent = line || '\u00a0';
+            p.textContent = line || ' ';
             p.style.marginBottom = o.spaceAfter * px + 'px';
             p.style.textIndent = (o.indent || 0) * px + 'px';
             content.append(p);
@@ -150,7 +172,7 @@ extend.instead(
   },
   'editorial',
 );
-function extraTextControls() {
+function extraTextControls(): void {
   const h = $('#inspectorContent'),
     o = selectObject();
   const extra = document.createElement('div');
@@ -172,17 +194,17 @@ function extraTextControls() {
       `<button class="btn wide" id="glyphPanel" ${!o || o.type !== 'text' || o.toc ? 'disabled' : ''}>Glifos y caracteres especiales</button><button class="btn wide" id="openIndexFromText">Abrir Índice</button>`,
   );
   h.append(extra);
-  extra.querySelectorAll('[data-extra]').forEach(
+  extra.querySelectorAll<HTMLInputElement>('[data-extra]').forEach(
     (el) =>
       (el.onchange = () => {
         const n = Number(el.value);
         if (!Number.isFinite(n) || n < Number(el.min) || n > Number(el.max)) return;
-        commit(() => (selectObject()[el.dataset.extra] = n), false);
+        commit(() => (selectObject()![el.dataset.extra!] = n), false);
       }),
   );
   $('#openIndexFromText').onclick = () => showTab('index');
   $('#glyphPanel').onclick = () => {
-    const target = selectObject();
+    const target = selectObject()!;
     modal(
       'Glifos y caracteres especiales',
       `<p class="help">Elegí un carácter para agregarlo al final del cuadro seleccionado. Su disponibilidad depende de la tipografía.</p><div class="glyph-grid">${[...'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŒÙÚÛÜÝŸàáâãäåæçèéêëìíîïðñòóôõöøœùúûüýÿß¿¡«»“”‘’—–…•·©®™€£¥¢§¶†‡±×÷¼½¾¹²³←↑→↓'].map((c) => `<button type="button" data-glyph="${esc(c)}" style="font-family:${esc(target.font)}">${esc(c)}</button>`).join('')}</div>`,
@@ -200,12 +222,12 @@ function extraTextControls() {
     );
   };
 }
-function extraGuideControls() {
+function extraGuideControls(): void {
   const host = $('#inspectorContent'),
     first = host.querySelector('.section');
   if (!first) return;
   const box = document.createElement('div');
-  box.innerHTML = `<details class="guide-controls"><summary>Guías individuales</summary><p class="help">Guías horizontales y verticales en todas las páginas. No se imprimen.</p><button class="btn wide" id="addGuide">Agregar guía</button><div class="guide-list">${(book.guides || []).map((g, i) => `<div class="field-row"><span>${g.axis === 'v' ? 'Vertical' : 'Horizontal'} · ${displayMeasure(g.position)} ${documentUnit()}</span><button class="icon-btn" data-remove-guide="${i}" aria-label="Quitar guía">${icon('close')}</button></div>`).join('')}</div></details>`;
+  box.innerHTML = `<details class="guide-controls"><summary>Guías individuales</summary><p class="help">Guías horizontales y verticales en todas las páginas. No se imprimen.</p><button class="btn wide" id="addGuide">Agregar guía</button><div class="guide-list">${(book.guides || []).map((g: BookGuide, i: number) => `<div class="field-row"><span>${g.axis === 'v' ? 'Vertical' : 'Horizontal'} · ${displayMeasure(g.position)} ${documentUnit()}</span><button class="icon-btn" data-remove-guide="${i}" aria-label="Quitar guía">${icon('close')}</button></div>`).join('')}</div></details>`;
   first.append(box);
   $('#addGuide').onclick = () => {
     modal(
@@ -230,12 +252,17 @@ function extraGuideControls() {
         commit(() => book.guides.splice(Number(el.dataset.removeGuide), 1), false)),
   );
 }
+/** Guía propia del libro: vertical (v) u horizontal (h), a position mm del borde. */
+interface BookGuide {
+  axis: 'v' | 'h';
+  position: number;
+}
 // Guías propias del libro, sobre la grilla.
 extend.result(
   'gridSvg',
-  (svg, i, px) => {
+  (svg: string, i: number, px: number) => {
     const lines = (book.guides || [])
-      .map((g) =>
+      .map((g: BookGuide) =>
         g.axis === 'v'
           ? `<line x1="${g.position}" x2="${g.position}" y1="0" y2="${book.height}"/>`
           : `<line y1="${g.position}" y2="${g.position}" x1="0" x2="${book.width}"/>`,
@@ -257,7 +284,7 @@ indexButton.onclick = () => {
   showTab('index');
 };
 $('#tools').append(indexButton);
-window.prepareIndexPrint = function () {
+globalThis.prepareIndexPrint = function () {
   const original = M.clone(book),
     o = M.text('', 20, 20, book.width - 40, book.height - 40);
   o.toc = true;
