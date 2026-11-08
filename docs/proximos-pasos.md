@@ -49,6 +49,8 @@ Sigue (etapa 2 de `arquitectura.md`): sacar del build de producción las pruebas
 
 **Lo que la sonda no ve** (y la autoprueba sí encontró): el estado real de la barra superior en Electron (controles de ventana), elementos dentro de algo oculto (sus estilos cambian pero no se ven), anchos de barra de desplazamiento, y formas cortas con `var()` (`border-radius: var(--radius-lg)`, `border-top: 1px solid var(--line)`): el CSSOM deja vacías sus propiedades largas. `legacyProps` ya recorre las declaraciones como están escritas, pero conviene revisar en vivo las formas cortas con `var()` de lo que se borra (así se perdieron las esquinas y la perilla del interruptor, y se recuperaron). `prune-css.cjs` nunca borra `html`, `body`, `:root`, `*`, `@font-face`, `@media`, impresión ni `::-webkit-*`.
 
+**Sobre la app de escritorio** (lo que la sonda en el navegador no ve): levantar con `cd desktop && node scripts/build.mjs && npx electron . --dev --remote-debugging-port=9333` y usar `node scripts/app-cdp.mjs` (`eval`, `evalfile`, `shot`, `click`, `key`). Fija la vista en 1536 × 1024 a escala 1 en cada llamada, así las fotos de `style-snapshot` no dependen de la ventana. Para comparar: sacar dos fotos de base sin el cambio (la diferencia entre ellas es el ruido: foco, animaciones) y recién ahí la foto con el cambio.
+
 **Antes de borrar o migrar, siempre:** (1) emular 1536 × 1024 en el panel del navegador (a 1024 px se activan las reglas @media (max-width:1250px) y tapan a las de base: así se perdió el tamaño del título de la bienvenida); (2) abrir los paneles que arrancan plegados (plantillas con #toggleGridStrip, recorrido con #toggleWorkflow): con el panel de plantillas plegado su regla base parecía muerta y se borró; (3) comparar con `scripts/style-snapshot.js` antes y después (`styleSnapshot` / `styleDiff`), no sólo con las capturas de la autoprueba, que no cubren esos estados.
 
 Cuidado al migrar una regla de varios selectores: la sonda la marca efectiva si pesa en uno solo. Pasar los demás a una capa de `ui/` les gana a otros organismos (pasó con `.tool#indexTool`). Portar selector por selector.
@@ -62,19 +64,24 @@ Cuidado al migrar una regla de varios selectores: la sonda la marca efectiva si 
 - En `studio.css` queda a propósito: lo que dibuja el libro (pliego, página, objetos, guías, grilla, elementos automáticos, miniaturas, `#printRoot`) y los resets de elemento (`*`, `html`, `body`, `button`, `input`, `select`, `svg.icon`), que en una capa de `ui/` le ganarían a todo lo viejo; se mueven a `base.css` cuando legacy esté vacío.
 - Cambios visuales buscados: colores de tokens (dorado `--text-mark`, verde agua `--accent`, superficies `--surface-*`), alineación activa con contorno verde agua en lugar de relleno lleno, interruptor dorado liso (sin degradé), estructura un poco más compacta.
 
+### Hecho el 8-nov (segunda tanda)
+
+- App revisada abierta en Electron con plantillas y recorrido desplegados: sin roturas salvo lo de abajo.
+- Selectores: el valor largo pasaba por debajo de la flecha. Átomo `ui/select.js` (cada selector recibe su `<button><selectedcontent>`) y regla base de campos con el filtro de tipos en `:where` (pisaba el lugar de la flecha).
+- Diálogos: `ui/dialog.js` con `dialogVariant(clase)` y `onDialogClose(fn)`. El `close` llega tarde y, al saltar de un diálogo a otro, borraba la clase del nuevo (Preparar PDF y Cubierta quedaban en 540 px). Ningún módulo escribe ya `$('#modal').addEventListener('close', …)`.
+- Diálogos apaisados: tamaños en `organisms/dialog.css` con tokens (820 px por defecto; cada variante el suyo). Configuración en dos columnas sin desplazamiento; Cubierta en dos columnas (zona a la izquierda, medidas a la derecha), de 2040 a 1248 px de alto.
+- Avisos con tipo: `toast(mensaje, 'success' | 'info' | 'warning' | 'error')`, color e ícono por tipo; las 44 llamadas pasan el suyo. La regla vieja de `#toast` en `glass.css` se borró sin cambio visible.
+- `scripts/app-cdp.mjs` para medir y capturar sobre la app de escritorio.
+
 ### Para retomar (orden sugerido)
 
-1. Mirar la app abierta, con plantillas y recorrido desplegados, por si quedó algo roto que las pruebas no cubren (avisar y corregir primero).
-2. Rehacer la tanda guardada en `git stash` (workspace, page-priority, editorial-learning, canvas-navigation) con el método completo: panel del navegador a 1536 × 1024, `styleSnapshot('v0')` antes de tocar nada (con `localStorage` limpio), migrar, `styleSnapshot('v1')` y `styleDiff('v0', 'v1')` filtrando cambios estructurales. No aplicar el stash tal cual: sirve de borrador.
-3. Al portar una regla, buscar antes si una regla vieja más específica le ganaba (en `ui/` la portada pasa a ganar siempre). Así se agrandaron los botones de la bienvenida y la ayuda de fuentes, y el diálogo de salida pasó a dos columnas; ya corregido.
-4. Seguir con las hojas restantes de a una o dos por tanda.
-5. Avisos del sistema: hoy hay un solo estilo (verde agua, arriba al centro). Si hace falta distinguir error y advertencia, sumar variantes con --status-error y --status-warning y que toast() reciba el tipo.
+1. La tanda workspace, page-priority, editorial-learning, canvas-navigation se rehace desde cero (el `git stash` quedó en la otra compu y no se recupera). Método completo: app de escritorio con `scripts/app-cdp.mjs`, `styleSnapshot` antes de tocar nada (con `localStorage` limpio y dos fotos de base), migrar, foto después y comparar.
+2. Al portar una regla, buscar antes si una regla vieja más específica le ganaba (en `ui/` la portada pasa a ganar siempre). Así se agrandaron los botones de la bienvenida y la ayuda de fuentes, y el diálogo de salida pasó a dos columnas; ya corregido.
+3. Seguir con las hojas restantes de a una o dos por tanda.
+4. Diálogos que todavía son columnas largas: Configuración del libro (820 × 747, casi cuadrado: formatos a la izquierda y campos a la derecha), asistente, glosario. En Cubierta, "Imagen de esta zona / Quitar imagen" aparece dos veces (arriba y abajo de la zona): dejar una.
+5. Después de vaciar legacy: etapa 2 de `arquitectura.md` (pruebas fuera del build, TypeScript y módulos).
 
 ### Queda
-
-- Tanda guardada en `git stash` ("tanda workspace/page-priority/editorial-learning/canvas-navigation sin terminar"): migración de esas cuatro hojas hecha con la sonda a 1024 px y sin paneles abiertos. Rehacerla midiendo a 1536 px con los paneles abiertos y comparando con style-snapshot; no aplicarla tal cual.
-
-- `#toast` en `glass.css`: `molecules/status.css` ya lo define, pero quitar la regla vieja cambió el aviso en una captura; entender por qué antes de borrarla.
 - Reglas de la barra superior y de la barra del documento en `editorial.css`, `maquetario.css`, `output.css` y `readability.css`: migrarlas cuando se revise `organisms/topbar.css`, probando en Electron (la sonda no ve los controles de ventana).
 - Las otras 19 hojas tienen unas 300 reglas efectivas: migrarlas por pieza con el mismo método (`legacyProps`). Las más grandes: `workspace.css`, `page-priority.css`, `editorial-learning.css`, `canvas-navigation.css`.
 - La bienvenida crea una "escultura" que siempre queda oculta (`book-workflow.js`, `.welcome-sculpture`): sacar ese código y la regla que la oculta.
