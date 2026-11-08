@@ -45,8 +45,7 @@ extend('autoElement',priorFolioElement=>function(index,type,px,printing=false){
   return element;
 },'folio-position');
 
-extend('inspector',beforeFolioControls=>function(){
-  beforeFolioControls();
+decorateInspector(()=>{
   const section = $('[data-bind="folio.pos"]')?.closest('.section');
   if (!section || section.querySelector('.folio-placement')) return;
   const group = document.createElement('div');

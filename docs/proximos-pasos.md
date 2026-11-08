@@ -16,7 +16,7 @@ Commits en castellano, sin líneas de autoría de IA.
 
 Diseño y relevamiento completo en `docs/arquitectura.md` → "Próximo paso de arquitectura". Las 17 extensiones de `inspector` ya pasan por `extend()` (`LibroStudio/v3/app/extend.js`). Pasos:
 
-1. En `studio.js`, junto a `inspector()`: `registerInspectorPanel(tab, render)`, `decorateInspector(fn, { tab })` y la guarda `inspectorPaused()`.
+1. Hecho: `decorateInspector(fn)` (`inspector-registry.js`); 13 de las 17 extensiones convertidas. Falta `registerInspectorPanel(tab, render)` para las rutas y la guarda `inspectorPaused()`.
 2. Convertir una extensión por vez, de las más simples a las más complejas: decoradores puros (editorial-learning, font-browser, font-glyphs, shapes, document-units) → decoradores por pestaña (paragraphs ×2, page-exceptions, review-workspace, fonts, folio-position, editorial-rules) → rutas (book-workflow: `structure`; inspector-organization: `object`) → envoltura (master-refinement).
 3. Autoprueba después de cada grupo. Ver el orden con `MaquetarioExtensions.list().inspector`.
 

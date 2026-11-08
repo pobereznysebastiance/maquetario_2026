@@ -42,7 +42,7 @@ function adaptLengthControls(root) {
     }
   }
 }
-extend('inspector',unitsInspector=>function(){ unitsInspector();adaptLengthControls($('#inspectorContent')); },'document-units');
+decorateInspector(()=>{adaptLengthControls($('#inspectorContent')); },'document-units');
 extend('modal',unitsModal=>function(...args){
   unitsModal(...args);
   if ($('#modal').open && !$('#pageUnits')) adaptLengthControls($('#modalBody'));

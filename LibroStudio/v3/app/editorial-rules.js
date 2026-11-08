@@ -116,8 +116,7 @@ function editorialRulesDialog() {
   $('#modal').addEventListener('close',()=>$('#modal').classList.remove('editorial-rules-dialog'),{once:true});
 }
 
-extend('inspector',beforeEditorialRules=>function(){
-  beforeEditorialRules();
+decorateInspector(()=>{
   if (tab !== 'structure' || !hasDocument) return;
   const button = document.createElement('button');
   button.type = 'button';
