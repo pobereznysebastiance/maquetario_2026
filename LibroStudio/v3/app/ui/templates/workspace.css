@@ -36,3 +36,12 @@
 [data-workspace-hidden] {
   display: none;
 }
+
+/* Reglas ocultas (rulers.js): la mesa de trabajo recupera su lugar. */
+body[data-rulers='hidden'] :is(.ruler-x, .ruler-y) {
+  display: none;
+}
+body[data-rulers='hidden'] #spreadStage {
+  top: 0;
+  left: 0;
+}

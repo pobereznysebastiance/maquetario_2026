@@ -17,6 +17,8 @@
     expires: ['Licencia válida hasta', 'License valid until', 'Licença válida até'],
     invalid: ['La licencia no es válida en este equipo.', 'The license is not valid on this computer.', 'A licença não é válida neste computador.'],
     interfaceSection: ['Interfaz', 'Interface', 'Interface'],
+    rulers: ['Reglas', 'Rulers', 'Réguas'],
+    rulersHelp: ['Mostrar las reglas horizontal y vertical (Ctrl+R).', 'Show horizontal and vertical rulers (Ctrl+R).', 'Mostrar as réguas horizontal e vertical (Ctrl+R).'],
     language: ['Idioma', 'Language', 'Idioma'],
     interface: ['Tamaño de la interfaz', 'Interface size', 'Tamanho da interface'],
     interfaceHelp: [
@@ -121,7 +123,8 @@
             t('interface'),
             `<select id="settingsInterfaceSize"><option value="standard">${t('comfortable')}</option><option value="large">${t('large')}</option></select>`,
             t('interfaceHelp'),
-          ),
+          ) +
+          row(t('rulers'), UI.checkItem({ id: 'settingsRulers', label: '', checked: MaquetarioRulers.isVisible() }), t('rulersHelp')),
       ) +
       `<div id="settings-section-workspace">${section(t('workspace'), workspaceBody())}</div>` +
       section(t('fonts'), `<p class="settings-help">${t('fontsHelp')}</p>${foldersBody()}`) +
@@ -159,6 +162,8 @@
       // El panel se vuelve a armar en el idioma elegido.
       openSettings();
     };
+    const rulersBox = $('#settingsRulers');
+    if (rulersBox) rulersBox.onchange = () => MaquetarioRulers.setVisible(rulersBox.checked);
     const sizeSelect = $('#settingsInterfaceSize');
     sizeSelect.value = large ? 'large' : 'standard';
     sizeSelect.onchange = () => setReadability(sizeSelect.value);

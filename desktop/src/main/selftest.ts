@@ -189,6 +189,16 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     if (broken.length) throw new Error(`Desborde horizontal: ${JSON.stringify(Object.fromEntries(broken))}`);
     return overflow;
   });
+  await step('reglas', async () => {
+    const r = JSON.parse(
+      await exec<string>(
+        session,
+        "(()=>{MaquetarioRulers.setVisible(false);const hidden=getComputedStyle(document.querySelector('.ruler-x')).display==='none',top=getComputedStyle(document.querySelector('#spreadStage')).top;MaquetarioRulers.setVisible(true);const shown=getComputedStyle(document.querySelector('.ruler-x')).display!=='none';return JSON.stringify({hidden,top,shown});})()",
+      ),
+    );
+    if (!r.hidden || r.top !== '0px' || !r.shown) throw new Error(JSON.stringify(r));
+    return ['Ocultar reglas libera el espacio', 'Mostrarlas las vuelve a poner'];
+  });
   await testStep('PDF de cubierta', async () => {
     await exec(session, 'window.prepareCoverProof()');
     await delay(300);
@@ -206,6 +216,14 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   );
   await step('avisos', () => uiSuite('verificacion-avisos.json', 'window.runNoticeTests().catch(e=>({ok:false,error:e.stack}))'));
   await testStep('paquete del proyecto', () => checkPackage(session));
+
+  // Última: abrir "libro nuevo" descarta el libro de prueba.
+  await step('captura de libro nuevo', async () => {
+    await exec(session, 'settingsNew(true)');
+    await delay(400);
+    await capture('libro-nuevo.png');
+    await exec(session, "document.querySelector('#modal').close()");
+  });
 
   const ok = results.every((r) => r.ok);
   await writeFile(join(out, 'resumen.json'), JSON.stringify({ ok, carpeta: out, resultados: results }, null, 2));

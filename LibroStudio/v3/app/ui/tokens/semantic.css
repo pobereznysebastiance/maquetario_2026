@@ -65,9 +65,23 @@
   --accent: var(--teal-500);
   --accent-hover: var(--teal-400);
   --accent-pressed: var(--teal-600);
-  --danger: var(--red-400);
-  --line-danger: rgb(242 128 111 / 0.42);
-  --surface-danger: rgb(242 128 111 / 0.12);
+  /* ── Estados (derivados de la marca, no genéricos) ──────── */
+  /* Error: ladrillo cálido. Advertencia: el dorado de la marca. Éxito: salvia. Información: verde agua claro. */
+  --status-error: #e5806c;
+  --status-error-surface: rgb(229 128 108 / 0.12);
+  --status-error-line: rgb(229 128 108 / 0.38);
+  --status-warning: var(--gold-400);
+  --status-warning-surface: rgb(228 177 108 / 0.12);
+  --status-warning-line: rgb(228 177 108 / 0.4);
+  --status-success: #86c9a8;
+  --status-success-surface: rgb(134 201 168 / 0.12);
+  --status-success-line: rgb(134 201 168 / 0.38);
+  --status-info: var(--teal-300);
+  --status-info-surface: rgb(143 230 217 / 0.08);
+  --status-info-line: rgb(143 230 217 / 0.3);
+  --danger: var(--status-error);
+  --line-danger: var(--status-error-line);
+  --surface-danger: var(--status-error-surface);
   --opacity-disabled: 0.4;
   --warning: var(--amber-400);
 
@@ -98,15 +112,18 @@
   --space-2xl: var(--size-32);
 
   /* ── Formas ──────────────────────────────────────────────── */
-  --radius-sm: 5px;
-  --radius-md: 7px;
-  --radius-lg: 12px;
+  /* Radios sutiles, como macOS: controles 4–6, paneles y diálogos 8. Nada de esquinas infladas. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
   --radius-pill: 999px;
   --border-width: 1px;
+  /* Texto oculto a la vista pero leído por lectores de pantalla. */
+  --visually-hidden-size: 1px;
 
   /* ── Medidas de la ventana ───────────────────────────────── */
   /* La barra superior y la zona de botones de la ventana miden lo mismo (desktop/src/main/window-chrome.ts). */
-  --topbar-height: 64px;
+  --topbar-height: 48px;
   /* Barra del documento y pestañas del inspector: misma altura para que sus líneas coincidan. */
   --subbar-height: 40px;
 
@@ -119,6 +136,8 @@
   --icon-lg: 22px;
   --icon-xl: 40px;
   --icon-stroke: 1.6;
+  /* Flecha de los selectores (el color vive acá, en los tokens). */
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23b8c9c6%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M6 9l6 6 6-6%27/%3E%3C/svg%3E");
   /* Íconos grandes (estados vacíos): trazo más fino en proporción, para que no se vean pesados. */
   --icon-stroke-display: 1.25;
 

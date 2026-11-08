@@ -1,0 +1,42 @@
+/* Molécula: avisos con estado (nota, error, advertencia, éxito) y mensajes emergentes.
+   Tinte de fondo suave + texto; nada de bordes laterales gruesos de color. */
+.notice {
+  margin: var(--space-md) 0 0;
+  padding: var(--space-sm) var(--space-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--status-info-surface);
+  color: var(--text-secondary);
+  font-size: var(--type-callout);
+  line-height: var(--leading-text);
+}
+
+.inline-error {
+  color: var(--status-error);
+  font-size: var(--type-callout);
+}
+
+/* Filas de revisión (asistente, legibilidad): el estado se lee por el tinte, no por una franja. */
+.error,
+.warning {
+  border-left-width: var(--border-width);
+}
+.error {
+  border-left-color: var(--status-error-line);
+  background: var(--status-error-surface);
+}
+.warning {
+  border-left-color: var(--status-warning-line);
+  background: var(--status-warning-surface);
+}
+
+/* Mensaje emergente: hoja sólida y discreta, como una notificación del sistema. */
+#toast {
+  padding: var(--space-sm) var(--space-lg);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-md);
+  background: var(--material-popover);
+  color: var(--text-primary);
+  font-size: var(--type-callout);
+  box-shadow: var(--elevation-2);
+}

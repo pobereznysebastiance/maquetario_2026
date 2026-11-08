@@ -39,6 +39,16 @@
   opacity: var(--opacity-disabled);
 }
 
+/* Selector: flecha propia con aire a la derecha (la del sistema queda pegada al borde). */
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer) select {
+  appearance: none;
+  padding-right: calc(var(--space-sm) * 2 + var(--icon-sm));
+  background-image: var(--select-chevron);
+  background-repeat: no-repeat;
+  background-position: right var(--space-sm) center;
+  background-size: var(--icon-sm) var(--icon-sm);
+}
+
 /* Casillas y deslizadores toman el color de acción. */
 :is(input[type='checkbox'], input[type='radio'], input[type='range']) {
   accent-color: var(--accent);

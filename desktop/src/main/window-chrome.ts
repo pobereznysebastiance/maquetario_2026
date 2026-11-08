@@ -23,7 +23,7 @@ export function windowMaterial(): WindowMaterial {
 }
 
 /** Alto de la zona de los botones de la ventana; coincide con la barra superior (ui/templates/window.css). */
-export const TITLE_BAR_HEIGHT = 64;
+export const TITLE_BAR_HEIGHT = 48;
 const SOLID_WINDOW = '#13242b';
 const CONTROL_SYMBOLS = '#d6e0dc';
 

@@ -27,36 +27,83 @@
   flex-shrink: 0;
 }
 
-/* Alto fijo: coincide con la zona de botones de la ventana, así quedan centrados con la fila. */
+/* Barra compacta, como las de macOS: alto de 48 px (igual a la zona de botones de la ventana),
+   acciones de archivo sólo con ícono y texto sólo en las acciones principales. */
 .topbar {
   height: var(--topbar-height);
   min-height: var(--topbar-height);
   flex-wrap: nowrap;
   align-items: center;
+  gap: var(--space-md);
 }
 
-/* Compactación por etapas en vez de desbordarse:
-   1600: se oculta el subtítulo de la marca;
-   1440: las acciones de archivo quedan sólo con ícono (el nombre sigue en el título emergente);
-   1280: Imprimir y Vista previa también. Exportar PDF conserva siempre su texto. */
-@media (max-width: 1599px) {
-  .topbar .brand small,
-  .topbar .brand .beta {
-    display: none;
-  }
+/* Marca: logotipo y nombre; el subtítulo no entra en una barra de herramientas. */
+.topbar .brand small,
+.topbar .brand .beta {
+  display: none;
 }
-@media (max-width: 1439px) {
-  .topbar .tool-action {
-    min-width: var(--control-lg);
-  }
-  .topbar .tool-action > span {
-    display: none;
-  }
+.topbar .brand strong {
+  font-size: var(--type-title3);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-title);
+}
+.topbar .brandmark {
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+}
+
+/* Acciones de archivo: botón cuadrado de ícono. El nombre queda en el título emergente
+   y para lectores de pantalla (oculto visualmente, no eliminado). */
+.topbar .toolbar {
+  gap: var(--space-3xs);
+}
+.topbar .tool-action {
+  display: inline-grid;
+  place-items: center;
+  width: var(--control-md);
+  min-width: var(--control-md);
+  height: var(--control-md);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+.topbar .tool-action:hover:not(:disabled) {
+  background: var(--surface-control-hover);
+  color: var(--text-primary);
+}
+.topbar .tool-action:disabled {
+  opacity: var(--opacity-disabled);
+}
+.topbar .tool-action .icon {
+  width: var(--icon-md);
+  height: var(--icon-md);
+}
+.topbar .tool-action > span {
+  position: absolute;
+  width: var(--visually-hidden-size);
+  height: var(--visually-hidden-size);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.topbar .divider {
+  height: var(--icon-md);
+  margin-inline: var(--space-xs);
+  border-left: var(--border-width) solid var(--line-subtle);
+}
+
+/* Botones principales a la altura de la barra compacta. */
+.topbar .btn {
+  min-height: var(--control-sm);
+}
+
+@media (max-width: 1279px) {
   .topbar #savedState {
     display: none;
   }
-}
-@media (max-width: 1279px) {
   .topbar :is(#preview, #printButton, .assistant-entry) > span:not([data-icon]) {
     display: none;
   }
