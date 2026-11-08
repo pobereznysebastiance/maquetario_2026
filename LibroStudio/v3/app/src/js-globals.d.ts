@@ -2,17 +2,6 @@
 // las fuentes de src/. Sólo los ve el chequeo estricto de src/: en el chequeo del JS se ven las
 // definiciones reales. Cuando un archivo pasa a src/, sus globales salen de acá.
 
-/** Una lección del tutorial (title, body y task: castellano, inglés y portugués). */
-interface GuideLesson {
-  id: string;
-  tab: string;
-  target: string;
-  title: string[];
-  body: string[];
-  task: string[];
-  action: string;
-}
-
 /** Opciones del diálogo de salida (output.js → outputConfigFromDialog). */
 interface OutputDialogConfig {
   mode: string;
@@ -30,6 +19,7 @@ import type { Book, BookObject, LibroModelApi } from './model.ts';
 import type { NovelSample } from './novel-sample.ts';
 import type { CoverDesign, CoverGeometryPart } from './cover-measurements.ts';
 import type { CanvasAnchor } from './continuous-canvas.ts';
+import type { UIFontFace, UIFontInstance } from './font-browser.ts';
 
 declare global {
   // ── studio.js ──
@@ -84,19 +74,6 @@ declare global {
 
   // ── welcome.js ──
 
-  // ── tutorial.js ──
-  const guideLessons: GuideLesson[];
-  function lesson(
-    id: string,
-    tab: string,
-    target: string,
-    title: string[],
-    body: string[],
-    task: string[],
-    action?: string,
-  ): void;
-  function closeTutorial(): void;
-
   // ── book-workflow.js ──
   function goToBookPage(index: number): void;
   function composeNovel(data: NovelSample): Book;
@@ -116,9 +93,6 @@ declare global {
   function paragraphPatch(values: Record<string, unknown>): void;
 
   // ── panel-resize.js ──
-
-  // ── font-browser.js ──
-  const fontBrowser: HTMLDialogElement;
 
   /** Primera página del pliego visible. */
   var spread: number;
@@ -188,9 +162,6 @@ declare global {
   function updatePortableFontCatalog(): void;
   /** Carga del catálogo de fuentes del sistema (null hasta que arranca). */
   var fontCatalogPromise: Promise<unknown> | null;
-
-  var tutorialIndex: number;
-  const tutorialCard: HTMLElement;
 
   /** Lanza un error legible si la cubierta tiene medidas fuera de rango. */
   function validateCover(c: Record<string, any>): void;
@@ -298,10 +269,6 @@ declare global {
   ): { styleId: string | null; overrides: Record<string, any> };
   function currentParagraph(o: BookObject): number;
 
-  function browserCurrentVariant():
-    | { key: string; label: string; face: NativeFontFace; instance: { name: string } | null }
-    | undefined;
-
   var zoom: number;
   /** Copias del libro (JSON) para deshacer y rehacer. */
   var undoStack: string[];
@@ -317,8 +284,6 @@ declare global {
 
   // ── fonts.js ──
   function ensureBookFonts(): Promise<unknown>;
-
-  function startTutorial(index?: number): void;
 
   // ── project-package.js ──
 
@@ -346,6 +311,23 @@ declare global {
 
   /** Ids de las caras que no se pudieron cargar. */
   var fontLoadErrors: Set<string>;
+
+  // ── studio.js ──
+  /** Familias tipográficas disponibles (las del sistema, o unas básicas). */
+  var fontList: string[];
+  /** Valor del libro en una ruta con puntos ('header.font'…). */
+  function get(path: string): any;
+
+  /** Palabras de la interfaz de fuentes en el idioma actual. */
+  const fw: () => Record<string, string>;
+  function familyFaces(family: string): UIFontFace[];
+  function applyFace(
+    o: BookObject,
+    face: UIFontFace,
+    instance: UIFontInstance | null,
+  ): Promise<void>;
+
+  // ── editorial-learning.js ──
 }
 
 export {};

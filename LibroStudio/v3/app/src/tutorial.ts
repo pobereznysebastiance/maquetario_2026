@@ -1,8 +1,69 @@
-'use strict';
-const guideLessons = [];
-function lesson(id, tab, target, title, body, task, action = '') {
+// Tutorial guiado: las lecciones (una por sección de la interfaz, en castellano, inglés y
+// portugués) y la tarjeta que las recorre: avanzar, volver, saltar a un capítulo y abrir la
+// sección de cada lección. El paso actual se recuerda en localStorage.
+//
+// Son globales:
+// - guideLessons y lesson: review-tutorial.ts suma lecciones, inspector-organization.js y
+//   editor-controls.ts las leen; las pruebas (welcome-tests) las revisan.
+// - tutorialIndex y tutorialCard: los usa el foco del tutorial (editor-controls.ts). El índice
+//   vive en globalThis porque lo leen otros archivos.
+// - startTutorial, closeTutorial y showTutorialStep: los llaman welcome.js, la autoprueba y las
+//   pruebas, y los extienden review-workspace.js (startTutorial) y editor-controls.ts (los otros
+//   dos). Por eso closeTutorial y showTutorialStep se llaman acá por su nombre global, no por uno
+//   local: así también pasan por esas extensiones, como antes.
+//
+// Fuente TypeScript: se compila a build/tutorial.js (desktop/scripts/build.mjs).
+
+/** Una lección del tutorial (title, body y task: castellano, inglés y portugués). */
+export interface GuideLesson {
+  id: string;
+  tab: string;
+  target: string;
+  title: string[];
+  body: string[];
+  task: string[];
+  action: string;
+}
+
+declare global {
+  /** Lecciones en orden de recorrido. */
+  var guideLessons: GuideLesson[];
+  /** Suma una lección al final del recorrido. */
+  var lesson: (
+    id: string,
+    tab: string,
+    target: string,
+    title: string[],
+    body: string[],
+    task: string[],
+    action?: string,
+  ) => void;
+  /** Índice de la lección que muestra la tarjeta. */
+  var tutorialIndex: number;
+  /** Tarjeta flotante del tutorial. */
+  var tutorialCard: HTMLElement;
+  /** Abre el tutorial en la lección index (o en la última vista). */
+  var startTutorial: (index?: number) => void;
+  /** Pausa el tutorial: esconde la tarjeta y saca el resaltado. */
+  var closeTutorial: () => void;
+  /** Muestra la lección index: abre su pestaña, resalta el control y arma la tarjeta. */
+  var showTutorialStep: (index: number) => void;
+}
+
+const guideLessons: GuideLesson[] = [];
+function lesson(
+  id: string,
+  tab: string,
+  target: string,
+  title: string[],
+  body: string[],
+  task: string[],
+  action = '',
+): void {
   guideLessons.push({ id, tab, target, title, body, task, action });
 }
+globalThis.guideLessons = guideLessons;
+globalThis.lesson = lesson;
 lesson(
   'intro',
   'design',
@@ -531,32 +592,35 @@ const tutorialUI = {
     done: 'Percurso concluído. Volte a qualquer capítulo pelo Tutorial.',
   },
 };
-let tutorialIndex = 0;
+globalThis.tutorialIndex = 0;
 const tutorialCard = document.createElement('aside');
 tutorialCard.className = 'tutorial-card';
 tutorialCard.id = 'tutorialCard';
 tutorialCard.hidden = true;
 tutorialCard.setAttribute('aria-live', 'polite');
 document.body.append(tutorialCard);
+globalThis.tutorialCard = tutorialCard;
 function tutorialLocale() {
   return { code: LibroI18n.language, index: { es: 0, en: 1, pt: 2 }[LibroI18n.language] || 0 };
 }
-function startTutorial(index) {
+function startTutorial(index?: number): void {
   hideWelcome();
   if ($('#modal').open) $('#modal').close();
   let saved = Number(localStorage.getItem('maquetario-tutorial-step')) || 0;
-  tutorialIndex = Number.isInteger(index) ? index : Math.min(saved, guideLessons.length - 1);
+  tutorialIndex = Number.isInteger(index)
+    ? (index as number)
+    : Math.min(saved, guideLessons.length - 1);
   tutorialCard.hidden = false;
   showTutorialStep(tutorialIndex);
 }
-function closeTutorial() {
+globalThis.closeTutorial = function () {
   tutorialCard.hidden = true;
   $$('.tour-target').forEach((n) => n.classList.remove('tour-target'));
-}
-function showTutorialStep(index) {
+};
+globalThis.showTutorialStep = function (index: number) {
   finishEditing();
   tutorialIndex = Math.max(0, Math.min(guideLessons.length - 1, index));
-  localStorage.setItem('maquetario-tutorial-step', tutorialIndex);
+  localStorage.setItem('maquetario-tutorial-step', String(tutorialIndex));
   const { code, index: lang } = tutorialLocale(),
     w = tutorialUI[code],
     step = guideLessons[tutorialIndex];
@@ -579,7 +643,8 @@ function showTutorialStep(index) {
       toast(w.done);
     } else showTutorialStep(tutorialIndex + 1);
   };
-  $('#tutorialJump').onchange = (e) => showTutorialStep(Number(e.target.value));
+  $('#tutorialJump').onchange = (e) =>
+    showTutorialStep(Number((e.target as HTMLSelectElement).value));
   $('#tutorialAction').onclick = () => {
     if (step.action === 'settings') settings(false);
     else if (step.action === 'pdf') outputDialog('pdf');
@@ -594,16 +659,15 @@ function showTutorialStep(index) {
       }
     }
   };
-}
-window.startTutorial = startTutorial;
-window.closeTutorial = closeTutorial;
+};
+globalThis.startTutorial = startTutorial;
 document.addEventListener('maquetario:language', () => {
   if (!tutorialCard.hidden) showTutorialStep(tutorialIndex);
 });
 decorateInspector(() => {
   if (selectObject()?.locked && tab !== 'layers')
     $('#inspectorContent')
-      .querySelectorAll(
+      .querySelectorAll<HTMLInputElement>(
         '[data-object],[data-extra],[data-align],[data-style],#fontVariant,[data-axis],[data-command="editText"],#glyphPanel',
       )
       .forEach((el) => (el.disabled = true));
@@ -613,3 +677,5 @@ decorateInspector(() => {
     if (target) target.classList.add('tour-target');
   }
 }, 'tutorial');
+
+export {};
