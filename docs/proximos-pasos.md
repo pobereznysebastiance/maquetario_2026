@@ -49,6 +49,8 @@ Sigue (etapa 2 de `arquitectura.md`): sacar del build de producción las pruebas
 
 **Lo que la sonda no ve** (y la autoprueba sí encontró): el estado real de la barra superior en Electron (controles de ventana), elementos dentro de algo oculto (sus estilos cambian pero no se ven), anchos de barra de desplazamiento, y formas cortas con `var()` (`border-radius: var(--radius-lg)`, `border-top: 1px solid var(--line)`): el CSSOM deja vacías sus propiedades largas. `legacyProps` ya recorre las declaraciones como están escritas, pero conviene revisar en vivo las formas cortas con `var()` de lo que se borra (así se perdieron las esquinas y la perilla del interruptor, y se recuperaron). `prune-css.cjs` nunca borra `html`, `body`, `:root`, `*`, `@font-face`, `@media`, impresión ni `::-webkit-*`.
 
+**Antes de borrar o migrar, siempre:** (1) emular 1536 × 1024 en el panel del navegador (a 1024 px se activan las reglas @media (max-width:1250px) y tapan a las de base: así se perdió el tamaño del título de la bienvenida); (2) abrir los paneles que arrancan plegados (plantillas con #toggleGridStrip, recorrido con #toggleWorkflow): con el panel de plantillas plegado su regla base parecía muerta y se borró; (3) comparar con `scripts/style-snapshot.js` antes y después (`styleSnapshot` / `styleDiff`), no sólo con las capturas de la autoprueba, que no cubren esos estados.
+
 Cuidado al migrar una regla de varios selectores: la sonda la marca efectiva si pesa en uno solo. Pasar los demás a una capa de `ui/` les gana a otros organismos (pasó con `.tool#indexTool`). Portar selector por selector.
 
 ### Hecho
@@ -61,6 +63,8 @@ Cuidado al migrar una regla de varios selectores: la sonda la marca efectiva si 
 - Cambios visuales buscados: colores de tokens (dorado `--text-mark`, verde agua `--accent`, superficies `--surface-*`), alineación activa con contorno verde agua en lugar de relleno lleno, interruptor dorado liso (sin degradé), estructura un poco más compacta.
 
 ### Queda
+
+- Tanda guardada en `git stash` ("tanda workspace/page-priority/editorial-learning/canvas-navigation sin terminar"): migración de esas cuatro hojas hecha con la sonda a 1024 px y sin paneles abiertos. Rehacerla midiendo a 1536 px con los paneles abiertos y comparando con style-snapshot; no aplicarla tal cual.
 
 - `#toast` en `glass.css`: `molecules/status.css` ya lo define, pero quitar la regla vieja cambió el aviso en una captura; entender por qué antes de borrarla.
 - Reglas de la barra superior y de la barra del documento en `editorial.css`, `maquetario.css`, `output.css` y `readability.css`: migrarlas cuando se revise `organisms/topbar.css`, probando en Electron (la sonda no ve los controles de ventana).
