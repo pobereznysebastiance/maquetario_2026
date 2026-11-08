@@ -210,6 +210,8 @@ figcaption { font-size: 8.6pt; color: var(--ink-faint); margin-top: 1.6mm; }
   <figcaption>Asistente editorial. Se quitaron la tarjeta con degradé, la etiqueta superior y el dorado forzado; los hallazgos se leen como filas con un punto de estado.</figcaption>
 </figure>
 
+<p class="note">Después de estas capturas se migraron también el tutorial guiado, el glosario, la cubierta y todos los selectores. Los selectores usan ahora la versión personalizable del control nativo de Chromium: conservan teclado y accesibilidad, y la lista se dibuja con los tokens de la app en lugar de la del sistema.</p>
+
 <h2 class="page-break">5. Funciones nuevas en la interfaz</h2>
 <ul>
   <li><strong>Configuración</strong>: cuenta y licencia de Motiova, idioma, tamaño de la interfaz, reglas, espacio de trabajo, carpetas de fuentes y datos de la versión. Reúne preferencias que estaban sueltas en la barra.</li>
@@ -235,7 +237,7 @@ figcaption { font-size: 8.6pt; color: var(--ink-faint); margin-top: 1.6mm; }
 <div class="decision">
   <h3>6.2 Del reemplazo de funciones globales a eventos</h3>
   <dl>
-    <dt>Decisión</dt><dd>Las 7 cadenas en las que cada módulo pisaba el <code>onchange</code> del selector de idioma pasaron a escuchar un evento (<code>maquetario:language</code>). El orden de ejecución es el mismo que antes.</dd>
+    <dt>Decisión</dt><dd>Las 7 cadenas en las que cada módulo pisaba el <code>onchange</code> del selector de idioma pasaron a escuchar un evento (<code>maquetario:language</code>). El orden de ejecución es el mismo que antes. El siguiente caso, <code>inspector()</code> (12 cadenas), ya está relevado y diseñado como registro de paneles y decoradores en <code>docs/arquitectura.md</code>.</dd>
     <dt>Motivo</dt><dd>Con el patrón anterior, el comportamiento dependía del orden de 65 etiquetas <code>&lt;script&gt;</code> y un módulo podía romper a otro sin aviso. Es el primer caso resuelto de un patrón que todavía aparece 127 veces (ver sección 8).</dd>
   </dl>
 </div>
