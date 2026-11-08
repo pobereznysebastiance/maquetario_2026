@@ -64,7 +64,7 @@ Verificado al mudar: `style-snapshot` idéntico con las hojas viejas y con `book
 
 ### Para retomar (orden sugerido)
 
-1. Diálogos que todavía son columnas largas: Configuración del libro (formatos a la izquierda y campos a la derecha), glosario. En Cubierta, "Imagen de esta zona / Quitar imagen" aparece dos veces (arriba y abajo de la zona): dejar una.
+1. ~~Diálogos que eran columnas largas~~ (hecho el 8-nov): Configuración del libro y Crear una publicación en dos columnas (tamaños de página y nota de medidas a la izquierda, datos a la derecha; de 820 × 747 a 1040 × 564, entra sin desplazamiento en 1150 × 700); glosario de 930 × 737 a 1100 × 649 con una sola acción ("Volver al editor"); en Cubierta queda un solo par de botones de imagen.
 2. Bajar los 107 estilos en línea desde JS (`lint:design` los cuenta): la mayoría son posiciones del libro, que se quedan; los de la interfaz pasan a clases.
 3. Después: etapa 2 de `arquitectura.md` (pruebas fuera del build, TypeScript y módulos).
 

@@ -71,15 +71,15 @@
   max-width: var(--glossary-filter-max);
 }
 .glossary-layout {
-  --glossary-nav-width: 245px;
-  --glossary-min-height: 360px;
+  --glossary-nav-width: 280px;
+  --glossary-min-height: 320px;
   display: grid;
   grid-template-columns: var(--glossary-nav-width) 1fr;
   gap: var(--space-xl);
   min-height: var(--glossary-min-height);
 }
 .glossary-layout nav {
-  --glossary-nav-max: 430px;
+  --glossary-nav-max: 340px;
   max-height: var(--glossary-nav-max);
   padding-right: var(--space-md);
   overflow: auto;
@@ -99,7 +99,7 @@
 /* Pantalla baja o angosta: lista más corta; en angosta, una sola columna. */
 @media (max-height: 850px) {
   .glossary-layout nav {
-    --glossary-nav-max: 320px;
+    --glossary-nav-max: 280px;
   }
 }
 @media (max-width: 700px) {
@@ -113,4 +113,15 @@
   .glossary-filters {
     flex-wrap: wrap;
   }
+}
+
+/* Es para leer: una sola acción para salir ("Volver al editor"); Cancelar no tiene nada que cancelar. */
+.glossary-modal .modal-actions button[value='cancel'] {
+  display: none;
+}
+.glossary-note {
+  margin: var(--space-lg) 0 0;
+  padding-top: var(--space-md);
+  border-top: var(--border-width) solid var(--line-subtle);
+  color: var(--text-tertiary);
 }

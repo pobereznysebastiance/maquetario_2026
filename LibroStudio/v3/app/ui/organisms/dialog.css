@@ -42,6 +42,9 @@ dialog {
 .editorial-rules-dialog {
   width: min(var(--dialog-rules-width), 95vw);
 }
+.book-setup-dialog {
+  width: min(var(--dialog-book-setup-width), 94vw);
+}
 /* Cerrar con cambios sin guardar: una pregunta, compacta como una confirmación. */
 .close-publication-modal {
   width: min(var(--dialog-close-width), 94vw);

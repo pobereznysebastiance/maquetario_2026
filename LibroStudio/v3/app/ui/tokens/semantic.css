@@ -196,11 +196,12 @@
   --dialog-width: 820px;
   --dialog-max-height: 90vh;
   --dialog-settings-width: 980px;
+  --dialog-book-setup-width: 1040px;
   --dialog-output-width: 1460px;
   --dialog-cover-width: 1280px;
   --dialog-cover-sheet-width: 940px;
   --dialog-assistant-width: 1140px;
-  --dialog-glossary-width: 930px;
+  --dialog-glossary-width: 1100px;
   --dialog-glyph-width: 1050px;
   --dialog-grid-gallery-width: 900px;
   --dialog-rules-width: 1260px;

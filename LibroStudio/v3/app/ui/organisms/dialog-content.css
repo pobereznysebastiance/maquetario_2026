@@ -1,4 +1,4 @@
-/* Organismo: contenido común de diálogos (crear publicación, salida…). Menos cajas:
+﻿/* Organismo: contenido comÃºn de diÃ¡logos (crear publicaciÃ³n, salidaâ€¦). Menos cajas:
    los grupos no van enmarcados; las opciones son selectores livianos. */
 .publication-picker {
   margin-bottom: var(--space-lg);
@@ -34,8 +34,8 @@
 }
 
 
-/* Secciones dentro de diálogos (p. ej. "Solapas y forrado" en la cubierta): planas, separadas
-   por una línea, con título en color de texto. Mismo criterio que el inspector. */
+/* Secciones dentro de diÃ¡logos (p. ej. "Solapas y forrado" en la cubierta): planas, separadas
+   por una lÃ­nea, con tÃ­tulo en color de texto. Mismo criterio que el inspector. */
 #modalBody .section {
   margin: var(--space-lg) 0 0;
   padding: var(--space-lg) 0 0;
@@ -59,7 +59,7 @@
   color: var(--text-accent);
 }
 
-/* Salida: destino y caras de la revisión. */
+/* Salida: destino y caras de la revisiÃ³n. */
 .export-choice {
   border-color: var(--line-default);
   background: var(--surface-control);
@@ -75,7 +75,7 @@
   border-color: var(--accent);
 }
 
-/* Glifos de la tipografía. */
+/* Glifos de la tipografÃ­a. */
 .glyph-grid button {
   border-color: var(--line-default);
   background: var(--surface-control);
@@ -85,7 +85,7 @@
   color: var(--text-on-accent);
 }
 
-/* Armador de libros (manuscrito → partes). */
+/* Armador de libros (manuscrito â†’ partes). */
 .book-builder {
   width: min(var(--dialog-builder-width), 94vw);
 }
@@ -161,7 +161,7 @@
   font-weight: var(--weight-medium);
 }
 
-/* ── Migrado de readability.css: revisión de salida y cubierta ── */
+/* â”€â”€ Migrado de readability.css: revisiÃ³n de salida y cubierta â”€â”€ */
 #reviewFaces label {
   font-size: var(--type-md);
 }
@@ -172,8 +172,8 @@
 .cover-modal #coverDimensions {
   font-size: var(--type-body);
 }
-/* Cubierta apaisada: la explicación arriba a todo el ancho y debajo dos columnas. A la izquierda
-   la zona (vista previa, imagen, pestañas y su texto); a la derecha medidas, solapas y lomo. */
+/* Cubierta apaisada: la explicaciÃ³n arriba a todo el ancho y debajo dos columnas. A la izquierda
+   la zona (vista previa, imagen, pestaÃ±as y su texto); a la derecha medidas, solapas y lomo. */
 .cover-modal #modalBody {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
@@ -273,7 +273,7 @@
   line-height: var(--leading-text);
 }
 
-/* ── Migrado de canvas-navigation.css: cerrar con cambios sin guardar ── */
+/* â”€â”€ Migrado de canvas-navigation.css: cerrar con cambios sin guardar â”€â”€ */
 .close-publication-message {
   display: flex;
   align-items: flex-start;
@@ -316,7 +316,7 @@
   display: none;
 }
 
-/* ── Migrado de editorial-learning.css: lectura del lomo (cubierta) ── */
+/* â”€â”€ Migrado de editorial-learning.css: lectura del lomo (cubierta) â”€â”€ */
 .spine-direction {
   --spine-select-min: 240px;
   display: flex;
@@ -336,7 +336,7 @@
   min-width: var(--spine-select-min);
 }
 
-/* ── Migrado de output-review.css y review.css: revisión de salida (opciones | vista previa) ── */
+/* â”€â”€ Migrado de output-review.css y review.css: revisiÃ³n de salida (opciones | vista previa) â”€â”€ */
 .output-modal #modalForm {
   display: flex;
   flex-direction: column;
@@ -462,7 +462,7 @@
     --output-preview-min: 260px;
   }
 }
-/* Caras de la revisión: anterior · número · siguiente. */
+/* Caras de la revisiÃ³n: anterior Â· nÃºmero Â· siguiente. */
 #reviewFaces {
   display: flex;
   align-items: center;
@@ -488,7 +488,7 @@
   text-align: center;
 }
 
-/* ── Migrado de editorial-assistant.css: asistente editorial ── */
+/* â”€â”€ Migrado de editorial-assistant.css: asistente editorial â”€â”€ */
 .assistant-hero {
   align-items: center;
   gap: var(--space-lg);
@@ -587,7 +587,7 @@
   }
 }
 
-/* ── Migrado de review.css: casillas de los diálogos ── */
+/* â”€â”€ Migrado de review.css: casillas de los diÃ¡logos â”€â”€ */
 .modal-grid input[type='checkbox'] {
   --modal-check: 14px;
   flex-shrink: 0;
@@ -601,7 +601,7 @@
   margin: var(--space-sm) 0;
 }
 
-/* ── Migrado de master-refinement.css: glifos de la tipografía ── */
+/* â”€â”€ Migrado de master-refinement.css: glifos de la tipografÃ­a â”€â”€ */
 .glyph-font-controls {
   display: flex;
   align-items: flex-end;
@@ -717,7 +717,7 @@
   }
 }
 
-/* ── Migrado de category-design.css y document-view.css: pauta de uso tipográfico ── */
+/* â”€â”€ Migrado de category-design.css y document-view.css: pauta de uso tipogrÃ¡fico â”€â”€ */
 #editorialRules {
   margin-bottom: var(--space-sm);
 }
@@ -769,7 +769,7 @@
   background: var(--paper-50);
 }
 
-/* ── Migrado de publications.css, output.css y test-feedback.css: cubierta y salida ── */
+/* â”€â”€ Migrado de publications.css, output.css y test-feedback.css: cubierta y salida â”€â”€ */
 #coverPreview {
   --cover-preview-min: 210px;
   display: flex;
@@ -840,7 +840,7 @@
   margin-bottom: var(--space-md);
 }
 
-/* ── Migrado de canvas-navigation.css: atajos para moverse por la maqueta ── */
+/* â”€â”€ Migrado de canvas-navigation.css: atajos para moverse por la maqueta â”€â”€ */
 .canvas-shortcut-table {
   width: 100%;
   border-collapse: collapse;
@@ -860,7 +860,7 @@
   line-height: 1.6;
 }
 
-/* ── Migrado de package-proof.css: ficha de medidas ── */
+/* â”€â”€ Migrado de package-proof.css: ficha de medidas â”€â”€ */
 .cover-tabs button[hidden] {
   display: none;
 }
@@ -893,7 +893,7 @@
   }
 }
 
-/* ── Migrado de readability.css: galería de grillas ── */
+/* â”€â”€ Migrado de readability.css: galerÃ­a de grillas â”€â”€ */
 .grid-gallery-list {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -926,7 +926,7 @@
   line-height: var(--leading-text);
 }
 
-/* ── Migrado de category-design.css: funciones de los estilos en la pauta ── */
+/* â”€â”€ Migrado de category-design.css: funciones de los estilos en la pauta â”€â”€ */
 .rule-style-input {
   display: grid;
   gap: var(--space-sm);
@@ -937,4 +937,29 @@
 .rule-style-input label {
   display: grid;
   gap: var(--space-2xs);
+}
+
+/* â”€â”€ ConfiguraciÃ³n del libro / nueva publicaciÃ³n: apaisada.
+   TamaÃ±os de pÃ¡gina a la izquierda (dos por fila), datos del libro a la derecha. â”€â”€ */
+.book-setup {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  align-items: start;
+  gap: var(--space-xl);
+}
+.book-setup-label {
+  margin: 0 0 var(--space-xs);
+  color: var(--text-secondary);
+}
+.book-setup .format-options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 0;
+}
+.book-setup-sizes .notice {
+  margin-top: var(--space-md);
+}
+@media (max-width: 760px) {
+  .book-setup {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
