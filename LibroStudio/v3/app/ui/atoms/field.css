@@ -181,7 +181,7 @@ textarea {
 }
 
 /* Selector en una fila: un valor largo se corta con puntos suspensivos antes de la flecha, en vez de
-   pasar por debajo. El botón con <selectedcontent> lo agrega ui/select.js. */
+   pasar por debajo. El botón con <selectedcontent> lo agrega src/ui/select.ts. */
 :is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer) select > button {
   display: block;
   flex: 1;

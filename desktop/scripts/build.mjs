@@ -51,12 +51,14 @@ await Promise.all([
 ]);
 
 // Interfaz: las fuentes TypeScript (LibroStudio/v3/app/src) se compilan a app/build, que carga
-// index.html. Cada archivo de src/ (sin subcarpetas) es un script que publica su global, como los
-// .js de al lado; las subcarpetas (src/data/…) son módulos que esos scripts importan.
-// Excepción: src/global/*.ts son scripts globales (sin import/export) y se compilan sin
-// envoltorio: esbuild sólo les saca los tipos, así sus let/const/function de nivel superior
-// siguen siendo globales como en un .js clásico (studio.ts: book, render, $…, que otros archivos
-// asignan y extienden por nombre). Van al mismo build/ (build/studio.js): no repetir nombres.
+// index.html en este orden: terceros → build/core.js → build/studio.js → build/app.js.
+// - src/entries/*.ts son los puntos de entrada (core y app): importan los módulos de src/ en el
+//   orden de carga. Cada módulo corre al importarse y mantiene privado lo suyo; lo que comparte
+//   con los demás lo publica en globalThis (declare global).
+// - src/global/*.ts son scripts globales (sin import/export) y se compilan sin envoltorio:
+//   esbuild sólo les saca los tipos, así sus let/const/function de nivel superior siguen siendo
+//   globales como en un .js clásico (studio.ts: book, render, $…, que otros archivos asignan y
+//   extienden por nombre). Van al mismo build/: no repetir nombres con las entradas.
 const ui = join(root, '../LibroStudio/v3/app');
 rmSync(join(ui, 'build'), { recursive: true, force: true });
 const uiOptions = {
@@ -71,7 +73,12 @@ const tsIn = (dir) =>
   readdirSync(dir)
     .filter((f) => f.endsWith('.ts') && !f.endsWith('.d.ts'))
     .map((f) => join(dir, f));
-await build({ ...uiOptions, entryPoints: tsIn(join(ui, 'src')), bundle: true, format: 'iife' });
+await build({
+  ...uiOptions,
+  entryPoints: tsIn(join(ui, 'src/entries')),
+  bundle: true,
+  format: 'iife',
+});
 await build({ ...uiOptions, entryPoints: tsIn(join(ui, 'src/global')), bundle: false });
 
 // Avisos de sistema: página estática + ilustración del instalador + DM Sans de la interfaz.

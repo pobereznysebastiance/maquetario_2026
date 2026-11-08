@@ -11,9 +11,6 @@
 type UIElement = HTMLElement & { [key: string]: any };
 
 // ── Sistema de componentes (ui/) ──
-declare var UI: any;
-declare var dialogVariant: (name: string) => void;
-declare var onDialogClose: (fn: () => void) => void;
 
 // ── Modelo, idioma y anfitrión ──
 declare var chrome: any;

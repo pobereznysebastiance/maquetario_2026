@@ -64,6 +64,7 @@ const appJs = [
   ),
   ...tsIn('src'),
   ...tsIn(join('src', 'global')),
+  ...tsIn(join('src', 'ui')),
 ];
 // Sin las líneas de comentario: los ejemplos de la documentación no cuentan como deuda.
 const allJs = appJs
