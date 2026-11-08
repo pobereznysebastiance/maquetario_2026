@@ -210,27 +210,31 @@ function gridGallery() {
       }),
   );
 }
-renderTemplates = function () {
-  const host = $('#templates');
-  host.innerHTML = gridPresets
-    .map(
-      (p) =>
-        `<button class="template ${book.grid.cols === p.c && book.grid.rows === p.r ? 'active' : ''}" data-grid-preset="${p.id}" title="${esc(bw(...p.use))}"><div class="template-art">${gridPresetMini(p)}</div>${bw(...p.name)}<span class="template-dimensions">${p.c} ${bw('columnas', 'columns', 'colunas')} · ${p.r} ${bw('filas', 'rows', 'linhas')}</span></button>`,
-    )
-    .join('');
-  $$('[data-grid-preset]').forEach(
-    (b) => (b.onclick = () => applyGridPreset(b.dataset.gridPreset)),
-  );
-  let library = $('#gridLibrary');
-  if (!library) {
-    library = document.createElement('button');
-    library.id = 'gridLibrary';
-    library.className = 'quiet';
-    $('.template-heading>span').append(library);
-  }
-  library.textContent = bw('Ver todas…', 'View all…', 'Ver todas…');
-  library.onclick = gridGallery;
-};
+extend.replace(
+  'renderTemplates',
+  function () {
+    const host = $('#templates');
+    host.innerHTML = gridPresets
+      .map(
+        (p) =>
+          `<button class="template ${book.grid.cols === p.c && book.grid.rows === p.r ? 'active' : ''}" data-grid-preset="${p.id}" title="${esc(bw(...p.use))}"><div class="template-art">${gridPresetMini(p)}</div>${bw(...p.name)}<span class="template-dimensions">${p.c} ${bw('columnas', 'columns', 'colunas')} · ${p.r} ${bw('filas', 'rows', 'linhas')}</span></button>`,
+      )
+      .join('');
+    $$('[data-grid-preset]').forEach(
+      (b) => (b.onclick = () => applyGridPreset(b.dataset.gridPreset)),
+    );
+    let library = $('#gridLibrary');
+    if (!library) {
+      library = document.createElement('button');
+      library.id = 'gridLibrary';
+      library.className = 'quiet';
+      $('.template-heading>span').append(library);
+    }
+    library.textContent = bw('Ver todas…', 'View all…', 'Ver todas…');
+    library.onclick = gridGallery;
+  },
+  'readability',
+);
 function readabilityLabels() {
   saveAsButton.querySelector('span').textContent = bw('Guardar como…', 'Save as…', 'Salvar como…');
   saveAsButton.title = bw(

@@ -77,70 +77,80 @@ extend.result(
   },
   'frame-handles',
 );
-objectDown = function (e, o, index, el, resize = false) {
-  if (preview || busy || e.button !== 0) return;
-  const direction = resize === true ? 'se' : resize;
-  if (editing === el && !direction) return;
-  e.stopPropagation();
-  if (direction) e.preventDefault();
-  finishEditing();
-  active = index;
-  selected = o.id;
-  if (tool === 'image' && o.type === 'frame') {
-    chooseImage({ frame: o, page: index });
-    return;
-  }
-  tool = 'select';
-  snapshot();
-  drag = {
-    o,
-    el,
-    startX: e.clientX,
-    startY: e.clientY,
-    x: o.x,
-    y: o.y,
-    w: o.w,
-    h: o.h,
-    resize: direction,
-    moved: false,
-  };
-  el.setPointerCapture(e.pointerId);
-  el.addEventListener('pointermove', moveObject);
-  el.addEventListener('pointerup', upObject, { once: true });
-  el.addEventListener('pointercancel', cancelFrameDrag, { once: true });
-  $$('.paper-object.selected').forEach((n) => n.classList.remove('selected'));
-  el.classList.add('selected');
-  addFrameHandles(el, o, index);
-  $$('.page').forEach((n) => n.classList.toggle('active-page', Number(n.dataset.page) === active));
-  inspector();
-  updateStatus();
-  $$('.tool').forEach((n) => n.classList.toggle('active', n.dataset.tool === tool));
-};
-moveObject = function (e) {
-  if (!drag) return;
-  const d = drag,
-    o = d.o,
-    dx = (e.clientX - d.startX) / scale,
-    dy = (e.clientY - d.startY) / scale;
-  d.moved = d.moved || Math.abs(dx) + Math.abs(dy) > 0.3;
-  if (d.resize)
-    Object.assign(
+extend.replace(
+  'objectDown',
+  function (e, o, index, el, resize = false) {
+    if (preview || busy || e.button !== 0) return;
+    const direction = resize === true ? 'se' : resize;
+    if (editing === el && !direction) return;
+    e.stopPropagation();
+    if (direction) e.preventDefault();
+    finishEditing();
+    active = index;
+    selected = o.id;
+    if (tool === 'image' && o.type === 'frame') {
+      chooseImage({ frame: o, page: index });
+      return;
+    }
+    tool = 'select';
+    snapshot();
+    drag = {
       o,
-      frameGeometry(d, d.resize, dx, dy, { width: book.width, height: book.height }),
+      el,
+      startX: e.clientX,
+      startY: e.clientY,
+      x: o.x,
+      y: o.y,
+      w: o.w,
+      h: o.h,
+      resize: direction,
+      moved: false,
+    };
+    el.setPointerCapture(e.pointerId);
+    el.addEventListener('pointermove', moveObject);
+    el.addEventListener('pointerup', upObject, { once: true });
+    el.addEventListener('pointercancel', cancelFrameDrag, { once: true });
+    $$('.paper-object.selected').forEach((n) => n.classList.remove('selected'));
+    el.classList.add('selected');
+    addFrameHandles(el, o, index);
+    $$('.page').forEach((n) =>
+      n.classList.toggle('active-page', Number(n.dataset.page) === active),
     );
-  else {
-    o.x = Math.max(0, Math.min(book.width - o.w, d.x + dx));
-    o.y = Math.max(0, Math.min(book.height - o.h, d.y + dy));
-  }
-  Object.assign(d.el.style, {
-    left: o.x * scale + 'px',
-    top: o.y * scale + 'px',
-    width: o.w * scale + 'px',
-    height: o.h * scale + 'px',
-  });
-  updateStatus();
-  checkOverflow();
-};
+    inspector();
+    updateStatus();
+    $$('.tool').forEach((n) => n.classList.toggle('active', n.dataset.tool === tool));
+  },
+  'frame-handles',
+);
+extend.replace(
+  'moveObject',
+  function (e) {
+    if (!drag) return;
+    const d = drag,
+      o = d.o,
+      dx = (e.clientX - d.startX) / scale,
+      dy = (e.clientY - d.startY) / scale;
+    d.moved = d.moved || Math.abs(dx) + Math.abs(dy) > 0.3;
+    if (d.resize)
+      Object.assign(
+        o,
+        frameGeometry(d, d.resize, dx, dy, { width: book.width, height: book.height }),
+      );
+    else {
+      o.x = Math.max(0, Math.min(book.width - o.w, d.x + dx));
+      o.y = Math.max(0, Math.min(book.height - o.h, d.y + dy));
+    }
+    Object.assign(d.el.style, {
+      left: o.x * scale + 'px',
+      top: o.y * scale + 'px',
+      width: o.w * scale + 'px',
+      height: o.h * scale + 'px',
+    });
+    updateStatus();
+    checkOverflow();
+  },
+  'frame-handles',
+);
 function cancelFrameDrag(e) {
   if (!drag) return;
   const d = drag;

@@ -136,9 +136,13 @@ $('#zoom').oninput = (e) => zoomCanvasTo(Number(e.target.value));
 $('#zoomIn').onclick = () => zoomCanvasTo(actualCanvasPercent() * 1.2);
 $('#zoomOut').onclick = () => zoomCanvasTo(actualCanvasPercent() / 1.2);
 $('#fitZoom').onclick = fitCanvas;
-setZoom = function (value) {
-  zoomCanvasTo(value * 100);
-};
+extend.replace(
+  'setZoom',
+  function (value) {
+    zoomCanvasTo(value * 100);
+  },
+  'canvas-navigation',
+);
 const handTool = document.createElement('button');
 handTool.type = 'button';
 handTool.id = 'handTool';

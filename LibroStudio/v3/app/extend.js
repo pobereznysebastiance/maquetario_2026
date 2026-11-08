@@ -8,6 +8,7 @@
 // - la lista de extensiones de cada función se puede consultar (MaquetarioExtensions.list());
 // - es el paso previo para convertir las extensiones en paneles y decoradores con nombre.
 //
+// extend.replace(name, fn, origin) reemplaza la función entera (lo anterior ya no corre).
 // extend.around(name, factory, origin) envuelve la cadena completa y queda siempre por fuera,
 // aunque se registren extensiones después. Sus fábricas se vuelven a llamar cada vez que la
 // cadena cambia, así que no deben tener efectos al construirse.
@@ -88,6 +89,10 @@
         },
       origin,
     );
+
+  // Reemplazo completo: fn ocupa el lugar de la función y lo anterior de la cadena ya no corre.
+  // Las extensiones que se registren después envuelven a fn.
+  extend.replace = (name, fn, origin = '') => extend(name, () => fn, origin);
 
   extend.around = function (name, factory, origin = '') {
     const entry = entryFor(name);

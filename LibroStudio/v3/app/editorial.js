@@ -1,9 +1,4 @@
 'use strict';
-const baseInspector = inspector,
-  basePaper = paper,
-  baseGrid = gridSvg,
-  baseRender = render,
-  baseStartEdit = startEditing;
 function ensureToc() {
   if (!book.toc) book.toc = M.clone(M.tocConfig(book));
   return book.toc;
@@ -25,65 +20,74 @@ function tocPanel() {
     )
   );
 }
-inspector = function () {
-  if (tab !== 'index') {
-    baseInspector();
-    if (tab === 'text') extraTextControls();
-    if (tab === 'design') extraGuideControls();
-    return;
-  }
-  const host = $('#inspectorContent'),
-    scroll = host.scrollTop;
-  host.innerHTML = tocPanel();
-  host.scrollTop = scroll;
-  $('#tocTitle').onchange = (e) => commit(() => (ensureToc().title = e.target.value), false);
-  $('#tocSections').onchange = (e) =>
-    commit(() => (ensureToc().includeSections = e.target.checked), false);
-  $('#tocHeadings').onchange = (e) =>
-    commit(() => (ensureToc().includeHeadings = e.target.checked), false);
-  $('#markHeading').onclick = () =>
-    commit(() => (selectObject().heading = !selectObject().heading), false);
-  $('#insertToc').onclick = () =>
-    commit(() => {
-      let existing = book.pages[active].objects.find((o) => o.toc);
-      if (existing) {
-        selected = existing.id;
+// La pestaña Índice dibuja su propio panel; las otras suman controles al final. Va por fuera de
+// toda la cadena del inspector (se registra después de la envoltura de inspector-registry).
+extend.around(
+  'inspector',
+  (draw) =>
+    function () {
+      if (tab !== 'index') {
+        draw();
+        if (tab === 'text') extraTextControls();
+        if (tab === 'design') extraGuideControls();
         return;
       }
-      let m = M.margins(book, active),
-        o = M.text(
-          '',
-          m.left,
-          book.margins.top,
-          book.width - m.left - m.right,
-          book.height - book.margins.top - book.margins.bottom,
-          12,
-        );
-      o.toc = true;
-      book.pages[active].objects.push(o);
-      selected = o.id;
-    }, true);
-  $('#addTocEntry').onclick = () => {
-    modal(
-      'Nueva entrada del índice',
-      `<div class="modal-grid">${control('Texto de la entrada', 'entryLabel', '', 'text', '', '', true)}<div class="control full"><label>Página de referencia</label><select id="entryPage">${book.pages.map((p, i) => `<option value="${p.id}" ${i === active ? 'selected' : ''}>${i + 1} · ${esc(M.sectionAt(book, i))}</option>`).join('')}</select></div></div>`,
-      () => {
-        const label = $('#entryLabel').value.trim().slice(0, 500),
-          pageId = $('#entryPage').value;
-        if (!label) throw Error('Escribí el texto de la entrada.');
-        commit(() => ensureToc().entries.push({ id: M.uid(), label, pageId }), false);
-      },
-      'Agregar entrada',
-    );
-  };
-  $$('[data-remove-entry]').forEach(
-    (el) =>
-      (el.onclick = () =>
+      const host = $('#inspectorContent'),
+        scroll = host.scrollTop;
+      host.innerHTML = tocPanel();
+      host.scrollTop = scroll;
+      $('#tocTitle').onchange = (e) => commit(() => (ensureToc().title = e.target.value), false);
+      $('#tocSections').onchange = (e) =>
+        commit(() => (ensureToc().includeSections = e.target.checked), false);
+      $('#tocHeadings').onchange = (e) =>
+        commit(() => (ensureToc().includeHeadings = e.target.checked), false);
+      $('#markHeading').onclick = () =>
+        commit(() => (selectObject().heading = !selectObject().heading), false);
+      $('#insertToc').onclick = () =>
         commit(() => {
-          ensureToc().entries = ensureToc().entries.filter((e) => e.id !== el.dataset.removeEntry);
-        }, false)),
-  );
-};
+          let existing = book.pages[active].objects.find((o) => o.toc);
+          if (existing) {
+            selected = existing.id;
+            return;
+          }
+          let m = M.margins(book, active),
+            o = M.text(
+              '',
+              m.left,
+              book.margins.top,
+              book.width - m.left - m.right,
+              book.height - book.margins.top - book.margins.bottom,
+              12,
+            );
+          o.toc = true;
+          book.pages[active].objects.push(o);
+          selected = o.id;
+        }, true);
+      $('#addTocEntry').onclick = () => {
+        modal(
+          'Nueva entrada del índice',
+          `<div class="modal-grid">${control('Texto de la entrada', 'entryLabel', '', 'text', '', '', true)}<div class="control full"><label>Página de referencia</label><select id="entryPage">${book.pages.map((p, i) => `<option value="${p.id}" ${i === active ? 'selected' : ''}>${i + 1} · ${esc(M.sectionAt(book, i))}</option>`).join('')}</select></div></div>`,
+          () => {
+            const label = $('#entryLabel').value.trim().slice(0, 500),
+              pageId = $('#entryPage').value;
+            if (!label) throw Error('Escribí el texto de la entrada.');
+            commit(() => ensureToc().entries.push({ id: M.uid(), label, pageId }), false);
+          },
+          'Agregar entrada',
+        );
+      };
+      $$('[data-remove-entry]').forEach(
+        (el) =>
+          (el.onclick = () =>
+            commit(() => {
+              ensureToc().entries = ensureToc().entries.filter(
+                (e) => e.id !== el.dataset.removeEntry,
+              );
+            }, false)),
+      );
+    },
+  'editorial',
+);
 function renderToc(el, o, px) {
   const content = el.querySelector('.text-content');
   if (!content) return;
@@ -110,35 +114,42 @@ function renderToc(el, o, px) {
     showTab('index');
   };
 }
-paper = function (i, px, print = false) {
-  const page = basePaper(i, px, print);
-  for (const o of book.pages[i].objects) {
-    const el = page.querySelector(`[data-id="${o.id}"]`);
-    if (o.toc) renderToc(el, o, px);
-    if (o.type === 'text' && !o.toc) {
-      const content = el.querySelector('.text-content');
-      content.style.letterSpacing = ((((o.tracking || 0) / 1000) * o.size * 25.4) / 72) * px + 'px';
-      if (o.spaceAfter) {
-        content.replaceChildren();
-        for (const line of o.text.split('\n')) {
-          const p = document.createElement('div');
-          p.textContent = line || '\u00a0';
-          p.style.marginBottom = o.spaceAfter * px + 'px';
-          p.style.textIndent = (o.indent || 0) * px + 'px';
-          content.append(p);
-        }
-      } else content.style.textIndent = (o.indent || 0) * px + 'px';
+// Índice dibujado en el papel; tracking, sangría y espacio entre párrafos de los textos.
+extend.result(
+  'paper',
+  (page, i, px) => {
+    for (const o of book.pages[i].objects) {
+      const el = page.querySelector(`[data-id="${o.id}"]`);
+      if (o.toc) renderToc(el, o, px);
+      if (o.type === 'text' && !o.toc) {
+        const content = el.querySelector('.text-content');
+        content.style.letterSpacing =
+          ((((o.tracking || 0) / 1000) * o.size * 25.4) / 72) * px + 'px';
+        if (o.spaceAfter) {
+          content.replaceChildren();
+          for (const line of o.text.split('\n')) {
+            const p = document.createElement('div');
+            p.textContent = line || '\u00a0';
+            p.style.marginBottom = o.spaceAfter * px + 'px';
+            p.style.textIndent = (o.indent || 0) * px + 'px';
+            content.append(p);
+          }
+        } else content.style.textIndent = (o.indent || 0) * px + 'px';
+      }
     }
-  }
-  return page;
-};
-startEditing = function (el) {
-  if (selectObject()?.toc) {
+    return page;
+  },
+  'editorial',
+);
+// El índice no se edita en el papel: abre su pestaña.
+extend.instead(
+  'startEditing',
+  () => !!selectObject()?.toc,
+  () => {
     showTab('index');
-    return;
-  }
-  baseStartEdit(el);
-};
+  },
+  'editorial',
+);
 function extraTextControls() {
   const h = $('#inspectorContent'),
     o = selectObject();
@@ -219,20 +230,24 @@ function extraGuideControls() {
         commit(() => book.guides.splice(Number(el.dataset.removeGuide), 1), false)),
   );
 }
-gridSvg = function (i, px) {
-  let svg = baseGrid(i, px),
-    lines = (book.guides || [])
+// Guías propias del libro, sobre la grilla.
+extend.result(
+  'gridSvg',
+  (svg, i, px) => {
+    const lines = (book.guides || [])
       .map((g) =>
         g.axis === 'v'
           ? `<line x1="${g.position}" x2="${g.position}" y1="0" y2="${book.height}"/>`
           : `<line y1="${g.position}" y2="${g.position}" x1="0" x2="${book.width}"/>`,
       )
       .join('');
-  return svg.replace(
-    '</svg>',
-    `<g stroke="#b7a2ff" fill="none" stroke-width="${0.8 / px}" stroke-dasharray="1 1">${lines}</g></svg>`,
-  );
-};
+    return svg.replace(
+      '</svg>',
+      `<g stroke="#b7a2ff" fill="none" stroke-width="${0.8 / px}" stroke-dasharray="1 1">${lines}</g></svg>`,
+    );
+  },
+  'editorial',
+);
 const indexButton = document.createElement('button');
 indexButton.className = 'tool';
 indexButton.id = 'indexTool';

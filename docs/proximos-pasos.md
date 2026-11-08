@@ -77,7 +77,10 @@ Verificado al mudar: `style-snapshot` idéntico con las hojas viejas y con `book
 
 **Sigue:**
 
-3. **Tipos sin reescribir.** `tsconfig` para la app con `allowJs` + `checkJs` y un `globals.d.ts` con lo que comparten los scripts (`book`, `M`, `render`, `$`, `extend`, `bw`…). Primero en modo informe (cuántos errores por archivo), después archivo por archivo con `// @ts-check`.
+3. **Tipos sin reescribir** (en curso). `LibroStudio/v3/app/tsconfig.json` (`allowJs` + `checkJs`, sin modo estricto) y `globals.d.ts` con lo que comparten los scripts; `npm run typecheck:app` informa (todavía no es parte de `npm run typecheck`). Hecho:
+   - Las 11 funciones globales que se reasignaban a mano (`inspector`, `paper`, `startEditing`, `gridSvg`, `canvasAnchor`, `restoreCanvasAnchor`, `setZoom`, `objectDown`, `moveObject`, `renderTemplates`, `offerRecovery`) pasan por `extend`. Nueva forma `extend.replace(f, fn, origen)` para el reemplazo completo. La de `inspector` es `extend.around` registrada después de la de `inspector-registry`: queda por fuera de todo, igual que antes. `lint:design` cuenta `f = function` en el nivel superior para que no vuelva.
+   - `$()` y `$$()` tipados (`UIElement`: `HTMLElement` con el resto libre). Al tiparlos aparecen los manejadores que leen `e.target.value` sin decir qué control es (unos 290 avisos en total): se resuelven archivo por archivo con `// @ts-check`.
+   - Ojo: la prueba de navegación de la vista continua guarda posiciones de desplazamiento que dependen del tamaño de la pantalla; si cambia el monitor, `verificacion-navegacion.json` cambia aunque el código no.
 4. **Pasar a `.ts` y a módulos**, empezando por lo que no toca la pantalla: el modelo `M` (`model.js`), `editorial-rules.js`, `document-units.js`. Al final, `import` en lugar de globales y esbuild arma un solo archivo.
 
 ## 3. Experiencia de uso

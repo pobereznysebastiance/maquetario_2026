@@ -6,22 +6,29 @@ let continuousRows = [],
   continuousKey = '',
   continuousSpread = -1;
 const canvasGap = 38;
-const normalCanvasAnchor = canvasAnchor,
-  normalCanvasRestore = restoreCanvasAnchor;
-canvasAnchor = function (clientX, clientY) {
-  const anchor = normalCanvasAnchor(clientX, clientY);
-  if (continuousCanvas && continuousRows.length) {
-    const position = anchor.y * scale;
-    const row = continuousRows.findLast((item) => item.offset <= position) || continuousRows[0];
-    anchor.row = row.start;
-    anchor.y = (position - row.offset) / scale;
-  }
-  return anchor;
-};
-restoreCanvasAnchor = function (anchor) {
-  const row = continuousCanvas && continuousRows.find((item) => item.start === anchor.row);
-  normalCanvasRestore(row ? { ...anchor, y: anchor.y + row.offset / scale } : anchor);
-};
+// En la vista continua, el ancla del zoom se guarda relativa a su fila de páginas.
+extend.result(
+  'canvasAnchor',
+  (anchor) => {
+    if (continuousCanvas && continuousRows.length) {
+      const position = anchor.y * scale;
+      const row = continuousRows.findLast((item) => item.offset <= position) || continuousRows[0];
+      anchor.row = row.start;
+      anchor.y = (position - row.offset) / scale;
+    }
+    return anchor;
+  },
+  'continuous-canvas',
+);
+extend(
+  'restoreCanvasAnchor',
+  (restore) =>
+    function (anchor) {
+      const row = continuousCanvas && continuousRows.find((item) => item.start === anchor.row);
+      return restore(row ? { ...anchor, y: anchor.y + row.offset / scale } : anchor);
+    },
+  'continuous-canvas',
+);
 const continuousButton = document.createElement('button');
 continuousButton.type = 'button';
 continuousButton.id = 'continuousCanvas';

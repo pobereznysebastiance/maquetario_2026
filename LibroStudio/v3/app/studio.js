@@ -1,6 +1,8 @@
 'use strict';
 const M = LibroModel,
+  /** @type {(selector: string) => UIElement} */
   $ = (s) => document.querySelector(s),
+  /** @type {(selector: string) => UIElement[]} */
   $$ = (s) => [...document.querySelectorAll(s)];
 const paths = {
   file: 'M6 3h8l4 4v14H6z M14 3v5h5',

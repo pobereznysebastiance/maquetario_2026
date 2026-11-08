@@ -68,6 +68,12 @@ const debt = {
     allJs,
     /(?:const|let)\s+\w+\s*=\s*(?:window\.)?(\w+)\s*;\s*(?:window\.)?\1\s*=\s*(?:async\s*)?function/g,
   ),
+  // f = function … en el nivel superior: reemplaza la función global sin pasar por extend
+  // (y pisa las extensiones registradas antes). Va con extend.replace o extend.result/after/…
+  'funciones globales reasignadas (f = function)': count(
+    allJs,
+    /^[a-zA-Z_$][\w$]* = (?:async )?function\b/gm,
+  ),
   // extend('f', anterior => …) con la envoltura escrita a mano. Lo que tiene forma de
   // antes/después/resultado/ruta va con extend.before/after/result/instead o con los registros.
   'envolturas extend() escritas a mano': count(allJs, /\bextend\(\s*'\w+',\s*\(?\w+\)?\s*=>/g),

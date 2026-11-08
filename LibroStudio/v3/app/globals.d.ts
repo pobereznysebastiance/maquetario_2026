@@ -5,6 +5,10 @@
 
 /* eslint-disable no-var */
 
+// Lo que devuelven $() y $(): un elemento de la interfaz. Lo propio de HTMLElement queda tipado;
+// lo de cada clase de control (value, checked, showModal…) queda libre hasta tipar cada llamada.
+type UIElement = HTMLElement & { [key: string]: any };
+
 // ── Extensiones e inspector (extend.js, inspector-registry.js, test-registry.js) ──
 declare var extend: any;
 declare var MaquetarioExtensions: any;

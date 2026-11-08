@@ -152,20 +152,24 @@ async function openRecentProject(record) {
     confirmChanges(run);
   } else await run();
 }
-offerRecovery = async function () {
-  try {
-    const db = await recoveryDb(),
-      request = db.transaction('books', 'readonly').objectStore('books').get('last');
-    request.onsuccess = () => {
-      db.close();
-      if (request.result)
-        try {
-          recoveryCopy = M.validate(JSON.parse(request.result));
-          if (welcomeVisible) showWelcome();
-        } catch {}
-    };
-  } catch {}
-};
+extend.replace(
+  'offerRecovery',
+  async function () {
+    try {
+      const db = await recoveryDb(),
+        request = db.transaction('books', 'readonly').objectStore('books').get('last');
+      request.onsuccess = () => {
+        db.close();
+        if (request.result)
+          try {
+            recoveryCopy = M.validate(JSON.parse(request.result));
+            if (welcomeVisible) showWelcome();
+          } catch {}
+      };
+    } catch {}
+  },
+  'welcome',
+);
 const brandHome = $('.brand');
 brandHome.style.cursor = 'pointer';
 brandHome.title = ww().home;
