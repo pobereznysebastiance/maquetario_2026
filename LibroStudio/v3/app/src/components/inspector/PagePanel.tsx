@@ -2,7 +2,7 @@
 // - La página sola (exceptions): qué elementos automáticos se ven en la página activa (antes lo
 //   agregaba page-exceptions.ts sacando las casillas de la base y anteponiendo su sección).
 // - Página N (page): sección que empieza en esta página, Agregar y Duplicar (antes los movía
-//   reshapePagePass de inspector-views.ts desde la tarjeta del documento), Antes/Después y Eliminar.
+//   reshapePagePass de inspector-views.tsx desde la tarjeta del documento), Antes/Después y Eliminar.
 // - Elementos automáticos (auto): la explicación.
 //
 // studio.ts deja los tres lugares en su orden; React dibuja el contenido con el mismo marcado,
@@ -11,10 +11,9 @@
 // a command() de studio.ts, como los ligaba bindInspector.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
-import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
-import { Btn, Heading, onNativeChange, tt } from './fields.tsx';
+import { Btn, fieldKey, Heading, onNativeChange, SectionHeading, tt } from './fields.tsx';
 
 /** Escucha el "change" nativo de un campo (una sola vez por nodo). */
 const onChange = onNativeChange<HTMLInputElement>;
@@ -50,14 +49,13 @@ const setAll = (hidden: boolean) =>
 
 /** La página sola: elementos automáticos que se ven en la página activa. */
 export const PageExceptionsPanel = () => {
-  useEditorState();
   useLanguage();
   const page = book.pages[active];
   return (
     <>
-      <div className="section-heading active-page-notice">
+      <SectionHeading className="active-page-notice">
         <Icon name="pages" /> <strong>{`${bw('Página', 'Page', 'Página')} ${active + 1}`}</strong>
-      </div>
+      </SectionHeading>
       <span className="page-only-tag">
         {bw('Solo esta página', 'This page only', 'Somente esta página')}
       </span>
@@ -71,6 +69,7 @@ export const PageExceptionsPanel = () => {
       {VISIBILITY.map(([key, label, element]) => (
         <label key={key} className="check-line page-visibility-control">
           <input
+            key={fieldKey(key, !page[key])}
             type="checkbox"
             data-page-visible={key}
             defaultChecked={!page[key]}
@@ -115,7 +114,6 @@ const saveSection = onChange((input) =>
 
 /** Página N: sección, agregar, duplicar, mover y eliminar. */
 export const PageSectionPanel = () => {
-  useEditorState();
   useLanguage();
   const page = book.pages[active];
   return (
@@ -125,6 +123,7 @@ export const PageSectionPanel = () => {
         {tt('Comenzar sección en esta página')}
       </div>
       <input
+        key={fieldKey('section', page.section)}
         className="field-full"
         id="pageSection"
         aria-labelledby="pageSectionLabel"

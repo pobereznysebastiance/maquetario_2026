@@ -26,7 +26,7 @@ Una **cadena** es una función global que varios módulos extienden, cada uno en
 
 Encima de esas formas:
 
-- Inspector (`src/inspector-registry.ts`): `decorateInspector`, `registerInspectorPanel` (Estructura, Objeto, Capas), `pauseInspectorWhile`. El scroll y los `<details>` abiertos se conservan una sola vez.
+- Inspector (`src/inspector-registry.ts`): `registerInspectorPanel` (cada sección, por pasada) y `pauseInspectorWhile`. Desde el paso 10 de la etapa 3 el inspector es un componente de React (`<Inspector/>`) y `decorateInspector` ya no existe.
 - Pruebas (`test-registry.js`): `registerIntegrationTest`, `registerNavigationTest`, `registerFontTest`. Las 25 cadenas de pruebas pasaron al registro.
 
 Quedan **13 envolturas de verdad** con `extend(f, anterior => …)`: miran el estado antes y después, o llaman a la anterior en el medio, y ahí la envoltura es la forma correcta. Son `renderPages` (2), `finishEditing` (2), `settingsNew` (2), `outputPreview` (2), `outputDialog`, `objectDown`, `commit`, `applyFace` y `startTutorial`. `npm run lint:design` las cuenta ("envolturas extend() escritas a mano"): una nueva tiene que justificarse.

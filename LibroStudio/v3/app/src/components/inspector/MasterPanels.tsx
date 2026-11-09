@@ -6,11 +6,11 @@
 // posición, y "Rotar texto 90°" oculto (lo reemplaza la lectura lateral).
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
-import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import {
   bind,
   CheckLine,
+  fieldKey,
   firstTime,
   MasterDetails,
   onNativeChange,
@@ -43,7 +43,11 @@ const SideReading = ({ type }: { type: MasterType }) =>
     <>
       <div className="field-row">
         <label>{bw('Lectura lateral', 'Side reading direction', 'Leitura lateral')}</label>
-        <select data-master-direction={type} ref={saveDirection(type)}>
+        <select
+          key={fieldKey('direction', book[type].sideDirection)}
+          data-master-direction={type}
+          ref={saveDirection(type)}
+        >
           <option value="up">
             {'↑ ' + bw('De abajo hacia arriba', 'Bottom to top', 'De baixo para cima')}
           </option>
@@ -63,7 +67,6 @@ const SideReading = ({ type }: { type: MasterType }) =>
   ) : null;
 
 export const HeaderPanel = () => {
-  useEditorState();
   useLanguage();
   return (
     <>
@@ -73,6 +76,7 @@ export const HeaderPanel = () => {
       </Row>
       <SideReading type="header" />
       <input
+        key={fieldKey('title', book.title)}
         className="field-full"
         aria-label={tt('Título del libro')}
         data-bind="title"
@@ -81,6 +85,7 @@ export const HeaderPanel = () => {
         ref={bind}
       />
       <input
+        key={fieldKey('chapter', book.chapter)}
         className="field-full"
         aria-label={tt('Sección general')}
         data-bind="chapter"
@@ -98,7 +103,6 @@ export const HeaderPanel = () => {
 };
 
 export const TitulilloPanel = () => {
-  useEditorState();
   useLanguage();
   return (
     <>

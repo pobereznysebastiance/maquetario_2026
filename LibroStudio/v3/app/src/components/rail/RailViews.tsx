@@ -2,7 +2,7 @@
 // inspector). Antes se dibujaban con la cadena del inspector (tab = 'index' / 'layers') desde una
 // envoltura de inspector() y se pasaban al riel en cada dibujo; ahora son componentes propios.
 //
-// La vista elegida la lleva inspector-views.ts (showRailView / currentRailView), que avisa con
+// La vista elegida la lleva inspector-views.tsx (showRailView / currentRailView), que avisa con
 // notifyEditorState(); el contenido de cada vista lo registra su módulo (rail-views.ts). Se
 // redibuja con cada aviso del núcleo (useEditorState) y con el idioma (useLanguage).
 //

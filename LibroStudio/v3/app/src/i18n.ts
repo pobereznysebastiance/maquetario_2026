@@ -136,6 +136,11 @@ const labels: TranslationRow[] = [
   ['Ocultar consejo', 'Hide tip', 'Ocultar dica'],
   ['Nada seleccionado', 'Nothing selected', 'Nada selecionado'],
   [
+    'Creá o abrí un libro para ver sus propiedades.',
+    'Create or open a book to see its properties.',
+    'Crie ou abra um livro para ver suas propriedades.',
+  ],
+  [
     'Hacé clic en una caja, una imagen o un marco de la página para ver sus propiedades. Con doble clic en una caja de texto, escribís.',
     'Click a text frame, image or frame on the page to see its properties. Double-click a text frame to type.',
     'Clique em uma caixa, imagem ou moldura da página para ver suas propriedades. Clique duas vezes em uma caixa de texto para escrever.',

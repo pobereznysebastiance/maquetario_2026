@@ -1,37 +1,35 @@
 // Inspector · Libro · Estructura del libro, en React (etapa 3, D2, paso 6 del plan del inspector).
 //
-// Dibuja la sección dentro del lugar que deja inspectorSlot('structure', …) en la pasada
-// 'structure' (book-workflow.ts), con el mismo marcado que tenía en HTML: resumen, "Armar otro
+// El marco de la sección lo pone Inspector.tsx (pasada 'structure'). Mismo marcado que tenía en HTML: resumen, "Armar otro
 // libro…", las partes del libro (ir al comienzo de cada una) y la ayuda. Suma lo que antes le
 // agregaban dos decoradores desde afuera:
-// - "Formato y configuración" (#structureSettings), que insertaba inspector-views.ts;
+// - "Formato y configuración" (#structureSettings), que insertaba inspector-views.tsx;
 // - "Reglas internas" (#editorialRules, con un libro abierto), que editorial-rules.ts ponía arriba
 //   de todo el inspector, pegado a sus bordes: ahora va dentro de la sección, con los otros botones.
 //
 // Los textos van con bw() o LibroI18n.tr (el traductor del DOM no entra en lo que dibuja React) y
-// el panel se redibuja con useEditorState() y useLanguage(): la parte actual sigue a la página
+// el panel se redibuja con el inspector: la parte actual sigue a la página
 // activa.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 import type { Page } from '../../model.ts';
-import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
+import { SectionHeading, SectionTitle } from './fields.tsx';
 
 const StructurePanel = ({ titleOf }: { titleOf: (page: Page) => string }) => {
-  useEditorState();
   useLanguage();
   const parts = book.pages
     .map((p, i) => ({ p, i }))
     .filter(({ p, i }) => p.partName || p.section || i === 0);
   return (
     <>
-      <div className="section-heading">
+      <SectionHeading>
         <Icon name="pages" />
-        <span data-text-source="Estructura del libro">
+        <SectionTitle source="Estructura del libro">
           {bw('Estructura del libro', 'Book structure', 'Estrutura do livro')}
-        </span>
-      </div>
+        </SectionTitle>
+      </SectionHeading>
       <p className="structure-summary">
         {`${book.pages.length} ${bw('páginas. Elegí una parte para ir a su comienzo.', 'pages. Choose a part to go to its start.', 'páginas. Escolha uma parte para ir ao início.')}`}
       </p>

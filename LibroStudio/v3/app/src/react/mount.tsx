@@ -21,8 +21,8 @@
 //   diálogo.
 // - Estado: leer los globales del núcleo y redibujar con useEditorState(); quien cambia estado
 //   avisa con notifyEditorState() (flushSync: nunca desde un render ni un efecto).
-// - Registros en vez de nodos sueltos: registerTool, registerInspectorPanel + inspectorSlot /
-//   mountInspectorSlot, registerHelpSection.
+// - Registros en vez de nodos sueltos: registerTool, registerInspectorPanel (con su lugar en la
+//   tabla de components/inspector/Inspector.tsx), registerHelpSection.
 // - Con { sync: true } el primer dibujo es inmediato (barras que otros buscan al cargar); montar
 //   después de book-workflow.ts (bw). Nada de React toca lo que dibuja el libro.
 // - Un cambio del proceso principal (CSP, protocolo) pide reiniciar la app: Ctrl+R no alcanza.

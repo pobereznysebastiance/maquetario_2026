@@ -301,7 +301,6 @@ extend.result(
 );
 // La vista Capas del riel es un componente de React (components/rail/LayersView.tsx).
 registerRailView('layers', layersViewFor({ words: lw, reorder: reorderLayer, move: moveLayer }));
-decorateInspector(() => updateSnapButton(), 'layout-tools');
 function reorderLayer(source: string, target: string): void {
   let list = book.pages[active].objects,
     from = list.findIndex((o) => o.id === source),

@@ -1,41 +1,29 @@
 // Inspector · Selección · objeto (etapa 3, D2, paso 7): el elemento elegido, su posición y
 // tamaño, alinear, distribuir, orden y bloqueo; y el estado vacío "Nada seleccionado".
 //
-// objectInspector (inspector-organization.ts) deja los lugares de las cinco secciones, en su
-// orden y con sus atributos (data-section, data-key), y los monta con mountInspectorSlot; el
-// estado vacío lo deja inspector-views.ts. Mismo marcado que tenía en HTML, ya con la unidad
+// El marco de cada sección (y el del estado vacío) lo pone Inspector.tsx. Mismo marcado que tenía en HTML, ya con la unidad
 // dentro del campo (como lo dejaba unitsInsideFields): mismos ids, data-object-geometry,
 // data-object-align, data-distribute, data-object-command y textos. La figura elegida le da su
 // nombre a la etiqueta del objeto (antes lo cambiaba shapes.ts escribiendo en el nodo).
 //
 // Los campos graban con el "change" nativo (las pruebas disparan new Event('change'), que no
-// sube). Los de posición y tamaño siguen al objeto: con cada aviso del editor (también mientras se
-// arrastra o se estira en la página) toman el valor del objeto, salvo el que se está escribiendo.
+// sube). Los de posición y tamaño siguen al objeto: con cada dibujo del inspector (también mientras
+// se arrastra o se estira en la página) toman el valor del objeto, salvo el que se está escribiendo.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 import { useLayoutEffect, useRef } from 'react';
-import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { editableObjectSelection } from '../../inspector-organization.ts';
 import { Icon } from '../Icon.tsx';
+import { fieldKey, lengthUnit, onNativeChange, SectionHeading, SectionTitle } from './fields.tsx';
 
-/** Encabezado de una sección (section() de studio.ts). */
+/** Encabezado de una sección (section() de studio.ts): el título ya viene traducido. */
 const Heading = ({ icon, title }: { icon: string; title: string }) => (
-  <div className="section-heading">
+  <SectionHeading>
     <Icon name={icon} />
-    <span>{title}</span>
-  </div>
+    <SectionTitle>{title}</SectionTitle>
+  </SectionHeading>
 );
-
-const bound = new WeakSet<Element>();
-/** Escucha el "change" nativo de un campo (una sola vez por nodo). */
-const onChange =
-  <T extends HTMLInputElement | HTMLSelectElement>(handler: (el: T) => void) =>
-  (el: T | null): void => {
-    if (!el || bound.has(el)) return;
-    bound.add(el);
-    el.addEventListener('change', () => handler(el));
-  };
 
 const typeIcon = (type: string) =>
   type === 'text' ? 'text' : type === 'image' ? 'image' : 'frame';
@@ -48,7 +36,6 @@ const typeName = (type: string) =>
 
 /** Objeto seleccionado: qué es (o qué figura) y, si es una caja de texto, el paso al texto. */
 export const SelectedObjectPanel = () => {
-  useEditorState();
   useLanguage();
   const o = selectObject();
   return (
@@ -80,9 +67,9 @@ export const SelectedObjectPanel = () => {
               onClick={() => showTab('text')}
             >
               {bw(
-                'Editar tipografía y párrafos →',
-                'Edit type and paragraphs →',
-                'Editar tipografia e parágrafos →',
+                'Editar tipografía y párrafos',
+                'Edit type and paragraphs',
+                'Editar tipografia e parágrafos',
               )}
             </button>
           ) : null}
@@ -117,7 +104,7 @@ const GEOMETRY: ['x' | 'y' | 'w' | 'h', [string, string, string]][] = [
 const shown = (value: number): string => String(Number(value.toFixed(2)));
 
 /** Graba una medida del objeto; fuera de rango (o bloqueado), el campo vuelve a su valor. */
-const saveGeometry = onChange<HTMLInputElement>((input) => {
+const saveGeometry = onNativeChange<HTMLInputElement>((input) => {
   const o = selectObject(),
     value = Number(input.value),
     key = input.dataset.objectGeometry!;
@@ -146,19 +133,18 @@ const saveGeometry = onChange<HTMLInputElement>((input) => {
 
 /** Posición y tamaño: cuatro medidas que siguen al objeto. */
 export const GeometryPanel = () => {
-  const version = useEditorState();
   useLanguage();
   const o = selectObject(),
     locked = !o || o.locked;
   const pair = useRef<HTMLDivElement>(null);
-  // Con cada aviso (mover o estirar en la página, deshacer…), los campos toman el valor del objeto.
+  // Con cada dibujo (mover o estirar en la página, deshacer…), los campos toman el valor del objeto.
   useLayoutEffect(() => {
     if (!o) return;
     for (const input of pair.current?.querySelectorAll<HTMLInputElement>(
       '[data-object-geometry]',
     ) ?? [])
       if (input !== document.activeElement) input.value = shown(o[input.dataset.objectGeometry!]);
-  }, [version, o]);
+  });
   return (
     <>
       <Heading
@@ -182,7 +168,7 @@ export const GeometryPanel = () => {
                   disabled={locked}
                   ref={saveGeometry}
                 />
-                <span className="unit">mm</span>
+                <span className="unit">{lengthUnit()}</span>
               </span>
             </div>
           ))}
@@ -192,13 +178,12 @@ export const GeometryPanel = () => {
   );
 };
 
-const chooseReference = onChange<HTMLSelectElement>(
+const chooseReference = onNativeChange<HTMLSelectElement>(
   (select) => (objectAlignReference = select.value),
 );
 
 /** Alinear objetos: con los márgenes, la página o la selección. */
 export const AlignPanel = () => {
-  useEditorState();
   useLanguage();
   const w = rw(),
     none = !editableObjectSelection().length;
@@ -207,7 +192,12 @@ export const AlignPanel = () => {
       <Heading icon="frame" title={w.alignObjects} />
       <div className="field-row">
         <label>{w.relative}</label>
-        <select id="alignReference" defaultValue={objectAlignReference} ref={chooseReference}>
+        <select
+          key={fieldKey('reference', objectAlignReference)}
+          id="alignReference"
+          defaultValue={objectAlignReference}
+          ref={chooseReference}
+        >
           <option value="margins">{w.margins}</option>
           <option value="page">{w.page}</option>
           <option value="selection">{w.selection}</option>
@@ -242,7 +232,6 @@ export const AlignPanel = () => {
 
 /** Distribuir objetos: iguala los espacios entre tres o más. */
 export const DistributePanel = () => {
-  useEditorState();
   useLanguage();
   const few = editableObjectSelection().length < 3;
   return (
@@ -282,18 +271,17 @@ export const DistributePanel = () => {
   );
 };
 
-const toggleLocked = onChange<HTMLInputElement>((box) => {
+const toggleLocked = onNativeChange<HTMLInputElement>((box) => {
   const o = selectObject();
   if (o) commit(() => (o.locked = box.checked), false);
 });
-const toggleHidden = onChange<HTMLInputElement>((box) => {
+const toggleHidden = onNativeChange<HTMLInputElement>((box) => {
   const o = selectObject();
   if (o) commit(() => (o.hidden = box.checked), false);
 });
 
 /** Orden y bloqueo: al frente o al fondo, bloquear, ocultar y eliminar. */
 export const OrderPanel = () => {
-  useEditorState();
   useLanguage();
   const o = selectObject(),
     locked = !o || o.locked;
@@ -322,6 +310,7 @@ export const OrderPanel = () => {
           </div>
           <label className="check-line">
             <input
+              key={fieldKey('locked', !!o.locked)}
               type="checkbox"
               id="objectLocked"
               defaultChecked={!!o.locked}
@@ -331,6 +320,7 @@ export const OrderPanel = () => {
           </label>
           <label className="check-line">
             <input
+              key={fieldKey('hidden', !!o.hidden)}
               type="checkbox"
               id="objectHidden"
               defaultChecked={!!o.hidden}

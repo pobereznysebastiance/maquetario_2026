@@ -1,8 +1,8 @@
 // Panel del objeto (pasada 'object' de la pestaña Selección): geometría, alineación,
 // distribución, orden y bloqueo del elemento seleccionado. Las secciones son de React
-// (src/components/inspector/ObjectPanel.tsx): objectInspector deja sus lugares y los monta. Saca
-// de Libro, del texto y de Capas lo que ahora vive acá y lleva los atajos de herramientas
-// (grilla, foliado, cornisa) a su sección por nombre, no por posición.
+// (src/components/inspector/ObjectPanel.tsx), en la tabla de Inspector.tsx. Acá quedan las
+// acciones (alinear, distribuir) y los atajos de herramientas (grilla, foliado, cornisa), que
+// llevan a su sección por nombre, no por posición.
 //
 // distributeObjects es global porque la usa tests/inspector-organization-tests.js.
 //
@@ -42,44 +42,6 @@ function distributeObjects(axis: 'x' | 'y'): void {
   }, false);
 }
 globalThis.distributeObjects = distributeObjects;
-/**
- * Pasada 'object': los lugares de las cinco secciones (en su orden, con data-section y data-key
- * para el orden y el plegado de inspector-sections) y su montaje en el acto. Esta pestaña
- * reemplaza al contenido base (registerInspectorPanel), así que la pasada de montaje del registro
- * no corre: los monta acá.
- */
-function objectInspector(): void {
-  const host = $('#inspectorContent'),
-    scroll = host.scrollTop;
-  host.innerHTML =
-    inspectorSlot(
-      'select',
-      bw('Objeto seleccionado', 'Selected object', 'Objeto selecionado'),
-      'select',
-    ) +
-    // Figura · relleno y trazo (marcos e imágenes): ShapePanel.tsx, después del objeto.
-    (['frame', 'image'].includes(selectObject()?.type ?? '')
-      ? '<section class="section shape-appearance" data-inspector-slot="shape"></section>'
-      : '') +
-    inspectorSlot('box', bw('Posición y tamaño', 'Position and size', 'Posição e tamanho'), 'box') +
-    inspectorSlot('align', rw().alignObjects, 'frame') +
-    inspectorSlot(
-      'distribute',
-      bw('Distribuir objetos', 'Distribute objects', 'Distribuir objetos'),
-      'grid',
-    ) +
-    inspectorSlot(
-      'order',
-      bw('Orden y bloqueo', 'Order and locking', 'Ordem e bloqueio'),
-      'layers',
-    );
-  for (const slot of host.querySelectorAll<HTMLElement>('[data-inspector-slot]'))
-    mountInspectorSlot(slot);
-  host.scrollTop = scroll;
-  updateActivePage();
-  updateSnapButton();
-}
-registerInspectorPanel('object', objectInspector, 'inspector-organization');
 // Los atajos de herramientas buscan su sección por nombre, no por una posición numérica frágil.
 extend.instead(
   'setTool',

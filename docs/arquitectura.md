@@ -216,32 +216,36 @@ Criterio de aceptación: autoprueba completa en verde, contador de reemplazos de
 
 ### Tres pestañas y vistas del riel (etapa 3, D3)
 
-El inspector muestra tres pestañas: **Libro**, **Página** y **Selección**. Los módulos siguen dibujando por pestaña interna (`tab`), y `src/inspector-views.ts` (último import de `src/entries/app.ts`) arma cada pestaña visible juntando pasadas de la cadena del inspector:
+El inspector muestra tres pestañas: **Libro**, **Página** y **Selección**. Es un componente de React, `<Inspector/>` (`src/components/inspector/Inspector.tsx`), montado una vez en `#inspectorContent` por `src/inspector-views.tsx` (último import de `src/entries/app.ts`). Cada pestaña visible junta "pasadas", los nombres de pestaña de antes, que siguen siendo el prefijo de los paneles:
 
-| Pestaña | Pasadas (`tab`) | `tab` al terminar |
+| Pestaña | Pasadas | `tab` después de `inspector()` |
 |---|---|---|
 | Libro | `structure`, `design` | `design` |
-| Página | `pages` (sin la tarjeta del documento) | `pages` |
-| Selección | caja de texto: `object`, `text` · otro objeto o varios: `object` · nada: estado vacío | `text`, `object` o `selection` |
+| Página | `pages` | `pages` |
+| Selección | caja de texto: `object`, `text` · otro objeto o varios: `object` · nada: `selection` (estado vacío) | `text`, `object` o `selection` |
 
-**Índice** (`index`) y **Capas** (`layers`) son vistas del riel izquierdo, con su selector junto a Páginas: una envoltura `extend.around` registrada al final dibuja esa pestaña con la misma cadena y pasa el resultado a `#railView`. `showTab()` acepta los nombres viejos (`design`, `text`, `object`, `pages`, `structure`, `index`, `layers`) y los lleva a la pestaña o vista nueva; `inspectorTabFor(nombre)` dice cuál. La pestaña elegida se guarda en `maquetario-inspector-view`, y el orden y plegado de secciones guardados por pestaña vieja se pasaron a la nueva. Después de cada armado, las unidades que venían en la etiqueta ("Grosor · mm") pasan adentro del campo.
+Sin libro abierto (`hasDocument` falso), las tres pestañas muestran sólo un estado vacío (`.inspector-empty`, "Creá o abrí un libro para ver sus propiedades.") y el consejo del pie se esconde.
+
+**Índice** (`index`) y **Capas** (`layers`) son vistas del riel izquierdo, con su selector junto a Páginas (`src/components/rail/RailViews.tsx`). `showTab()` acepta los nombres viejos (`design`, `text`, `object`, `pages`, `structure`, `index`, `layers`) y los lleva a la pestaña o vista nueva; `inspectorTabFor(nombre)` dice cuál. La pestaña elegida se guarda en `maquetario-inspector-view`, y el orden y plegado de secciones guardados por pestaña vieja se pasaron a la nueva.
 
 ### Paneles de React en el inspector (etapa 3, D2): base hecha el 09-nov
 
-**Cómo conviven.** La cadena del inspector sigue igual. Lo nuevo:
-- **Una sección en React:** la pestaña en HTML deja su lugar con `inspectorSlot(nombre, título, clave)` de `studio.ts`. Es un `<section class="section" data-section data-key>` vacío, en su orden, y el panel se registra con `registerInspectorPanel('pestaña:nombre', () => <Panel />)`.
-- **Una pestaña entera:** `registerInspectorPanel(tab, render)` con un `render` que devuelve un elemento de React.
-- **Cuándo se monta:** `inspector-registry.ts` monta los paneles apenas se dibuja la pasada, antes que cualquier decorador, y de forma sincrónica (`mount(…, { sync: true })`). Al volver de `inspector()` el DOM ya está completo.
-- **Qué sigue funcionando igual:** el orden, el plegado y el reordenamiento de `inspector-sections.ts` (trabajan sobre el `<section>`, que es el mismo), los `<details>` abiertos y los decoradores que buscan nodos con `$()`.
-- **Cada dibujo vuelve a montar:** cada dibujo del inspector reemplaza el contenido, y el panel se vuelve a montar con él, como el HTML. Las raíces cuyo nodo salió de la página se desmontan. Las que esperan en el fragmento de las pasadas no se tocan.
-- **Entre dibujos,** el panel se actualiza con `useEditorState()`.
+**Cómo se arma (paso 10, hecho el 09-nov).**
+- **Paneles:** cada módulo registra los suyos con `registerInspectorPanel('pasada:sección', () => <Panel />)` (`src/inspector-registry.ts`). La tabla `sectionsOf` de `Inspector.tsx` dice qué secciones tiene cada pasada, en qué orden y con qué marco (`<section class="section" data-section data-key>`, los mismos atributos de antes; "Carácter y párrafo" y los estados vacíos van en un `<div>`). La primera sección de cada pasada lleva `data-pass`.
+- **`inspector()` es una fachada:** `studio.ts` la declara con `extensible('inspector', …)` y sólo avisa (`notifyEditorState()`). `<Inspector/>` escucha ese aviso (`useEditorState()`) y el idioma; los paneles no se suscriben por su cuenta. React cambia sólo lo que cambió: el DOM ya no se rehace en cada llamada, así que el scroll, el foco y los `<details>` abiertos se conservan solos.
+- **Campos:** siguen sin ser controlados, pero cada uno lleva de `key` su valor (`fieldKey(nombre, valor)` de `fields.tsx`, que suma el idioma): cuando el valor del libro cambia (deshacer, otro panel, una prueba que asigna `book…` y llama a `inspector()`), React crea ese campo de nuevo. Después de cada `inspector()`, un campo numérico que quedó con un valor no grabado (fuera de rango) vuelve a su valor, como cuando se rehacía todo. Con el documento en otra unidad (mm/cm) se vuelve a crear todo el inspector.
+- **Oyentes nativos:** `onNativeChange` engancha un solo oyente por nodo, que llama siempre al último `listener` de la ref (el nodo ahora dura entre dibujos: así no queda uno con datos viejos).
+- **Pausa:** `pauseInspectorWhile(cond)` sigue igual (`extend.around`); además, mientras dura, `<Inspector/>` devuelve lo último que dibujó, aunque llegue otro aviso del estado.
+- **Orden y plegado** (antes `inspector-sections.ts`, con un `MutationObserver`): los maneja `<Inspector/>` con las mismas claves (`data-order-key`: clase propia o ícono y su número) y los mismos `localStorage` (`maquetario-inspector-order`, `maquetario-inspector-collapsed`), por pestaña visible. El agarrador y la flecha los dibuja `SectionHeading` de `fields.tsx` dentro del título de la sección (contexto `SectionContext`), y el nombre (`SectionTitle`) también pliega. Ahora están al volver de `inspector()` (antes llegaban un instante después).
+- **Después de `inspector()`** (`extend.after`): `inspector-views.tsx` deja `tab` con la pasada principal, `review-workspace.ts` marca la página activa (página, miniaturas y barra) y `tutorial.ts` vuelve a marcar el objetivo del paso del recorrido. Ninguno toca lo que dibuja React.
 
 **Reglas para pasar un panel:**
 - **Mismo marcado:** mismas clases, `data-bind`, ids, `aria-*` y rótulos que el HTML (`section()`, `row()`, `number()`, `options()` de `studio.ts`). Así no cambian los estilos, las pruebas ni la autoprueba.
-- **Campos ligados con el `change` nativo:** cada campo se liga a su ruta con `commitBinding(el)` de `studio.ts`, la misma validación de `bindInspector`. No con el `onChange` de React: las pruebas escriben `.value` y disparan `new Event('change')`, que no sube. Es lo mismo que resuelve `useNativeChange` en `Form.tsx`, pero ligado en la ref y no en un efecto, para que el campo responda en cuanto se monta.
-- **Los campos no son controlados** (`defaultValue`/`defaultChecked`): el valor vive en el elemento, como en HTML.
-- **Textos con `LibroI18n.tr`** (el traductor del DOM no entra en `data-react`). Si un decorador busca por el texto en castellano, el elemento lleva `data-text-source` (lo usa la ayuda de términos de `editorial-learning.ts`).
-- **Lo que hacía un decorador** moviendo o insertando nodos dentro de la sección pasa al panel. Un decorador puede agregar al final de un nodo de React, pero no mover lo que React dibuja.
+- **Campos ligados con el `change` nativo:** cada campo se liga a su ruta con `commitBinding(el)` de `studio.ts`. No con el `onChange` de React: las pruebas escriben `.value` y disparan `new Event('change')`, que no sube. Es lo mismo que resuelve `useNativeChange` en `Form.tsx`, pero ligado en la ref y no en un efecto, para que el campo responda en cuanto se monta.
+- **Los campos no son controlados** (`defaultValue`/`defaultChecked`): el valor vive en el elemento, como en HTML, y llevan `key={fieldKey(nombre, valor)}`.
+- **Textos con `LibroI18n.tr`** (el traductor del DOM no entra en `data-react`). El texto en castellano queda en `data-text-source`; la ayuda de términos (`TermHelp`) la dibujan `Heading`, `SwitchHeading`, `Row` y los subtítulos de la Grilla.
+- **Longitudes:** la unidad junto al campo es `lengthUnit()`; `document-units.ts` adapta cada campo nuevo una vez (`fieldAdapters`).
+- **Nada de decoradores:** ya no existe `decorateInspector`. Lo que un módulo le agregaba al inspector va en el panel.
 
 **Hecho:** Foliado (`src/components/inspector/FolioPanel.tsx`), con los deslizadores de ajuste fino que antes agregaba `folio-position.ts`. Comparado en Chrome sin ventana contra la versión en HTML (Libro en castellano, inglés y centímetros, después de cambiar valores, deslizar, plegar y reordenar): el marcado es igual salvo `data-text-source` y el atributo `value` de los campos que React actualiza al redibujar.
 También Estructura del libro (paso 6, `src/components/inspector/StructurePanel.tsx`): la pasada `structure` deja su `inspectorSlot` y el panel suma "Formato y configuración" (antes, `addBookSettings` de `inspector-views.ts`) y "Reglas internas" (antes, un decorador de `editorial-rules.ts` lo ponía arriba de todo el inspector; ahora va dentro de la sección). Como esa pasada es un panel de pestaña entera en HTML (`extend.instead`), la extensión que monta las secciones de React no corría para ella: `inspector-registry.ts` ahora también las monta ahí (`mountSectionPanels`). Comparado en Chrome sin ventana: marcado igual en castellano, inglés y con otra página activa, salvo el lugar de "Reglas internas" y `data-pass`, que ahora queda en la sección.
@@ -266,32 +270,21 @@ También las vistas del riel (paso 9): Índice y Capas son componentes propios m
   Las sacaba `inspector-organization.ts`, del que queda sólo quitar el par de medidas en Capas. Ahora ni se dibujan.
 - Comparado en Chrome sin ventana contra la versión anterior: Libro, Página, Foliado, texto, figura (polígono, redonda, marco común), imagen, imagen bloqueada, varios, guías, Capas, Índice e inglés. Todo igual, salvo las guías repetidas.
 
-**Qué queda del HTML del inspector (para el paso 10):**
-- **Vistas del riel:** Índice (`tocPanel` en la envoltura de `editorial.ts`) y Capas (`layersPanel` en `layout-tools.ts`, registrado como `'layers'`). Las está sacando otro agente.
-- **El estado vacío "Nada seleccionado":** lo escribe `emptySelection()` en `inspector-views.ts`.
-- **Helpers de `studio.ts`:** `section()`, `row()`, `number()`, `options()`, `toggle()` y `bindInspector()`. Hoy los usan sólo las vistas del riel. `bindInspector()` no encuentra nada que ligar en las pestañas.
+**Hecho (paso 10): la cadena.** Se fueron las pasadas que se dibujaban y se juntaban en un fragmento, los lugares HTML (`inspectorSlot`), `mountInspectorSlot`, las raíces de React por sección, `bindInspector`, `unitsInsideFields`, `emptySelection`, `inspector-sections.ts` y `decorateInspector`. Los decoradores que quedaban:
 
-**Qué hace hoy la cadena de `inspector()`**, de afuera hacia adentro:
-1. **Envolturas (`extend.around`):**
-   - `inspector-views.ts`: vista del riel. Dibuja la pestaña del riel con la misma cadena y la pasa a `#railView`.
-   - `editorial.ts`: dibuja el Índice en lugar de la cadena.
-   - `inspector-registry.ts`: pausa (`pauseInspectorWhile`), scroll y `<details>` abiertos.
-2. **`inspector-views.ts` (`extend`):** arma la pestaña visible juntando pasadas.
-   - Libro: `structure` y `design`. Página: `pages`. Selección: `object` (más `text` si es una caja de texto). Sin nada elegido: el estado vacío.
-   - Marca `data-pass` y aplica `unitsInsideFields`, que hoy no encuentra etiquetas con unidad.
-3. **Paneles registrados (`extend.instead`):**
-   - `structure` (`book-workflow.ts`) y `object` (`inspector-organization.ts`): dejan lugares y los montan.
-   - `layers` (`layout-tools.ts`): HTML.
-4. **Base (`studio.ts`):** deja los lugares de `design`, `text` y `pages`.
-5. **Decoradores (`extend.after`, en orden de carga):**
-   - montaje de los lugares (`inspector-registry.ts`, primero);
-   - los que agregan su propio lugar y lo montan: Misceláneas (`book-workflow.ts`) y Fuentes (`fonts.ts`), en `design`;
-   - `inspector-organization.ts` (el par de medidas en Capas);
-   - `review-workspace.ts` (`updateActivePage`) y `layout-tools.ts` (`updateSnapButton`): actualizan otras partes de la interfaz;
-   - `document-units.ts` (centímetros), `editorial-learning.ts` (ayuda de términos) y `font-browser.tsx` (selector visual de fuente): tocan nodos de React;
-   - `tutorial.ts`: deshabilita campos con el objeto bloqueado y marca el objetivo del tutorial.
+| Decorador | Qué hacía | Dónde quedó |
+|---|---|---|
+| `book-workflow.ts` (pasada `structure` y `ruleControls`) | lugares de Estructura y de Misceláneas | tabla de `Inspector.tsx` |
+| `fonts.ts` | lugar de Fuentes de tu equipo | tabla de `Inspector.tsx` |
+| `inspector-organization.ts` (`objectInspector`) | lugares del objeto y de la figura | tabla de `Inspector.tsx` |
+| `layout-tools.ts` (`updateSnapButton`) | avisar a la barra del imán | lo hace la fachada: `inspector()` avisa a todos |
+| `review-workspace.ts` (`updateActivePage`) | marcar la página activa fuera del inspector | `extend.after('inspector')` |
+| `document-units.ts` | mm → cm en etiquetas y campos | `lengthUnit()` en los paneles y `fieldAdapters` (cada campo nuevo, una vez) |
+| `editorial-learning.ts` (`decorateGlossaryHints`, también tras `render`) | botón "Aprender" en los términos | `TermHelp` en `fields.tsx` |
+| `font-browser.tsx` (`decorateFontBrowsers`) | botón visual junto al selector de fuente | `FontOptions` / `FontBrowserButton` en `fields.tsx` (`decorateFontBrowsers` sigue para la Hoja de estilo de párrafo) |
+| `tutorial.ts` | deshabilitar campos con el objeto bloqueado; marcar el objetivo del recorrido | `disabled={locked}` en los paneles; `extend.after('inspector')` |
 
-Para el paso 10 hay que pasar a los paneles lo que todavía hace un decorador sobre nodos de React (centímetros, ayuda de términos, selector visual de fuente, deshabilitar con bloqueo y objetivo del tutorial). También hay que sacar del inspector lo que actualiza otras partes de la interfaz (página activa, imán) y llevarlo a `useEditorState`. Recién ahí la cadena se puede reemplazar por un componente con las tres pestañas.
+Tiempos (Chrome sin ventana, libro de muestra, 50 llamadas seguidas a `inspector()`): Libro de unos 930 a 2200 ms a unos 35-60 ms; Selección con caja de texto de 830-2380 ms a 30-50 ms; Página de 115-240 ms a unos 20 ms. Antes crecía en cada tanda porque las raíces viejas se desmontaban recién al terminar y seguían escuchando avisos. `render(true)` pasó de unos 14 ms a 5 ms y `showTab()` de 10 ms a 1,2 ms; `notifyEditorState()` sube un poco (de 0,5 a 0,8 ms), porque redibuja también el inspector.
 
 **Orden para los demás paneles**, de menos a más acoplado:
 
@@ -305,15 +298,15 @@ Para el paso 10 hay que pasar a los paneles lo que todavía hace un decorador so
 | 6 ✓ | Estructura (Libro) | `book-workflow.ts` dibuja la pasada `structure` entera con `registerInspectorPanel`; `addBookSettings` le inserta un botón |
 | 7 ✓ | Selección: objeto | `inspector-organization.ts` (alinear, distribuir, capas), `shapes.ts`, `placed-artwork.ts` |
 | 8 ✓ | Selección: texto y párrafo | lo más acoplado: `paragraphs.ts` (escucha `change` en el documento y envuelve `commit`), `hyphenation-controls.ts`, `font-glyphs.ts`, `editorial.ts` (controles extra) y la vista de variantes de `fonts.ts` |
-| 9 | Vistas del riel (Índice, Capas) | se arman con la misma cadena y se mueven a `#railView`: van como pestaña entera de React |
-| 10 | La cadena | con todo en React, `inspector-views.ts` pasa a ser un componente con las tres pestañas, y `decorateInspector` queda sólo para lo que no es del inspector |
+| 9 ✓ | Vistas del riel (Índice, Capas) | se arman con la misma cadena y se mueven a `#railView`: van como pestaña entera de React |
+| 10 ✓ | La cadena | `<Inspector/>` arma las tres pestañas; `inspector()` y `showTab()` quedan como fachada |
 
 **Riesgos:**
-- **Decoradores que buscan nodos con `$()`:** si un decorador busca por texto, por posición o mueve nodos, deja de encontrarlos o rompe a React. Antes de pasar cada panel hay que revisar `decorateInspector` y los `$('#inspectorContent …')` que lo tocan, y absorberlos.
-- **`document-units.ts`:** cambia "mm" por "cm" en los textos y redefine `value` en los campos. Funciona sobre React porque React no vuelve a escribir un texto que no cambió. Si un panel cambia el texto de una unidad, hay que pasarlo a `documentUnit()` en el panel.
-- **El traductor del DOM:** no traduce `data-react`. Un decorador que inserta texto en castellano dentro de un panel de React queda sin traducir (los de hoy usan `bw()`).
-- **Volver a montar en cada dibujo:** mientras la cadena siga, cada `render(true)` vuelve a montar los paneles. Es barato con pocos paneles; con muchos conviene que la cadena deje de reemplazar todo (paso 10).
-- **`flushSync` desde un efecto de React:** si `inspector()` se llama dentro de un efecto de React, el montaje sincrónico no se cumple (React avisa y dibuja después).
+- **Nodos que duran:** el DOM del inspector ya no se rehace. Lo que se le hace a mano a un nodo de React (una clase, `disabled`, un hijo agregado) queda hasta que React lo vuelva a crear; lo que React vuelve a escribir (un texto, un atributo que cambió) pisa lo agregado. Todo lo del inspector va en el panel.
+- **Un campo sin `key`** con su valor no se entera de que el libro cambió (sigue mostrando el valor viejo).
+- **Una ref que prepara el nodo una sola vez** (`firstTime`) no ve los datos nuevos: lo que dependa de ellos va en la `key` del elemento o en el render.
+- **El traductor del DOM:** no traduce `data-react`.
+- **`flushSync` desde un efecto de React:** si `inspector()` se llama dentro de un efecto, el dibujo sincrónico no se cumple (React avisa y dibuja después).
 
 ## Pasar una pantalla a React (etapa 3)
 
@@ -351,8 +344,7 @@ Convención única: la resume el comentario de `src/react/mount.tsx`. Cada regla
 **Registros** (en lugar de agregar nodos al DOM)
 - Riel: `registerTool({ tool, id, icon, label, after, onSelect })`, en `components/rail/rail-tools.ts`.
 - Inspector:
-  - `registerInspectorPanel('pestaña:nombre', () => <Panel />)` con su lugar `inspectorSlot(…)` en la pestaña;
-  - `mountInspectorSlot(lugar)` si el lugar aparece después de la pasada;
+  - `registerInspectorPanel('pasada:sección', () => <Panel />)`, con su lugar en la tabla `sectionsOf` de `components/inspector/Inspector.tsx`;
   - reglas en "Paneles de React en el inspector".
 - Ayuda: `registerHelpSection({ id, label, order, render })`, en `components/help/help-center.tsx`.
 

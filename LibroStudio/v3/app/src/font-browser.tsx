@@ -504,9 +504,6 @@ globalThis.decorateFontBrowsers = function (root: ParentNode = document) {
     select.after(button);
   }
 };
-decorateInspector(() => {
-  decorateFontBrowsers($('#inspectorContent'));
-}, 'font-browser');
 extend.result(
   'autoElement',
   function (el, i, type, px, print = false) {
@@ -536,4 +533,3 @@ extend.result(
   },
   'font-browser',
 );
-decorateFontBrowsers($('#inspectorContent'));

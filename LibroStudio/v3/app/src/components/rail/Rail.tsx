@@ -4,7 +4,7 @@
 //
 // - Las herramientas salen del registro (rail-tools.ts: registerTool). La activa es la del global
 //   tool (studio.ts): se redibuja con useEditorState(), y setTool avisa al terminar.
-// - La vista del riel la lleva inspector-views.ts (showRailView / currentRailView), que avisa con
+// - La vista del riel la lleva inspector-views.tsx (showRailView / currentRailView), que avisa con
 //   notifyEditorState(); acá sólo se dibujan las pestañas, el clic y las flechas.
 // - Mismos ids y atributos que antes: data-tool, #handTool, #shapeTool, #indexTool, #layersTool,
 //   #coverTool, #railTab-pages|index|layers, data-rail-view, data-tab. El espacio de trabajo
@@ -88,7 +88,7 @@ export const RailSwitch = () => {
   useLayoutEffect(() => {
     $('.rail-switch').setAttribute('aria-label', LibroI18n.tr('Vistas del panel'));
   }, [language]);
-  // inspector-views.ts (la vista) carga al final: hasta entonces, Páginas.
+  // inspector-views.tsx (la vista) carga al final: hasta entonces, Páginas.
   const current: RailView = typeof currentRailView === 'function' ? currentRailView() : 'pages';
   return (
     <>

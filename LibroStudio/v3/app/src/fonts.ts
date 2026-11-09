@@ -293,20 +293,6 @@ async function obtainFonts(action = 'fontCatalog'): Promise<void> {
   }
 }
 globalThis.obtainFonts = obtainFonts;
-decorateInspector(() => {
-  // Tipo de letra, peso y estilo, ejes y muestra de la caja de texto: panel de Tipografía
-  // (src/components/inspector/TextPanels.tsx).
-  const host = $('#inspectorContent');
-  // Las fuentes del equipo son del documento, no de la caja: van en Libro, al final. El panel es
-  // de React (src/components/inspector/FontLibraryPanel.tsx): acá se deja su lugar y se monta.
-  if (tab === 'design') {
-    const sectionNode = document.createElement('section');
-    sectionNode.className = 'section font-library';
-    sectionNode.dataset.inspectorSlot = 'fonts';
-    host.append(sectionNode);
-    mountInspectorSlot(sectionNode);
-  }
-}, 'fonts');
 extend.result(
   'paper',
   function (result: HTMLElement, i: number, px: number, print = false) {

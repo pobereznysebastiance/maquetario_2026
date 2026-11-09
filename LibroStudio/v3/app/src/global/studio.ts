@@ -212,14 +212,6 @@ function section(
 ): string {
   return `<section class="section" data-section="${esc(title)}" data-key="${key}"><div class="section-heading">${icon(key)}<span${enabled !== null ? ` id="switchLabel-${enabled}"` : ''}>${title}</span>${badge ? `<span class="tiny">${badge}</span>` : ''}${enabled !== null ? toggle(enabled) : ''}</div>${body}</section>`;
 }
-/**
- * Lugar de una sección que dibuja React (registerInspectorPanel('pestaña:nombre', …), ver
- * inspector-registry.ts): la sección queda en su orden, con sus atributos (data-section, data-key)
- * para el orden y el plegado de inspector-sections.ts, y React dibuja su contenido adentro.
- */
-function inspectorSlot(name: string, title: string, key: string): string {
-  return `<section class="section" data-section="${esc(title)}" data-key="${key}" data-inspector-slot="${name}"></section>`;
-}
 function toggle(path: string): string {
   return `<label class="switch"><input type="checkbox" data-bind="${path}" ${get(path) ? 'checked' : ''} aria-labelledby="switchLabel-${path}"><span></span></label>`;
 }
@@ -271,39 +263,19 @@ const folioPositions = [
   ['outer', 'Lateral exterior'],
   ['inner', 'Lateral interior'],
 ];
-// Cornisa, titulillo y folio: "Personalizar pares, impares y posición" está en
-// src/components/inspector/fields.tsx (MasterDetails), con sus paneles de React.
-function inspector(): void {
-  const host = $('#inspectorContent');
-  // Libro: Grilla, Foliado, Cornisa y Titulillo son paneles de React (src/components/inspector/);
-  // acá queda su lugar, en orden.
-  if (tab === 'design')
-    host.innerHTML =
-      inspectorSlot('grid', 'Grilla', 'grid') +
-      inspectorSlot('folio', 'Foliado', 'folio') +
-      inspectorSlot('header', 'Cornisa', 'header') +
-      inspectorSlot('titulillo', 'Titulillo', 'text');
-  if (tab === 'text') {
-    // Selección de una caja de texto: "Párrafo y estilos", "Tipografía" y "Carácter y párrafo" son
-    // paneles de React (src/components/inspector/TextPanels.tsx); acá queda su lugar, en orden.
-    host.innerHTML =
-      '<section class="section paragraph-panel" data-inspector-slot="paragraph"></section>' +
-      '<section class="section" data-section="Tipografía" data-key="text" data-inspector-slot="typography"></section>' +
-      // "Carácter y párrafo" va al final, dentro de un <div> (no se reordena ni se pliega).
-      '<div data-inspector-slot="character"></div>';
-  }
-  if (tab === 'pages')
-    // Pestaña Página: paneles de React (src/components/inspector/PagePanel.tsx). La página sola
-    // (qué elementos automáticos se ven) va primero, sin data-section, como antes.
-    host.innerHTML =
-      '<section class="section individual-page-settings" data-inspector-slot="exceptions"></section>' +
-      inspectorSlot('page', 'Página ' + (active + 1), 'file') +
-      inspectorSlot('auto', 'Elementos automáticos', 'link');
-  bindInspector();
-}
+/**
+ * Redibuja el inspector. Es una fachada: el inspector es un componente de React
+ * (src/components/inspector/Inspector.tsx, montado por inspector-views.tsx) que se entera por el
+ * aviso del estado del editor y cambia sólo lo que cambió. Extensible: inspector-registry.ts la
+ * pausa (pauseInspectorWhile) y otros módulos hacen algo después (extend.after).
+ */
+const inspector = extensible('inspector', function (): void {
+  // Antes de que cargue la entrada de la app (editor-state.ts) no hay nada que avisar.
+  globalThis.notifyEditorState?.();
+});
 /**
  * Graba en el libro el valor de un control con data-bind (casilla, número o texto), con la misma
- * validación para todos. La usan bindInspector y los paneles de React del inspector.
+ * validación para todos. La usan los paneles de React del inspector.
  */
 function commitBinding(el: UIElement): void {
   let value =
@@ -331,7 +303,7 @@ function commitBinding(el: UIElement): void {
 }
 /**
  * Graba en el objeto seleccionado el valor de un control con data-object (medidas, cuerpo,
- * interlineado, color…), con el aviso de rango. La usan bindInspector y los paneles de React.
+ * interlineado, color…), con el aviso de rango. La usan los paneles de React.
  */
 function commitObjectField(el: UIElement): void {
   const o = selectObject();
@@ -354,40 +326,6 @@ function commitObjectField(el: UIElement): void {
       o.h = Math.min(o.h, book.height - o.y);
     }
   }, false);
-}
-function bindInspector(): void {
-  const h = $('#inspectorContent');
-  h.querySelectorAll<UIElement>('[data-bind]').forEach((el) =>
-    el.addEventListener('change', () => commitBinding(el)),
-  );
-  h.querySelectorAll<UIElement>('[data-fit]').forEach(
-    (el) => (el.onclick = () => commit(() => (book.grid.fit = el.dataset.fit!), false)),
-  );
-  h.querySelectorAll<UIElement>('[data-object]').forEach(
-    (el) => (el.onchange = () => commitObjectField(el)),
-  );
-  h.querySelectorAll<UIElement>('[data-align]').forEach(
-    (el) => (el.onclick = () => commit(() => (selectObject()!.align = el.dataset.align!), false)),
-  );
-  h.querySelectorAll<UIElement>('[data-style]').forEach(
-    (el) =>
-      (el.onclick = () =>
-        commit(() => {
-          const o = selectObject()!;
-          o[el.dataset.style!] = !o[el.dataset.style!];
-        }, false)),
-  );
-  h.querySelectorAll<UIElement>('[data-command]').forEach(
-    (el) => (el.onclick = () => command(el.dataset.command!)),
-  );
-  h.querySelectorAll<UIElement>('[data-page]').forEach(
-    (el) =>
-      (el.onchange = () =>
-        commit(() => (book.pages[active][el.dataset.page!] = el.checked), false)),
-  );
-  if ($('#pageSection'))
-    $('#pageSection').onchange = (e: Event) =>
-      commit(() => (book.pages[active].section = (e.target as HTMLInputElement).value), false);
 }
 function templateMini(cols: number, lines = false): string {
   return Array.from(

@@ -1,16 +1,14 @@
 // Inspector · Libro · Fuentes de tu equipo (etapa 3, D2, paso 4): cuántas familias y estilos leyó
 // la app, y administrar las carpetas de fuentes.
 //
-// La sección la agrega fonts.ts al final de Libro como un lugar vacío (class "font-library",
-// data-inspector-slot="fonts") y la monta con mountInspectorSlot. Mismo marcado que tenía en HTML
+// Va al final de Libro, en una sección con class "font-library" (Inspector.tsx). Mismo marcado que tenía en HTML
 // (UI.skeleton, UI.button), con los textos de fw() (fonts.ts). Mientras se lee el catálogo, los
 // botones quedan deshabilitados; obtainFonts vuelve a dibujar el inspector al empezar y al terminar.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
-import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
-import { Btn } from './fields.tsx';
+import { Btn, SectionHeading } from './fields.tsx';
 
 /** Líneas grises de "cargando" (UI.skeleton). */
 const Skeleton = ({ lines, label }: { lines: number; label: string }) => (
@@ -22,16 +20,15 @@ const Skeleton = ({ lines, label }: { lines: number; label: string }) => (
 );
 
 export const FontLibraryPanel = () => {
-  useEditorState();
   useLanguage();
   const w = fw(),
     loading = fontCatalogLoading();
   return (
     <>
-      <div className="section-heading">
+      <SectionHeading>
         <Icon name="text" />
         {' ' + w.library}
-      </div>
+      </SectionHeading>
       <p className="help">
         {loading
           ? w.loading

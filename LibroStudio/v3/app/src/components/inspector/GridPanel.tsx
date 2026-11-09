@@ -5,10 +5,9 @@
 // después de dibujar el inspector).
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
-import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { openGuideDialog, type BookGuide } from '../../editorial.ts';
-import { NumberField, Row, SwitchHeading, tt } from './fields.tsx';
+import { NumberField, Row, SwitchHeading, TermHelp, tt } from './fields.tsx';
 import { Icon } from '../Icon.tsx';
 
 /** Dos medidas lado a lado con su etiqueta debajo (pair() de studio.ts). */
@@ -26,6 +25,7 @@ const Pair = ({
     {label ? (
       <div className="sub-label" data-text-source={label}>
         {tt(label)}
+        <TermHelp text={label} />
       </div>
     ) : null}
     <div className="pair">
@@ -86,7 +86,6 @@ const GuideControls = () => (
 );
 
 export const GridPanel = () => {
-  useEditorState();
   useLanguage();
   return (
     <>

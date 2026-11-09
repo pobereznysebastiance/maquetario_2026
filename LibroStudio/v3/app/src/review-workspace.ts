@@ -468,9 +468,8 @@ function alignSelection(axis: string): void {
 }
 globalThis.alignSelection = alignSelection;
 // La alineación de objetos está en el panel del objeto (ObjectPanel.tsx).
-decorateInspector(() => {
-  updateActivePage();
-}, 'review-workspace');
+// La página activa se marca en la página, en las miniaturas y en la barra del documento.
+extend.after('inspector', () => updateActivePage(), 'review-workspace');
 extend.after(
   'render',
   function (full = true) {

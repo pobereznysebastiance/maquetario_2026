@@ -1,29 +1,28 @@
 // Inspector en tres pestañas y vistas del riel izquierdo (etapa 3, decisión D3).
 //
-//   Libro      estructura, página y grilla, foliado, cornisa y titulillo
+//   Libro      estructura, misceláneas, grilla, foliado, cornisa, titulillo y fuentes del equipo
 //   Página     la página activa y sus excepciones
 //   Selección  objeto (posición, alineación, orden) y, si es una caja de texto, tipografía y
 //              párrafo; sin selección, un estado vacío
 //
 // Capas e Índice dejan el inspector: son vistas del riel izquierdo, junto a Páginas.
 //
-// Los módulos siguen dibujando por pestaña interna (tab = 'structure', 'design', 'pages', 'text',
-// 'object') con registerInspectorPanel y decorateInspector, como antes. Este módulo arma cada
-// pestaña visible juntando esas pasadas en orden. Las vistas del riel (Índice, Capas) ya no pasan
-// por la cadena: son componentes de React (components/rail/RailViews.tsx). showTab acepta los nombres viejos y los lleva a la vista nueva
-// (showTab('text') → Selección; showTab('index') → Índice del riel). La pestaña elegida se
-// recuerda en localStorage.
+// El inspector es un componente de React (components/inspector/Inspector.tsx), montado acá una
+// vez en #inspectorContent. inspector() y showTab() de studio.ts quedan como fachada: inspector()
+// avisa que el estado cambió (y React redibuja sólo lo que cambió); showTab acepta los nombres
+// viejos y los lleva a la vista nueva (showTab('text') → Selección; showTab('index') → Índice del
+// riel). La pestaña elegida se recuerda en localStorage. Las vistas del riel (Índice, Capas) son
+// componentes de React (components/rail/RailViews.tsx).
 //
-// Tiene que cargar después de todo lo que registra paneles o decoradores del inspector (va al
-// final de src/entries/app.ts): su extensión de inspector envuelve a todas las anteriores.
+// Va al final de src/entries/app.ts: el primer dibujo tiene que ver todos los paneles registrados.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 import type { AnyFunction } from './extend.ts';
 import { notifyEditorState } from './react/editor-state.ts';
+import { mount } from './react/mount.tsx';
 import { mountRailViews } from './components/rail/RailViews.tsx';
+import { Inspector, planFor, type InspectorView } from './components/inspector/Inspector.tsx';
 
-/** Pestaña visible del inspector. */
-type InspectorView = 'book' | 'page' | 'selection';
 /** Vista del riel izquierdo. */
 type RailView = 'pages' | 'index' | 'layers';
 
@@ -101,80 +100,19 @@ migrateSectionStores();
 let view: InspectorView = VIEWS[readStore(VIEW_STORE) || ''] || 'book';
 let rail: RailView = 'pages';
 
-/** Pasadas (pestañas internas) de la pestaña visible y la que queda en tab al terminar. */
-function planFor(v: InspectorView): { passes: string[]; primary: string } {
-  if (v === 'book') return { passes: ['structure', 'design'], primary: 'design' };
-  if (v === 'page') return { passes: ['pages'], primary: 'pages' };
-  const o = selectObject();
-  if (multiSelection.size > 1) return { passes: ['object'], primary: 'object' };
-  if (!o) return { passes: [], primary: 'selection' };
-  // Como el panel Propiedades: primero el objeto, después el texto y el párrafo.
-  if (o.type === 'text') return { passes: ['object', 'text'], primary: 'text' };
-  return { passes: ['object'], primary: 'object' };
-}
+const content = $('#inspectorContent');
 
-// ── Ajustes de cada pasada ──
-
-const UNIT_SUFFIX = /\s·\s(mm|cm|pt|%|px|‰)\s*$/;
-
-/** La unidad va dentro del campo, no en la etiqueta ("Grosor · mm" → "Grosor" + campo con mm). */
-function unitsInsideFields(root: ParentNode): void {
-  for (const label of root.querySelectorAll<HTMLLabelElement>('label')) {
-    const text = [...label.childNodes]
-      .reverse()
-      .find((n) => n.nodeType === Node.TEXT_NODE && UNIT_SUFFIX.test(n.textContent || ''));
-    if (!text) continue;
-    const control = label.control;
-    const field =
-      control instanceof HTMLInputElement
-        ? control
-        : label.closest('.field-row, .pair > div, .control')?.querySelector('input');
-    if (!field || field.type !== 'number' || field.closest('.unit-wrap')) continue;
-    const unit = text.textContent!.match(UNIT_SUFFIX)![1];
-    text.textContent = text.textContent!.replace(UNIT_SUFFIX, '');
-    const wrap = document.createElement('span');
-    wrap.className = 'unit-wrap';
-    const mark = document.createElement('span');
-    mark.className = 'unit';
-    mark.textContent = unit;
-    field.replaceWith(wrap);
-    wrap.append(field, mark);
-  }
-}
-
-/** Nada seleccionado: el lugar del panel de React (EmptySelection, ObjectPanel.tsx), montado en el acto. */
-function emptySelection(host: HTMLElement): void {
-  host.innerHTML = `<div class="inspector-empty" data-pass="selection" data-inspector-slot="empty"></div>`;
-  mountInspectorSlot(host.firstElementChild as HTMLElement);
-}
-
-// ── Pestaña visible: varias pasadas de la cadena del inspector, una debajo de la otra ──
-extend(
+// Después de cada inspector(): tab queda con la pestaña interna de lo que se ve (la usan otros
+// módulos: tab === 'pages', tab === 'text'…), y un campo numérico que no se grabó (fuera de rango)
+// vuelve a su valor, como cuando el inspector se rehacía entero.
+extend.after(
   'inspector',
-  (draw: AnyFunction) =>
-    function (this: unknown, ...args: unknown[]) {
-      const host = $('#inspectorContent'),
-        { passes, primary } = planFor(view);
-      if (!passes.length) {
-        // La cadena corre igual (sin contenido): los decoradores que actualizan otras partes de
-        // la interfaz (etiquetas de herramientas, imán…) no dependen de que haya selección.
-        host.replaceChildren();
-        tab = primary;
-        draw.apply(this, args);
-        emptySelection(host);
-        return;
-      }
-      const parts = document.createDocumentFragment();
-      for (const pass of passes) {
-        tab = pass;
-        draw.apply(this, args);
-        host.firstElementChild?.setAttribute('data-pass', pass);
-        parts.append(...host.childNodes);
-      }
-      host.replaceChildren(parts);
-      tab = primary;
-      unitsInsideFields(host);
-    },
+  function () {
+    tab = planFor(view).primary;
+    for (const field of content.querySelectorAll<HTMLInputElement>('input[type="number"]'))
+      if (field.hasAttribute('value') && Number(field.value) !== Number(field.defaultValue))
+        field.value = field.defaultValue;
+  },
   'inspector-views',
 );
 
@@ -183,7 +121,6 @@ const railHost = $('#railView');
 
 // ── Pestañas ──
 const tabs = $('.inspector .tabs'),
-  content = $('#inspectorContent'),
   foot = $('.inspector-foot');
 content.setAttribute('role', 'tabpanel');
 
@@ -197,9 +134,16 @@ function syncTabs(): void {
     button.tabIndex = on ? 0 : -1;
   }
   content.setAttribute('aria-labelledby', 'inspectorTab-' + view);
-  // El consejo del pie habla de la grilla: se ve en Libro, hasta que se descarta.
-  foot.hidden = view !== 'book' || tipHidden();
+  syncFoot();
 }
+/** El consejo del pie habla de la grilla: se ve en Libro, con un libro abierto, hasta que se descarta. */
+function syncFoot(): void {
+  foot.hidden = view !== 'book' || !hasDocument || tipHidden();
+}
+
+// ── El inspector: un componente de React, montado una vez. Con cada dibujo (también cuando se
+// abre o se cierra un libro) el consejo del pie se ve o no. ──
+mount(content, <Inspector host={content} view={() => view} drawn={syncFoot} />, { sync: true });
 
 /** Lleva a la sección de la pasada pedida (p. ej. showTab('text') con un objeto arriba). */
 function revealPass(name: string): void {

@@ -1,20 +1,21 @@
 // Inspector · Libro · Foliado: el primer panel del inspector en React (etapa 3, D2).
 //
-// Dibuja la sección dentro del lugar que deja inspectorSlot('folio', …) en studio.ts, con el mismo
-// marcado que tenía en HTML (section() y masterDetails()): mismas clases, data-bind, aria y textos,
-// así los estilos, las pruebas, el orden y plegado de secciones y los decoradores la tratan igual.
+// El marco de la sección lo pone Inspector.tsx. Mismo marcado que tenía en HTML (section() y
+// masterDetails()): mismas clases, data-bind, aria y textos, así los estilos y las pruebas la
+// tratan igual.
 // Suma el ajuste fino de posición (deslizadores) que antes agregaba folio-position.ts moviendo
 // nodos: un decorador no puede mover lo que dibuja React.
 //
 // Las piezas comunes (campos ligados con el "change" nativo, traducción) están en fields.tsx. El
-// panel se redibuja con useEditorState() y useLanguage().
+// panel se redibuja con el inspector.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
-import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import {
   bind,
+  fieldKey,
   firstTime,
+  lengthUnit,
   MasterDetails,
   NumberField,
   Options,
@@ -57,6 +58,7 @@ const FineOffset = ({ axis }: { axis: 'offsetX' | 'offsetY' }) => {
       <label>{label}</label>
       <span className="unit-wrap">
         <input
+          key={fieldKey(axis, value)}
           aria-label={label}
           data-bind={`folio.${axis}`}
           type="number"
@@ -66,7 +68,7 @@ const FineOffset = ({ axis }: { axis: 'offsetX' | 'offsetY' }) => {
           defaultValue={value}
           ref={bind}
         />
-        <span className="unit">mm</span>
+        <span className="unit">{lengthUnit()}</span>
       </span>
       <input
         key={value}
@@ -82,7 +84,6 @@ const FineOffset = ({ axis }: { axis: 'offsetX' | 'offsetY' }) => {
 };
 
 export const FolioPanel = () => {
-  useEditorState();
   useLanguage();
   return (
     <>

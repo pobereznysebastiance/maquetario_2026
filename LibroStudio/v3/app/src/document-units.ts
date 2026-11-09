@@ -1,6 +1,7 @@
 // Unidad de medida del documento (mm o cm). El modelo guarda siempre milímetros; con el documento
 // en centímetros, los campos de longitud muestran y aceptan cm, y la barra de estado lo indica.
 // Fuente TypeScript: se compila a build/document-units.js (desktop/scripts/build.mjs).
+import { fieldAdapters } from './components/inspector/fields.tsx';
 
 const measureSelector = [
   '[data-object-geometry]',
@@ -25,7 +26,9 @@ function isLengthField(field: HTMLInputElement): boolean {
   if (field.matches(measureSelector)) return true;
   const unit = field.parentElement?.querySelector(':scope > .unit');
   const label = field.labels?.[0] || field.closest('.field-row,.control')?.querySelector('label');
-  return unit?.textContent?.trim() === 'mm' || /\bmm\b/.test(label?.textContent || '');
+  return (
+    /^(mm|cm)$/.test(unit?.textContent?.trim() || '') || /\bmm\b/.test(label?.textContent || '')
+  );
 }
 
 // El campo del navegador edita la longitud mostrada (cm); los manejadores del modelo leen y
@@ -65,9 +68,12 @@ function adaptLengthControls(root: ParentNode): void {
       }
   }
 }
-decorateInspector(() => {
-  adaptLengthControls($('#inspectorContent'));
-}, 'document-units');
+// Inspector: cada campo nuevo se adapta una vez, al crearse (fields.tsx); la unidad que se ve
+// junto al campo ya la dibuja el panel (lengthUnit).
+fieldAdapters.push((field) => {
+  if (field instanceof HTMLInputElement && field.type === 'number' && documentUnit() === 'cm')
+    adaptLengthField(field);
+});
 extend.after(
   'coverEditor',
   function () {

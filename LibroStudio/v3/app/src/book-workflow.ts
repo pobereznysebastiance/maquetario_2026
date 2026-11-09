@@ -93,17 +93,6 @@ registerHelpSection(
     },
   }),
 );
-/**
- * Pasada 'structure' del inspector (pestaña Libro): deja el lugar de la sección, que dibuja React
- * (components/inspector/StructurePanel.tsx, registrado abajo como 'structure:structure').
- */
-function structurePanel(): void {
-  $('#inspectorContent').innerHTML = inspectorSlot(
-    'structure',
-    bw('Estructura del libro', 'Book structure', 'Estrutura do livro'),
-    'pages',
-  );
-}
 function goToBookPage(index: number): void {
   finishEditing();
   active = index;
@@ -112,11 +101,8 @@ function goToBookPage(index: number): void {
   multiSelection.clear();
   render(true);
 }
-registerInspectorPanel('structure', structurePanel, 'book-workflow');
+// Estructura del libro: la sección de la pestaña Libro (components/inspector/StructurePanel.tsx).
 registerInspectorPanel('structure:structure', structurePanelFor(titleOfPart), 'book-workflow');
-decorateInspector(() => {
-  if (tab === 'design') ruleControls();
-}, 'book-workflow');
 extend.after(
   'render',
   function (full = true) {
@@ -177,19 +163,6 @@ extend.result(
   },
   'book-workflow',
 );
-/**
- * Misceláneas y líneas: el panel es de React (src/components/inspector/RulesPanel.tsx). Acá se
- * deja su lugar donde iba siempre (antes de la segunda sección de Libro) y se monta en el acto.
- */
-function ruleControls(): void {
-  const h = $('#inspectorContent'),
-    box = document.createElement('section');
-  box.className = 'section';
-  box.dataset.inspectorSlot = 'rules';
-  const sections = h.querySelectorAll(':scope>.section');
-  (sections[1] || h.firstChild)?.before(box);
-  mountInspectorSlot(box);
-}
 // Layout is measured with the very same paragraph renderer used by the editor and PDF.
 function measureBookText(b: Book, o: BookObject): boolean {
   const prior = book;

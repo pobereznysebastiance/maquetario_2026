@@ -12,15 +12,25 @@
 //
 // Mismo marcado, ids y data-* que el HTML (los usan las pruebas, la autoprueba y document-units).
 // Los campos graban con el "change" nativo; los botones, con el clic. El selector visual de fuente
-// lo sigue agregando font-browser.tsx (decorateFontBrowsers) junto al selector.
+// es FontBrowserButton (fields.tsx). Con la caja bloqueada, sus campos quedan deshabilitados.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 import type { CSSProperties } from 'react';
 import { paragraphIndices, styleDialog, type ParagraphStyle } from '../../paragraphs.ts';
-import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
-import { Btn, firstTime, Heading, onNativeChange, Row, tt } from './fields.tsx';
+import {
+  Btn,
+  fieldKey,
+  firstTime,
+  FontBrowserButton,
+  Heading,
+  lengthUnit,
+  onNativeChange,
+  Row,
+  SectionHeading,
+  tt,
+} from './fields.tsx';
 
 type Face = NativeFontFace;
 type Axis = Face['axes'][number] & { name?: string };
@@ -71,6 +81,7 @@ const Hyphenation = ({
       {'\n    '}
       <label className="check-line">
         <input
+          key={fieldKey('hyphenate', String(!!format.hyphenate) + mixed)}
           type="checkbox"
           id="paragraphHyphenEnabled"
           defaultChecked={!!format.hyphenate && !mixed}
@@ -90,6 +101,7 @@ const Hyphenation = ({
       </label>
       {'\n    '}
       <select
+        key={fieldKey('hyphenLanguage', format.hyphenLanguage)}
         id="paragraphHyphenLanguage"
         defaultValue={format.hyphenLanguage || 'es'}
         disabled={locked}
@@ -113,14 +125,16 @@ const Hyphenation = ({
 };
 
 export const ParagraphPanel = () => {
-  useEditorState();
   useLanguage();
   const o = selectObject(),
     w = pw();
   if (!o || o.type !== 'text' || o.toc)
     return (
       <>
-        <div className="section-heading">{'¶ ' + w.panel}</div>
+        <SectionHeading>
+          <Icon name="justify" />
+          {' ' + w.panel}
+        </SectionHeading>
         <p className="help">{w.empty}</p>
       </>
     );
@@ -141,10 +155,14 @@ export const ParagraphPanel = () => {
     ];
   return (
     <>
-      <div className="section-heading">{'¶ ' + w.panel}</div>
+      <SectionHeading>
+        <Icon name="justify" />
+        {' ' + w.panel}
+      </SectionHeading>
       <div className="field-row">
         <label>{w.scope}</label>
         <select
+          key={fieldKey('scope', o.id + ':' + paragraphScope.index)}
           id="paragraphScope"
           defaultValue={String(paragraphScope.index)}
           disabled={locked}
@@ -164,6 +182,7 @@ export const ParagraphPanel = () => {
       <div className="field-row">
         <label>{w.style}</label>
         <select
+          key={fieldKey('style', singleStyle + ':' + styles.map((s) => s.id).join())}
           id="paragraphStyle"
           defaultValue={singleStyle}
           disabled={locked}
@@ -210,6 +229,7 @@ export const ParagraphPanel = () => {
           <label>{label}</label>
           <span className="unit-wrap">
             <input
+              key={fieldKey(key, Number(props[key] || 0).toFixed(1))}
               data-paragraph={key}
               type="number"
               step=".5"
@@ -219,13 +239,14 @@ export const ParagraphPanel = () => {
               disabled={locked}
               ref={paragraphNumber}
             />
-            <span className="unit">mm</span>
+            <span className="unit">{lengthUnit()}</span>
           </span>
         </div>
       ))}
       <div className="field-row">
         <label>{w.last}</label>
         <select
+          key={fieldKey('lastAlign', props.lastAlign)}
           id="paragraphLastAlign"
           defaultValue={props.lastAlign}
           disabled={locked}
@@ -319,6 +340,17 @@ const changeFont = onNativeChange<HTMLSelectElement>(async (selector) => {
   }
 });
 
+/** Mientras se arrastra el deslizador de un eje, su valor se ve al lado del nombre. */
+const showValue = once<HTMLInputElement>((input) =>
+  input.addEventListener(
+    'input',
+    () =>
+      (input.previousElementSibling!.querySelector('output')!.textContent = Number(
+        input.value,
+      ).toFixed(1)),
+  ),
+);
+
 /** Un eje variable: nombre, etiqueta, valor y deslizador. */
 const AxisControl = ({
   axis,
@@ -342,6 +374,7 @@ const AxisControl = ({
       <output>{Number(value).toFixed(1)}</output>
     </div>
     <input
+      key={fieldKey(axis.tag, value)}
       type="range"
       {...{ [data === 'axis' ? 'data-axis' : 'data-paragraph-axis']: axis.tag }}
       min={axis.min}
@@ -350,22 +383,15 @@ const AxisControl = ({
       defaultValue={value}
       aria-label={data === 'axis' ? axis.name || axis.tag : undefined}
       disabled={disabled}
-      ref={once<HTMLInputElement>((input) => {
-        input.addEventListener(
-          'input',
-          () =>
-            (input.previousElementSibling!.querySelector('output')!.textContent = Number(
-              input.value,
-            ).toFixed(1)),
-        );
-        input.addEventListener('change', () => onChange(input));
-      })}
+      ref={(input) => {
+        showValue(input);
+        onNativeChange(onChange)(input);
+      }}
     />
   </div>
 );
 
 export const TypographyPanel = () => {
-  useEditorState();
   useLanguage();
   const o = selectObject();
   if (!o || o.type !== 'text') return null;
@@ -380,7 +406,9 @@ export const TypographyPanel = () => {
           ? Number(props[key].toFixed(2))
           : props[key]
         : o[key],
-    align = props ? props.align : o.align;
+    align = props ? props.align : o.align,
+    // Objeto bloqueado: sus campos quedan deshabilitados (antes lo hacía un decorador de tutorial.ts).
+    locked = !!o.locked;
   // Peso y estilo: con la cara del párrafo, sus estilos e instancias; si no, los de la caja.
   const objectVariants = familyFaces(o.font).flatMap((f) => [
     {
@@ -439,18 +467,29 @@ export const TypographyPanel = () => {
         {tt(' Cuadro de texto seleccionado')}
       </div>
       <Row label="Tipo de letra">
-        <select data-object="font" defaultValue={shown('font')} ref={changeFont}>
+        <select
+          key={fieldKey('font', shown('font'))}
+          data-object="font"
+          className="font-native-hidden"
+          data-browser-hook="1"
+          defaultValue={shown('font')}
+          disabled={locked}
+          ref={changeFont}
+        >
           {fontList.map((f) => (
             <option key={f}>{f}</option>
           ))}
         </select>
+        <FontBrowserButton family={shown('font')} disabled={locked} />
       </Row>
       <div className="font-variant-block">
         <div className="field-row">
           <label>{w.weight}</label>
           <select
+            key={fieldKey('variant', variantValue)}
             id="fontVariant"
             defaultValue={variantValue}
+            disabled={locked}
             ref={onNativeChange<HTMLSelectElement>(async (el) => {
               if (face) {
                 const [id, inst] = el.value.split('@'),
@@ -483,6 +522,7 @@ export const TypographyPanel = () => {
                 axis={axis}
                 value={o.fontAxes?.[axis.tag] ?? axis.normal}
                 data="axis"
+                disabled={locked}
                 onChange={(input) =>
                   commit(() => {
                     const target = selectObject()!;
@@ -535,8 +575,10 @@ export const TypographyPanel = () => {
       <Row label="Tamaño">
         <span className="unit-wrap">
           <input
+            key={fieldKey('size', shown('size'))}
             data-object="size"
             aria-label={tt('Cuerpo del texto')}
+            disabled={locked}
             type="number"
             min="4"
             max="150"
@@ -550,8 +592,10 @@ export const TypographyPanel = () => {
       <Row label="Interlineado" term>
         <span className="unit-wrap">
           <input
+            key={fieldKey('leading', shown('leading'))}
             data-object="leading"
             aria-label={tt('Interlineado')}
+            disabled={locked}
             type="number"
             min="4"
             max="220"
@@ -571,6 +615,7 @@ export const TypographyPanel = () => {
               className={align === a ? 'active' : undefined}
               title={tt(a)}
               data-align={a}
+              disabled={locked}
               onClick={() => commit(() => (selectObject()!.align = a), false)}
             >
               <Icon name={a} />
@@ -590,6 +635,7 @@ export const TypographyPanel = () => {
               key={key}
               data-style={key}
               className={o[key] ? 'active' : ''}
+              disabled={locked}
               onClick={() =>
                 commit(() => {
                   const target = selectObject()!;
@@ -603,9 +649,16 @@ export const TypographyPanel = () => {
         </div>
       )}
       <Row label="Color">
-        <input data-object="color" type="color" defaultValue={shown('color')} ref={objectField} />
+        <input
+          key={fieldKey('color', shown('color'))}
+          data-object="color"
+          type="color"
+          defaultValue={shown('color')}
+          disabled={locked}
+          ref={objectField}
+        />
       </Row>
-      <Btn icon="text" label="Editar contenido" wide command="editText" />
+      <Btn icon="text" label="Editar contenido" wide command="editText" disabled={locked} />
     </>
   );
 };
@@ -619,22 +672,23 @@ const extraField = onNativeChange<HTMLInputElement>((el) => {
 });
 
 export const CharacterPanel = () => {
-  useEditorState();
   useLanguage();
   const o = selectObject(),
-    off = !o || o.type !== 'text' || !!o.toc;
+    off = !o || o.type !== 'text' || !!o.toc,
+    locked = !!o?.locked;
   return (
     <section className="section" data-section="Carácter y párrafo" data-key="text">
       <Heading icon="text" title="Carácter y párrafo" />
       <Row label="Tracking" term>
         <span className="unit-wrap">
           <input
+            key={fieldKey('tracking', o?.tracking || 0)}
             data-extra="tracking"
             type="number"
             min="-100"
             max="500"
             defaultValue={o?.tracking || 0}
-            disabled={off}
+            disabled={off || locked}
             ref={extraField}
           />
           <span className="unit">‰</span>
@@ -643,37 +697,40 @@ export const CharacterPanel = () => {
       <Row label="Sangría inicial" term>
         <span className="unit-wrap">
           <input
+            key={fieldKey('indent', o?.indent || 0)}
             data-extra="indent"
             type="number"
             min="0"
             max="30"
             step=".5"
             defaultValue={o?.indent || 0}
-            disabled={off}
+            disabled={off || locked}
             ref={extraField}
           />
-          <span className="unit">mm</span>
+          <span className="unit">{lengthUnit()}</span>
         </span>
       </Row>
       <Row label="Espacio entre párrafos">
         <span className="unit-wrap">
           <input
+            key={fieldKey('spaceAfter', o?.spaceAfter || 0)}
             data-extra="spaceAfter"
             type="number"
             min="0"
             max="30"
             step=".5"
             defaultValue={o?.spaceAfter || 0}
-            disabled={off}
+            disabled={off || locked}
             ref={extraField}
           />
-          <span className="unit">mm</span>
+          <span className="unit">{lengthUnit()}</span>
         </span>
       </Row>
       <Btn
         id="glyphPanel"
         label={bw('Glifos de la tipografía…', 'Typeface glyphs…', 'Glifos da tipografia…')}
         wide
+        disabled={locked}
         onClick={() => void showFontGlyphs()}
       />
       <Btn id="openIndexFromText" label="Abrir Índice" wide onClick={() => showTab('index')} />

@@ -1,7 +1,7 @@
 // Inspector · Selección · Figura · relleno y trazo (marcos e imágenes), en React (etapa 3, D2).
 //
-// Antes la agregaba shapes.ts después de la primera sección del objeto; ahora inspector-
-// organization.ts deja su lugar (section.shape-appearance) cuando lo elegido es un marco o una
+// Antes la agregaba shapes.ts después de la primera sección del objeto; ahora va en la tabla de
+// Inspector.tsx (section.shape-appearance) cuando lo elegido es un marco o una
 // imagen. Mismo marcado que en HTML, ya con la unidad dentro del campo como la dejaba
 // unitsInsideFields ("Grosor" + campo con mm): data-shape-prop, data-shape-none, #shapeSwapColors y
 // #shapePlaceImage los usan tests/shapes-tests.js y document-units.ts. Con el objeto bloqueado,
@@ -9,10 +9,9 @@
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 import type { ReactNode } from 'react';
-import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
-import { Btn, onNativeChange } from './fields.tsx';
+import { Btn, fieldKey, lengthUnit, onNativeChange, SectionHeading } from './fields.tsx';
 
 /** Una figura sin forma todavía (marco o imagen común) pasa a rectángulo al tocar su aspecto. */
 const init = (o: Record<string, any>) => {
@@ -73,14 +72,13 @@ const WithUnit = ({ unit, children }: { unit: string; children: ReactNode }) => 
 );
 
 export const ShapePanel = () => {
-  useEditorState();
   useLanguage();
   const o = selectObject();
   if (!o || !['frame', 'image'].includes(o.type)) return null;
   const locked = !!o.locked;
   return (
     <>
-      <div className="section-heading">
+      <SectionHeading>
         <Icon name="frame" />
         {' ' +
           bw(
@@ -88,9 +86,10 @@ export const ShapePanel = () => {
             'Shape · fill and stroke',
             'Figura · preenchimento e traço',
           )}
-      </div>
+      </SectionHeading>
       <Row label={bw('Forma', 'Shape', 'Forma')}>
         <select
+          key={fieldKey('shape', o.shape)}
           data-shape-prop="shape"
           defaultValue={o.shape || 'rect'}
           disabled={locked}
@@ -124,6 +123,7 @@ export const ShapePanel = () => {
         <div className="shape-color-control" key={key}>
           <label>{label}</label>
           <input
+            key={fieldKey(key, o[key])}
             type="color"
             data-shape-prop={key}
             defaultValue={o[key] && o[key] !== 'none' ? o[key] : fallback}
@@ -132,6 +132,7 @@ export const ShapePanel = () => {
           />
           <label className="check-line">
             <input
+              key={fieldKey('none' + key, empty)}
               type="checkbox"
               data-shape-none={key}
               defaultChecked={empty}
@@ -143,8 +144,9 @@ export const ShapePanel = () => {
         </div>
       ))}
       <Row label={bw('Grosor', 'Weight', 'Espessura')}>
-        <WithUnit unit="mm">
+        <WithUnit unit={lengthUnit()}>
           <input
+            key={fieldKey('strokeWidth', o.strokeWidth)}
             type="number"
             min="0"
             max="10"
@@ -158,6 +160,7 @@ export const ShapePanel = () => {
       </Row>
       <Row label={bw('Tipo de trazo', 'Stroke style', 'Tipo de traço')}>
         <select
+          key={fieldKey('strokeStyle', o.strokeStyle)}
           data-shape-prop="strokeStyle"
           defaultValue={o.strokeStyle}
           disabled={locked}
@@ -177,6 +180,7 @@ export const ShapePanel = () => {
       <Row label={bw('Opacidad', 'Opacity', 'Opacidade')}>
         <WithUnit unit="%">
           <input
+            key={fieldKey('opacity', o.opacity)}
             type="number"
             min="0"
             max="100"
@@ -190,8 +194,9 @@ export const ShapePanel = () => {
       </Row>
       {o.shape === 'round' ? (
         <Row label={bw('Radio', 'Radius', 'Raio')}>
-          <WithUnit unit="mm">
+          <WithUnit unit={lengthUnit()}>
             <input
+              key={fieldKey('cornerRadius', o.cornerRadius)}
               type="number"
               min="0"
               max="100"
@@ -207,6 +212,7 @@ export const ShapePanel = () => {
       {o.shape === 'polygon' ? (
         <Row label={bw('Lados', 'Sides', 'Lados')}>
           <input
+            key={fieldKey('sides', o.sides)}
             type="number"
             min="3"
             max="12"
@@ -221,7 +227,13 @@ export const ShapePanel = () => {
       <div className="page-action">
         <Btn
           id="shapeSwapColors"
-          label={'⇄ ' + bw('Intercambiar', 'Swap', 'Trocar')}
+          icon="refresh"
+          label={bw('Intercambiar', 'Swap', 'Trocar')}
+          title={bw(
+            'Intercambiar relleno y trazo',
+            'Swap fill and stroke',
+            'Trocar preenchimento e traço',
+          )}
           disabled={locked}
           onClick={() =>
             commit(() => {

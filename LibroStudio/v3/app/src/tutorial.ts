@@ -621,19 +621,18 @@ registerHelpSection(tutorialHelpSection);
 document.addEventListener('maquetario:language', () => {
   if (!tutorialCard.hidden) showTutorialStep(tutorialIndex);
 });
-decorateInspector(() => {
-  // Capas ya no es una pestaña del inspector (es una vista del riel): no hace falta excluirla.
-  if (selectObject()?.locked)
-    $('#inspectorContent')
-      .querySelectorAll<HTMLInputElement>(
-        '[data-object],[data-extra],[data-align],[data-style],#fontVariant,[data-axis],[data-command="editText"],#glyphPanel',
-      )
-      .forEach((el) => (el.disabled = true));
-  if (!tutorialCard.hidden) {
-    const step = guideLessons[tutorialIndex],
-      target = step && $(step.target);
-    if (target) target.classList.add('tour-target');
-  }
-}, 'tutorial');
+// El paso del recorrido sigue marcado aunque el inspector cambie lo que muestra. (Con un objeto
+// bloqueado, sus campos ya los deshabilitan los paneles: components/inspector/.)
+extend.after(
+  'inspector',
+  () => {
+    if (!tutorialCard.hidden) {
+      const step = guideLessons[tutorialIndex],
+        target = step && $(step.target);
+      if (target) target.classList.add('tour-target');
+    }
+  },
+  'tutorial',
+);
 
 export {};

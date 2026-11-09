@@ -478,54 +478,6 @@ function glossaryMatches(query: string, category: string): EditorialTerm[] {
 }
 globalThis.glossaryMatches = glossaryMatches;
 globalThis.renderGlossary = renderGlossary;
-/** Rótulo del inspector → término del glosario. */
-const termMap: Record<string, string> = {
-  Grilla: 'grid',
-  Medianiles: 'gutter',
-  Márgenes: 'margin',
-  Foliado: 'folio',
-  Cornisa: 'header',
-  Titulillo: 'header',
-  'Misceláneas y líneas': 'rule',
-  'Párrafo y estilos': 'style',
-  Interlineado: 'leading',
-  Tracking: 'tracking',
-  'Sangría inicial': 'indent',
-  'Sangrado · mm': 'bleed',
-  'Lomo · mm': 'spine',
-};
-function decorateGlossaryHints(): void {
-  for (const el of $$(
-    '#inspectorContent .section-heading>span,#inspectorContent .sub-label,#inspectorContent .field-row>label',
-  )) {
-    if (el.querySelector('.term-help')) continue;
-    // Los paneles de React ya dibujan el texto traducido: dejan el castellano en data-text-source.
-    const term = termMap[el.dataset.textSource || el.textContent.trim()];
-    if (!term) continue;
-    const b = UI.element(
-      UI.termHelp({
-        label:
-          bw('Aprender: ', 'Learn: ', 'Aprender: ') +
-          bw(...editorialTerms.find((t) => t[0] === term)![2]),
-      }),
-    );
-    b.onclick = (e) => {
-      e.stopPropagation();
-      showGlossary(term);
-    };
-    el.append(b);
-  }
-}
-decorateInspector(() => {
-  decorateGlossaryHints();
-}, 'editorial-learning');
-extend.after(
-  'render',
-  function (full = true) {
-    decorateGlossaryHints();
-  },
-  'editorial-learning',
-);
 globalThis.showWelcome = showWelcome;
 // The direction is cover data, so preview, save/open and PDF share the same value.
 extend.result(
@@ -553,4 +505,3 @@ extend.result(
   },
   'editorial-learning',
 );
-decorateGlossaryHints();

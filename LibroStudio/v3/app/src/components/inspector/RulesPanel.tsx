@@ -1,20 +1,17 @@
 // Inspector · Libro · Misceláneas y líneas (etapa 3, D2, paso 4): la línea que acompaña a cada
 // elemento automático (cornisa, titulillo, folio) y una línea libre en la página.
 //
-// La sección la agrega book-workflow.ts en su lugar de siempre (antes de la segunda sección de
-// Libro) como un lugar vacío (data-inspector-slot="rules") y la monta con mountInspectorSlot.
-// Mismo marcado que tenía en HTML, ya con la unidad dentro del campo (como lo dejaba
-// unitsInsideFields de inspector-views.ts): mismas clases, data-rule y textos. Sin rótulo en un
-// <span>: así la ayuda de términos no le agrega el botón, como antes.
+// Va en Libro después de la Grilla (tabla de Inspector.tsx). Mismo marcado que tenía en HTML, con
+// la unidad dentro del campo: mismas clases, data-rule y textos. Sin rótulo en un <span> ni ayuda
+// de términos, como antes.
 //
 // Cada campo graba con el "change" nativo (las pruebas disparan new Event('change'), que no sube).
 // Un número fuera de rango vuelve a dibujar el inspector sin grabar, como antes.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
-import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
-import { onNativeChange, Row } from './fields.tsx';
+import { fieldKey, lengthUnit, onNativeChange, Row, SectionHeading } from './fields.tsx';
 
 type Field = HTMLInputElement | HTMLSelectElement;
 type RuleType = 'header' | 'titulillo' | 'folio';
@@ -65,6 +62,7 @@ const Measure = ({
 }) => (
   <span className="unit-wrap">
     <input
+      key={fieldKey(path, value)}
       type="number"
       min={min}
       max={max}
@@ -73,7 +71,7 @@ const Measure = ({
       defaultValue={value}
       ref={bindRule}
     />
-    <span className="unit">{unit}</span>
+    <span className="unit">{unit === 'mm' ? lengthUnit() : unit}</span>
   </span>
 );
 
@@ -89,6 +87,7 @@ const RuleSettings = ({ type }: { type: RuleType }) => {
     <div className="rule-settings">
       <label className="check-line">
         <input
+          key={fieldKey('rule', !!element.rule)}
           type="checkbox"
           data-rule={`${type}.rule`}
           defaultChecked={!!element.rule}
@@ -129,6 +128,7 @@ const RuleSettings = ({ type }: { type: RuleType }) => {
           </Row>
           <Row label={bw('Color', 'Color', 'Cor')}>
             <input
+              key={fieldKey('color', element.ruleColor)}
               type="color"
               data-rule={`${type}.ruleColor`}
               defaultValue={element.ruleColor || '#77716C'}
@@ -137,6 +137,7 @@ const RuleSettings = ({ type }: { type: RuleType }) => {
           </Row>
           <Row label={bw('Trazo', 'Stroke', 'Traço')}>
             <select
+              key={fieldKey('style', element.ruleStyle)}
               data-rule={`${type}.ruleStyle`}
               defaultValue={element.ruleStyle || 'solid'}
               ref={bindRule}
@@ -173,14 +174,13 @@ function insertFreeRule(): void {
 }
 
 export const RulesPanel = () => {
-  useEditorState();
   useLanguage();
   return (
     <>
-      <div className="section-heading">
+      <SectionHeading>
         <Icon name="header" />
         {bw('Misceláneas y líneas', 'Rules and ornaments', 'Linhas e ornamentos')}
-      </div>
+      </SectionHeading>
       <p className="help">
         {bw(
           'Son opcionales. Cada línea acompaña a su elemento automático y se guarda en el libro.',
