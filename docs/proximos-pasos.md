@@ -276,6 +276,24 @@ Llegó el 09-nov por Seba (pedido de Tomás), con la planilla "Pauta de uso tipo
 6. Revisar con impeccable en 1366 × 768 y 1920 × 1080 que con las flechitas a la vista ningún valor quede cortado (los campos del inspector son angostos: Inferior y Exterior van de a dos por fila).
 7. Pruebas en `tests/` (`fields` o `studio-tests.js`): clic sube 0,1; Mayúscula + clic sube 1; mantener apretado deja un solo paso de deshacer; Mayúscula + flecha del teclado sube 1; respeta `min` y `max`.
 
+### 6.3 Clic derecho con las funciones de siempre
+
+**Pedido (09-nov, noche):** el menú del clic derecho que tienen todos los programas.
+
+**Cómo está hoy:** no hay ningún menú contextual (ni `contextmenu` en `src/`), y Electron no trae uno: con clic derecho no pasa nada, tampoco en un campo o en el texto que se escribe. No existe copiar y pegar objetos (los atajos son Ctrl+S, Z, Y, P y Supr). Lo que sí existe y se puede llamar: `command(name)` en `src/core/tools.ts` (`editText`, `addPage`, `duplicate` (página), `deletePage`, `deleteObject`, al frente y al fondo), bloquear y ocultar (`ObjectPanel.tsx`, sección Orden y bloqueo), `fitTextFrame` (`frame-handles.ts`), insertar nota al pie y marcar como cita (`footnotes.ts`), roles (`roles.ts`), guías (`ruler-guides.ts`).
+
+**Plan:**
+1. **Texto y campos (menú del sistema):** en el proceso principal, `webContents.on('context-menu')` (`desktop/src/main/`) con un `Menu` nativo cuando `params.isEditable` o hay texto elegido: Deshacer, Rehacer, Cortar, Copiar, Pegar, Seleccionar todo, y las sugerencias de ortografía (`params.dictionarySuggestions`, `replaceMisspelling`, "Agregar al diccionario"). Usa los `role` de Electron: no hace falta sumar nada al contrato de la página. Traducido según el idioma del programa.
+2. **Lienzo y paneles (menú propio):** `ContextMenu` de Radix (viene en `radix-ui`, ya instalado), un componente en `src/components/context-menu/`, con un registro (como `registerInspectorPanel`) para que cada módulo sume sus acciones según dónde se hizo clic. Clic derecho sobre un objeto lo elige primero. Cada acción muestra su atajo.
+   - **Objeto:** Cortar, Copiar, Pegar, Duplicar, Eliminar · Traer al frente, Enviar al fondo · Bloquear / Desbloquear, Ocultar · Alinear ▸ (los de Alinear objetos).
+   - **Además, caja de texto:** Editar texto, Ajustar caja al texto, Rol ▸, Insertar nota al pie, Marcar como cita.
+   - **Además, imagen:** Reemplazar imagen.
+   - **Página (sin objeto):** Pegar, Pegar en el mismo lugar · Agregar página después, Duplicar página, Eliminar página · Agregar guía, Mostrar u ocultar grilla.
+   - **Miniatura en Páginas:** Insertar página antes y después, Duplicar, Eliminar.
+3. **Copiar y pegar objetos (nuevo, lo necesita el menú):** portapapeles propio con el JSON de los objetos elegidos (ids nuevos al pegar; las notas al pie con `adoptPastedNotes` de `footnote-model.ts`). Pegar desplazado 5 mm, o en el mismo lugar en otra página. Atajos Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+D (duplicar objeto) en `src/core/studio-wiring.ts`, sólo si no se está escribiendo (si se escribe, son los del texto).
+4. Diseño: el menú con los tokens del sistema (átomo o molécula en `ui/`), sin íconos de colores; lo que no se puede hacer queda deshabilitado, no se esconde.
+5. Pruebas en `tests/`: clic derecho sobre un objeto lo elige y abre el menú con sus acciones; copiar y pegar crea un objeto con id nuevo; Ctrl+D duplica; las acciones deshabilitadas (Pegar sin nada copiado, Eliminar página con una sola).
+
 ## 4. Distribución
 
 - **Etapa 1 cerrada (08-nov):** se retiró la versión C#/WebView2 (`LibroStudio/v3/Host*.cs`, `Build.ps1`, `Build-Installer.ps1`, `Maquetario.iss`), su rama en `src/host.ts` y las vistas de captura que sólo llamaba ese programa. Se conserva `LibroStudio/v3/installer-brand/` (imágenes del instalador). Queda lo que depende de Motiova y de la venta (abajo).
