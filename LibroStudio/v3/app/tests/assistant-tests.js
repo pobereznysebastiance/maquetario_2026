@@ -28,7 +28,7 @@ window.runAssistantTests = async function () {
       issues.some((i) => i.kind === 'spaces'),
       'Revisión automática detecta espacios repetidos',
     );
-    check(JSON.stringify(book) === before, 'Revisión automática no cambia el documento');
+    check(JSON.stringify(book) === before, 'Revisión automática no cambia el libro');
     const payload = classroomPayload('page');
     check(
       !JSON.stringify(payload).includes('data:image'),

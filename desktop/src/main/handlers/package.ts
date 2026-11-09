@@ -1,5 +1,4 @@
 // "Empaquetar proyecto": carpeta con el .mqt, imágenes, fuentes y PDF.
-// Port de HostPackage.cs.
 import { dialog } from 'electron';
 import { randomUUID } from 'node:crypto';
 import { mkdir, rename, rm, writeFile } from 'node:fs/promises';

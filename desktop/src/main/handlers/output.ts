@@ -1,5 +1,4 @@
 // Salida: PDF, impresión y lista de impresoras.
-// Port de HostPrinting.cs y de Export/savePdf en Host.cs.
 import { dialog, type WebContentsPrintOptions } from 'electron';
 import { writeFile } from 'node:fs/promises';
 import { delay, exec, exclusive, waitFor, type Session } from '../session.ts';

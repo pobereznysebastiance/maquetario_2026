@@ -76,20 +76,3 @@ registerIntegrationTest(function (r) {
   }
   return r;
 }, 'refinement-tests');
-window.preparePriorityPreview = function () {
-  hideWelcome();
-  if ($('#modal').open) $('#modal').close();
-  if (fontBrowser.open) fontBrowser.close();
-  document.body.classList.remove('focused');
-  window.prepareNovelProof();
-  book.header.pos = 'outer';
-  book.header.sideDirection = 'up';
-  book.header.enabled = true;
-  book.header.rule = false;
-  for (const p of book.pages) p.hideHeader = false;
-  showGridStrip = false;
-  showWorkflow = false;
-  applyPanelSizes();
-  applyPagePriority();
-  showTab('design');
-};

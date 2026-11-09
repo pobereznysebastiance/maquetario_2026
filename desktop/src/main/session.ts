@@ -1,4 +1,4 @@
-// Estado de la ventana del editor (lo que en C# eran campos de la clase Desktop).
+// Estado de la ventana del editor.
 import type { BrowserWindow } from 'electron';
 
 export interface Session {

@@ -1,5 +1,5 @@
 // Avisos de sistema con la identidad de Maquetario (licencia, errores al abrir,
-// trabajo sin guardar). Reemplaza a ThemedNotice de HostNotices.cs.
+// trabajo sin guardar).
 import { BrowserWindow, ipcMain, type IpcMainEvent } from 'electron';
 import { join } from 'node:path';
 import { NOTICE_ORIGIN } from './env.ts';

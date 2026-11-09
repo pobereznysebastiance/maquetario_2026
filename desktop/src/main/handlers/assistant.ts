@@ -1,5 +1,5 @@
 // Asistente editorial conectado al servicio del aula.
-// Port de HostAssistant.cs. El código de aula se guarda cifrado con safeStorage
+// El código de aula se guarda cifrado con safeStorage
 // (Keychain en macOS, DPAPI en Windows). Más adelante esto pasa a usar la sesión de Motiova.
 import { safeStorage } from 'electron';
 import { randomUUID } from 'node:crypto';

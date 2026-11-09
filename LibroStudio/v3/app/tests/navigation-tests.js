@@ -140,20 +140,3 @@ window.runNavigationTests = async function () {
     render(true);
   }
 };
-window.prepareNavigationPreview = function () {
-  hideWelcome();
-  if ($('#modal').open) $('#modal').close();
-  if (fontBrowser.open) fontBrowser.close();
-  document.body.classList.remove('focused');
-  window.prepareNovelProof();
-  book.header.enabled = book.folio.enabled = book.titulillo.enabled = true;
-  active = 8;
-  spread = 8;
-  book.pages[active].hideFolio = true;
-  book.pages[active].hideHeader = true;
-  selected = null;
-  showTab('pages');
-  render(true);
-  fitCanvas();
-  updateFocusControl();
-};

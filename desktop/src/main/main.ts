@@ -1,4 +1,4 @@
-// Proceso principal de Maquetario (Electron). Reemplaza a Host.cs.
+// Proceso principal de Maquetario (Electron).
 import {
   app,
   BrowserWindow,
@@ -39,8 +39,8 @@ import { windowSize } from './window-size.ts';
 app.setName('Maquetario');
 // Todas las páginas (editor y avisos) corren aisladas, sin depender de configurarlo en cada ventana.
 app.enableSandbox();
-// La autoprueba usa su propio perfil (como BrowserData-selftest en la versión C#): ni hereda las
-// preferencias de quien usa la app, ni comparte el perfil de Chromium con una ventana abierta.
+// La autoprueba usa su propio perfil: ni hereda las preferencias de quien usa la app, ni comparte
+// el perfil de Chromium con una ventana abierta.
 if (isSelfTest) app.setPath('userData', `${app.getPath('userData')}-autoprueba`);
 registerScheme();
 
@@ -240,7 +240,7 @@ function createWindow(): Session {
   return session;
 }
 
-/** Misma lógica que OnClosing en Host.cs: no perder trabajo sin guardar. */
+/** Al cerrar la ventana: no perder trabajo sin guardar. */
 function onClose(session: Session, event: Electron.Event): void {
   if (session.closingAllowed) return;
   if (session.busy || session.assistantWorking) {

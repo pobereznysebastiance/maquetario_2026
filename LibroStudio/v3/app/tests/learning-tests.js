@@ -92,12 +92,3 @@ window.prepareGlossaryPreview = function () {
   if ($('#modal').open) $('#modal').close();
   showGlossary('gutter');
 };
-window.prepareSpinePreview = function () {
-  hideWelcome();
-  if ($('#modal').open) $('#modal').close();
-  book.cover = defaultCover();
-  book.cover.parts.spine.direction = 'up';
-  coverEditor();
-  const select = $('#spineDirection');
-  select.scrollIntoView({ block: 'center' });
-};

@@ -1,4 +1,4 @@
-// Puente interfaz ↔ escritorio. Misma forma de mensajes que con WebView2:
+// Puente interfaz ↔ escritorio. Forma de los mensajes:
 //   pedido:    { id, action, payload }
 //   respuesta: { id, result, error }
 // Cada acción está en su módulo de handlers/. Esta tabla es la lista completa

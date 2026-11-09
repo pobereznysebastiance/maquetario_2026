@@ -13,7 +13,7 @@ registerIntegrationTest(function (r) {
     applyPanelSizes();
     check($('.app-layout').style.gridTemplateColumns.includes('230px'), 'Ancho de panel ajustable');
     check($('.template-panel').style.height === '210px', 'Altura de plantillas ajustable');
-    check(JSON.stringify(book) === before, 'Ajustar paneles no modifica el documento');
+    check(JSON.stringify(book) === before, 'Ajustar paneles no modifica el libro');
     coverEditor();
     check(
       !!$('.cover-image-actions #coverImage') &&

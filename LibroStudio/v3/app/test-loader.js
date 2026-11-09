@@ -49,7 +49,7 @@
         script.onload = resolve;
         script.onerror = () => {
           missing++;
-          resolve();
+          resolve(undefined);
         };
         document.body.append(script);
       });

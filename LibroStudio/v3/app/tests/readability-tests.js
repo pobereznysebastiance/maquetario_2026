@@ -12,7 +12,7 @@ registerIntegrationTest(function (result) {
     setReadability('large');
     check(
       document.body.classList.contains('ui-large') && JSON.stringify(book) === content,
-      'Modo grande no altera tipografía del documento',
+      'Modo grande no altera tipografía del libro',
     );
     setReadability('standard');
     showTab('design');
@@ -31,12 +31,12 @@ registerIntegrationTest(function (result) {
           book.grid.enabled &&
           book.grid.cols === p.c &&
           book.grid.rows === p.r,
-        'Retícula válida: ' + p.id,
+        'Grilla válida: ' + p.id,
       );
     }
     check(
       JSON.stringify(book.pages.map((p) => p.objects)) === originalObjects,
-      'Cambiar retícula conserva contenido y posiciones',
+      'Cambiar grilla conserva contenido y posiciones',
     );
     check(
       $('#templates .grid-mini-page').querySelectorAll('i').length === 1,
@@ -48,7 +48,7 @@ registerIntegrationTest(function (result) {
       'Grilla 5 por 10 visible en la página',
     );
     gridGallery();
-    check($$('[data-grid-card]').length === 10, 'Biblioteca de diez retículas');
+    check($$('[data-grid-card]').length === 10, 'Biblioteca de diez grillas');
     $('#modal').close();
   } finally {
     book = prior;
@@ -58,15 +58,4 @@ registerIntegrationTest(function (result) {
   }
   return result;
 }, 'readability-tests');
-window.prepareReadabilityPreview = function () {
-  hideWelcome();
-  if ($('#modal').open) $('#modal').close();
-  hasDocument = true;
-  setReadability('standard');
-  active = 0;
-  spread = 0;
-  selected = null;
-  showTab('design');
-  applyGridPreset('five-ten');
-};
 window.gridGallery = gridGallery;

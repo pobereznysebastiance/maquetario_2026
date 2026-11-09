@@ -1,5 +1,5 @@
 // Pegar SVG desde el portapapeles (Illustrator, Figma, Inkscape…).
-// Port de ReadClipboardSvg en Host.cs, con la API asíncrona de portapapeles de Electron.
+// Usa la API asíncrona de portapapeles de Electron.
 import { clipboard } from 'electron';
 
 const MAX = 16_000_000;

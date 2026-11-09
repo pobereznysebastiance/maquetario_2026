@@ -1,5 +1,4 @@
 // Proyectos: abrir, guardar, recientes y estado de la ventana.
-// Port de Host.cs (save/open/dirty/close) y HostWelcome.cs (recientes).
 import { dialog } from 'electron';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { APP_CREATOR, appVersion, dataDir, isSelfTest } from '../env.ts';

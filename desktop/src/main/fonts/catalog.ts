@@ -1,5 +1,4 @@
 // Catálogo de fuentes del sistema y de carpetas elegidas por la persona.
-// Port de HostFonts.cs + la parte de fuentes de HostPackage.cs.
 import { readdir, lstat, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { basename, dirname, extname, join } from 'node:path';

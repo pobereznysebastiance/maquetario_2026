@@ -29,7 +29,7 @@ window.runNoticeTests = async function () {
     'Tres decisiones de cierre disponibles',
   );
   await $('#modalApply').onclick();
-  check($('#modal').open && saved === 1, 'Cancelar el guardado conserva el aviso y la publicación');
+  check($('#modal').open && saved === 1, 'Cancelar el guardado conserva el aviso y el libro');
   $('#modal').close();
   await new Promise((r) => setTimeout(r, 30));
   check(cancelled === 1 && !discarded, 'Cancelar aviso no descarta cambios');

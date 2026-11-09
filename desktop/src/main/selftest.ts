@@ -1,7 +1,6 @@
 // Autoprueba: `npm run self-test` (o Maquetario --self-test [--out=<carpeta>]).
-// Port de la parte verificable del self-test de Host.cs: pruebas de integración
-// de la interfaz, PDF reales, guardado, recientes y paquete. Deja los resultados
-// en la carpeta de salida y un resumen.json; sale con código 1 si algo falla.
+// Pruebas de integración de la interfaz, PDF reales, guardado, recientes y paquete. Deja los
+// resultados en la carpeta de salida y un resumen.json; sale con código 1 si algo falla.
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';

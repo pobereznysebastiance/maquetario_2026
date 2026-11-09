@@ -62,17 +62,3 @@ registerNavigationTest(async function (result) {
     render(true);
   }
 }, 'category-tests');
-
-window.prepareFolioPositionPreview = function () {
-  window.prepareNavigationPreview();
-  book.folio.pos = 'outer';
-  book.pages[active].hideFolio = false;
-  selected = null;
-  showTab('design');
-  render(true);
-  $('[data-bind="folio.pos"]').closest('.section').scrollIntoView({ block: 'nearest' });
-};
-window.prepareTypographyGuidePreview = function () {
-  if ($('#modal').open) $('#modal').close();
-  editorialRulesDialog();
-};

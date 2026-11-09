@@ -1,5 +1,4 @@
 // Lectura mínima de archivos OpenType/TrueType (TTF, OTF, TTC).
-// Port de OpenTypeReader (HostFonts.cs, HostGlyphs.cs, HostPackage.cs).
 // Lee sólo las tablas necesarias (name, OS/2, head, fvar) sin cargar el archivo entero.
 import { createHash } from 'node:crypto';
 import { open, readFile, stat, type FileHandle } from 'node:fs/promises';
@@ -54,7 +53,7 @@ function parseDirectory(dir: Buffer, size: number, dirStart: number): TableMap {
   return tables;
 }
 
-/** Nombre de la tabla `name`, con la misma prioridad que la versión C#: Windows > Unicode, inglés EE. UU. */
+/** Nombre de la tabla `name`. Prioridad: Windows > Unicode, inglés EE. UU. */
 function nameRecord(b: Buffer, id: number): string {
   const count = b.readUInt16BE(2);
   const strings = b.readUInt16BE(4);
@@ -91,7 +90,10 @@ async function readAt(fh: FileHandle, position: number, length: number): Promise
   return buffer;
 }
 
-/** Mismo identificador que la versión C#: SHA-256 de ruta#offset#mtime en ticks .NET. */
+/**
+ * SHA-256 de ruta#offset#mtime en ticks .NET: el mismo identificador que daba la versión C#
+ * anterior, para que las caras de los proyectos ya guardados (fontFaceId) se sigan encontrando.
+ */
 export function faceId(path: string, offset: number, mtimeNs: bigint): string {
   const ticks = mtimeNs / 100n + DOTNET_EPOCH_TICKS;
   return createHash('sha256')
@@ -179,7 +181,7 @@ export async function readFaces(path: string): Promise<FontRecord[]> {
         }
         result.push(record);
       } catch {
-        // Cara dañada: se omite, igual que en la versión C#.
+        // Cara dañada: se omite.
       }
     }
     return result;
