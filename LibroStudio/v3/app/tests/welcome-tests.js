@@ -1,17 +1,14 @@
 'use strict';
 
+// Libro nuevo desde la Hoja de formato: el anfitrión empieza un proyecto sin archivo.
 extend(
-  'settingsNew',
+  'applyBookSettings',
   (newBookWelcome) =>
-    function (isNew = true) {
+    function (isNew, values) {
       const previous = book;
-      newBookWelcome(isNew);
-      if (!isNew) return;
-      const apply = $('#modalApply').onclick;
-      $('#modalApply').onclick = async () => {
-        await apply();
-        if (book !== previous && native) await nativeCall('newProject');
-      };
+      const applied = newBookWelcome(isNew, values);
+      if (isNew && book !== previous && native) void nativeCall('newProject');
+      return applied;
     },
   'welcome-tests',
 );

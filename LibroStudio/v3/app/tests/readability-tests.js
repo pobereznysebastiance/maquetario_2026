@@ -49,7 +49,7 @@ registerIntegrationTest(function (result) {
     );
     gridGallery();
     check($$('[data-grid-card]').length === 10, 'Biblioteca de diez grillas');
-    $('#modal').close();
+    closeSheet();
   } finally {
     book = prior;
     setReadability(old || 'standard');

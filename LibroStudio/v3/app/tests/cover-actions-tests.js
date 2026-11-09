@@ -20,7 +20,7 @@ registerIntegrationTest(function (r) {
       $('#newWidth').value === '148' && $('#newHeight').value === '210',
       'Formato seleccionado actualiza medidas',
     );
-    $('#modal').close();
+    closeSheet();
     book.cover = defaultCover();
     coverEditor();
     check(

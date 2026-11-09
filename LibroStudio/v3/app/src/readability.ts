@@ -1,9 +1,10 @@
 // Legibilidad y retículas: "Guardar como…" (Ctrl+Mayús+S), el tamaño de la interfaz (cómodo o
 // grande) y la biblioteca de retículas que reemplaza a las plantillas de studio.js.
 //
-// setReadability, gridPresets, applyGridPreset y gridGallery son globales: los usan
-// settings-panel.ts, cover-measurements.js, las pruebas (tests/readability-tests.js,
-// tests/feedback-tests.js) y scripts/style-snapshot.js.
+// setReadability, gridPresets y applyGridPreset son globales: los usan settings-panel.tsx,
+// cover-measurements.js, las pruebas (tests/readability-tests.js, tests/feedback-tests.js) y
+// scripts/style-snapshot.js. La biblioteca de retículas (gridGallery) es una Hoja en React:
+// src/components/grid-gallery/GridGallery.tsx (usa gridSize de acá).
 //
 // Fuente TypeScript: se compila a build/readability.js (desktop/scripts/build.mjs).
 'use strict';
@@ -28,8 +29,6 @@ declare global {
   var gridPresets: GridPreset[];
   /** Aplica una retícula de la biblioteca (sin mover objetos). */
   var applyGridPreset: (id: string) => void;
-  /** Abre la biblioteca de retículas. */
-  var gridGallery: () => void;
 }
 
 async function saveProjectAs(): Promise<boolean> {
@@ -228,26 +227,9 @@ function applyGridPreset(id: string): void {
 }
 globalThis.applyGridPreset = applyGridPreset;
 /** "3 columnas · 6 filas", con singular cuando corresponde. */
-const gridSize = (c: number, r: number): string =>
+export const gridSize = (c: number, r: number): string =>
   `${c} ${c === 1 ? bw('columna', 'column', 'coluna') : bw('columnas', 'columns', 'colunas')} · ` +
   `${r} ${r === 1 ? bw('fila', 'row', 'linha') : bw('filas', 'rows', 'linhas')}`;
-function gridGallery(): void {
-  modal.info(
-    bw('Biblioteca de grillas', 'Grid library', 'Biblioteca de grades'),
-    `<p class="builder-intro">${bw('Elegí una base y personalizá sus medianiles desde Diseño. Cada miniatura muestra columnas y filas reales.', 'Choose a starting point and customize gutters in Design. Each thumbnail shows actual rows and columns.', 'Escolha uma base e personalize os espaços em Design. Cada miniatura mostra linhas e colunas reais.')}</p><div class="grid-gallery-list">${gridPresets.map((p) => `<button type="button" class="grid-card ${book.grid.cols === p.c && book.grid.rows === p.r ? 'active' : ''}" data-grid-card="${p.id}"><div class="template-art">${gridPresetMini(p)}</div><strong>${bw(...p.name)}</strong><small>${gridSize(p.c, p.r)}<br>${bw(...p.use)}</small></button>`).join('')}</div><p class="help">${bw('Bases 2×4, 5×4, 3×6, 6×6 y 4×8: referencia The Vignelli Canon (Vignelli Center, RIT). Las demás son variantes de Maquetario. Son guías de composición; no crean cajas ni modifican el contenido.', '2×4, 5×4, 3×6, 6×6 and 4×8 bases reference The Vignelli Canon (Vignelli Center, RIT). Others are Maquetario variants. These are composition guides; they do not create frames or alter content.', 'Bases 2×4, 5×4, 3×6, 6×6 e 4×8: referência The Vignelli Canon (Vignelli Center, RIT). As demais são variantes do Maquetario. São guias de composição; não criam caixas nem alteram conteúdo.')}</p>`,
-    bw('Cerrar', 'Close', 'Fechar'),
-    { size: 'lg', variant: 'grid-gallery' },
-  );
-  $$('[data-grid-card]').forEach(
-    (b) =>
-      (b.onclick = () => {
-        applyGridPreset(b.dataset.gridCard!);
-        $('#modal').close();
-        showTab('design');
-      }),
-  );
-}
-globalThis.gridGallery = gridGallery;
 extend.replace(
   'renderTemplates',
   function () {
@@ -273,7 +255,8 @@ extend.replace(
       $('.template-heading>span').append(library);
     }
     library.textContent = bw('Ver todas…', 'View all…', 'Ver todas…');
-    library.onclick = gridGallery;
+    // La biblioteca es una Hoja en React (src/components/grid-gallery/GridGallery.tsx).
+    library.onclick = () => gridGallery();
   },
   'readability',
 );

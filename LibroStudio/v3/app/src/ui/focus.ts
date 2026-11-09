@@ -28,22 +28,35 @@ function focusWithoutRing(el: Element | null): void {
 }
 
 // Momento de apertura: quién abrió (mouse, teclado o nadie todavía).
+function opened(dialog: HTMLDialogElement): void {
+  openedBy.set(dialog, lastInput);
+  // showModal() ya movió el foco adentro: sin teclado de por medio, va sin anillo.
+  if (lastInput !== 'keyboard' && dialog.contains(document.activeElement))
+    focusWithoutRing(document.activeElement);
+}
 const observer = new MutationObserver((records) => {
   for (const record of records) {
     const dialog = record.target;
-    if (!(dialog instanceof HTMLDialogElement) || !dialog.open) continue;
-    openedBy.set(dialog, lastInput);
-    // showModal() ya movió el foco adentro: sin teclado de por medio, va sin anillo.
-    if (lastInput !== 'keyboard' && dialog.contains(document.activeElement))
-      focusWithoutRing(document.activeElement);
+    if (dialog instanceof HTMLDialogElement && dialog.open) opened(dialog);
   }
 });
-const watch = (dialog: Element) =>
+const watch = (dialog: HTMLDialogElement) =>
   observer.observe(dialog, { attributes: true, attributeFilter: ['open'] });
 document.querySelectorAll('dialog').forEach(watch);
-new MutationObserver((records) => {
-  for (const r of records) r.addedNodes.forEach((n) => n instanceof HTMLDialogElement && watch(n));
-}).observe(document.body, { childList: true });
+// También los diálogos de React (src/components/dialog/): entran en #dialogLayer ya abiertos
+// (showModal() en el mismo momento en que se agregan), así que se miran al llegar.
+const added = new MutationObserver((records) => {
+  for (const r of records)
+    r.addedNodes.forEach((n) => {
+      if (n instanceof HTMLElement && n.id === 'dialogLayer') added.observe(n, { childList: true });
+      if (!(n instanceof HTMLDialogElement)) return;
+      watch(n);
+      if (n.open) opened(n);
+    });
+});
+added.observe(document.body, { childList: true });
+const layer = document.getElementById('dialogLayer');
+if (layer) added.observe(layer, { childList: true });
 
 // "close" no burbujea: se escucha en captura.
 document.addEventListener(

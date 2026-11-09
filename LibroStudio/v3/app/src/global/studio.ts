@@ -1200,148 +1200,104 @@ function control(
 ): string {
   return `<div class="control ${full ? 'full' : ''}"><label for="${id}">${label}</label><input id="${id}" type="${type}" value="${esc(value)}" ${min !== '' ? `min="${min}"` : ''} ${max !== '' ? `max="${max}"` : ''} step=".1"></div>`;
 }
-/** Diálogo de formato del libro (nuevo o existente). */
-function settings(isNew = false): void {
+/**
+ * Hoja de formato del libro (nuevo o existente; src/components/book-setup/). Con cambios sin
+ * guardar, antes pregunta. Devuelve la promesa de la Hoja (se cumple al cerrarla), si la abrió.
+ */
+function settings(isNew = false): Promise<void> | undefined {
   if (isNew && dirty) {
     confirmChanges(() => settingsNew());
     return;
   }
-  settingsNew(isNew);
+  return settingsNew(isNew);
 }
-function settingsNew(isNew = true): void {
-  let format = book.format;
-  modal.sheet(
-    isNew ? 'Un nuevo libro, una nueva historia' : 'Configuración del libro',
-    `<div class="book-setup"><section class="book-setup-sizes"><p class="book-setup-label">${bw('Tamaño de página', 'Page size', 'Tamanho da página')}</p><div class="format-options">${Object.entries(
-      M.formats,
-    )
-      .map(
-        ([name, [w, h]]) =>
-          `<button type="button" class="format-option ${format === name ? 'active' : ''}" data-format="${name}"><strong>${name}</strong><small>${w} × ${h} mm</small></button>`,
-      )
-      .join(
-        '',
-      )}</div><div class="notice">Medidas reales, sin depender del tamaño de tu pantalla. ${isNew ? 'El libro comienza con páginas vacías y elementos automáticos.' : 'Al cambiar el formato, los objetos se conservan y se ajustan al área de la página. Podés deshacer el cambio.'}</div></section><section class="book-setup-fields"><div class="modal-grid">${control('Título del libro', 'newTitle', isNew ? 'Mi libro' : book.title, 'text', '', '', true)}<div class="control full"><label>Unidad de medida</label><select id="pageUnits"><option value="mm">Milímetros (mm)</option><option value="cm">Centímetros (cm)</option></select></div>${control('Ancho · mm', 'newWidth', book.width, 'number', 60, 420)}${control('Alto · mm', 'newHeight', book.height, 'number', 60, 594)}<div class="control"><label>Orientación</label><select id="orientation"><option value="portrait">Vertical</option><option value="landscape" ${book.width > book.height ? 'selected' : ''}>Horizontal</option></select></div>${isNew ? control('Cantidad de páginas', 'newCount', 8, 'number', 1, 200) : '<div class="control"><label for="formatName">Formato</label><input id="formatName" readonly value="' + esc(format) + '"></div>'}<div class="control full"><label for="spreadArrangement">${bw('Disposición de páginas', 'Page arrangement', 'Disposição das páginas')}</label><select id="spreadArrangement"><option value="single" ${!book.facing ? 'selected' : ''}>${bw('Página individual', 'Single pages', 'Páginas individuais')}</option><option value="horizontal" ${book.facing && !verticalSpread() ? 'selected' : ''}>${bw('Pliego horizontal · lado a lado', 'Horizontal spread · side by side', 'Dupla horizontal · lado a lado')}</option><option value="vertical" ${verticalSpread() ? 'selected' : ''}>${bw('Pliego vertical · tipo almanaque', 'Vertical spread · calendar style', 'Dupla vertical · tipo calendário')}</option></select></div></div></section></div>`,
-    () => {
-      const measureUnit = $('#pageUnits').value,
-        unit = measureUnit === 'cm' ? 10 : 1,
-        w = Number((Number($('#newWidth').value) * unit).toFixed(8)),
-        h = Number((Number($('#newHeight').value) * unit).toFixed(8)),
-        count = isNew ? Number($('#newCount').value) : book.pages.length;
-      if (
-        !Number.isFinite(w) ||
-        !Number.isFinite(h) ||
-        w < 60 ||
-        w > 420 ||
-        h < 60 ||
-        h > 594 ||
-        !Number.isInteger(count) ||
-        count < 1 ||
-        count > 200
-      )
-        throw Error('Ingresá medidas válidas y entre 1 y 200 páginas.');
-      const title = $('#newTitle').value.trim().slice(0, 250) || 'Mi libro',
-        arrangement = $('#spreadArrangement').value,
-        facing = arrangement !== 'single';
-      commit(() => {
-        if (isNew) {
-          book = M.create();
-          book.pages = Array.from({ length: count }, M.page);
-          book.grid.cols = 1;
-          book.grid.rows = 1;
-          book.chapter = '';
-          selected = null;
-          active = spread = 0;
-        }
-        const resized =
-          isNew || Math.abs(book.width - w) > 1e-7 || Math.abs(book.height - h) > 1e-7;
-        book.measurementUnit = measureUnit;
-        if (resized) {
-          book.width = w;
-          book.height = h;
-        }
-        if (resized && book.guides)
-          book.guides = book.guides.map((g: { axis: string; position: number }) => ({
-            ...g,
-            position: Math.min(g.position, g.axis === 'v' ? w : h),
-          }));
-        book.title = title;
-        book.facing = facing;
-        book.spreadDirection = arrangement === 'vertical' ? 'vertical' : 'horizontal';
-        book.format = format;
-        if (resized) {
-          const maxMargin = Math.min(w, h) / 4;
-          for (const k of Object.keys(book.margins) as (keyof typeof book.margins)[])
-            book.margins[k] = Math.min(book.margins[k], maxMargin);
-          if (!M.validateGrid(book)) {
-            book.grid.gapX = book.grid.gapY = 0;
-          }
-          for (const p of book.pages)
-            for (const o of p.objects) {
-              o.w = Math.min(o.w, w);
-              o.h = Math.min(o.h, h);
-              o.x = Math.min(o.x, w - o.w);
-              o.y = Math.min(o.y, h - o.h);
-            }
-        }
-        spread = Math.floor(active / (facing ? 2 : 1)) * (facing ? 2 : 1);
-      }, true);
-      return true;
-    },
-    isNew ? 'Crear libro' : 'Aplicar al libro',
-    { size: 'lg', variant: 'book-setup-dialog' },
-  );
-  $$('.format-option').forEach(
-    (el) =>
-      (el.onclick = () => {
-        format = el.dataset.format!;
-        let [w, h] = M.formats[format];
-        if ($('#orientation').value === 'landscape') [w, h] = [h, w];
-        const u = $('#pageUnits').value === 'cm' ? 10 : 1;
-        $('#newWidth').value = w / u;
-        $('#newHeight').value = h / u;
-        $$('.format-option').forEach((n) => n.classList.toggle('active', n === el));
-        if ($('#formatName')) $('#formatName').value = format;
-      }),
-  );
-  for (const id of ['#newWidth', '#newHeight'])
-    $(id).oninput = () => {
-      format = 'Personalizado';
-      $$('.format-option').forEach((n) => n.classList.remove('active'));
-      if ($('#formatName')) $('#formatName').value = format;
-    };
-  $('#pageUnits').onchange = () => {
-    const cm = $('#pageUnits').value === 'cm',
-      factor = cm ? 0.1 : 10;
-    for (const button of $$('.format-option')) {
-      const [w, h] = M.formats[button.dataset.format!];
-      button.querySelector('small')!.textContent =
-        (cm ? w / 10 : w) + ' × ' + (cm ? h / 10 : h) + ' ' + (cm ? 'cm' : 'mm');
+/** Lo que se eligió en la Hoja de formato del libro (src/components/book-setup/), tal como está escrito. */
+interface BookSettingsValues {
+  title: string;
+  /** Ancho y alto en la unidad elegida (unit). */
+  width: string;
+  height: string;
+  /** Cantidad de páginas (sólo libro nuevo). */
+  count: string;
+  unit: 'mm' | 'cm';
+  /** 'single' | 'horizontal' | 'vertical'. */
+  arrangement: string;
+  /** Nombre del formato (A5, Carta…) o 'Personalizado'. */
+  format: string;
+  /** Producto editorial elegido (libro nuevo; lo usa publications.ts). */
+  publicationType?: string;
+}
+/**
+ * Aplica la Hoja de formato del libro: un libro nuevo (isNew) o el formato del actual. Si los
+ * valores no sirven, tira el error que muestra la Hoja. Otros módulos la extienden por nombre
+ * (review-workspace: ya hay documento; publications: la grilla del producto editorial). La Hoja
+ * la abre settingsNew (src/components/book-setup/BookSetup.tsx).
+ */
+function applyBookSettings(isNew: boolean, values: BookSettingsValues): boolean {
+  const measureUnit = values.unit,
+    unit = measureUnit === 'cm' ? 10 : 1,
+    w = Number((Number(values.width) * unit).toFixed(8)),
+    h = Number((Number(values.height) * unit).toFixed(8)),
+    count = isNew ? Number(values.count) : book.pages.length;
+  if (
+    !Number.isFinite(w) ||
+    !Number.isFinite(h) ||
+    w < 60 ||
+    w > 420 ||
+    h < 60 ||
+    h > 594 ||
+    !Number.isInteger(count) ||
+    count < 1 ||
+    count > 200
+  )
+    throw Error('Ingresá medidas válidas y entre 1 y 200 páginas.');
+  const title = values.title.trim().slice(0, 250) || 'Mi libro',
+    arrangement = values.arrangement,
+    facing = arrangement !== 'single',
+    format = values.format;
+  commit(() => {
+    if (isNew) {
+      book = M.create();
+      book.pages = Array.from({ length: count }, M.page);
+      book.grid.cols = 1;
+      book.grid.rows = 1;
+      book.chapter = '';
+      selected = null;
+      active = spread = 0;
     }
-    for (const id of ['#newWidth', '#newHeight']) {
-      const input = $(id);
-      input.value = (Number(input.value) * factor).toFixed(cm ? 5 : 4).replace(/\.?0+$/, '');
-      input.min = cm ? 6 : 60;
-      input.max = id === '#newWidth' ? (cm ? 42 : 420) : cm ? 59.4 : 594;
-      input.step = cm ? 0.01 : 0.1;
+    const resized = isNew || Math.abs(book.width - w) > 1e-7 || Math.abs(book.height - h) > 1e-7;
+    book.measurementUnit = measureUnit;
+    if (resized) {
+      book.width = w;
+      book.height = h;
     }
-    const controls = $$('#modalBody .control');
-    controls.forEach((c) => {
-      const label = c.querySelector('label');
-      if (label?.htmlFor === 'newWidth') label.textContent = cm ? 'Ancho · cm' : 'Ancho · mm';
-      if (label?.htmlFor === 'newHeight') label.textContent = cm ? 'Alto · cm' : 'Alto · mm';
-    });
-  };
-  if (book.measurementUnit === 'cm') {
-    $('#pageUnits').value = 'cm';
-    ($('#pageUnits').onchange as () => void)();
-  }
-  $('#orientation').onchange = () => {
-    let w = Number($('#newWidth').value),
-      h = Number($('#newHeight').value);
-    $('#newWidth').value = h;
-    $('#newHeight').value = w;
-  };
+    if (resized && book.guides)
+      book.guides = book.guides.map((g: { axis: string; position: number }) => ({
+        ...g,
+        position: Math.min(g.position, g.axis === 'v' ? w : h),
+      }));
+    book.title = title;
+    book.facing = facing;
+    book.spreadDirection = arrangement === 'vertical' ? 'vertical' : 'horizontal';
+    book.format = format;
+    if (resized) {
+      const maxMargin = Math.min(w, h) / 4;
+      for (const k of Object.keys(book.margins) as (keyof typeof book.margins)[])
+        book.margins[k] = Math.min(book.margins[k], maxMargin);
+      if (!M.validateGrid(book)) {
+        book.grid.gapX = book.grid.gapY = 0;
+      }
+      for (const p of book.pages)
+        for (const o of p.objects) {
+          o.w = Math.min(o.w, w);
+          o.h = Math.min(o.h, h);
+          o.x = Math.min(o.x, w - o.w);
+          o.y = Math.min(o.y, h - o.h);
+        }
+    }
+    spread = Math.floor(active / (facing ? 2 : 1)) * (facing ? 2 : 1);
+  }, true);
+  return true;
 }
 /** Pregunta qué hacer con los cambios sin guardar y, si corresponde, sigue con proceed. */
 function confirmChanges(proceed: () => unknown): void {

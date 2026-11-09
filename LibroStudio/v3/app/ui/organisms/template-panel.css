@@ -57,6 +57,11 @@
   background: var(--text-primary);
   box-shadow: var(--elevation-1);
 }
+/* Miniatura armada por React (biblioteca de grillas): columnas y filas en data-cols/data-rows. */
+.grid-mini-page[data-cols] {
+  grid-template-columns: repeat(attr(data-cols type(<integer>), 1), 1fr);
+  grid-template-rows: repeat(attr(data-rows type(<integer>), 1), 1fr);
+}
 .grid-mini-page i {
   border: var(--border-hairline) solid color-mix(in srgb, var(--action) 45%, transparent);
 }

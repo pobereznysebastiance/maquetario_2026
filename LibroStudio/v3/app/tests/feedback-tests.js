@@ -15,7 +15,9 @@ registerNavigationTest(async function (result) {
     render(true);
     settingsNew(false);
     $('#spreadArrangement').value = 'vertical';
-    await $('#modalApply').onclick();
+    // La Hoja de formato es React (BookSetup.tsx): se aplica con su botón y se espera el cierre.
+    $('#sheetApply').click();
+    await new Promise((resolve) => setTimeout(resolve));
     const [top, bottom] = $$('#spread .page').map((el) => el.getBoundingClientRect());
     check(
       bottom.top >= top.bottom && Math.abs(bottom.left - top.left) < 1,

@@ -223,7 +223,8 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     await capture('selector-abierto.png');
     session.win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
     await delay(150);
-    await exec(session, "document.querySelector('#modal').close()");
+    // Configuración es una Hoja en React (closeSheet); #modal por si quedó otro diálogo.
+    await exec(session, "closeSheet(); document.querySelector('#modal').close()");
     // void: executeJavaScript esperaría la promesa, que sólo se resuelve al contestar el diálogo.
     await exec(
       session,
@@ -274,7 +275,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     );
     await delay(400);
     await capture('configuracion-espacio.png');
-    await exec(session, "document.querySelector('#modal').close()");
+    await exec(session, 'closeSheet()');
     return [
       'Inicial oculta lo avanzado',
       'Personalizado guarda la selección',
@@ -405,10 +406,11 @@ export async function runSelfTest(session: Session): Promise<boolean> {
 
   // Última: abrir "libro nuevo" descarta el libro de prueba.
   await step('captura de libro nuevo', async () => {
-    await exec(session, 'settingsNew(true)');
+    // settingsNew devuelve la promesa de la Hoja (se cumple al cerrarla): no se espera.
+    await exec(session, 'void settingsNew(true)');
     await delay(400);
     await capture('libro-nuevo.png');
-    await exec(session, "document.querySelector('#modal').close()");
+    await exec(session, 'closeSheet()');
   });
 
   const ok = results.every((r) => r.ok);

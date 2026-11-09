@@ -123,50 +123,24 @@ const publicationTypes: Record<string, PublicationType> = {
   },
 };
 globalThis.publicationTypes = publicationTypes;
+// El selector de producto editorial está en la Hoja de libro nuevo (src/components/book-setup/);
+// al crear el libro, el producto elegido pone su grilla y sus márgenes.
 extend.after(
-  'settingsNew',
-  function (isNew = true) {
-    if (!isNew) return;
-    const box = document.createElement('div');
-    box.className = 'publication-picker';
-    box.innerHTML = `<label for="publicationType">${bw('Producto editorial', 'Publication type', 'Produto editorial')}</label><select id="publicationType">${Object.entries(
-      publicationTypes,
-    )
-      .map(([k, p]) => `<option value="${k}">${bw(...p.labels)}</option>`)
-      .join(
-        '',
-      )}</select><p class="help">${bw('Punto de partida editable: formato, cantidad de páginas, márgenes y grilla.', 'Editable starting point: format, page count, margins and grid.', 'Ponto de partida editável: formato, páginas, margens e grade.')}</p>`;
-    ($('#modalBody .book-setup-fields') || $('#modalBody')).prepend(box);
-    $('#modalTitle').textContent = bw('Crear un libro', 'Create a book', 'Criar um livro');
-    $('#modalApply').textContent = bw('Crear libro', 'Create book', 'Criar livro');
-    $('#publicationType').onchange = () => {
-      const p = publicationTypes[$('#publicationType').value];
-      const divisor = $('#pageUnits').value === 'cm' ? 10 : 1;
-      $('#newWidth').value = p.w / divisor;
-      $('#newHeight').value = p.h / divisor;
-      $('#newWidth').dispatchEvent(new Event('input'));
-      $('#newCount').value = p.count;
-      $('#newTitle').value = bw(...p.labels);
-    };
-    // El aplicar de modal() (studio.js): se llama sin evento.
-    const apply = $('#modalApply').onclick as unknown as () => Promise<unknown>;
-    $('#modalApply').onclick = async () => {
-      const type = $('#publicationType').value;
-      await apply();
-      if (!$('#modal').open && hasDocument) {
-        const p = publicationTypes[type];
-        commit(() => {
-          book.publicationType = type;
-          book.grid.cols = p.cols;
-          book.grid.rows = p.rows;
-          book.grid.gapX = 4;
-          book.grid.gapY = 4;
-          book.grid.enabled = p.cols > 1;
-          book.margins = { top: 18, bottom: 18, inside: 18, outside: 18 };
-          if (!M.validateGrid(book)) book.grid.gapX = book.grid.gapY = 0;
-        }, true);
-      }
-    };
+  'applyBookSettings',
+  function (isNew: boolean, values: { publicationType?: string }) {
+    const type = values.publicationType;
+    if (!isNew || !type || !hasDocument) return;
+    const p = publicationTypes[type];
+    commit(() => {
+      book.publicationType = type;
+      book.grid.cols = p.cols;
+      book.grid.rows = p.rows;
+      book.grid.gapX = 4;
+      book.grid.gapY = 4;
+      book.grid.enabled = p.cols > 1;
+      book.margins = { top: 18, bottom: 18, inside: 18, outside: 18 };
+      if (!M.validateGrid(book)) book.grid.gapX = book.grid.gapY = 0;
+    }, true);
   },
   'publications',
 );

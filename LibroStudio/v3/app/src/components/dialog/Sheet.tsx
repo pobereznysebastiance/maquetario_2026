@@ -113,7 +113,7 @@ const DialogFrame = ({ kind, title, size, variant, children, actions, onClose }:
               </div>
               <div className="dialog-body">
                 {children}
-                {error ? <p className="inline-error">{error}</p> : null}
+                {error ? <p className="inline-error">{LibroI18n.tr(error)}</p> : null}
               </div>
               <div className="modal-actions">{actions(run, close)}</div>
             </div>
@@ -145,13 +145,13 @@ export const Sheet = ({
       actions={(run, close) => (
         <>
           {informs ? null : (
-            <button type="button" className="btn" onClick={close}>
+            <button type="button" className="btn" id="sheetCancel" onClick={close}>
               {cancelLabel ? LibroI18n.tr(cancelLabel) : bw('Cancelar', 'Cancel', 'Cancelar')}
             </button>
           )}
           <button
             type="button"
-            id={action?.id}
+            id={action?.id || 'sheetApply'}
             className="btn primary"
             onClick={() => (action ? run(action) : close())}
           >

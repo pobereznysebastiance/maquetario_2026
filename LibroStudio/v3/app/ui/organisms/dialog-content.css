@@ -37,7 +37,7 @@
 
 /* Secciones dentro de diálogos (p. ej. "Solapas y forrado" en la cubierta): planas, separadas
    por una línea, con título en color de texto. Mismo criterio que el inspector. */
-#modalBody .section {
+:is(#modalBody, .dialog-body) .section {
   margin: var(--space-lg) 0 0;
   padding: var(--space-lg) 0 0;
   border: 0;

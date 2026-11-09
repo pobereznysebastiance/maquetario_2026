@@ -20,7 +20,9 @@ registerNavigationTest(async function (report) {
     settingsNew(false);
     $('#pageUnits').value = 'cm';
     $('#pageUnits').dispatchEvent(new Event('change'));
-    await $('#modalApply').onclick();
+    // La Hoja de formato es React (BookSetup.tsx): se aplica con su botón y se espera el cierre.
+    $('#sheetApply').click();
+    await new Promise((resolve) => setTimeout(resolve));
     check(
       documentUnit() === 'cm' &&
         book.width === 170 &&

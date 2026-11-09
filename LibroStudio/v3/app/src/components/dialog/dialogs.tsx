@@ -167,8 +167,13 @@ export const openSheet = (content: ReactNode, options: SheetOptions) =>
   openDialog('sheet', content, options);
 export const openWorkWindow = (content: ReactNode, options: WorkWindowOptions) =>
   openDialog('workspace', content, options);
+/** Cierra la Hoja o Ventana abierta en el acto (el DOM queda al día al volver). */
 export function closeSheet(): void {
-  sheetRequest?.done();
+  const request = sheetRequest;
+  if (!request) return;
+  sheetRequest = null;
+  update(true);
+  request.done();
 }
 
 // La raíz no dibuja nada propio: los diálogos van por portales a la capa (native.ts).

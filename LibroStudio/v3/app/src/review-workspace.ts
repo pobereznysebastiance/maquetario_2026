@@ -161,22 +161,20 @@ extend.after(
   'review-workspace',
 );
 window.hideWelcome = hideWelcome;
+// Al crear un libro (o aplicar el formato), ya hay documento.
 extend(
-  'settingsNew',
-  (settingsBeforeBlank) =>
-    function (isNew = true) {
+  'applyBookSettings',
+  (applyBeforeBlank) =>
+    function (isNew: boolean, values: unknown) {
       const previous = book;
-      settingsBeforeBlank(isNew);
-      const apply = $('#modalApply').onclick as () => unknown;
-      $('#modalApply').onclick = async () => {
-        await apply();
-        if (book !== previous || (!isNew && !$('#modal').open)) {
-          hasDocument = true;
-          multiSelection.clear();
-          refreshEmptyCanvas();
-          render(true);
-        }
-      };
+      const applied = applyBeforeBlank(isNew, values);
+      if (book !== previous || (!isNew && applied)) {
+        hasDocument = true;
+        multiSelection.clear();
+        refreshEmptyCanvas();
+        render(true);
+      }
+      return applied;
     },
   'review-workspace',
 );
@@ -222,12 +220,10 @@ extend(
     function (index?: number) {
       if (!hasDocument) {
         hideWelcome();
-        settings(true);
-        const apply = $('#modalApply').onclick as () => unknown;
-        $('#modalApply').onclick = async () => {
-          await apply();
+        // Cuando se cierra la Hoja de libro nuevo: si se creó el libro, sigue el tutorial.
+        void Promise.resolve(settings(true)).then(() => {
           if (hasDocument) tutorialBeforeBlank(index);
-        };
+        });
         return;
       }
       tutorialBeforeBlank(index);

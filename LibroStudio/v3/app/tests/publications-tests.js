@@ -65,7 +65,7 @@ registerIntegrationTest(function (r) {
       $('#newWidth').value === '280' && $('#newHeight').value === '430',
       'Plantilla de diario configura formato',
     );
-    $('#modal').close();
+    closeSheet();
   } finally {
     book = prior;
     render(true);
