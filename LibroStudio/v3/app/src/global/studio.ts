@@ -1046,7 +1046,11 @@ function setTool(name: string): void {
 //   modal.workspace(título, cuerpo, { action })              Ventana de trabajo: casi pantalla completa,
 //                                                            sin Cancelar; sus acciones van arriba, junto a la cruz
 //   modal.confirm(título, cuerpo, aplicar, 'Verbo')          Confirmación con contenido propio (420 px, sin cruz)
-//   confirmAction / askChoice (confirm.ts)                   Confirmación simple (la de siempre)
+//   confirmAction / askChoice (components/dialog/dialogs.tsx) Confirmación simple, en React (Radix)
+//
+// Con un elemento de React como cuerpo en lugar de HTML, modal.sheet, modal.info y modal.workspace
+// abren la Hoja o la Ventana de React (openSheet / openWorkWindow, components/dialog/): así pasa una
+// pantalla a React sin cambiar cómo se la llama.
 //
 // modal(título, cuerpo, aplicar, etiqueta) sigue andando: es una Hoja mediana con Cancelar.
 // Todas usan el mismo #modal: el tipo queda en data-kind (y el ancho de la hoja en data-size)
@@ -1068,6 +1072,8 @@ interface WorkspaceOptions extends Omit<DialogOptions, 'size' | 'cancelLabel'> {
   /** Acción principal de la ventana (Guardar PDF, Guardar cubierta…), en la barra del título. */
   action?: { label: string; run: () => unknown };
 }
+/** Cuerpo de un diálogo: HTML (va a #modal) o un elemento de React (va a la Hoja o Ventana de React). */
+type DialogBody = string | import('react').ReactNode;
 /** Lo que pidió modal.sheet/info/workspace/confirm para la próxima llamada a modal(). */
 let nextDialog: { kind: DialogKind; single: boolean; options: DialogOptions } | null = null;
 
@@ -1083,6 +1089,8 @@ function modal(
   nextDialog = null;
   if (busy) return;
   finishEditing();
+  // Nada de diálogo sobre diálogo: #modal reemplaza a la Hoja o Ventana de React abierta.
+  globalThis.closeSheet?.();
   $('#modalTitle').textContent = title;
   $('#modalBody').innerHTML = body;
   $('#modalApply').textContent = label;
@@ -1129,26 +1137,44 @@ function setDialogKind(kind: DialogKind, single: boolean, options: DialogOptions
 /** Hoja: formulario corto con Cancelar y el verbo de la acción. */
 modal.sheet = function (
   title: string,
-  body: string,
+  body: DialogBody,
   apply: () => unknown,
   label: string,
   options: DialogOptions = {},
 ): void {
+  if (typeof body !== 'string') {
+    if (busy) return;
+    finishEditing();
+    void openSheet(body, { title, action: { label, run: apply }, ...options });
+    return;
+  }
   nextDialog = { kind: 'sheet', single: false, options };
   modal(title, body, apply, label);
 };
 /** Hoja que sólo informa (o elige y se cierra sola): un único botón, sin Cancelar. */
 modal.info = function (
   title: string,
-  body: string,
+  body: DialogBody,
   label: string,
   options: DialogOptions = {},
 ): void {
+  if (typeof body !== 'string') {
+    if (busy) return;
+    finishEditing();
+    void openSheet(body, { title, single: true, action: { label, run: () => true }, ...options });
+    return;
+  }
   nextDialog = { kind: 'sheet', single: true, options };
   modal(title, body, () => true, label);
 };
 /** Ventana de trabajo: casi pantalla completa, sin pie; se cierra con la cruz. */
-modal.workspace = function (title: string, body: string, options: WorkspaceOptions = {}): void {
+modal.workspace = function (title: string, body: DialogBody, options: WorkspaceOptions = {}): void {
+  if (typeof body !== 'string') {
+    if (busy) return;
+    finishEditing();
+    void openWorkWindow(body, { title, ...options });
+    return;
+  }
   nextDialog = { kind: 'workspace', single: !options.action, options };
   modal(title, body, options.action?.run || (() => true), options.action?.label || '');
 };

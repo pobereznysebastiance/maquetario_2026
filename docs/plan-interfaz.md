@@ -71,7 +71,7 @@ Se elige el tipo con la función, nunca con una clase de tamaño. Todos usan `#m
 
 | Tipo | Función | Forma |
 |---|---|---|
-| Confirmación | `confirmAction` / `askChoice` (confirm.ts), o `modal.confirm(título, cuerpo, aplicar, 'Verbo')` si lleva contenido propio | 420 px, sin cruz, el verbo en el botón. |
+| Confirmación | `confirmAction` / `askChoice` (`src/components/dialog/dialogs.tsx`, React + Radix AlertDialog), o `modal.confirm(título, cuerpo, aplicar, 'Verbo')` si lleva contenido propio | 420 px, sin cruz, el verbo en el botón. |
 | Hoja | `modal.sheet(título, cuerpo, aplicar, 'Verbo', { size: 'sm' \| 'md' \| 'lg' })`; `modal.info(título, cuerpo, 'Listo')` si sólo informa | 560 / 820 / 1040 px. Cancelar + verbo, o un solo botón. `modal(...)` sin más es una Hoja mediana. |
 | Ventana de trabajo | `modal.workspace(título, cuerpo, { action: { label, run } })` | Casi pantalla completa (tope 1600 px), sin pie: título, acciones y cruz en una barra arriba. |
 

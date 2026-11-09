@@ -52,7 +52,7 @@ import '../category-design.ts';
 import '../ui/focus.ts';
 import '../ui/select.ts';
 import '../ui/dialog.ts';
-import '../confirm.ts';
+import '../components/dialog/dialogs.tsx';
 import '../settings-panel.ts';
 import '../workspace.ts';
 import '../rulers.ts';

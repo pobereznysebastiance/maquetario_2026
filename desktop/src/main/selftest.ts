@@ -94,7 +94,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     writeFile(join(out, file), (await session.win.webContents.capturePage()).toPNG());
 
   await delay(500);
-  // Las confirmaciones (confirm.js) no esperan respuesta durante la autoprueba.
+  // Las confirmaciones (src/components/dialog) no esperan respuesta durante la autoprueba.
   await exec(session, 'window.maquetarioSelfTest = true');
   // Las pruebas de la interfaz se cargan aparte (test-loader.js, desde tests/); el paquete distribuido
   // no las trae, y los pasos que las usan (testStep) se omiten.

@@ -137,7 +137,9 @@ dialog .modal-header .icon-btn:hover {
   color: var(--text-primary);
 }
 
-#modalBody {
+/* #modal y los diálogos de React (Sheet.tsx) comparten el cuerpo .dialog-body. */
+#modalBody,
+.dialog-body {
   padding: var(--space-xl);
   color: var(--text-secondary);
   font-size: var(--type-callout);
@@ -154,7 +156,8 @@ dialog .modal-actions {
   background: var(--material-sheet);
 }
 
-/* Confirmación (#confirmDialog, data-kind="confirm"): la pregunta es el título; sin cabecera ni cruz. */
+/* Confirmación (#confirmDialog, data-kind="confirm", src/components/dialog/ConfirmDialog.tsx): la
+   pregunta es el título; sin cabecera ni cruz. */
 .confirm-form {
   display: flex;
   flex-direction: column;
