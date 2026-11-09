@@ -245,6 +245,35 @@ Llegó el 09-nov por Seba (pedido de Tomás), con la planilla "Pauta de uso tipo
 - Citas: Selección → Notas al pie y citas → "Marcar como cita" (estilo Cita, sangrado y un punto menor, en el rol Otros si está libre).
 - Interior | Cubierta y solapas pasó a la barra principal (en 1366 Imprimir, Vista previa y Asistente quedan de ícono para que entre).
 
+## 6. Segunda tanda de la cátedra (09-nov, noche): plan, sin código todavía
+
+### 6.1 Cubierta y solapas pasa al riel izquierdo
+
+**Pedido:** sacar "Cubierta y solapas" de la barra superior y ponerlo como un ícono más del riel izquierdo, junto a Páginas, Estructura, Índice y Capas. Arriba quedan las acciones del programa y del archivo (crear, espacio de trabajo, guardar, imprimir, vista, exportar); la cubierta es parte del esquema del libro. Ojo: contradice el primer pedido ("botón destacado en el header"); esto lo reemplaza.
+
+**Cómo está hoy:** `PieceSwitch piece="interior"` en `src/components/topbar/Topbar.tsx` (zona `.topright`, al lado de Aprender) y `PieceSwitch piece="cover"` en la barra propia de `src/components/cover/CoverEditor.tsx`. El botón de Cubierta tiene `id="coverTool"` y el de Interior `#interiorTool`; los usan el recorrido de la Ayuda, `src/workspace.ts` (selector `#coverTool`) y las pruebas (`tests/studio-tests.js:44` y `tests/book-parts-tests.js:120` buscan `.topbar #coverTool`).
+
+**Plan:**
+1. `src/components/rail/Rail.tsx`: después de las cuatro vistas (`VIEWS`), un botón más con el ícono `book` (el que ya usa la cubierta en `PieceSwitch.tsx`), etiqueta "Cubierta" y título "Cubierta y solapas". No es una vista con panel (`railView`): abre la pieza, como hoy `PieceSwitch` (misma función). Conserva `id="coverTool"`. Separado de las vistas por el mismo espacio que hay entre grupos del riel; sin línea ni color propio.
+2. Sacar `<PieceSwitch piece="interior" />` de `Topbar.tsx` (y su comentario). En 1366 vuelven a tener nombre Imprimir, Vista previa y Asistente si entran (se habían pasado a ícono para hacerle lugar; revisar `ui/` de la barra).
+3. Dentro de la cubierta: mirar si el riel sigue a la vista. Si sigue, el botón queda marcado (`aria-pressed`) y Páginas vuelve al interior. Si la cubierta tapa el riel, queda la vuelta "Interior" de la barra de `CoverEditor.tsx`, como hoy.
+4. Actualizar `tests/studio-tests.js` y `tests/book-parts-tests.js` (`.rail #coverTool`), el comentario del encabezado de `Rail.tsx`, `docs/arquitectura.md` (sección "Partes del libro, Interior | Cubierta y Aprender") y la lección del recorrido si nombra la barra.
+
+### 6.2 Flechitas para subir y bajar en los campos numéricos, con decimales
+
+**Pedido:** flechitas de más y menos dentro de las cajas de valores (Inferior 22 mm, Exterior 20 mm…). En la Cuenca y en la UNNE los alumnos ajustan con clics en las flechitas y decimales (2,1; 2,5), no tipeando.
+
+**Cómo está hoy:** `ui/atoms/field.css` (`.unit-wrap input[type='number']`, cerca de la línea 175) apaga las flechas del navegador porque se montaban sobre la unidad. `NumberField` (`src/components/inspector/fields.tsx`) usa `step` 0,5 por defecto y escribe con el `change` nativo (`bind` → `commitBinding`: un paso de deshacer y un redibujo por cambio). Hay otros `input type="number"` sueltos en `FolioPanel`, `FootnotePanels`, `ObjectPanel`, `RulesPanel`, `ShapePanel`, `TextPanels`, `CoverEditor`, `OutputWindow`, `editorial-rules.tsx` e `inspector-views.tsx`.
+
+**Plan:**
+1. Componente `Stepper` en `fields.tsx` (dos botones chicos, arriba y abajo, con el ícono `chevron`) dentro de `.unit-wrap`, a la derecha de la unidad. Se ven sólo con el puntero encima o el foco en el campo (`:hover` / `:focus-within`); el resto del tiempo el campo queda como ahora. Sin color propio, con los tokens de `field.css` (el control lo pide `lint:design`).
+2. Clic: `input.stepUp()` / `stepDown()` y `change` nativo, así graba igual que tipear. Mantener apretado repite (espera ~400 ms, después cada ~60 ms) mostrando el valor y graba **una sola vez** al soltar, para que deshacer no tenga un paso por cada décima. `pointerdown` con `preventDefault` para no sacarle el foco al campo.
+3. Pasos: las medidas en mm van de a **0,1** (hoy 0,5); con **Mayúscula**, de a 1. Lo mismo con las flechas del teclado (hoy el navegador usa `step`; sumar Mayúscula + flecha = ±1 en el `keydown`). Cuidado: `stepUp` acomoda al múltiplo de `step` contando desde `min`, y 22,25 con paso 0,1 pasaría a 22,3; revisar que los `min` sean múltiplos razonables. Campos de enteros (columnas, filas, comenzar en) siguen de a 1.
+4. Mostrar el valor con coma o punto según el idioma, como hoy (no cambia).
+5. Que lo usen también los campos sueltos de la lista de arriba (cambiarlos a `NumberField` donde se pueda; si no, sumarles el `Stepper`).
+6. Revisar con impeccable en 1366 × 768 y 1920 × 1080 que con las flechitas a la vista ningún valor quede cortado (los campos del inspector son angostos: Inferior y Exterior van de a dos por fila).
+7. Pruebas en `tests/` (`fields` o `studio-tests.js`): clic sube 0,1; Mayúscula + clic sube 1; mantener apretado deja un solo paso de deshacer; Mayúscula + flecha del teclado sube 1; respeta `min` y `max`.
+
 ## 4. Distribución
 
 - **Etapa 1 cerrada (08-nov):** se retiró la versión C#/WebView2 (`LibroStudio/v3/Host*.cs`, `Build.ps1`, `Build-Installer.ps1`, `Maquetario.iss`), su rama en `src/host.ts` y las vistas de captura que sólo llamaba ese programa. Se conserva `LibroStudio/v3/installer-brand/` (imágenes del instalador). Queda lo que depende de Motiova y de la venta (abajo).
