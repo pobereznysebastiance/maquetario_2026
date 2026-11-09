@@ -1,21 +1,28 @@
 <!doctype html>
 <html lang="es">
-<head>
-<meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'">
-<title>Maquetario</title>
-<link rel="stylesheet" href="notice.css">
-</head>
-<body>
-<main class="notice" role="alertdialog" aria-labelledby="title" aria-describedby="message">
-  <aside class="notice-art" aria-hidden="true"></aside>
-  <section class="notice-body">
-    <h1 class="notice-title" id="title"></h1>
-    <p class="notice-message" id="message"></p>
-    <p class="notice-detail" id="detail" hidden></p>
-    <footer class="notice-actions" id="actions"></footer>
-  </section>
-</main>
-<script src="notice.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'"
+    />
+    <title>Maquetario</title>
+    <link rel="stylesheet" href="notice.css" />
+  </head>
+  <body>
+    <main class="notice" role="alertdialog" aria-labelledby="title" aria-describedby="message">
+      <aside class="notice-art" aria-hidden="true"></aside>
+      <section class="notice-body">
+        <h1 class="notice-title" id="title"></h1>
+        <p class="notice-message" id="message"></p>
+        <p class="notice-detail" id="detail" hidden></p>
+        <div class="notice-progress" id="progress" hidden>
+          <div class="notice-progress-track" role="progressbar" aria-labelledby="remaining"></div>
+          <p class="notice-progress-text" id="remaining" aria-live="off"></p>
+        </div>
+        <footer class="notice-actions" id="actions"></footer>
+      </section>
+    </main>
+    <script src="notice.js"></script>
+  </body>
 </html>

@@ -2,20 +2,24 @@
 // abren el navegador y las descargas. El protocolo está en client.ts.
 import { app, safeStorage, shell } from 'electron';
 import { createHash } from 'node:crypto';
-import { createWriteStream } from 'node:fs';
+import { createWriteStream, readFileSync } from 'node:fs';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { hostname } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { randomUUID } from 'node:crypto';
-import { appVersion, dataDir, motiovaDir } from '../env.ts';
+import { appVersion, dataDir, motiovaDir, noticeDir } from '../env.ts';
 import { checkLicense, licenseSummary } from '../license.ts';
+import { callbackPage } from './callback-page.ts';
 import {
+  CONNECT_TIMEOUT_MS,
   isNewer,
   MotiovaClient,
   MotiovaError,
+  myProgramsUrl,
   platformOf,
+  type CallbackPage,
   type Device,
   type MotiovaConfig,
   type ReleaseInfo,
@@ -35,6 +39,33 @@ function config(): MotiovaConfig {
     api: (dev && process.env.MOTIOVA_API) || (dev ? __MOTIOVA__.dev.api : __MOTIOVA__.api),
     product: 'maquetario',
   };
+}
+
+/** Mi cuenta → Mis programas en la web de Motiova (liberar una computadora). */
+export const accountPageUrl = (): string => myProgramsUrl(config().web);
+
+/**
+ * Página de vuelta del navegador con los tokens y la DM Sans de los avisos (notice/, que arma
+ * scripts/build.mjs). Si faltan los archivos, el cliente usa su página mínima.
+ */
+function brandedPage(): CallbackPage | undefined {
+  try {
+    const dir = noticeDir();
+    const read = (...parts: string[]) => readFileSync(join(dir, ...parts));
+    const fonts: Record<string, Buffer> = {};
+    for (const weight of [400, 500, 600, 700])
+      fonts[`DM-Sans-${weight}.ttf`] = read('fonts', `DM-Sans-${weight}.ttf`);
+    return callbackPage({
+      sheets: ['fonts', 'primitives', 'semantic', 'contract'].map((sheet) =>
+        read('ui', 'tokens', `${sheet}.css`).toString('utf8'),
+      ),
+      fonts,
+      mark: read('maquetario.svg'),
+    });
+  } catch (error) {
+    console.warn('[motiova] página de vuelta sin estilos:', error);
+    return undefined;
+  }
 }
 
 /**
@@ -78,7 +109,10 @@ class SecureTokenStore implements TokenStore {
 
 let client: MotiovaClient | null = null;
 const motiova = (): MotiovaClient =>
-  (client ??= new MotiovaClient(config(), new SecureTokenStore()));
+  (client ??= new MotiovaClient(
+    { ...config(), callbackPage: brandedPage() },
+    new SecureTokenStore(),
+  ));
 
 const licenseFile = (): string => join(motiovaDir(), 'licenses', 'maquetario.lic');
 
@@ -176,17 +210,30 @@ async function syncLicense(): Promise<void> {
 let connecting: AbortController | null = null;
 
 /** "Conectar con Motiova": login en el navegador y licencia de este equipo. */
-export async function connectAccount(): Promise<AccountStatus> {
+export async function connectAccount(options: { timeoutMs?: number } = {}): Promise<AccountStatus> {
   connecting?.abort();
   const controller = new AbortController();
   connecting = controller;
   try {
-    await motiova().connect((url) => shell.openExternal(url), { signal: controller.signal });
+    await motiova().connect((url) => shell.openExternal(url), {
+      signal: controller.signal,
+      timeoutMs: options.timeoutMs ?? CONNECT_TIMEOUT_MS,
+    });
     await syncLicense();
     return accountStatus();
   } finally {
     if (connecting === controller) connecting = null;
   }
+}
+
+/**
+ * Pedir la licencia de este equipo otra vez sin pasar por el navegador (por ejemplo, después de
+ * liberar una computadora en Mis programas). Sin sesión, conecta como siempre.
+ */
+export async function requestLicenseAgain(): Promise<AccountStatus> {
+  if (!(await motiova().hasSession())) return connectAccount();
+  await syncLicense();
+  return accountStatus();
 }
 
 export function cancelConnect(): boolean {

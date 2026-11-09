@@ -90,11 +90,18 @@ await build({
 });
 await build({ ...uiOptions, entryPoints: tsIn(join(ui, 'src/global')), bundle: false });
 
-// Avisos de sistema: página estática + ilustración del instalador + DM Sans de la interfaz.
+// Avisos de sistema: página estática + ilustración del instalador + DM Sans y tokens de la
+// interfaz (los mismos archivos de ui/tokens, en notice/ui/tokens: fonts.css apunta a
+// ../../fonts, que queda en notice/fonts). También los usa la página que ve el navegador al
+// volver de Motiova (motiova/callback-page.ts).
 const notice = join(root, 'dist/notice');
 cpSync(join(root, 'src/notice'), notice, { recursive: true });
 cpSync(join(root, 'assets/brand-art.jpg'), join(notice, 'brand-art.jpg'));
-for (const weight of [400, 600, 700]) {
+cpSync(join(ui, 'maquetario.svg'), join(notice, 'maquetario.svg'));
+for (const weight of [400, 500, 600, 700]) {
   const font = `DM-Sans-${weight}.ttf`;
-  cpSync(join(root, '../LibroStudio/v3/app/fonts', font), join(notice, 'fonts', font));
+  cpSync(join(ui, 'fonts', font), join(notice, 'fonts', font));
+}
+for (const sheet of ['fonts', 'primitives', 'semantic', 'contract']) {
+  cpSync(join(ui, 'ui/tokens', `${sheet}.css`), join(notice, 'ui/tokens', `${sheet}.css`));
 }

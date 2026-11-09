@@ -18,10 +18,14 @@ export interface NoticeOptions {
   buttons?: NoticeButton[];
   parent?: BrowserWindow;
   lang?: string;
+  /** Espera con tiempo límite: barra de progreso y tiempo que queda hasta `until` (ms). */
+  progress?: { until: number; label?: string };
 }
 
 const WIDTH = 680;
 const HEIGHT = 380;
+/** Fondo de la ventana antes de pintar la página: --surface-window (--petrol-850, ui/tokens). */
+const WINDOW_BACKGROUND = '#13242b';
 
 /** Muestra el aviso y devuelve el id del botón elegido, o null si se cerró. */
 export function showNotice(options: NoticeOptions): Promise<string | null> {
@@ -48,7 +52,7 @@ export function openNotice(options: NoticeOptions): {
     fullscreenable: false,
     skipTaskbar: !!options.parent,
     show: false,
-    backgroundColor: '#10212a',
+    backgroundColor: WINDOW_BACKGROUND,
     title: options.title,
     webPreferences: {
       preload: join(__dirname, 'notice-preload.cjs'),
@@ -65,6 +69,7 @@ export function openNotice(options: NoticeOptions): {
       detail: options.detail,
       buttons,
       lang: options.lang,
+      progress: options.progress,
     }),
   );
 

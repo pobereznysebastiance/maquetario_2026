@@ -15,7 +15,18 @@ export interface MotiovaConfig {
   api: string;
   /** license_code del programa en Motiova. */
   product: string;
+  /**
+   * Página que ve el navegador al volver de Motiova (título y texto fijos, sin HTML). Si no se da,
+   * una página mínima; la app de escritorio pasa la de su identidad (callback-page.ts).
+   */
+  callbackPage?: CallbackPage;
 }
+
+/** Arma la página de vuelta: `ok` dice si la conexión salió bien. */
+export type CallbackPage = (title: string, text: string, ok: boolean) => string;
+
+/** Cuánto se espera la confirmación desde el navegador. */
+export const CONNECT_TIMEOUT_MS = 5 * 60 * 1000;
 
 /** Dónde se guarda el refresh_token (almacén seguro del sistema). */
 export interface TokenStore {
@@ -124,6 +135,13 @@ export function activationUrl(web: string, port: number, state: string, challeng
   return url.toString();
 }
 
+/** Mi cuenta → Mis programas en la web de Motiova (para liberar una computadora). */
+export function myProgramsUrl(web: string): string {
+  const url = new URL('/mi-cuenta', web.replace(/\/+$/, '') + '/');
+  url.search = new URLSearchParams({ tab: 'programas' }).toString();
+  return url.toString();
+}
+
 export function platformOf(nodePlatform: NodeJS.Platform): Platform {
   return nodePlatform === 'win32' ? 'windows' : nodePlatform === 'darwin' ? 'macos' : 'linux';
 }
@@ -143,10 +161,10 @@ export function isNewer(candidate: string, current: string): boolean {
   return false;
 }
 
-const PAGE = (title: string, text: string) =>
+/** Página mínima, sin estilos propios (la app de escritorio usa la de callback-page.ts). */
+const PLAIN_PAGE: CallbackPage = (title, text) =>
   `<!doctype html><html lang="es"><meta charset="utf-8"><title>${title}</title>` +
-  '<body style="font:16px system-ui,sans-serif;background:#10212a;color:#f4f5ee;display:grid;place-items:center;height:100vh;margin:0">' +
-  `<div style="max-width:420px;text-align:center"><h1 style="font-size:22px;font-weight:600">${title}</h1><p style="color:#b8d1cd;line-height:1.6">${text}</p></div></body></html>`;
+  `<h1>${title}</h1><p>${text}</p></html>`;
 
 export interface CallbackListener {
   port: number;
@@ -163,6 +181,7 @@ export function listenForCallback(
   state: string,
   timeoutMs: number,
   signal?: AbortSignal,
+  page: CallbackPage = PLAIN_PAGE,
 ): Promise<CallbackListener> {
   return new Promise((resolveListener, rejectListener) => {
     let settle: { resolve: (code: string) => void; reject: (error: Error) => void } | null = null;
@@ -179,18 +198,20 @@ export function listenForCallback(
       if (url.searchParams.get('state') !== state || !given) {
         res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
         res.end(
-          PAGE(
+          page(
             'No se pudo conectar',
             'El enlace no corresponde a este pedido. Volvé a Maquetario e intentá de nuevo.',
+            false,
           ),
         );
         return;
       }
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(
-        PAGE(
+        page(
           'Listo',
           'Maquetario ya está conectado con tu cuenta. Podés cerrar esta pestaña y volver al programa.',
+          true,
         ),
       );
       finish(null, given);
@@ -311,8 +332,9 @@ export class MotiovaClient {
     const pkce = createPkce();
     const listener = await listenForCallback(
       pkce.state,
-      options.timeoutMs ?? 5 * 60 * 1000,
+      options.timeoutMs ?? CONNECT_TIMEOUT_MS,
       options.signal,
+      this.config.callbackPage,
     );
     try {
       await open(activationUrl(this.config.web, listener.port, pkce.state, pkce.challenge));

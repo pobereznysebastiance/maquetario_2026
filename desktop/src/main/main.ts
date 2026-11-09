@@ -5,6 +5,7 @@ import {
   Menu,
   screen,
   session as electronSession,
+  shell,
   type MenuItemConstructorOptions,
 } from 'electron';
 import { join } from 'node:path';
@@ -21,7 +22,15 @@ import {
 import { warmFontCatalog } from './fonts/catalog.ts';
 import { describeFailure } from '@maquetario/license';
 import { checkLicense, licenseBlocks, licenseMessage } from './license.ts';
-import { cancelConnect, connectAccount, renewAtStartup } from './motiova/desktop.ts';
+import { gateButtons, WAITING_NOTICE } from './license-gate.ts';
+import { CONNECT_TIMEOUT_MS, MotiovaError } from './motiova/client.ts';
+import {
+  accountPageUrl,
+  cancelConnect,
+  connectAccount,
+  renewAtStartup,
+  requestLicenseAgain,
+} from './motiova/desktop.ts';
 import { captureNotice, openNotice, showNotice, type NoticeOptions } from './notice.ts';
 import {
   hasRequestedProject,
@@ -72,38 +81,71 @@ const LICENSE_NOTICE = (message: string): NoticeOptions => ({
   title: 'Maquetario necesita una licencia activa',
   message,
 });
-const GATE_BUTTONS = [
-  { id: 'quit', label: 'Salir' },
-  { id: 'connect', label: 'Conectar con Motiova', primary: true },
-];
+/** "Seguí en el navegador": barra de espera, tiempo que queda y Cancelar. */
+const waitingNotice = (until: number): NoticeOptions => ({
+  title: WAITING_NOTICE.title,
+  message: WAITING_NOTICE.message,
+  progress: { until, label: WAITING_NOTICE.progressLabel },
+  buttons: [{ id: 'cancel', label: 'Cancelar' }],
+});
+
+/** Login en el navegador mostrando la espera; Cancelar corta la conexión. */
+async function connectWithProgress(): Promise<void> {
+  const waiting = openNotice(waitingNotice(Date.now() + CONNECT_TIMEOUT_MS));
+  void waiting.choice.then((choice) => choice === 'cancel' && cancelConnect());
+  try {
+    await connectAccount({ timeoutMs: CONNECT_TIMEOUT_MS });
+  } finally {
+    waiting.close();
+  }
+}
 
 /**
  * Sin licencia válida (modo "enforce"): en vez de cerrarse, ofrece conectar la cuenta de Motiova.
+ * Si Motiova dice que se llegó al tope de equipos, ofrece Mis programas (para liberar una
+ * computadora) y volver a pedir la licencia, no conectar otra vez.
  * Devuelve true cuando ya hay licencia; false si la persona eligió salir.
  */
 async function licenseGate(): Promise<boolean> {
   let message = licenseMessage();
+  let failure: string | null = null;
+  let accountOpened = false;
   for (;;) {
-    const pick = await showNotice({ ...LICENSE_NOTICE(message), buttons: GATE_BUTTONS });
-    if (pick !== 'connect') return false;
-    const waiting = openNotice({
-      title: 'Seguí en el navegador',
-      message:
-        'Entrá a tu cuenta de Motiova y hacé clic en Conectar. Cuando termine, Maquetario se abre solo.',
-      buttons: [{ id: 'cancel', label: 'Cancelar' }],
+    const pick = await showNotice({
+      ...LICENSE_NOTICE(message),
+      buttons: gateButtons(failure, accountOpened),
     });
-    void waiting.choice.then((choice) => choice === 'cancel' && cancelConnect());
+    if (pick === 'account') {
+      void shell.openExternal(accountPageUrl());
+      accountOpened = true;
+      continue;
+    }
+    if (pick !== 'connect' && pick !== 'retry') return false;
     try {
-      await connectAccount();
+      if (pick === 'retry') await requestLicenseAgain();
+      else await connectWithProgress();
     } catch (error) {
       message = error instanceof Error ? error.message : String(error);
+      failure = error instanceof MotiovaError ? error.code : null;
       continue;
-    } finally {
-      waiting.close();
     }
     if (!licenseBlocks()) return true;
     message = licenseMessage();
+    failure = null;
   }
+}
+
+/** Desarrollo: imagen de un aviso de licencia (--capture-notice=archivo.png --notice=variante). */
+function previewNotice(variant: string | undefined): NoticeOptions {
+  if (variant === 'waiting') return waitingNotice(Date.now() + CONNECT_TIMEOUT_MS);
+  if (variant === 'device-limit')
+    return {
+      ...LICENSE_NOTICE(
+        'Ya usás Maquetario en todas las computadoras permitidas. Liberá una desde Mi cuenta, en Mis programas, y volvé a intentar.',
+      ),
+      buttons: gateButtons('device-limit'),
+    };
+  return { ...LICENSE_NOTICE(describeFailure('expired')), buttons: gateButtons(null) };
 }
 
 function applicationMenu(): void {
@@ -288,10 +330,7 @@ app.whenReady().then(async () => {
   const preview = app.isPackaged ? undefined : argValue('capture-notice');
   if (preview) {
     // Desarrollo: guarda una imagen del aviso de licencia para revisar el diseño.
-    await captureNotice(
-      { ...LICENSE_NOTICE(describeFailure('expired')), buttons: GATE_BUTTONS },
-      preview,
-    );
+    await captureNotice(previewNotice(argValue('notice')), preview);
     app.exit(0);
     return;
   }

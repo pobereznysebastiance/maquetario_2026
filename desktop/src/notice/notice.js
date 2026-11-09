@@ -6,7 +6,11 @@
   try {
     data = JSON.parse(decodeURIComponent(location.hash.slice(1)));
   } catch {
-    data = { title: 'Maquetario', message: '', buttons: [{ id: 'close', label: 'Cerrar', primary: true }] };
+    data = {
+      title: 'Maquetario',
+      message: '',
+      buttons: [{ id: 'close', label: 'Cerrar', primary: true }],
+    };
   }
   const byId = (id) => document.getElementById(id);
   document.documentElement.lang = data.lang || 'es';
@@ -18,7 +22,25 @@
     byId('detail').hidden = false;
   }
 
-  const buttons = Array.isArray(data.buttons) && data.buttons.length ? data.buttons : [{ id: 'close', label: 'Cerrar', primary: true }];
+  // Espera con tiempo límite (progress.until: fecha en milisegundos): barra y tiempo que queda.
+  if (data.progress && Number.isFinite(data.progress.until)) {
+    byId('progress').hidden = false;
+    const remaining = byId('remaining');
+    const tick = () => {
+      const seconds = Math.max(0, Math.ceil((data.progress.until - Date.now()) / 1000));
+      const clock = Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
+      remaining.textContent = seconds
+        ? (data.progress.label || 'Tiempo de espera') + ': ' + clock
+        : 'Se terminó el tiempo de espera.';
+      if (seconds) setTimeout(tick, 1000 - (Date.now() % 1000));
+    };
+    tick();
+  }
+
+  const buttons =
+    Array.isArray(data.buttons) && data.buttons.length
+      ? data.buttons
+      : [{ id: 'close', label: 'Cerrar', primary: true }];
   const actions = byId('actions');
   let primary = null;
   for (const spec of buttons) {
