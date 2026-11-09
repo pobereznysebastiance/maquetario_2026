@@ -1,13 +1,16 @@
 // Paridad del motor de composición con Chromium, en Chrome sin ventana (sin Electron).
 // Sirve la interfaz como scripts/serve-ui.cjs, prende la llave del motor y corre composeReport()
-// sobre el libro de muestra y sobre la novela de la autoprueba (prepareNovelProof).
+// sobre el libro de muestra y sobre la novela de la autoprueba (prepareNovelProof); después, sobre
+// esa novela con separación silábica, con interletraje, en una fuente variable (Bahnschrift) y en
+// una cara de colección .ttc (Cambria).
 //
 // Uso:  node desktop/scripts/build.mjs && node scripts/compose-parity.mjs [--details]
+//       node scripts/compose-parity.mjs --eval <archivo.js>   (diagnóstico: evalúa en la página)
 // Chrome: CHROME=<ruta> si no está en el lugar de siempre. Fuentes: las del sistema
-// (FONTS_DIR=<carpeta>); sin catálogo de escritorio, el motor mide con los archivos de Georgia
-// que usa el navegador para el mismo texto (FONT_FILES abajo).
+// (FONTS_DIR=<carpeta>; las de FONT_FILES son de Windows); sin catálogo de escritorio, el motor
+// mide con los mismos archivos que usa el navegador para ese texto.
 import { spawn } from 'node:child_process';
-import { mkdtempSync, readFile, rmSync } from 'node:fs';
+import { mkdtempSync, readFile, readFileSync, rmSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { extname, join, normalize, resolve, sep } from 'node:path';
@@ -26,6 +29,9 @@ const FONT_FILES = {
   'Georgia|700|normal': 'georgiab.ttf',
   'Georgia|400|italic': 'georgiai.ttf',
   'Georgia|700|italic': 'georgiaz.ttf',
+  // Fuente variable (ejes wght y wdth) y una cara de colección, para probar esos casos.
+  'Bahnschrift|400|normal': 'bahnschrift.ttf',
+  'Cambria|400|normal': 'cambria.ttc#0',
 };
 const chrome =
   process.env.CHROME ??
@@ -147,16 +153,55 @@ try {
     Object.entries(FONT_FILES).map(([key, file]) => [key, `/__system-fonts/${file}`]),
   );
   const options = JSON.stringify({ fonts, details });
-  const sample = await evaluate(`composeReport(${options})`);
-  await evaluate('prepareNovelProof()');
-  const novel = await evaluate(`composeReport(${options})`);
-  // La misma novela con separación silábica en todas las cajas (la de muestra no la usa).
-  await evaluate(
-    "book.pages.forEach((p) => p.objects.forEach((o) => { if (o.type === 'text') { o.hyphenate = true; o.hyphenLanguage = 'es'; } }))",
-  );
-  const novelHyphenated = await evaluate(`composeReport(${options})`);
-  const engineLoaded = { withKeyOff, withKeyOn: await evaluate(engineRequested) };
-  console.log(JSON.stringify({ engineLoaded, sample, novel, novelHyphenated }, null, 2));
+  // Diagnóstico: --eval <archivo> evalúa ese JavaScript en la página (con la llave prendida) y
+  // muestra el resultado en lugar de los informes.
+  const evalFile = process.argv[process.argv.indexOf('--eval') + 1];
+  if (process.argv.includes('--eval') && evalFile) {
+    console.log(await evaluate(readFileSync(evalFile, 'utf8')));
+    process.exitCode = 0;
+  } else {
+    const sample = await evaluate(`composeReport(${options})`);
+    await evaluate('prepareNovelProof()');
+    const novel = await evaluate(`composeReport(${options})`);
+    // La misma novela con separación silábica en todas las cajas (la de muestra no la usa).
+    await evaluate(
+      "book.pages.forEach((p) => p.objects.forEach((o) => { if (o.type === 'text') { o.hyphenate = true; o.hyphenLanguage = 'es'; } }))",
+    );
+    const novelHyphenated = await evaluate(`composeReport(${options})`);
+    // Y después, sobre esa misma novela: interletraje, una fuente variable con un eje propio
+    // (Bahnschrift, wdth 85) y una cara de una colección .ttc (Cambria).
+    // Los cambios van en el objeto y en los ajustes de cada párrafo, porque los estilos de
+    // párrafo de la novela fijan la fuente.
+    const everyText = (changes) =>
+      `book.pages.forEach((p) => p.objects.forEach((o) => { if (o.type !== 'text') return; const c = ${changes}; Object.assign(o, c); for (const m of o.paragraphMap || []) if (m) m.overrides = { ...(m.overrides || {}), ...c }; }))`;
+    await evaluate(everyText('{ tracking: 30 }'));
+    const novelTracking = await evaluate(`composeReport(${options})`);
+    // Como en la app (fonts.ts → FontFace desde los bytes): con la fuente del sistema, Chromium en
+    // Windows ignora font-variation-settings y sólo usa sus instancias con nombre.
+    await evaluate(
+      "(async () => { const face = new FontFace('Bahnschrift', 'url(/__system-fonts/bahnschrift.ttf)', { weight: '300 700', stretch: '75% 100%' }); document.fonts.add(await face.load()); })()",
+    );
+    await evaluate(everyText("{ tracking: 0, font: 'Bahnschrift', fontAxes: { wdth: 85 } }"));
+    const novelVariable = await evaluate(`composeReport(${options})`);
+    await evaluate(everyText("{ font: 'Cambria', fontAxes: {} }"));
+    const novelCollection = await evaluate(`composeReport(${options})`);
+    const engineLoaded = { withKeyOff, withKeyOn: await evaluate(engineRequested) };
+    console.log(
+      JSON.stringify(
+        {
+          engineLoaded,
+          sample,
+          novel,
+          novelHyphenated,
+          novelTracking,
+          novelVariable,
+          novelCollection,
+        },
+        null,
+        2,
+      ),
+    );
+  }
 } finally {
   socket.close();
   browser.kill();

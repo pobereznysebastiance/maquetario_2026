@@ -12,11 +12,13 @@
  */
 export {
   type ComposeFont,
+  type FontAxis,
   loadFont,
   shape,
   type ShapedGlyph,
   type ShapedRun,
   type ShapeOptions,
+  withVariations,
 } from './shape.ts';
 export {
   type HyphenationOptions,
@@ -48,4 +50,5 @@ export {
   type Paragraph,
   paragraphDemerits,
   type ParagraphOptions,
+  type WordBreak,
 } from './paragraph.ts';

@@ -89,7 +89,7 @@ const SectionView = ({
     element.replaceChildren();
     const node = section.render(element, arg);
     html.current = node === undefined ? { language } : null;
-    setContent(node ?? null);
+    setContent(node === undefined ? null : (node as ReactNode));
     element.closest('.dialog-body')?.scrollTo(0, 0);
     // El idioma lo atiende abajo (sólo para HTML): una sección de React se traduce sola y no
     // pierde su estado (la búsqueda del glosario, el término elegido).

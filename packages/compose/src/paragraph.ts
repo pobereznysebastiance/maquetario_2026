@@ -34,6 +34,9 @@ interface Segment {
   end: number;
 }
 
+/** Corte dentro de una palabra: por sílaba (se agrega un guion) o en el guion de una compuesta. */
+export type WordBreak = 'syllable' | 'compound';
+
 export interface Paragraph {
   readonly font: ComposeFont;
   readonly text: string;
@@ -41,11 +44,26 @@ export interface Paragraph {
   readonly items: Item[];
   /** Para cada ítem caja, el trozo de texto; para los demás, null. */
   readonly segments: (Segment | null)[];
+  /** Los cortes dentro de palabras, por índice de ítem (la penalización). */
+  readonly wordBreaks: ReadonlyMap<number, WordBreak>;
+  /** Dónde puede empezar una línea (índices del texto), además del comienzo. */
+  readonly breakStarts: readonly number[];
   readonly spaceWidth: number;
   readonly hyphenWidth: number;
 }
 
-/** Arma el párrafo: los blancos seguidos cuentan como un espacio. */
+const LETTER = /\p{L}/u;
+const DASH_ONLY = /^[\u2013\u2014]+$/;
+const countLetters = (text: string): number => [...text].filter((c) => LETTER.test(c)).length;
+
+/**
+ * Arma el párrafo: los blancos seguidos cuentan como un espacio. Reglas de corte del castellano:
+ * - dentro de una palabra sólo se corta por sílaba (con guion) o en el guion de una palabra
+ *   compuesta, y entonces el guion se repite al comienzo de la línea siguiente (RAE);
+ * - nunca después de una raya o un guion de rango pegados (—dijo—, 1990–2000): la raya de
+ *   apertura no queda al final de línea ni la de cierre al comienzo;
+ * - una raya suelta, entre espacios, queda pegada a sus vecinas.
+ */
 export function createParagraph(
   font: ComposeFont,
   text: string,
@@ -56,31 +74,74 @@ export function createParagraph(
   const stretch = spaceWidth * (options.spaceStretch ?? 1 / 2);
   const shrink = spaceWidth * (options.spaceShrink ?? 1 / 3);
   const hyphenPenalty = options.hyphenPenalty ?? 50;
+  const leftMin = options.leftMin ?? 2;
+  const rightMin = options.rightMin ?? 3;
   const items: Item[] = [];
   const segments: (Segment | null)[] = [];
+  const wordBreaks = new Map<number, WordBreak>();
+  const breakStarts: number[] = [];
   const push = (item: Item, segment: Segment | null = null) => {
     items.push(item);
     segments.push(segment);
   };
 
   let word = 0;
+  let previousDashOnly = false;
   // Las palabras se separan sólo en blancos comunes: el espacio duro (U+00A0) no corta, como en
   // el navegador.
   for (const match of text.matchAll(/[^ \t\n\r\f\v]+/g)) {
     const start = match.index;
     const token = match[0];
-    if (word > 0) push({ type: 'glue', width: spaceWidth, stretch, shrink });
+    const dashOnly = DASH_ONLY.test(token);
+    if (word > 0) {
+      if (dashOnly || previousDashOnly)
+        push({ type: 'penalty', width: 0, penalty: INFINITY_PENALTY, flagged: false });
+      else breakStarts.push(start);
+      push({ type: 'glue', width: spaceWidth, stretch, shrink });
+    }
+    previousDashOnly = dashOnly;
     const shaped = shape(font, token, options);
-    const points = options.hyphenate === false ? [] : hyphenationPoints(token, options);
-    const bounds = [0, ...points, token.length];
+    // Cortes dentro de la palabra: el guion de cada compuesta y las sílabas de cada parte.
+    const cuts: { at: number; kind: WordBreak }[] = [];
+    let partStart = 0;
+    for (let i = 0; i <= token.length; i++) {
+      const compound =
+        i < token.length &&
+        token[i] === '-' &&
+        LETTER.test(token[i - 1] ?? '') &&
+        LETTER.test(token[i + 1] ?? '');
+      if (i < token.length && !compound) continue;
+      const part = token.slice(partStart, i);
+      if (options.hyphenate !== false)
+        for (const point of hyphenationPoints(part, options))
+          cuts.push({ at: partStart + point, kind: 'syllable' });
+      if (
+        compound &&
+        countLetters(token.slice(0, i)) >= leftMin &&
+        countLetters(token.slice(i + 1)) >= rightMin
+      )
+        cuts.push({ at: i + 1, kind: 'compound' });
+      partStart = i + 1;
+    }
+    const bounds = [0, ...cuts.map((c) => c.at), token.length];
     for (let i = 0; i < bounds.length - 1; i++) {
       const from = bounds[i]!;
       const to = bounds[i + 1]!;
       const width = shaped.glyphs
         .filter((g) => g.cluster >= from && g.cluster < to)
         .reduce((sum, g) => sum + g.advance, 0);
-      if (i > 0)
-        push({ type: 'penalty', width: hyphenWidth, penalty: hyphenPenalty, flagged: true });
+      if (i > 0) {
+        const kind = cuts[i - 1]!.kind;
+        wordBreaks.set(items.length, kind);
+        breakStarts.push(start + from);
+        // En la compuesta el guion ya está en el texto: cortar no agrega ancho.
+        push({
+          type: 'penalty',
+          width: kind === 'syllable' ? hyphenWidth : 0,
+          penalty: hyphenPenalty,
+          flagged: true,
+        });
+      }
       push({ type: 'box', width }, { word, start: start + from, end: start + to });
     }
     word++;
@@ -88,7 +149,17 @@ export function createParagraph(
   // Fin de párrafo: la última línea queda corta (pegamento que se estira sin límite) y se corta sí o sí.
   push({ type: 'glue', width: 0, stretch: INFINITY_PENALTY * spaceWidth, shrink: 0 });
   push({ type: 'penalty', width: 0, penalty: -INFINITY_PENALTY, flagged: false });
-  return { font, text, options, items, segments, spaceWidth, hyphenWidth };
+  return {
+    font,
+    text,
+    options,
+    items,
+    segments,
+    wordBreaks,
+    breakStarts,
+    spaceWidth,
+    hyphenWidth,
+  };
 }
 
 export interface LineGlyph {
@@ -138,6 +209,11 @@ export interface ComposedParagraph {
   algorithm: 'knuth-plass' | 'greedy';
   /** Knuth-Plass no encontró solución ni con la tolerancia más alta y se usó el corte voraz. */
   fallback: boolean;
+  /**
+   * El tope de guiones seguidos o el largo mínimo de la última línea no se pudieron cumplir y se
+   * compuso sin ellos (antes de llegar al corte voraz).
+   */
+  relaxed: boolean;
 }
 
 /** Corte voraz: cada línea toma todo lo que entra con los espacios a su ancho natural. */
@@ -188,18 +264,28 @@ export function breakLines(
   const indent = options.indent ?? 0;
   const widthAt = (line: number) => (line === 0 ? width - indent : width);
   let positions: number[] | null = null;
+  let relaxed = false;
   if (algorithm === 'knuth-plass') {
     const tolerances = options.tolerance ? [options.tolerance, ...TOLERANCES] : TOLERANCES;
-    for (const tolerance of tolerances) {
-      const breaks: Break[] | null = knuthPlass(paragraph.items, {
-        ...options,
-        tolerance,
-        lineWidth: widthAt,
-      });
-      if (breaks) {
-        positions = breaks.map((b) => b.position);
-        break;
+    const constrained = options.maxConsecutiveHyphens !== undefined || !!options.minLastLine;
+    // Primero con las reglas pedidas; si no hay solución con ninguna tolerancia, sin ellas.
+    const passes = constrained
+      ? [options, { ...options, maxConsecutiveHyphens: undefined, minLastLine: 0 }]
+      : [options];
+    for (const [pass, rules] of passes.entries()) {
+      for (const tolerance of tolerances) {
+        const breaks: Break[] | null = knuthPlass(paragraph.items, {
+          ...rules,
+          tolerance,
+          lineWidth: widthAt,
+        });
+        if (breaks) {
+          positions = breaks.map((b) => b.position);
+          relaxed = pass > 0;
+          break;
+        }
       }
+      if (positions) break;
     }
   }
   const fallback = algorithm === 'knuth-plass' && !positions;
@@ -208,6 +294,7 @@ export function breakLines(
     lines: buildLines(paragraph, positions, widthAt, indent, options.justify ?? true),
     algorithm,
     fallback,
+    relaxed,
   };
 }
 
@@ -224,11 +311,14 @@ function buildLines(
   const shrink = glue?.type === 'glue' ? glue.shrink : 0;
   const lines: Line[] = [];
   let from = 0;
+  // La línea anterior cortó en el guion de una compuesta: éste se repite al comienzo (RAE).
+  let repeatHyphen = false;
   positions.forEach((position, lineIndex) => {
     const last = lineIndex === positions.length - 1;
     const width = widthAt(lineIndex);
     const breakItem = items[position];
     const hyphenated = breakItem?.type === 'penalty' && breakItem.flagged;
+    const wordBreak = paragraph.wordBreaks.get(position);
     // Trozos de palabra de la línea, unidos por palabra.
     const words: { start: number; end: number }[] = [];
     let previousWord = -1;
@@ -240,10 +330,15 @@ function buildLines(
       previousWord = segment.word;
     }
     const pieces = words.map((w, i) => {
-      const pieceText =
-        text.slice(w.start, w.end) + (hyphenated && i === words.length - 1 ? '-' : '');
-      return { ...w, run: shape(font, pieceText, options) };
+      const prefix = repeatHyphen && i === 0 ? '-' : '';
+      const suffix = wordBreak === 'syllable' && i === words.length - 1 ? '-' : '';
+      return {
+        ...w,
+        prefix,
+        run: shape(font, prefix + text.slice(w.start, w.end) + suffix, options),
+      };
     });
+    repeatHyphen = wordBreak === 'compound';
     const gaps = Math.max(pieces.length - 1, 0);
     const naturalWidth =
       pieces.reduce((sum, p) => sum + p.run.width, 0) + gaps * paragraph.spaceWidth;
@@ -259,13 +354,14 @@ function buildLines(
       if (i > 0) x += spaceWidth;
       const wordLength = piece.end - piece.start;
       for (const g of piece.run.glyphs) {
-        const isHyphen = g.cluster >= wordLength;
+        const inWord = g.cluster - piece.prefix.length;
+        const isHyphen = inWord < 0 || inWord >= wordLength;
         glyphs.push({
           id: g.id,
           x: x + g.xOffset,
           y: g.yOffset,
           advance: g.advance,
-          cluster: piece.start + Math.min(g.cluster, wordLength),
+          cluster: piece.start + Math.min(Math.max(inWord, 0), wordLength),
           ...(isHyphen ? { hyphen: true } : {}),
         });
         x += g.advance;

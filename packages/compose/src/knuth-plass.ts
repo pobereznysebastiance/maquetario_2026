@@ -39,6 +39,16 @@ export interface BreakOptions {
   flaggedDemerits?: number;
   /** Dos líneas seguidas de clases muy distintas: una apretada y otra floja (TeX: \adjdemerits). */
   fitnessDemerits?: number;
+  /**
+   * Tope de líneas seguidas terminadas en guion (como en InDesign; TeX sólo las encarece). Sin
+   * definir, no hay tope.
+   */
+  maxConsecutiveHyphens?: number;
+  /**
+   * Largo mínimo de la última línea, en la misma unidad que el ancho (sin contar la sangría). Un
+   * párrafo de una sola línea no se mide. Sin definir o 0, no hay mínimo.
+   */
+  minLastLine?: number;
 }
 
 /** Un corte elegido: índice del ítem donde termina la línea y medidas de la línea. */
@@ -61,6 +71,8 @@ interface Node {
   demerits: number;
   ratio: number;
   badness: number;
+  /** Líneas seguidas terminadas en guion hasta este corte. */
+  hyphens: number;
   previous: Node | null;
 }
 
@@ -87,6 +99,8 @@ export function knuthPlass(items: Item[], options: BreakOptions): Break[] | null
   const linePenalty = options.linePenalty ?? 10;
   const flaggedDemerits = options.flaggedDemerits ?? 10000;
   const fitnessDemerits = options.fitnessDemerits ?? 10000;
+  const maxHyphens = options.maxConsecutiveHyphens;
+  const minLastLine = options.minLastLine ?? 0;
   const widthOf = (line: number) =>
     typeof options.lineWidth === 'function' ? options.lineWidth(line) : options.lineWidth;
 
@@ -105,6 +119,7 @@ export function knuthPlass(items: Item[], options: BreakOptions): Break[] | null
       demerits: 0,
       ratio: 0,
       badness: 0,
+      hyphens: 0,
       previous: null,
     },
   ];
@@ -132,7 +147,9 @@ export function knuthPlass(items: Item[], options: BreakOptions): Break[] | null
       (item.type === 'glue' && index > 0 && items[index - 1]!.type === 'box');
 
     if (isLegalBreak) {
-      const candidates: (Node | undefined)[] = [undefined, undefined, undefined, undefined];
+      // El mejor corte por clase de ajuste (y, con tope de guiones, por guiones seguidos: si no,
+      // un camino con menos deméritos pero más guiones taparía a uno que respeta el tope).
+      const candidates = new Map<number, Node>();
       const penalty = item.type === 'penalty' ? item.penalty : 0;
       const flagged = item.type === 'penalty' && item.flagged;
       const breakWidth = item.type === 'penalty' ? item.width : 0;
@@ -155,7 +172,10 @@ export function knuthPlass(items: Item[], options: BreakOptions): Break[] | null
         if (!deactivate) next.push(node);
 
         const badness = badnessOf(ratio);
-        if (badness <= tolerance) {
+        const hyphens = flagged ? node.hyphens + 1 : 0;
+        const tooManyHyphens = maxHyphens !== undefined && hyphens > maxHyphens;
+        const shortLastLine = penalty === -INFINITY_PENALTY && node.line > 0 && width < minLastLine;
+        if (badness <= tolerance && !tooManyHyphens && !shortLastLine) {
           let demerits = (linePenalty + badness) ** 2;
           if (penalty >= 0) demerits += penalty ** 2;
           else if (penalty > -INFINITY_PENALTY) demerits -= penalty ** 2;
@@ -165,10 +185,11 @@ export function knuthPlass(items: Item[], options: BreakOptions): Break[] | null
           const fitness = fitnessClass(ratio);
           if (Math.abs(fitness - node.fitness) > 1) demerits += fitnessDemerits;
           demerits += node.demerits;
-          const best = candidates[fitness];
+          const key = fitness + 4 * (maxHyphens !== undefined ? hyphens : 0);
+          const best = candidates.get(key);
           if (!best || demerits < best.demerits) {
             const totals = totalsAfter(index);
-            candidates[fitness] = {
+            candidates.set(key, {
               position: index,
               line: node.line + 1,
               fitness,
@@ -178,12 +199,13 @@ export function knuthPlass(items: Item[], options: BreakOptions): Break[] | null
               demerits,
               ratio,
               badness,
+              hyphens,
               previous: node,
-            };
+            });
           }
         }
       }
-      for (const candidate of candidates) if (candidate) next.push(candidate);
+      next.push(...candidates.values());
       active = next;
       if (!active.length) return null;
     }

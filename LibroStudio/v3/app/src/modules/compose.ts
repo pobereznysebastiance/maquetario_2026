@@ -17,7 +17,9 @@ import {
   type Hyphenator,
   type HyphenLanguage,
   loadFont,
+  type Paragraph,
   SOFT_HYPHEN,
+  withVariations,
 } from '../../../../../packages/compose/src/browser.ts';
 
 export interface ComposeReportOptions {
@@ -27,7 +29,8 @@ export interface ComposeReportOptions {
   px?: number;
   /**
    * Fuentes para medir cuando no hay catálogo (navegador sin escritorio): "familia|peso|estilo"
-   * → dirección del archivo, por ejemplo { "Georgia|400|normal": "/fonts/georgia.ttf" }.
+   * → dirección del archivo, por ejemplo { "Georgia|400|normal": "/fonts/georgia.ttf" }. En una
+   * colección, la cara va después de "#": "/fonts/cambria.ttc#0".
    */
   fonts?: Record<string, string>;
   /** Incluir el detalle por párrafo (rows). */
@@ -42,6 +45,13 @@ export interface AlgorithmParity {
   lines: number;
   /** Párrafos según la diferencia de cantidad de líneas con Chromium (motor − Chromium). */
   lineCountDifference: Record<string, number>;
+  /**
+   * Párrafos distintos en los que Chromium corta donde las reglas del castellano no dejan (después
+   * de una raya pegada, junto a una raya suelta…): ahí el motor hace otra cosa a propósito.
+   */
+  expected: number;
+  /** Párrafos distintos sin esa explicación. */
+  unexpected: number;
 }
 
 export interface ParagraphRow {
@@ -56,8 +66,9 @@ export interface ParagraphRow {
   hyphenate: boolean;
   chromium: number;
   greedy: { lines: number; equal: number };
+  greedyChromiumSize: { lines: number; equal: number };
   knuthPlass: { lines: number; equal: number };
-  /** Si algún corte voraz difiere de Chromium: el texto de cada línea de los dos. */
+  /** Si el voraz con el cuerpo de Chromium difiere: el texto de cada línea de los dos. */
   greedyMismatch?: { chromium: string[]; greedy: string[] };
 }
 
@@ -66,6 +77,12 @@ export interface ComposeReport {
   chromiumLines: number;
   /** Corte voraz del motor: lo más parecido a lo que hace Chromium; mide si las medidas coinciden. */
   greedy: AlgorithmParity;
+  /**
+   * El mismo corte voraz con el cuerpo como lo usa Chromium: el tamaño en px truncado a centésimas
+   * (11 pt = 14,666… px se mide como 14,66 px; medido en Chrome 14x con Windows, ver
+   * docs/MOTOR_09-nov_composicion.md).
+   */
+  greedyChromiumSize: AlgorithmParity;
   /** Knuth-Plass: lo que cambiaría al dibujar con el motor. */
   knuthPlass: AlgorithmParity;
   /** Cajas de texto con todos sus párrafos medidos: desborde según Chromium y según el motor. */
@@ -78,6 +95,8 @@ export interface ComposeReport {
     disagreeGreedy: number;
     disagreeKnuthPlass: number;
   };
+  /** Comienzos de línea de Chromium donde el castellano no deja cortar, por motivo. */
+  chromiumForbiddenBreaks: Record<string, number>;
   milliseconds: number;
   rows?: ParagraphRow[];
 }
@@ -85,16 +104,38 @@ export interface ComposeReport {
 const PT_PER_MM = 72 / 25.4;
 
 const fontCache = new Map<string, Promise<ComposeFont>>();
+/** Lee una fuente por dirección; "archivo.ttc#2" es la cara 2 de una colección. */
 function fontFrom(url: string): Promise<ComposeFont> {
   let font = fontCache.get(url);
   if (!font) {
-    font = fetch(url).then(async (response) => {
+    const [path, index] = url.split('#');
+    font = fetch(path!).then(async (response) => {
       if (!response.ok) throw new Error(`No se pudo leer la fuente ${url} (${response.status})`);
-      return loadFont(await response.arrayBuffer());
+      return loadFont(await response.arrayBuffer(), Number(index) || 0);
     });
     fontCache.set(url, font);
   }
   return font;
+}
+
+/**
+ * Los ejes con que dibuja Chromium una cara variable: el peso de font-weight, el ancho normal
+ * (100) y el tamaño óptico igual al cuerpo en px (font-optical-sizing: auto); encima, lo que el
+ * objeto pide en font-variation-settings (fontAxes). Los ejes que la fuente no tiene se ignoran.
+ */
+function cssVariations(f: Record<string, any>, weight: number, sizePx: number) {
+  return { wght: weight, wdth: 100, opsz: sizePx, ...(f.fontAxes || {}) };
+}
+
+/** Por qué Chromium cortó en `start` aunque el castellano no deja (null: el motor también puede). */
+function forbiddenBreak(text: string, start: number, paragraph: Paragraph): string | null {
+  if (start === 0 || paragraph.breakStarts.includes(start)) return null;
+  const before = text.slice(0, start);
+  if (/[\u2013\u2014]$/.test(before)) return 'después de una raya o un guion de rango pegados';
+  if (/(^|\s)[\u2013\u2014]+\s*$/.test(before) || /^[\u2013\u2014]+(\s|$)/.test(text.slice(start)))
+    return 'junto a una raya suelta';
+  if (/\/$/.test(before)) return 'después de una barra';
+  return 'otro';
 }
 
 // El mismo separador que usa la página (hyphenation-controls.ts: createHyphenator con los
@@ -167,22 +208,30 @@ const emptyParity = (): AlgorithmParity => ({
   equalLines: 0,
   lines: 0,
   lineCountDifference: {},
+  expected: 0,
+  unexpected: 0,
 });
 
-function tally(parity: AlgorithmParity, engine: number[], chromium: number[], length: number) {
+function tally(
+  parity: AlgorithmParity,
+  engine: number[],
+  chromium: number[],
+  length: number,
+  explained: boolean,
+) {
   const equal = equalLines(engine, chromium, length);
   parity.lines += engine.length;
   parity.equalLines += equal;
   if (equal === engine.length && engine.length === chromium.length) parity.identical++;
+  else if (explained) parity.expected++;
+  else parity.unexpected++;
   const difference = String(engine.length - chromium.length);
   parity.lineCountDifference[difference] = (parity.lineCountDifference[difference] ?? 0) + 1;
   return equal;
 }
 
 /** Por qué un párrafo no se puede comparar todavía (null: se puede). */
-function unsupported(text: string, f: Record<string, any>): string | null {
-  if (f.tracking) return 'interletraje (tracking)';
-  if (f.fontAxes && Object.keys(f.fontAxes).length) return 'ejes variables';
+function unsupported(text: string): string | null {
   if (/[\t]|\s{2}|^\s|\s$/.test(text))
     return 'espacios múltiples, tabulaciones o blancos en los bordes';
   return null;
@@ -198,6 +247,7 @@ export async function composeReport(options: ComposeReportOptions = {}): Promise
     paragraphs: { measured: 0, empty: 0, skipped: {} },
     chromiumLines: 0,
     greedy: emptyParity(),
+    greedyChromiumSize: emptyParity(),
     knuthPlass: emptyParity(),
     boxes: {
       measured: 0,
@@ -207,6 +257,7 @@ export async function composeReport(options: ComposeReportOptions = {}): Promise
       disagreeGreedy: 0,
       disagreeKnuthPlass: 0,
     },
+    chromiumForbiddenBreaks: {},
     milliseconds: 0,
     ...(options.details ? { rows: [] } : {}),
   };
@@ -247,20 +298,28 @@ export async function composeReport(options: ComposeReportOptions = {}): Promise
             continue;
           }
           const element = box.querySelector<HTMLElement>(`[data-paragraph-index="${index}"]`);
-          const reason = element ? unsupported(text, f) : 'sin párrafo en el DOM';
+          const reason = element ? unsupported(text) : 'sin párrafo en el DOM';
           const italic = !!(f.fontItalic || f.italic);
           let url: string | undefined;
           let problem = reason;
+          // El peso que pide el CSS de la página (paragraphs.ts).
+          let weight = f.fontAxes?.wght ?? f.fontWeight ?? (f.bold ? 700 : 400);
           if (!problem && options.fonts) {
-            const weight = f.fontWeight ?? (f.bold ? 700 : 400);
-            url = options.fonts[`${f.font}|${weight}|${italic ? 'italic' : 'normal'}`];
+            url =
+              options.fonts[
+                `${f.font}|${f.fontWeight ?? (f.bold ? 700 : 400)}|${italic ? 'italic' : 'normal'}`
+              ];
             if (!url) problem = 'sin archivo de fuente para medir';
           } else if (!problem) {
             const face = selectedFace(f);
-            const weight = f.fontWeight ?? (f.bold ? 700 : face?.weight || 400);
+            weight = f.fontAxes?.wght ?? f.fontWeight ?? (f.bold ? 700 : face?.weight || 400);
+            const variableWeight = face?.axes.some((axis) => axis.tag === 'wght');
             if (!face) problem = 'sin cara del catálogo';
             else if (fontLoadErrors.has(face.id)) problem = 'la cara no se pudo cargar';
-            else if (Math.abs(weight - face.weight) >= 200 || (italic && !face.italic))
+            else if (
+              (!variableWeight && Math.abs(weight - face.weight) >= 200) ||
+              (italic && !face.italic)
+            )
               problem = 'negrita o cursiva inventada por el navegador';
             else url = MaquetarioHost.fontUrl(face.id);
           }
@@ -270,11 +329,13 @@ export async function composeReport(options: ComposeReportOptions = {}): Promise
             boxMeasured = false;
             continue;
           }
-          const font = await fontFrom(url);
+          const file = await fontFrom(url);
+          const sizePx = ((f.size * 25.4) / 72) * px;
+          const font = withVariations(file, cssVariations(f, weight, sizePx));
           const language = (
             ['es', 'en', 'pt'].includes(f.hyphenLanguage) ? f.hyphenLanguage : 'es'
           ) as HyphenLanguage;
-          const paragraph = createParagraph(font, text, {
+          const paragraphOptions = {
             size: f.size,
             language,
             hyphenate: !!f.hyphenate,
@@ -282,6 +343,15 @@ export async function composeReport(options: ComposeReportOptions = {}): Promise
             // Los puntos de corte los decide el separador, como en la página.
             leftMin: 1,
             rightMin: 1,
+            // Interletraje del párrafo: milésimas de eme (paragraphs.ts → letter-spacing).
+            letterSpacing: ((f.tracking || 0) / 1000) * f.size,
+          };
+          const paragraph = createParagraph(font, text, paragraphOptions);
+          // El cuerpo como lo usa Chromium: px truncado a centésimas, vuelto a puntos.
+          const chromiumSize = ((Math.floor(sizePx * 100) / 100) * f.size) / sizePx;
+          const chromiumParagraph = createParagraph(font, text, {
+            ...paragraphOptions,
+            size: chromiumSize,
           });
           const width = (o.w - (f.indentLeft || 0) - (f.indentRight || 0)) * PT_PER_MM;
           const layout = {
@@ -292,11 +362,34 @@ export async function composeReport(options: ComposeReportOptions = {}): Promise
           const greedy = starts(
             breakLines(paragraph, width, { ...layout, algorithm: 'greedy' }).lines,
           );
+          const greedyChromiumSize = starts(
+            breakLines(chromiumParagraph, width, { ...layout, algorithm: 'greedy' }).lines,
+          );
           const knuthPlass = starts(breakLines(paragraph, width, layout).lines);
           report.paragraphs.measured++;
           report.chromiumLines += chromium.length;
-          const equalGreedy = tally(report.greedy, greedy, chromium, text.length);
-          const equalKnuthPlass = tally(report.knuthPlass, knuthPlass, chromium, text.length);
+          let explained = false;
+          for (const start of chromium) {
+            const why = forbiddenBreak(text, start, paragraph);
+            if (!why) continue;
+            explained = true;
+            report.chromiumForbiddenBreaks[why] = (report.chromiumForbiddenBreaks[why] ?? 0) + 1;
+          }
+          const equalGreedy = tally(report.greedy, greedy, chromium, text.length, explained);
+          const equalChromiumSize = tally(
+            report.greedyChromiumSize,
+            greedyChromiumSize,
+            chromium,
+            text.length,
+            explained,
+          );
+          const equalKnuthPlass = tally(
+            report.knuthPlass,
+            knuthPlass,
+            chromium,
+            text.length,
+            explained,
+          );
           heightGreedy += spacing + greedy.length * lineMm;
           heightKnuthPlass += spacing + knuthPlass.length * lineMm;
           report.rows?.push({
@@ -310,12 +403,14 @@ export async function composeReport(options: ComposeReportOptions = {}): Promise
             hyphenate: !!f.hyphenate,
             chromium: chromium.length,
             greedy: { lines: greedy.length, equal: equalGreedy },
+            greedyChromiumSize: { lines: greedyChromiumSize.length, equal: equalChromiumSize },
             knuthPlass: { lines: knuthPlass.length, equal: equalKnuthPlass },
-            ...(equalGreedy !== chromium.length || greedy.length !== chromium.length
+            ...(equalChromiumSize !== chromium.length ||
+            greedyChromiumSize.length !== chromium.length
               ? {
                   greedyMismatch: {
                     chromium: slices(text, chromium),
-                    greedy: slices(text, greedy),
+                    greedy: slices(text, greedyChromiumSize),
                   },
                 }
               : {}),
