@@ -4,7 +4,7 @@
 //   Personalizado   → la selección que cada persona arma en Configuración y queda guardada.
 // No cambia nada del libro: sólo oculta controles de la interfaz.
 //
-// MaquetarioWorkspace es global: lo usan settings-panel.js, studio.js (menú del selector) y la
+// MaquetarioWorkspace es global: lo usan settings-panel.tsx, la barra superior (menú del selector) y la
 // autoprueba (desktop/src/main/selftest.ts).
 //
 // Fuente TypeScript: se compila a build/workspace.js (desktop/scripts/build.mjs).

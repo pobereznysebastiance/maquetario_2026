@@ -1,7 +1,7 @@
 // El dibujo del libro en pantalla e impreso: la página (paper), sus cornisas y folios
 // (autoElement), lo que la página lleva sólo en el lienzo (screenPage), la fachada del lienzo
 // (renderPages: lo dibuja <Spread/>), el redibujo general (render) y los avisos de estado. No tiene
-// efectos al cargar. Salió de studio.ts (grupo 5): core-wiring.ts registra todo como extensible
+// efectos al cargar. core-wiring.ts registra todo como extensible
 // (son las funciones más extendidas) y lo publica. Cada una llama a las demás por el nombre global,
 // así pasa por sus extensiones (paper → autoElement, render → renderPages, thumbs…).
 //

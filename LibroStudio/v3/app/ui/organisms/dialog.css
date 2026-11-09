@@ -1,5 +1,5 @@
 /* Organismo: diálogo. Tres tipos (D4, docs/INTERFAZ_08-nov_decisiones-etapa3.md); el tipo lo
-   pone modal.sheet / modal.info / modal.workspace / modal.confirm (studio.ts) en data-kind, y
+   pone modal.sheet / modal.info / modal.workspace / modal.confirm (components/dialog/modal.ts) en data-kind, y
    nadie escribe su tamaño a mano:
    - Confirmación (data-kind="confirm"): una pregunta, sin cruz, el verbo en el botón.
    - Hoja (data-kind="sheet", data-size sm|md|lg): formulario corto, acciones abajo a la derecha.

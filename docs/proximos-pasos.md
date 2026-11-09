@@ -1,6 +1,45 @@
 # Próximos pasos (rama version-juan)
 
-Hoja de ruta para retomar. Estado al cierre: todo subido, `npm test` y `npm run self-test` en verde.
+Hoja de ruta para retomar. Estado al cierre (09-nov): todo subido, `npm test` y `npm run self-test` en verde.
+
+## Estado (09-nov)
+
+- **Etapa 1** (Electron): cerrada. Falta lo que depende de Motiova y de la venta (ver "Distribución").
+- **Etapa 2** (TypeScript y módulos): cerrada, con la parte B.
+  - Los globales pasaron a `import` reales.
+  - El estado es un objeto (`src/state/editor.ts`) y `extend` usa un registro (`extensible`).
+  - El proceso principal le habla a la página por un contrato tipado (`src/contract/`).
+  - `studio.ts` ya no existe: el núcleo es `src/core/`.
+- **Etapa 3** (interfaz con componentes): cerrada, con el lienzo. Barras, pantallas, diálogos, inspector y lienzo están en React. Lo que quedó fuera:
+  - **Lienzo:**
+    - las dos restauraciones del cuadro en edición (motor y separación silábica);
+    - las clases de página activa que todavía pone `updateActivePage`;
+    - dos cálculos de escala (`calculateScale` y `Spread.tsx`);
+    - las miniaturas, que son de la capa `book`.
+  - **Inspector y alrededores:**
+    - `decorateFontBrowsers` sigue para la Hoja de estilo de párrafo;
+    - la API de cadenas de `src/ui/components.ts` (`UI.templateCard`, `UI.pageThumb`…) sigue para las plantillas y las miniaturas.
+- **Etapa 4** (motor de composición e imprenta): en curso.
+  - **Lo que hace hoy el motor:** detrás de la llave (`localStorage['maquetario-compose'] = '1'`), dibuja los párrafos con HarfBuzz y Knuth-Plass en pantalla, en la vista continua y en el PDF, con los mismos cortes.
+    - Maneja ejes variables, interletraje, colecciones, reglas del castellano, espacios duros y tramos con distinto estilo.
+    - La salida espera a que esté compuesta, y `npm run self-test -- --compose` arma la novela aparte.
+    - Con la llave apagada no se carga nada.
+  - **Imprenta:** cajas exactas y PDF/X-4 con RGB etiquetado y FOGRA39 (sin CMYK).
+  - **Falta:**
+    - prender la llave para todos y dejar el camino de Chromium sólo para la edición;
+    - el tope de guiones y el largo mínimo de la última línea en la interfaz;
+    - confirmar en macOS y Linux la regla del cuerpo truncado;
+    - probar la espera de la salida con una exportación real;
+    - CMYK y PDF/X-1a, si una imprenta los pide.
+  - **Decisiones pendientes:**
+    - **Estilos de carácter:** el formato definitivo de los tramos, cómo se crean en el editor y cómo se ven sin el motor (hoy el motor lee `paragraphMap[i].runs`, provisorio).
+    - **Valores por defecto, con Seba:** revisar a ojo el PDF de `--compose` y decidir el algoritmo, el tope de guiones y la última línea.
+    - **Validar el PDF/X-4** con un preflight (callas pdfToolbox o Acrobat Pro) y con una imprenta real, digital y offset (`docs/IMPRENTA_09-nov_pdfx.md`).
+- **Deuda que cuenta `npm test`** (`check-design-tokens`, tiene que bajar):
+  - 4 envolturas `extend()` escritas a mano;
+  - 61 estilos en línea desde JS, la mayoría posiciones del libro;
+  - 1 botón creado a mano;
+  - 242 globales publicados con `globalThis.x =`. La mayoría los publica `src/core/core-wiring.ts` para los módulos, las pruebas y el lienzo, que todavía los leen por nombre; `node scripts/globals-report.mjs` dice quién usa cada uno.
 
 ## Antes de cada commit
 
@@ -8,6 +47,7 @@ Hoja de ruta para retomar. Estado al cierre: todo subido, `npm test` y `npm run 
 npm test            # licencias, lector de fuentes, control de diseño (y deuda)
 npm run typecheck
 npm run self-test   # 25+ pasos sobre la app real; capturas en %APPDATA%\Maquetario-autoprueba\self-test
+                    # dos a la vez: cada una con su perfil (-- --user-data-dir=<carpeta> --out=<carpeta>)
 ```
 
 Commits en castellano, sin líneas de autoría de IA.
@@ -29,11 +69,11 @@ Encima de esas formas:
 - Inspector (`src/inspector-registry.ts`): `registerInspectorPanel` (cada sección, por pasada) y `pauseInspectorWhile`. Desde el paso 10 de la etapa 3 el inspector es un componente de React (`<Inspector/>`) y `decorateInspector` ya no existe.
 - Pruebas (`test-registry.js`): `registerIntegrationTest`, `registerNavigationTest`, `registerFontTest`. Las 25 cadenas de pruebas pasaron al registro.
 
-Quedan **13 envolturas de verdad** con `extend(f, anterior => …)`: miran el estado antes y después, o llaman a la anterior en el medio, y ahí la envoltura es la forma correcta. Son `renderPages` (2), `finishEditing` (2), `settingsNew` (2), `outputPreview` (2), `outputDialog`, `objectDown`, `commit`, `applyFace` y `startTutorial`. `npm run lint:design` las cuenta ("envolturas extend() escritas a mano"): una nueva tiene que justificarse.
+Quedaban **13 envolturas de verdad** (hoy son 4: ver la deuda en "Estado") con `extend(f, anterior => …)`: miran el estado antes y después, o llaman a la anterior en el medio, y ahí la envoltura es la forma correcta. Son `renderPages` (2), `finishEditing` (2), `settingsNew` (2), `outputPreview` (2), `outputDialog`, `objectDown`, `commit`, `applyFace` y `startTutorial`. `npm run lint:design` las cuenta ("envolturas extend() escritas a mano"): una nueva tiene que justificarse.
 
 Al cerrar la conversión, los PDF y los JSON de verificación de la autoprueba salieron idénticos a los de antes, y las capturas difieren como mucho en 1/255 por canal (suavizado del renderizado).
 
-Etapa 2 en marcha: ver "Etapa 2" más abajo.
+Etapa 2: ver "Etapa 2" más abajo (cerrada).
 
 ## 2. Vaciar la capa legacy (hecho)
 
@@ -88,13 +128,13 @@ Verificado al mudar: `style-snapshot` idéntico con las hojas viejas y con `book
    - Hecho: **`model.ts`** (el modelo del libro: tipos `Book`, `Page`, `BookObject`, `AutoElement`, `TocEntry`). Comparado con el viejo en Node con el mismo azar: mismas salidas en todas sus funciones. Sigue siendo un objeto común porque `src/master-refinement.ts` y `shapes.js` reemplazan `M.validate` (pendiente: pasarlo a un registro de validaciones).
    - Hecho también: todo el resto de la interfaz, en tandas con agentes en paralelo (cada uno en su copia del repo; la integración, de a uno, con la autoprueba y la comparación de PDF): 54 scripts compilados desde `src/`, y por último **`studio.ts`**. Sólo quedan en JavaScript `ui/*.js`, `test-loader.js` y lo de terceros (pdf-lib, imagen de muestra, separación silábica).
    - Cómo se pasó un archivo de interfaz: sus globales que usan otros archivos (o las pruebas, o `selftest.ts`, o el anfitrión) se publican con `globalThis.X = …` y `declare global`; lo demás queda privado. Si otro archivo **extiende** una función por nombre (`extend('x', …)`), se define directamente como `globalThis.x = function …` y adentro se llama por el global, así las llamadas internas pasan por las extensiones. Si otro archivo o una prueba **asigna** un estado, ese estado vive en `globalThis`.
-   - **`studio.ts` es un script global** (`src/global/studio.ts`): sin `import`/`export`, y `build.mjs` compila `src/global/*.ts` sin envoltorio (esbuild sólo saca los tipos). Así sus `let`/`const`/`function` de nivel superior siguen siendo globales como en el `studio.js` original: `book = …`, `active = …` desde otros archivos y `extend('render', …)` funcionan igual, con el mismo orden y elevación. En TypeScript sus declaraciones las ven todos los `src/*.ts` sin `declare global`; los tipos del modelo los toma con `import('../model.ts').X`. Ya no hace falta `src/js-globals.d.ts`. Comparado minificado con `studio.js`: idéntico salvo dos `String()` que no cambian el resultado (`dataset.page` y `aria-selected`).
+   - **(Historia: ya no es así desde el grupo 5 de la parte B, `studio.ts` no existe.)** `studio.ts` era un script global (`src/global/studio.ts`): sin `import`/`export`, y `build.mjs` compila `src/global/*.ts` sin envoltorio (esbuild sólo saca los tipos). Así sus `let`/`const`/`function` de nivel superior siguen siendo globales como en el `studio.js` original: `book = …`, `active = …` desde otros archivos y `extend('render', …)` funcionan igual, con el mismo orden y elevación. En TypeScript sus declaraciones las ven todos los `src/*.ts` sin `declare global`; los tipos del modelo los toma con `import('../model.ts').X`. Ya no hace falta `src/js-globals.d.ts`. Comparado minificado con `studio.js`: idéntico salvo dos `String()` que no cambian el resultado (`dataset.page` y `aria-selected`).
    - **Puntos de entrada (hecho, 8-nov):** `ui/*.js` pasó a `src/ui/*.ts` y la interfaz se arma con dos entradas en `src/entries/`: `core.ts` (anfitrión, ventana, extensiones, registro de pruebas y modelo) y `app.ts` (el resto), que importan los módulos en el orden de carga de antes. `index.html` carga 10 scripts en lugar de 66: terceros (pdf-lib, imagen de muestra, separación silábica) → `build/core.js` → `build/studio.js` → `build/app.js` → `test-loader.js`. Verificado: la lista completa de extensiones (qué, en qué orden y desde qué módulo) es idéntica, y la autoprueba con PDF y JSON idénticos. Diferencia a propósito: si un módulo falla al cargar, ahora corta la carga entera en vez de dejar la app a medias.
-   - **Sigue (parte B, a decidir con la etapa 3):** reemplazar los globales por `import` reales entre módulos. Pide dos cambios de arquitectura: un objeto de estado (con `import` no se puede reasignar `book` desde otro archivo) y rediseñar `extend` (hoy extiende por nombre en `window`; un `import` apunta a la función original). Conviene hacerlo junto con el paso a componentes (`docs/INTERFAZ_08-nov_revision.md`, decisiones D1–D2).
+   - **Parte B (hecha el 09-nov, `docs/arquitectura.md` → "Etapa 2, parte B"):** reemplazar los globales por `import` reales entre módulos. Pide dos cambios de arquitectura: un objeto de estado (con `import` no se puede reasignar `book` desde otro archivo) y rediseñar `extend` (hoy extiende por nombre en `window`; un `import` apunta a la función original). Conviene hacerlo junto con el paso a componentes (`docs/INTERFAZ_08-nov_revision.md`, decisiones D1–D2).
 5. **Migraciones del `.mqt` (hecho, 8-nov).** `src/model-migrations.ts`: `CURRENT_VERSION` (3), la lista ordenada `MIGRATIONS` de pasos `{ from, to, migrate }` (vacía: todo es v3) y `migrateProject`, que `M.validate` llama antes de validar; así lo usan todos los caminos de carga (Abrir, recientes, doble clic, paquete, recuperación) y las validaciones de `master-refinement` y `shapes` siguen corriendo después, en el mismo orden. Un proyecto de una versión más nueva da "Este proyecto se hizo con una versión más nueva de Maquetario: actualizá el programa para abrirlo." El proceso principal lo rechaza antes de tomar el archivo (`handlers/project.ts → checkOpened`, con la misma regla importada de la interfaz), para que no quede como destino de Guardar ni en recientes; antes, en el proceso principal sólo recientes miraba la versión ("Proyecto incompatible."). Pruebas en Node: `desktop/test/project-format.test.ts` (entra en `npm test`). Cómo agregar un paso: comentario al principio de `model-migrations.ts` y `docs/arquitectura.md` → "Formato del proyecto y migraciones".
    - Sin normalización v3→v3: `measurementUnit`, `paragraphStyles`, `cover`, `guides` y `toc` son opcionales en la v3 y se completan donde se leen. Pasarlos a un paso al cargar cambiaría el JSON que se guarda (la autoprueba compara JSON idénticos) sin arreglar nada, y las lecturas con valor por defecto tendrían que quedar igual para los libros que no pasan por `validate` (`M.create`, el documento en blanco). Cuando haya una v4 que los vuelva obligatorios, su paso los completa y se pueden sacar esos `|| []`.
 
-**Etapa 2 cerrada** salvo la parte B (imports reales), que va con la etapa 3.
+**Etapa 2 cerrada**, con la parte B (09-nov).
 
 ## Etapa 3: React y Radix (D1/D2, `docs/INTERFAZ_08-nov_decisiones-etapa3.md`)
 
@@ -129,16 +169,8 @@ En React (`src/components/`):
   - Edición y arrastre quedan fuera de React, con su ciclo escrito.
   - El papel y lo impreso no cambiaron: PDF idénticos.
 
-Falta:
-- **Lienzo, lo que quedó fuera** (`docs/arquitectura.md` → "El lienzo" → "Lo que quedó fuera"):
-  - unir las dos restauraciones del cuadro en edición (motor y separación silábica);
-  - sacar las clases de página activa que todavía pone `updateActivePage`;
-  - un solo cálculo de escala;
-  - las miniaturas.
-- **Retirar `#modal`:** ya nadie lo abre (`exportDialog` y `offerRecovery` se borraron); quedan el `<dialog>` de `index.html`, chequeos `$('#modal').open`, reglas de CSS con `#modalBody` y pruebas que lo cierran.
-- **Al final:**
-  - retirar `#modal` y la API de cadenas de `src/ui/components.ts` cuando no quede HTML;
-  - la parte B de la etapa 2 (`import` reales, objeto de estado y un `extend` que no dependa de `window`).
+**Etapa 3 cerrada**, con el lienzo. `#modal` se retiró y la parte B de la etapa 2 está hecha. Lo que quedó fuera, en "Estado", arriba.
+- Detalle del lienzo en `docs/arquitectura.md` → "El lienzo" → "Lo que quedó fuera".
 
 ## Etapa 4: motor de composición y PDF de imprenta
 
@@ -147,11 +179,10 @@ Falta:
   - No hay conversión a CMYK: una imprenta que pida PDF/X-1a lo rechaza.
   - Falta validarlo con un preflight externo y con una imprenta real.
   - Detalle y contrato en `docs/IMPRENTA_09-nov_pdfx.md`.
-- **Motor (`packages/compose`, HarfBuzz en WASM y Knuth-Plass):** cargado en la app detrás de una llave apagada (`localStorage maquetario-compose = 1`).
-  - Todavía no dibuja: `composeReport()` mide la paridad con los cortes de Chromium.
-  - Ya maneja ejes variables, interletraje, colecciones y reglas del castellano.
-  - Sigue el dibujo con llave en `paper()` (paso 4 del plan en `docs/MOTOR_09-nov_composicion.md`).
-  - La autoprueba compara con la llave apagada.
+- **Motor (`packages/compose`, HarfBuzz en WASM y Knuth-Plass):** detrás de una llave apagada (`localStorage maquetario-compose = 1`).
+  - Con la llave prendida, dibuja en `paper()`: pantalla, vista continua y PDF con los mismos cortes, y tramos con distinto estilo. `composeReport()` mide la paridad con Chromium.
+  - La autoprueba compara con la llave apagada; `--compose` suma la novela compuesta aparte.
+  - Lo que falta y las decisiones pendientes están en "Estado", arriba, y en `docs/MOTOR_09-nov_composicion.md` → "Qué falta".
 
 ## 3. Experiencia de uso
 

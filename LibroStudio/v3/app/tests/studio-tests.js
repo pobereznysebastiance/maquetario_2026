@@ -1,4 +1,4 @@
-// Pruebas de studio.js: sólo se cargan en la autoprueba (test-loader.js), no van en el instalador.
+// Pruebas del núcleo (src/core/): sólo se cargan en la autoprueba (test-loader.js), no van en el instalador.
 
 window.runIntegrationTests = function () {
   const checks = [];

@@ -1,5 +1,5 @@
 // Plantillas de grilla (la tira #templates) y miniaturas de los pliegos (#thumbnails). No tiene
-// efectos al cargar. Salió de studio.ts (grupo 5): core-wiring.ts registra renderTemplates y
+// efectos al cargar. core-wiring.ts registra renderTemplates y
 // thumbs como extensibles y los publica. Lo que llaman del resto (commit, render, finishEditing,
 // toast) va por el nombre global, así pasa por sus extensiones.
 //

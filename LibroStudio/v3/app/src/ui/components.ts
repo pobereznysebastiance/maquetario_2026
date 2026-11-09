@@ -11,8 +11,8 @@
 // - data y aria se escriben con su prefijo: { goPart: 3 } → data-go-part="3",
 //   { pressed: true } → aria-pressed="true" (en aria, true y false se escriben como texto).
 //
-// Se carga con el núcleo (src/entries/core.ts), antes de studio.ts: la barra de herramientas y
-// el riel se arman al cargar. Sólo usa icon() y esc() de studio.ts al llamarse.
+// Se carga con el núcleo (src/entries/core.ts), antes que el resto del núcleo (src/core/): la barra de herramientas y
+// el riel se arman al cargar. Sólo usa icon() y esc() (src/core/) al llamarse.
 //
 // Fuente TypeScript: viaja dentro de build/core.js (src/entries/core.ts).
 
@@ -69,7 +69,7 @@ const cls = (base: string, modifiers: Record<string, boolean | undefined>): stri
   [base, ...Object.keys(modifiers).filter((k) => modifiers[k])].join(' ');
 
 const UI = {
-  /** Átomo: ícono del set de la app (studio.ts → paths). */
+  /** Átomo: ícono del set de la app (src/core/icons.ts → paths). */
   icon(name: string): string {
     return icon(name);
   },

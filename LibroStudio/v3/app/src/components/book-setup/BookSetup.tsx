@@ -1,6 +1,6 @@
 // Hoja "Configurar libro" (libro nuevo o formato del actual): tamaños de página a la izquierda y
-// datos del libro a la derecha. La abre settingsNew(isNew); settings(isNew) (studio.ts) pregunta
-// antes por los cambios sin guardar. Al aplicar llama a applyBookSettings (studio.ts), que valida
+// datos del libro a la derecha. La abre settingsNew(isNew); settings(isNew) (src/core/book-settings.ts) pregunta
+// antes por los cambios sin guardar. Al aplicar llama a applyBookSettings (src/core/book-settings.ts), que valida
 // y hace el cambio, y que otros módulos extienden (review-workspace, publications).
 //
 // Mismos ids que antes (los usan las pruebas y la autoprueba): #newTitle, #pageUnits, #newWidth,

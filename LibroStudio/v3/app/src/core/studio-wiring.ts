@@ -1,8 +1,7 @@
-// El arranque de la interfaz (lo que era el final de studio.ts): los oyentes del lienzo, de los
+// El arranque de la interfaz: los oyentes del lienzo, de los
 // archivos elegidos, de las pestañas y de los atajos del editor, el primer dibujo y el aviso de
-// "listo" al anfitrión. Lo importa src/entries/core.ts al final, así corre en el mismo momento que
-// corría build/studio.js: después de todo core y antes que app (los oyentes quedan en el mismo
-// orden frente a los de los módulos de app). Etapa 2, parte B, grupo 5: studio.ts ya no existe.
+// "listo" al anfitrión. Lo importa src/entries/core.ts al final, así corre después de todo core y
+// antes que app (los oyentes quedan en el mismo orden frente a los de los módulos de app).
 //
 // Fuente TypeScript: viaja dentro de build/core.js (src/entries/core.ts).
 import { $, $$ } from './utils.ts';

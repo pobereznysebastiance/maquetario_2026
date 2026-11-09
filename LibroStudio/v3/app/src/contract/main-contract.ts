@@ -21,7 +21,7 @@ const maquetarioMain: MaquetarioMainApi = {
   welcomeVisible: () => globalThis.welcomeVisible === true,
   // Es el mismo recorrido que un reciente (welcome-service.tsx → openRecentProject): con cambios
   // sin guardar pregunta antes (confirmChanges), cierra la bienvenida y carga con
-  // loadOpenedProject, como Abrir (studio.ts → openBook).
+  // loadOpenedProject, como Abrir (src/core/project-file.ts → openBook).
   openRequested: () => {
     const run = async () => {
       try {

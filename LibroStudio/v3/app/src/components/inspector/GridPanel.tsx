@@ -1,6 +1,6 @@
 // Inspector · Libro · Grilla en React (etapa 3, D2): columnas, filas, medianiles, ajuste a los
 // márgenes o al borde y márgenes de la página. Mismo marcado que en HTML (section(), row(), pair()
-// y los botones de ajuste de studio.ts); la validación de grilla y márgenes la hace
+// y los botones de ajuste del viejo inspector en HTML); la validación de grilla y márgenes la hace
 // commitBinding(), como antes. Al final, las guías individuales (antes las agregaba editorial.ts
 // después de dibujar el inspector).
 //
@@ -12,7 +12,7 @@ import { Icon } from '../Icon.tsx';
 import { editor } from '../../core-api.ts';
 import { registerInspectorPanel } from '../../inspector-registry.ts';
 
-/** Dos medidas lado a lado con su etiqueta debajo (pair() de studio.ts). */
+/** Dos medidas lado a lado con su etiqueta debajo (el viejo pair()). */
 const Pair = ({
   label,
   paths,

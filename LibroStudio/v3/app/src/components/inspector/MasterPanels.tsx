@@ -1,6 +1,6 @@
 // Inspector · Libro · Cornisa y Titulillo en React (etapa 3, D2).
 //
-// Mismo marcado que tenían en HTML (section(), row(), options() y masterDetails() de studio.ts).
+// Mismo marcado que tenían en HTML (section(), row(), options() y masterDetails() del viejo inspector).
 // Absorben lo que agregaba el decorador de master-refinement.ts moviendo nodos: con la posición en
 // un margen lateral, la fila "Lectura lateral" (data-master-direction) y su ayuda debajo de la
 // posición, y "Rotar texto 90°" oculto (lo reemplaza la lectura lateral).

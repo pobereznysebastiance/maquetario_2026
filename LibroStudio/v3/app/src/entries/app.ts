@@ -1,4 +1,4 @@
-// app: el resto de la interfaz, después del núcleo (studio.ts).
+// app: el resto de la interfaz, después del núcleo (build/core.js).
 // Fuente: se compila a build/app.js (desktop/scripts/build.mjs). El orden de los
 // import es el orden de carga: cada módulo corre al importarse, como corría su <script> en index.html.
 

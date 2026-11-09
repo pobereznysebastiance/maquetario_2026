@@ -1,5 +1,5 @@
 // Archivo y guardado: la pregunta por los cambios sin guardar (confirmChanges), Guardar, Abrir y
-// cargar un proyecto. No tiene efectos al cargar. Salió de studio.ts (grupo 5): core-wiring.ts
+// cargar un proyecto. No tiene efectos al cargar. core-wiring.ts
 // publica todo y registra saveProject (bienvenida, pruebas) y loadProject (fonts,
 // review-workspace) como extensibles. confirmChanges llama a saveProject por el nombre global,
 // así pasa por sus extensiones; también va por el nombre global lo demás que llama (askUnsaved,

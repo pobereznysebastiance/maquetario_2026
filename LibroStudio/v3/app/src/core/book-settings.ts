@@ -1,5 +1,5 @@
 // Formato del libro: abrir la Hoja (settings) y aplicar lo elegido (applyBookSettings). No tiene
-// efectos al cargar. Salió de studio.ts (grupo 5): core-wiring.ts publica settings y registra
+// efectos al cargar. core-wiring.ts publica settings y registra
 // applyBookSettings como extensible (review-workspace, publications y las pruebas la extienden).
 // Lo que llama del resto (commit, confirmChanges, settingsNew) va por el nombre global.
 //

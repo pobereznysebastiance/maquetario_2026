@@ -1,5 +1,5 @@
 // La fachada del inspector y cómo los paneles graban sus campos en el libro. No tiene efectos al
-// cargar. Salió de studio.ts (grupo 5): core-wiring.ts registra inspector() como extensible
+// cargar. core-wiring.ts registra inspector() como extensible
 // (inspector-registry, tutorial, review-workspace e inspector-views la extienden) y publica todo.
 //
 // commitBinding y commitObjectField llaman a inspector() y commit() por su nombre global, así

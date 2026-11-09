@@ -21,7 +21,7 @@
 // llama desde el render de un componente ni desde sus efectos, sólo desde código imperativo o
 // manejadores de eventos.
 //
-// Excepción: durante un arrastre en la página (drag, de studio.ts y frame-handles.ts) cada
+// Excepción: durante un arrastre en la página (drag, de src/core/editing.ts y frame-handles.ts) cada
 // movimiento avisa dos veces (updateStatus y checkOverflow) y redibujar todo en el acto costaba
 // unos 3 ms por movimiento. Mientras dura, los avisos se juntan y se redibuja una vez por cuadro
 // (requestAnimationFrame): las barras y los campos que siguen al objeto se actualizan igual en

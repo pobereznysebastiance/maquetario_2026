@@ -12,7 +12,7 @@
 import type { LibroModelApi } from './model.ts';
 import type { EditorState } from './state/editor.ts';
 
-/** El modelo del libro (LibroModel, el M de studio.ts). */
+/** El modelo del libro (LibroModel, el global M). */
 export const M: LibroModelApi = globalThis.LibroModel;
 /** Marcado de los componentes en HTML (src/ui/components.ts). */
 export const UI: typeof globalThis.UI = globalThis.UI;

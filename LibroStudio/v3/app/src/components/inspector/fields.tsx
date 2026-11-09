@@ -1,9 +1,9 @@
 // Piezas comunes de los paneles del inspector en React (etapa 3, D2), con el mismo marcado que las
-// funciones de studio.ts que reemplazaron (section(), row(), number(), options()), así los estilos
+// funciones del viejo inspector en HTML que reemplazaron (section(), row(), number(), options()), así los estilos
 // y las pruebas las reconocen igual.
 //
 // - Los controles con data-bind se ligan a su ruta del libro con el "change" nativo y
-//   commitBinding() de studio.ts. Las pruebas escriben .value y disparan new Event('change'), que
+//   commitBinding() de src/core/inspector.ts. Las pruebas escriben .value y disparan new Event('change'), que
 //   no sube: por eso no va el onChange de React.
 // - Son "no controlados" (defaultValue / defaultChecked): el valor vive en el elemento. El
 //   inspector ya no se vuelve a crear entero en cada inspector(): cada campo lleva de key su valor
@@ -202,7 +202,7 @@ export const TermHelp = ({ text }: { text: string }) => {
   );
 };
 
-/** Título de sección con interruptor (section(…, enabled) de studio.ts). */
+/** Título de sección con interruptor (el viejo section(…, enabled)). */
 export const SwitchHeading = ({
   icon,
   title,
@@ -234,7 +234,7 @@ export const SwitchHeading = ({
   </SectionHeading>
 );
 
-/** Título de sección sin interruptor (section() de studio.ts). */
+/** Título de sección sin interruptor (el viejo section()). */
 export const Heading = ({ icon, title }: { icon: string; title: string }) => (
   <SectionHeading>
     <Icon name={icon} />
@@ -246,7 +246,7 @@ export const Heading = ({ icon, title }: { icon: string; title: string }) => (
 );
 
 /**
- * Fila del inspector (row() de studio.ts). term: deja el texto en castellano en
+ * Fila del inspector (el viejo row()). term: deja el texto en castellano en
  * data-text-source, para que la ayuda de términos lo reconozca en cualquier idioma.
  */
 export const Row = ({
@@ -267,7 +267,7 @@ export const Row = ({
   </div>
 );
 
-/** Número con unidad (number() de studio.ts). */
+/** Número con unidad (el viejo number()). */
 export const NumberField = ({
   path,
   min,
@@ -297,7 +297,7 @@ export const NumberField = ({
   </span>
 );
 
-/** Selector de opciones (options() de studio.ts). */
+/** Selector de opciones (el viejo options()). */
 export const Options = ({
   path,
   items,
@@ -432,8 +432,8 @@ export const CheckLine = ({
 );
 
 /**
- * "Personalizar pares, impares y posición" de cornisa, titulillo y folio (masterDetails() de
- * studio.ts). offsets: incluye los desplazamientos X e Y (el folio los tiene en su ajuste fino).
+ * "Personalizar pares, impares y posición" de cornisa, titulillo y folio (el viejo
+ * masterDetails()). offsets: incluye los desplazamientos X e Y (el folio los tiene en su ajuste fino).
  * verticalHidden: la casilla "Rotar texto 90°" queda oculta (en el margen lateral la reemplaza la
  * lectura lateral). extra: casillas propias, después de la de rotar.
  */

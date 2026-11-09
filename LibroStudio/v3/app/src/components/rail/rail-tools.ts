@@ -10,7 +10,7 @@
 // - label y title son funciones: se evalúan al dibujar, en el idioma actual. title, si falta,
 //   es el nombre.
 // - shortcut: la tecla que se muestra; '' deja el lugar vacío y null no lo dibuja. Los atajos en
-//   sí los atiende cada módulo (studio.ts: V T I F; canvas-navigation.ts: H).
+//   sí los atiende cada módulo (src/core/studio-wiring.ts: V T I F; canvas-navigation.ts: H).
 // - after: la clave (tool o id) de la herramienta tras la cual va; sin after, al final.
 // - onSelect: qué hace el clic; si falta, setTool(tool).
 //
@@ -33,7 +33,7 @@ declare global {
 
 globalThis.registerTool = registerTool;
 
-// Herramientas del núcleo (studio.ts: setTool). Los nombres van en castellano y se traducen al
+// Herramientas del núcleo (src/core/tools.ts: setTool). Los nombres van en castellano y se traducen al
 // dibujar (src/i18n.ts); "Crear texto" y "Caja de texto" tienen su texto propio.
 const tr = (text: string) => (globalThis.LibroI18n ? i18n.tr(text) : text);
 const textTitle = () => bw('Crear caja de texto', 'Create a text frame', 'Criar caixa de texto');

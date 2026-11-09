@@ -1,6 +1,6 @@
 // Guías del lienzo (etapa 3, D2, lienzo paso 4): la grilla, los márgenes y las guías propias de
 // cada página, las reglas y los indicadores del imán. Las dibuja la capa de selección
-// (SelectionLayer.tsx) con portales, con el mismo marcado que antes armaban gridSvg (studio.ts) con
+// (SelectionLayer.tsx) con portales, con el mismo marcado que antes armaban gridSvg (el viejo núcleo) con
 // la extensión de editorial.ts, renderPages / la vista continua (#rulerX, #rulerY) y layout-tools
 // (.snap-indicator). Sólo de pantalla: la grilla y las guías del PDF las dibuja output.ts.
 //

@@ -1,4 +1,4 @@
-// Cableado del núcleo (lo que era studio.ts, grupo 5): publica los nombres que todavía leen por
+// Cableado del núcleo: publica los nombres que todavía leen por
 // global los módulos de app, el lienzo, las pruebas y scripts/style-snapshot.js;
 // registra como extensibles las funciones que otros extienden por nombre (toast: Toast.tsx;
 // syncNative: react/editor-state-wiring.ts; commit: paragraphs.ts; inspector: inspector-registry,

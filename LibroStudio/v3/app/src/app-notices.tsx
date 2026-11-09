@@ -9,7 +9,7 @@
 // close-publication-modal.
 //
 // askUnsaved, showClosePublicationDialog, requestCloseConfirmation y showBusyCloseNotice son
-// globales: confirmChanges (studio.ts) usa askUnsaved; el proceso principal llama a
+// globales: confirmChanges (src/core/project-file.ts) usa askUnsaved; el proceso principal llama a
 // requestCloseConfirmation y showBusyCloseNotice al cerrar la ventana; las pruebas
 // (tests/app-notices-tests.js), a showClosePublicationDialog; las capturas de estilo, a
 // prepareCloseNoticePreview.

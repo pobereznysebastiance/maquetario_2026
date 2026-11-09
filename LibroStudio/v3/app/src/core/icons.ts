@@ -1,6 +1,6 @@
 // Íconos de la interfaz: los trazos SVG por nombre (paths, que category-design.ts amplía con los
 // suyos), el marcado de un ícono (icon) y el dibujo de los [data-icon] (icons). No tiene efectos
-// al cargar. Salieron de studio.ts (grupo 5); los publica core-wiring.ts.
+// al cargar. Los publica core-wiring.ts.
 //
 // Fuente TypeScript: viaja dentro de build/core.js (src/entries/core.ts).
 import { $$ } from './utils.ts';

@@ -1,4 +1,4 @@
-// Átomo: ícono del set de la app, el mismo que dibuja icon() de studio.ts (trazos en paths).
+// Átomo: ícono del set de la app, el mismo que dibuja icon() de src/core/icons.ts (trazos en paths).
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 export const Icon = ({ name }: { name: string }) => (

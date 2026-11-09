@@ -4,7 +4,7 @@
 //   import { editor } from '../core-api.ts';       // desde app (otro bundle: no se duplica)
 //   editor.book.pages[editor.active]
 //
-// Antes, cada pieza de estado era un `let` del núcleo (el viejo studio.ts) o un global que publicaba un
+// Antes, cada pieza de estado era un `let` del viejo núcleo o un global que publicaba un
 // módulo, y otros archivos, las pruebas y las cadenas de la autoprueba lo leían y lo asignaban por
 // su nombre (`book = …`, `({ book, active } = previous)`). Mientras se migra, cada nombre sigue
 // existiendo como global: es un accesor sobre este objeto (Object.defineProperty en globalThis),

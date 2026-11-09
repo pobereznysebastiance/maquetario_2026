@@ -2,7 +2,7 @@
 // sólo informa (un botón "Listo"): cuenta de Motiova, interfaz (idioma, tamaño, reglas), espacio
 // de trabajo, carpetas de fuentes y versión.
 //
-// openSettings es global: la usan el menú de studio.ts, workspace.ts y la autoprueba
+// openSettings es global: la usan workspace.ts y la autoprueba
 // (desktop/src/main/selftest.ts, que busca #settingsLanguage). maquetarioUpdateAvailable la llama
 // el proceso principal (desktop/src/main/main.ts).
 // Mismos ids que la versión en HTML: #settings-section-account, #settingsConnect,

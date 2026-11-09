@@ -1,6 +1,5 @@
 // Los tres tipos de diálogo (D4, docs/INTERFAZ_08-nov_decisiones-etapa3.md), con la forma de
 // siempre. No tiene efectos al cargar: se importa (import { modal } from …/dialog/modal.ts).
-// Salió de studio.ts (etapa 2, parte B, grupo 5).
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 //   modal.sheet(título, <Contenido />, aplicar, 'Verbo', { size })  Hoja: formulario corto, Cancelar + verbo

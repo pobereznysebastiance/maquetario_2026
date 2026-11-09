@@ -1,5 +1,5 @@
 // Componentes chicos de formulario (átomos y moléculas de ui/), para las pantallas en React.
-// Mismo marcado que sus versiones en HTML (studio.ts → control(), UI.settingRow, UI.checkItem),
+// Mismo marcado que sus versiones en HTML (el viejo control(), UI.settingRow, UI.checkItem),
 // así los estilos, las pruebas y document-units los reconocen igual:
 //
 //   <Field id="newTitle" label="Título del libro" type="text" defaultValue={…} full />
@@ -58,7 +58,7 @@ function assignRef<T>(ref: Ref<T> | undefined, value: T | null): void {
 
 const tr = (text: string): string => i18n.tr(text);
 
-/** Molécula: etiqueta arriba y control abajo (.control, como control() de studio.ts). */
+/** Molécula: etiqueta arriba y control abajo (.control, como el viejo control()). */
 export const Control = ({
   label,
   htmlFor,

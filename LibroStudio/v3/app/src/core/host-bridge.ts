@@ -2,7 +2,7 @@
 // del sistema mientras no cargó su componente (toast y la cola pendingToasts) y el aviso de
 // cambios sin guardar (syncNative). No tiene efectos al cargar: core-wiring.ts registra toast y
 // syncNative como extensibles (otros los extienden por nombre), los publica y escucha las
-// respuestas del anfitrión. Salieron de studio.ts (grupo 5).
+// respuestas del anfitrión.
 //
 // Fuente TypeScript: viaja dentro de build/core.js (src/entries/core.ts).
 import type { HostReply } from '../host.ts';

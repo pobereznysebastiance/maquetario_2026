@@ -3,7 +3,7 @@
 // de vistas del riel (.rail-switch: Páginas · Índice · Capas).
 //
 // - Las herramientas salen del registro (rail-tools.ts: registerTool). La activa es la del global
-//   tool (studio.ts): se redibuja con useEditorState(), y setTool avisa al terminar.
+//   tool (estado del editor): se redibuja con useEditorState(), y setTool avisa al terminar.
 // - La vista del riel la lleva inspector-views.tsx (showRailView / currentRailView), que avisa con
 //   notifyEditorState(); acá sólo se dibujan las pestañas, el clic y las flechas.
 // - Mismos ids y atributos que antes: data-tool, #handTool, #shapeTool, #indexTool, #layersTool,

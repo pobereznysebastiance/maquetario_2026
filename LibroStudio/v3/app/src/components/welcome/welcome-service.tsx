@@ -251,7 +251,7 @@ flushSync(() => {
 });
 
 // La copia de la última sesión se ofrece como fila de Recientes, no como diálogo. La busca
-// initializeWelcome al arrancar (antes lo hacía offerRecovery de studio.ts, que ya no está).
+// initializeWelcome al arrancar (antes lo hacía offerRecovery, que ya no está).
 async function loadRecoveryCopy(): Promise<void> {
   try {
     const db = await recoveryDb(),

@@ -1,6 +1,6 @@
 // Edición de texto, arrastre y lo que pasa al tocar la página: empezar y terminar de editar, mover y
 // soltar un objeto, crear con la herramienta activa (pageDown), qué hay bajo un evento del lienzo
-// (canvasHit) y las imágenes nuevas. No tiene efectos al cargar. Salió de studio.ts (grupo 5):
+// (canvasHit) y las imágenes nuevas. No tiene efectos al cargar.
 // core-wiring.ts registra las funciones del lienzo como extensibles (frame-handles, layout-tools,
 // review-workspace, editorial…) y las publica; studio-wiring.ts engancha los oyentes.
 //

@@ -1,6 +1,6 @@
 // Rutas y medidas del libro: leer y escribir por ruta con puntos ('header.font'), el objeto
 // elegido, la unidad del documento y cómo se muestran las medidas, y las posiciones de cornisas y
-// folios. No tiene efectos al cargar. Salió de studio.ts (grupo 5); lo publica core-wiring.ts.
+// folios. No tiene efectos al cargar. Lo publica core-wiring.ts.
 //
 // Fuente TypeScript: viaja dentro de build/core.js (src/entries/core.ts).
 import type { BookObject } from '../model.ts';

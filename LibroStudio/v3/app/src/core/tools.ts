@@ -1,6 +1,6 @@
 // Pestañas y herramientas: la pestaña del inspector (showTab), la herramienta del lienzo
 // (setTool), la vista previa, el zoom de base (canvas-navigation.ts lo reemplaza) y los comandos
-// de la barra (command). No tiene efectos al cargar. Salió de studio.ts (grupo 5): core-wiring.ts
+// de la barra (command). No tiene efectos al cargar. core-wiring.ts
 // registra showTab, setTool, setZoom y command como extensibles y los publica. Lo que llaman del
 // resto (inspector, finishEditing, render, commit, settings, confirmAction, bw…) va por el nombre
 // global.

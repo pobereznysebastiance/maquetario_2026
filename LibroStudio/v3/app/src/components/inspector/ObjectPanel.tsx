@@ -20,7 +20,7 @@ import { bw, i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
 import { registerInspectorPanel } from '../../inspector-registry.ts';
 
-/** Encabezado de una sección (section() de studio.ts): el título ya viene traducido. */
+/** Encabezado de una sección (el viejo section()): el título ya viene traducido. */
 const Heading = ({ icon, title }: { icon: string; title: string }) => (
   <SectionHeading>
     <Icon name={icon} />

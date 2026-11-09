@@ -3,7 +3,7 @@
 // fuentes que se pueden compartir. Al abrir un proyecto desde un paquete, sus fuentes se suman al
 // catálogo antes de cargarlo.
 //
-// No tiene efectos al cargar: se importa. loadOpenedProject es global (lo llaman studio.ts y el
+// No tiene efectos al cargar: se importa. loadOpenedProject es global (lo llaman src/core/project-file.ts y el
 // proceso principal); lo publica project-package-wiring.ts.
 //
 // La Hoja es React (modal.sheet): mientras se arma el paquete, sus botones quedan

@@ -840,12 +840,33 @@ Cada grupo es una entrega con la autoprueba en verde, los PDF idénticos y el in
 ## Etapas
 
 1. **Electron con la interfaz actual** (cerrada el 08-nov). Funciona en macOS y Linux además de Windows; la versión C#/WebView2 (`Host*.cs`, `Build*.ps1`, `Maquetario.iss`) y su rama en la interfaz se retiraron. Pendiente, porque depende de Motiova o de la venta: URLs y clave pública de producción, `licenseMode: "enforce"` y la firma de código (ver "Licencias y conexión con Motiova").
-2. **TypeScript + módulos** (cerrada el 08-nov, salvo la parte B): pruebas fuera del build de producción (`app/tests/`), prettier, reemplazos de funciones globales por `extend`, toda la interfaz en `.ts` estricto con dos puntos de entrada (`src/entries/`) y migraciones del `.mqt` (ver "Formato del proyecto y migraciones"). Queda la **parte B** (cambiar los globales por `import` reales: objeto de estado y un `extend` que no dependa de `window`), que va con la etapa 3: plan e inventario en "Etapa 2, parte B: de globales a `import` (plan)".
-3. **Interfaz con componentes** (atomic design, React + Radix, tokens de diseño compartidos con Motiova), revisada con impeccable. Dirección visual: "glass" de macOS, sin que parezca un panel genérico de IA. Decisiones tomadas el 08-nov: `docs/INTERFAZ_08-nov_decisiones-etapa3.md` (Radix sin estilos + CSS propio; inspector en 3 pestañas; tres tipos de diálogo; tokens con los nombres de Motiova). En curso: cómo se pasa una pantalla, en "Pasar una pantalla a React"; qué falta, en `docs/proximos-pasos.md`.
-4. **Motor de composición propio** (HarfBuzz/WASM, justificación Knuth-Plass) y PDF de imprenta (CMYK, PDF/X, TrimBox/BleedBox exactas). Hecho:
-   - el motor cargado en la app detrás de una llave apagada (todavía no dibuja), en `docs/MOTOR_09-nov_composicion.md`;
-   - cajas exactas;
-   - PDF/X-4 con RGB etiquetado y FOGRA39 (sin CMYK), en `docs/IMPRENTA_09-nov_pdfx.md`.
+2. **TypeScript + módulos** (cerrada el 09-nov, con la parte B).
+   - Pruebas fuera del build de producción (`app/tests/`) y prettier.
+   - `extend` con registro (`extensible`).
+   - Toda la interfaz en `.ts` estricto con dos puntos de entrada (`src/entries/`) y migraciones del `.mqt`.
+   - Globales cambiados por `import`, con el estado en un objeto (`src/state/editor.ts`).
+   - Contrato tipado con el proceso principal (`src/contract/`).
+   - El núcleo en módulos de `src/core/`: `studio.ts` ya no existe.
+
+   Lo que siguen leyendo por nombre los módulos, las pruebas y el lienzo lo lista `node scripts/globals-report.mjs`. Detalle en "Etapa 2, parte B".
+3. **Interfaz con componentes** (cerrada el 09-nov, con el lienzo): React + Radix sin estilos, CSS propio por capas y tokens con los nombres de Motiova (`docs/INTERFAZ_08-nov_decisiones-etapa3.md`).
+   - Barras, pantallas, diálogos, inspector (tres pestañas) y lienzo están en React.
+   - Cómo se pasa una pantalla: "Pasar una pantalla a React".
+   - **Lo que quedó fuera:**
+     - del lienzo, "El lienzo" → "Lo que quedó fuera" (restauraciones del cuadro en edición, página activa, escala, miniaturas);
+     - del inspector, `decorateFontBrowsers` en la Hoja de estilo de párrafo;
+     - la API de cadenas `UI` para plantillas y miniaturas.
+4. **Motor de composición propio** (HarfBuzz/WASM, justificación Knuth-Plass) y PDF de imprenta (en curso).
+   - **Hecho:**
+     - detrás de una llave apagada, el motor dibuja pantalla, vista continua y PDF con los mismos cortes (ejes variables, interletraje, castellano, espacios duros, tramos), y la salida espera a que esté compuesto (`docs/MOTOR_09-nov_composicion.md`);
+     - cajas exactas;
+     - PDF/X-4 con RGB etiquetado y FOGRA39, sin CMYK (`docs/IMPRENTA_09-nov_pdfx.md`).
+   - **Falta:** prender la llave para todos; el tope de guiones y la última línea en la interfaz; macOS y Linux; CMYK si una imprenta lo pide.
+   - **Decisiones pendientes:**
+     - los estilos de carácter (formato de los tramos, cómo se crean y cómo se ven sin el motor);
+     - los valores por defecto, con Seba, mirando el PDF de `--compose`;
+     - validar el PDF/X-4 con un preflight y con una imprenta real.
+   - **Deuda que sigue contando `check-design-tokens`:** 4 envolturas `extend()` a mano, 61 estilos en línea desde JS, 1 botón a mano y 242 publicaciones `globalThis.x =`. Ver `docs/proximos-pasos.md` → "Estado".
 
 ## Problemas conocidos
 

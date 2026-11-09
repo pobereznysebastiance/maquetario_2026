@@ -1,7 +1,6 @@
 // Utilidades del núcleo: buscar en la página ($, $$), escapar texto para HTML (esc) y el modelo
-// del libro con su nombre corto (M). No tiene efectos al cargar. Salieron de studio.ts
-// (grupo 5 de la etapa 2, parte B); los publica core-wiring.ts mientras los usen studio.ts y
-// las pruebas.
+// del libro con su nombre corto (M). No tiene efectos al cargar. Los publica core-wiring.ts
+// mientras los lean por nombre los módulos y las pruebas.
 //
 // Fuente TypeScript: viaja dentro de build/core.js (src/entries/core.ts).
 import type { LibroModelApi } from '../model.ts';

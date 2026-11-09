@@ -8,7 +8,7 @@
 // Capas e Índice dejan el inspector: son vistas del riel izquierdo, junto a Páginas.
 //
 // El inspector es un componente de React (components/inspector/Inspector.tsx), montado acá una
-// vez en #inspectorContent. inspector() y showTab() de studio.ts quedan como fachada: inspector()
+// vez en #inspectorContent. inspector() y showTab() (src/core/) quedan como fachada: inspector()
 // avisa que el estado cambió (y React redibuja sólo lo que cambió); showTab acepta los nombres
 // viejos y los lleva a la vista nueva (showTab('text') → Selección; showTab('index') → Índice del
 // riel). La pestaña elegida se recuerda en localStorage. Las vistas del riel (Índice, Capas) son

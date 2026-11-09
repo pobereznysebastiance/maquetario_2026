@@ -1,5 +1,5 @@
 // Legibilidad y retículas: "Guardar como…" (Ctrl+Mayús+S), el tamaño de la interfaz (cómodo o
-// grande) y la biblioteca de retículas que reemplaza a las plantillas de studio.js.
+// grande) y la biblioteca de retículas que reemplaza a la tira de plantillas (src/core/templates.ts).
 //
 // setReadability, gridPresets y applyGridPreset son globales: los usan settings-panel.tsx,
 // cover-measurements.js, las pruebas (tests/readability-tests.js, tests/feedback-tests.js) y

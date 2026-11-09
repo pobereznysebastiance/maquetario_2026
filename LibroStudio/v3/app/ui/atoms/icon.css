@@ -1,4 +1,4 @@
-/* Átomo: ícono. Un solo trazo y grosor para toda la app (dibujados en studio.js → paths). */
+/* Átomo: ícono. Un solo trazo y grosor para toda la app (dibujados en src/core/icons.ts → paths). */
 svg.icon {
   width: var(--icon-md);
   height: var(--icon-md);

@@ -1,5 +1,5 @@
 // El arrastre de los objetos del papel: mover y redimensionar desde los ocho controladores
-// (esquinas y bordes). Arma objectDown y moveObject (en studio.ts sólo está su nombre). Escape o
+// (esquinas y bordes). Arma objectDown y moveObject (en src/core/editing.ts sólo está su nombre). Escape o
 // pointercancel devuelven la caja a su lugar (y la dejan elegida). Los controladores los dibuja la
 // capa de selección y no se imprimen. El ciclo del arrastre y de la edición: docs/arquitectura.md,
 // "El lienzo", paso 6.
@@ -144,7 +144,7 @@ extend.before(
   'frame-handles',
 );
 // Escape a mitad de un arrastre (mover o redimensionar) lo cancela: la caja vuelve a su lugar y a
-// su tamaño, y sigue elegida. Va en captura y antes que el Escape general del editor (studio.ts),
+// su tamaño, y sigue elegida. Va en captura y antes que el Escape general del editor (src/core/studio-wiring.ts),
 // que deselecciona: sin esto, aquel redibujaba la página a mitad del arrastre, la caja quedaba con
 // el tamaño nuevo y el arrastre seguía abierto (el pointerup llegaba a un nodo que ya no estaba).
 window.addEventListener(

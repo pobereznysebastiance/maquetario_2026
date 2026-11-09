@@ -3,8 +3,8 @@
 //   última línea, separación silábica e idioma, y los botones de estilos. Antes lo anteponía el
 //   decorador de paragraphs.ts.
 // - "Tipografía" (typography): tipo de letra, peso y estilo, ejes variables, muestra, cuerpo,
-//   interlineado, alineación, color y "Editar contenido". Antes lo armaban textControls() de
-//   studio.ts y dos decoradores (fonts.ts y paragraphs.ts) que reescribían sus valores con los del
+//   interlineado, alineación, color y "Editar contenido". Antes lo armaban el viejo textControls()
+//   y dos decoradores (fonts.ts y paragraphs.ts) que reescribían sus valores con los del
 //   párrafo elegido.
 // - "Carácter y párrafo" (character): tracking, sangría inicial, espacio entre párrafos, glifos y
 //   abrir el Índice. Antes lo agregaba editorial.ts al final, y font-glyphs.tsx no llegaba a ligar

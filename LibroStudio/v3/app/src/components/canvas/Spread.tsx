@@ -5,8 +5,8 @@
 //   vista continua   una <section class="continuous-row"> por pliego, en una sola columna; sólo se
 //                    llenan las filas cercanas a la vista (al desplazarse, se llenan y se vacían)
 //
-// El papel (paper + screenPage, studio.ts) sigue siendo una isla imperativa: cada lugar lo llena en
-// un useLayoutEffect, y cada dibujo arma páginas nuevas, como antes. renderPages() de studio.ts es
+// El papel (paper + screenPage, src/core/canvas.ts) sigue siendo una isla imperativa: cada lugar lo llena en
+// un useLayoutEffect, y cada dibujo arma páginas nuevas, como antes. renderPages() (src/core/canvas.ts) es
 // una fachada: canvas-layer.ts la engancha a drawSpread(), que calcula la escala y el ancla del
 // zoom y dibuja en el acto (al volver, el DOM ya está al día).
 //
@@ -156,7 +156,7 @@ function planContinuous(): ContinuousPlan {
 }
 
 /**
- * Dibuja el lienzo (la fachada renderPages de studio.ts): calcula qué se ve y lo dibuja en el
+ * Dibuja el lienzo (la fachada renderPages de src/core/canvas.ts): calcula qué se ve y lo dibuja en el
  * acto.
  */
 export function drawSpread(): void {

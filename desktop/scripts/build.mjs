@@ -55,7 +55,7 @@ await Promise.all([
 // - src/entries/*.ts son los puntos de entrada (core y app): importan los módulos de src/ en el
 //   orden de carga. Cada módulo corre al importarse y mantiene privado lo suyo; lo que comparte
 //   con los demás lo publica en globalThis (declare global).
-// - El núcleo (lo que era el script global src/global/studio.ts) son módulos de src/core/ dentro
+// - El núcleo son módulos de src/core/ dentro
 //   de build/core.js: lo que otros leen por nombre lo publica src/core/core-wiring.ts.
 // - React y Radix (etapa 3) se empaquetan dentro de build/app.js: JSX automático (archivos .tsx
 //   en src/components/ y src/react/) y React en modo producción. Con MAQUETARIO_REACT_DEV=1 se

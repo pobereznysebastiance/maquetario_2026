@@ -53,7 +53,7 @@ console.log('Sistema de diseño: sin valores sueltos.');
 
 // ── Deuda de "alambre" (informativa: tiene que bajar en cada entrega) ──
 // El código propio de la interfaz: los .js de la carpeta y las fuentes TypeScript de src/, del
-// núcleo (src/core/, lo que era el script global studio.ts) y de src/ui/.
+// núcleo (src/core/) y de src/ui/.
 const tsIn = (dir) =>
   readdirSync(join(app, dir))
     .filter((f) => f.endsWith('.ts') && !f.endsWith('.d.ts'))

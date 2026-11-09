@@ -12,7 +12,7 @@
 // data-key, los mismos atributos de antes).
 //
 // Se monta una vez (inspector-views.tsx) y se redibuja con cada aviso del estado del editor:
-// inspector() de studio.ts es una fachada que avisa. React toca sólo lo que cambió; los campos
+// inspector() (src/core/inspector.ts) es una fachada que avisa. React toca sólo lo que cambió; los campos
 // llevan de key su valor (fields.tsx), así que un valor nuevo del libro crea el campo de nuevo.
 // Con el documento en otra unidad (mm/cm) se vuelve a crear todo.
 //

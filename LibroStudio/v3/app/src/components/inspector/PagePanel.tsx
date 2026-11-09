@@ -5,10 +5,10 @@
 //   reshapePagePass de inspector-views.tsx desde la tarjeta del documento), Antes/Después y Eliminar.
 // - Elementos automáticos (auto): la explicación.
 //
-// studio.ts deja los tres lugares en su orden; React dibuja el contenido con el mismo marcado,
+// El inspector deja los tres lugares en su orden; React dibuja el contenido con el mismo marcado,
 // ids, data-command y textos que tenía en HTML. Las casillas y la sección graban con el "change"
 // nativo (las pruebas disparan new Event('change'), que no sube); los botones de data-command van
-// a command() de studio.ts, como los ligaba bindInspector.
+// a command() (src/core/tools.ts), como los ligaba bindInspector.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 import { useLanguage } from '../../react/mount.tsx';

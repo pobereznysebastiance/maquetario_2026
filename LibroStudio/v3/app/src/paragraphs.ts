@@ -4,7 +4,7 @@
 //
 // El formato (paragraphFormat, paragraphMeta, currentParagraph, paragraphIndices, pw…) está en
 // paragraph-format.ts, sin efectos al cargar: se importa. Siguen globales los que usan las pruebas
-// o studio.ts: paragraphFormat, paragraphPatch, applyParagraphStyle y syncParagraphMap.
+// o el núcleo: paragraphFormat, paragraphPatch, applyParagraphStyle y syncParagraphMap.
 // paragraphScope vive en el estado del editor; el cambio de párrafos en curso
 // (asParagraphOperation), en paragraph-format.ts.
 //

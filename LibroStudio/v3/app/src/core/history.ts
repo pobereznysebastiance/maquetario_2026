@@ -1,6 +1,6 @@
 // Deshacer y cambios: el estado para deshacer (snapshot), la marca de cambios sin guardar con su
 // copia de recuperación (changed), el cambio con deshacer y redibujo (commit) y undo/redo. No
-// tiene efectos al cargar. Salió de studio.ts (grupo 5): core-wiring.ts registra commit como
+// tiene efectos al cargar. core-wiring.ts registra commit como
 // extensible (paragraphs.ts lo extiende) y publica todo.
 //
 // Lo que estas funciones llaman del resto del núcleo (render, updateStatus, finishEditing, toast,

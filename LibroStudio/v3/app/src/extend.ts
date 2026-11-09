@@ -160,7 +160,7 @@ extend.around = function (name, factory, origin = '') {
 
 declare global {
   var extend: Extend;
-  /** Registra una función como extensible por nombre (ver arriba). Global para studio.ts, que es un script. */
+  /** Registra una función como extensible por nombre (ver arriba). Global para los módulos que lo usan sin importarlo. */
   var extensible: <T extends AnyFunction>(name: string, fn: T) => T;
   var MaquetarioExtensions: Readonly<{ list(): Record<string, string[]> }>;
 }

@@ -1,6 +1,6 @@
 // Diálogos en la página: monta la raíz de React (DialogHost, dialogs.tsx), corta el teclado mientras
 // hay una confirmación abierta y publica las funciones del servicio como globales para quien
-// todavía no las importa (studio.ts, las pruebas y la autoprueba).
+// todavía no las importa (el núcleo, el lienzo, las pruebas y la autoprueba).
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts, en el lugar que tenía
 // dialogs.tsx).
@@ -35,7 +35,7 @@ window.addEventListener(
   true,
 );
 
-// Las usan studio.ts y la autoprueba (desktop/src/main/selftest.ts); los módulos las importan.
+// Las usan el núcleo (src/core/) y la autoprueba (por el contrato); los módulos las importan.
 globalThis.confirmAction = confirmAction;
 globalThis.openSheet = openSheet;
 globalThis.openWorkWindow = openWorkWindow;

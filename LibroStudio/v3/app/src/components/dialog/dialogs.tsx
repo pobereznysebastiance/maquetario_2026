@@ -17,7 +17,7 @@
 // keepModal (el explorador de fuentes abierto desde el estilo de párrafo): la Ventana queda
 // "alojada" encima de la Hoja, que sigue montada debajo con lo que
 // se escribió; al cerrar la Ventana vuelve la Hoja, y si se cierra la Hoja se va la Ventana.
-// modal(), modal.sheet, modal.info, modal.workspace y modal.confirm (studio.ts) son la fachada de
+// modal(), modal.sheet, modal.info, modal.workspace y modal.confirm (modal.ts) son la fachada de
 // estas funciones.
 //
 // Este archivo no tiene efectos al cargar: se importa (import { openSheet } from …/dialogs.tsx).

@@ -3,8 +3,8 @@
 //   pauseInspectorWhile(cond, 'módulo')  →  mientras cond() sea verdadera, el inspector no se redibuja.
 //
 // El inspector es un componente de React (components/inspector/Inspector.tsx) que arma las tres
-// pestañas con las secciones registradas acá, en el orden de su tabla (SECTIONS). inspector() de
-// studio.ts quedó como fachada: avisa que el estado cambió y React redibuja sólo lo que cambia.
+// pestañas con las secciones registradas acá, en el orden de su tabla (SECTIONS). inspector()
+// (src/core/inspector.ts) quedó como fachada: avisa que el estado cambió y React redibuja sólo lo que cambia.
 // La pausa sobre inspector() (extend.around) está en inspector-registry-wiring.ts.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).

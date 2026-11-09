@@ -44,7 +44,7 @@ export interface PreflightIssue {
   kind: 'bounds' | 'overflow';
 }
 
-// bw vive en src/i18n/language.ts. Se sigue publicando enseguida: studio.ts y las pruebas lo leen
+// bw vive en src/i18n/language.ts. Se sigue publicando enseguida: el lienzo y las pruebas lo leen
 // como global.
 globalThis.bw = bw;
 const titleOfPart = (p: Page): string =>

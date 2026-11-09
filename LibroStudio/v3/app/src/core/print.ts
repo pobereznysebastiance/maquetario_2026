@@ -1,5 +1,5 @@
 // Salida de lectura: armar las páginas en #printRoot para imprimir o pasar a PDF y sacarlas. No
-// tiene efectos al cargar. Salió de studio.ts (grupo 5); core-wiring.ts las publica (el contrato
+// tiene efectos al cargar. core-wiring.ts las publica (el contrato
 // con el proceso principal las llama). paper() va por el nombre global.
 //
 // Fuente TypeScript: viaja dentro de build/core.js (src/entries/core.ts).

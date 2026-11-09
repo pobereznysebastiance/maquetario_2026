@@ -9,7 +9,7 @@
 // prioridad), pausa del tiempo con el puntero o el foco encima y con la ventana sin foco, Escape y
 // F8 para ir a los avisos. El aspecto sale de ui/molecules/status.css (.toast).
 //
-// toast() sigue siendo la función global de siempre: studio.ts la declara y junta en cola los
+// toast() sigue siendo la función global de siempre: src/core/host-bridge.ts la declara y junta en cola los
 // avisos pedidos antes de que cargue build/app.js; este módulo la reemplaza (extend.replace) y
 // muestra lo que quedó en la cola.
 //
