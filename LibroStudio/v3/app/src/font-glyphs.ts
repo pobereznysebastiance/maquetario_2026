@@ -3,8 +3,7 @@
 // uno al final del párrafo elegido con la fuente de la paleta.
 //
 // showFontGlyphs, renderGlyphGrid y glyphPoints son globales porque los usa la prueba de
-// tests/font-glyphs-tests.js (que también cambia glyphPoints) y scripts/style-snapshot.js;
-// prepareRealGlyphPreview es una vista de la autoprueba.
+// tests/font-glyphs-tests.js (que también cambia glyphPoints) y scripts/style-snapshot.js.
 //
 // Fuente TypeScript: se compila a build/font-glyphs.js (desktop/scripts/build.mjs).
 
@@ -15,8 +14,6 @@ declare global {
   var renderGlyphGrid: () => void;
   /** Abre la paleta de glifos (con initialFace, o la fuente del texto seleccionado). */
   var showFontGlyphs: (initialFace?: NativeFontFace) => Promise<void>;
-  /** Autoprueba: abre la paleta de glifos con Georgia. */
-  var prepareRealGlyphPreview: () => Promise<void>;
 }
 
 globalThis.glyphPoints = [];
@@ -196,10 +193,5 @@ glyphBrowserButton.onclick = () => {
   setTimeout(() => showFontGlyphs(face), 30);
 };
 $('.font-browser-detail').append(glyphBrowserButton);
-globalThis.prepareRealGlyphPreview = async function () {
-  hideWelcome();
-  if ($('#modal').open) $('#modal').close();
-  await showFontGlyphs(chooseDefaultFace('Georgia') || nativeFaces[0]);
-};
 
 export {};

@@ -1,13 +1,13 @@
 # Arquitectura de Maquetario
 
-Estado: **etapa 1 en curso** (programa de escritorio en Electron). La versión C#/WebView2 sigue compilando y funcionando mientras dure la transición.
+Estado: **etapa 1 cerrada** (programa de escritorio en Electron; la versión C#/WebView2 se retiró el 08-nov). Queda pendiente sólo lo que depende de Motiova y de la venta: URLs y clave pública de producción, `licenseMode: "enforce"` y firma de código. Etapa 2 casi terminada y etapa 3 en marcha (ver "Etapas").
 
 ## Mapa del repositorio
 
 ```
-LibroStudio/v3/app/        Interfaz (HTML/CSS/JS). La misma para Electron y para el .exe C#.
-  src/host.ts              Única parte que sabe en qué programa corre (Electron, WebView2 o navegador).
-LibroStudio/v3/Host*.cs    Programa C# anterior (WebView2, sólo Windows). Se retira al terminar la etapa 1.
+LibroStudio/v3/app/        Interfaz (HTML/CSS, fuentes TypeScript en src/ que se compilan a build/).
+  src/host.ts              Única parte que sabe en qué programa corre (Electron o navegador).
+LibroStudio/v3/installer-brand/  Imágenes de marca del instalador anterior (pueden servir para el de Electron).
 desktop/                   Programa de escritorio en Electron + TypeScript (Windows, macOS, Linux).
   src/main/main.ts         Ventana, seguridad, cierre con cambios sin guardar.
   src/main/bridge.ts       Tabla de acciones que la interfaz le puede pedir al sistema.
@@ -46,13 +46,13 @@ nativeCall('save', {...})  ──IPC──▶    bridge.ts → handlers/project.
 - La página se sirve desde `maquetario://app/` (esquema propio, no `file://`), con CSP estricta y sin red (`connect-src 'none'`).
 - Las fuentes del catálogo se sirven en el mismo origen: `maquetario://app/__fonts/<id>.ttf`.
 - `contextIsolation`, `sandbox`, sin `nodeIntegration`, navegación y ventanas nuevas bloqueadas, permisos denegados.
-- Para PDF/impresión el proceso principal llama funciones de la página (`window.prepareOutput`, `window.clearPrint`) igual que hacía el C#.
+- Para PDF/impresión el proceso principal llama funciones de la página (`window.prepareOutput`, `window.clearPrint`).
 
 Acciones disponibles (todas en `bridge.ts`): `ready`, `appInfo`, `dirty`, `locale`, `newProject`, `open`, `openRecent`, `save`, `saveAs`, `fontCatalog`, `refreshFonts`, `chooseFontFolder`, `fontGlyphs`, `printers`, `print`, `outputPdf`, `export`, `savePdf`, `packageProject`, `clipboardSvg`, `assistantStatus`, `assistantConfigure`, `assistantReview`, `closeSaved`, `closeDiscard`, `closeCancelled`.
 
 ## Versión
 
-Fuente única: `desktop/package.json` → `version`. La app la informa con `appInfo`. (El `.exe` C# todavía la tiene escrita a mano; se elimina con él.)
+Fuente única: `desktop/package.json` → `version`. La app la informa con `appInfo`.
 
 ## Licencias y conexión con Motiova
 
@@ -206,14 +206,14 @@ Criterio de aceptación: autoprueba completa en verde, contador de reemplazos de
 
 ## Etapas
 
-1. **Electron con la interfaz actual** ← en curso. Funciona en macOS y Linux además de Windows.
+1. **Electron con la interfaz actual** (cerrada el 08-nov). Funciona en macOS y Linux además de Windows; la versión C#/WebView2 (`Host*.cs`, `Build*.ps1`, `Maquetario.iss`) y su rama en la interfaz se retiraron. Pendiente, porque depende de Motiova o de la venta: URLs y clave pública de producción, `licenseMode: "enforce"` y la firma de código (ver "Licencias y conexión con Motiova").
 2. **TypeScript + módulos**: sacar las pruebas del build de producción (hecho: `app/tests/`), formateador (hecho: prettier), terminar con los reemplazos de funciones globales (hecho: `extend`), tipos sobre el JS actual (`checkJs`) y después `.ts` con módulos; migraciones del `.mqt`. Avance en `docs/proximos-pasos.md` → "Etapa 2".
 3. **Interfaz con componentes** (atomic design, React + Radix, tokens de diseño compartidos con Motiova), revisada con impeccable. Dirección visual: "glass" de macOS, sin que parezca un panel genérico de IA. Decisiones tomadas el 08-nov: `docs/INTERFAZ_08-nov_decisiones-etapa3.md` (Radix sin estilos + CSS propio; inspector en 3 pestañas; tres tipos de diálogo; tokens con los nombres de Motiova).
 4. **Motor de composición propio** (HarfBuzz/WASM, justificación Knuth-Plass) y PDF de imprenta (CMYK, PDF/X, TrimBox/BleedBox exactas).
 
 ## Problemas conocidos
 
-- El tamaño de hoja de los PDF puede diferir 0,1–0,3 mm del pedido (Chromium redondea; la versión C# tenía lo mismo). Se corrige fijando MediaBox/TrimBox al post-procesar (etapa 4).
+- El tamaño de hoja de los PDF puede diferir 0,1–0,3 mm del pedido (Chromium redondea; la versión C# anterior tenía lo mismo). Se corrige fijando MediaBox/TrimBox al post-procesar (etapa 4).
 - En Electron no se sabe si una impresora tiene doble faz: se ofrece siempre y, si no puede, falla al imprimir.
 - El catálogo de fuentes en Windows no lee el registro (sí las carpetas del sistema y del usuario).
 - El código de aula guardado por la versión C# (DPAPI) no se migra: hay que volver a conectar el aula una vez.

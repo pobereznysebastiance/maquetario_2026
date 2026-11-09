@@ -127,8 +127,6 @@ declare global {
   var refreshEmptyCanvas: () => void;
   var updateActivePage: () => void;
   var alignSelection: (axis: string) => void;
-  /** Para capturas: crear un documento desde la pantalla vacía. */
-  var prepareBlankCreatePreview: () => void;
 }
 globalThis.rw = rw;
 
@@ -530,8 +528,3 @@ function activateBlankDocument(): void {
     } else if (!hasDocument) activateBlankDocument();
   }
 })();
-globalThis.prepareBlankCreatePreview = function () {
-  hideWelcome();
-  activateBlankDocument();
-  settings(true);
-};

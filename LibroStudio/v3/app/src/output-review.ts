@@ -2,14 +2,7 @@
 // izquierda, vista previa a la derecha) con zoom (ajustar a ventana, 100–300 %) y un botón para
 // ampliar la revisión ocultando las opciones.
 //
-// prepareLargeOutputPreview es global: arma esa vista para la captura de la autoprueba (Host.cs).
-//
 // Fuente TypeScript: se compila a build/output-review.js (desktop/scripts/build.mjs).
-
-declare global {
-  /** Abre la salida en cuadernillo A4 del libro de muestra, para la captura de revisión. */
-  var prepareLargeOutputPreview: () => void;
-}
 
 let outputReviewScale = 'fit';
 extend.after(
@@ -100,14 +93,5 @@ extend(
 window.addEventListener('resize', () => {
   if ($('#modal').open && $('#outputPreview')) outputPreview();
 });
-globalThis.prepareLargeOutputPreview = function () {
-  hideWelcome();
-  if ($('#modal').open) $('#modal').close();
-  window.prepareNovelProof();
-  outputDialog('pdf');
-  $('#outMode').value = 'booklet';
-  $('#outPaper').value = 'A4';
-  outputPreview();
-};
 
 export {};

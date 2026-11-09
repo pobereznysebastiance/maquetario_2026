@@ -2,15 +2,13 @@
 // Escape vuelve a los paneles (salvo con un diálogo o el explorador de fuentes abiertos).
 //
 // updateFocusControl es global porque lo llaman shapes.js y las pruebas (focus-layout-tests,
-// navigation-tests); prepareFocusPreview, para las capturas de la vista ampliada.
+// navigation-tests).
 //
 // Fuente TypeScript: se compila a build/focus-layout.js (desktop/scripts/build.mjs).
 
 declare global {
   /** Actualiza texto, título y estado del botón según el modo ampliado. */
   var updateFocusControl: () => void;
-  /** Deja la novela de muestra en modo ampliado (para capturas). */
-  var prepareFocusPreview: () => void;
 }
 
 function updateFocusControl(): void {
@@ -63,14 +61,5 @@ document.addEventListener(
   true,
 );
 updateFocusControl();
-globalThis.prepareFocusPreview = function () {
-  hideWelcome();
-  if ($('#modal').open) $('#modal').close();
-  if (fontBrowser.open) fontBrowser.close();
-  window.prepareNovelProof();
-  document.body.classList.add('focused');
-  applyPanelSizes();
-  updateFocusControl();
-};
 
 export {};

@@ -1488,7 +1488,7 @@ async function imposePdf(bytes: Uint8Array, paperName: string, fit: string): Pro
 }
 async function performExport(mode: string, paperName: string, fit: string): Promise<void> {
   if (!native) {
-    toast('Abrí Maquetario.exe para generar el PDF directamente.', 'info');
+    toast('Abrí la app de escritorio de Maquetario para generar el PDF directamente.', 'info');
     return;
   }
   finishEditing();

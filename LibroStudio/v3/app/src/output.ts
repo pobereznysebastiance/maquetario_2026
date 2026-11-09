@@ -527,7 +527,7 @@ globalThis.sendOutput = async function (destination, config) {
   $('#printButton').disabled = $('#export').disabled = true;
   toast(w.wait, 'info');
   try {
-    if (!native) throw Error('Maquetario.exe');
+    if (!native) throw Error('Esta función requiere la app de escritorio de Maquetario.');
     const result = await nativeCall(destination === 'print' ? 'print' : 'outputPdf', config);
     if (destination === 'print') toast(w.done);
     else {

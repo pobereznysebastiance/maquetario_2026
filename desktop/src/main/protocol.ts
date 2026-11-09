@@ -56,7 +56,7 @@ const APP_CSP = [
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
-  "font-src 'self' data: https://fonts.maquetario.local",
+  "font-src 'self' data:",
   "connect-src 'none'",
   "object-src 'none'",
   "frame-src 'none'",

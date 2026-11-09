@@ -1,9 +1,8 @@
 // Medidas de la cubierta: tabla de cada zona (tamaño final y píxeles a 300 ppp) en el editor de
 // cubierta, ficha descargable y ajuste de imagen por zona (cubrir o mostrar completa).
-// También prepara las escenas de las capturas de promoción (preparePromoScene).
 //
 // coverMeasurementRows y coverMeasurementText son globales porque las usa
-// tests/cover-measurements-tests.js; preparePromoScene, porque la llama el anfitrión C# (Host.cs).
+// tests/cover-measurements-tests.js.
 //
 // Fuente TypeScript: se compila a build/cover-measurements.js (desktop/scripts/build.mjs).
 
@@ -20,8 +19,6 @@ declare global {
   var coverMeasurementRows: (c: CoverDesign) => CoverMeasurementRow[];
   /** Ficha de medidas de la cubierta en texto plano (la que se descarga). */
   var coverMeasurementText: (c: CoverDesign) => string;
-  /** Deja la interfaz en una escena de las capturas de promoción. */
-  var preparePromoScene: (scene: string) => Promise<void>;
 }
 
 function coverMeasurementRows(c: CoverDesign): CoverMeasurementRow[] {
@@ -120,56 +117,3 @@ extend.result(
   },
   'cover-measurements',
 );
-globalThis.preparePromoScene = async function (scene: string): Promise<void> {
-  hideWelcome();
-  closeTutorial();
-  if ($('#modal').open) $('#modal').close();
-  $('#toast').classList.remove('visible');
-  if (scene === 'start') {
-    await showWelcome();
-    return;
-  }
-  if (scene === 'new') {
-    dirty = false;
-    settingsNew(true);
-    $('#newTitle').value = 'El atlas de las casas vacías';
-    $('[data-format="A5"]').click();
-    return;
-  }
-  if (scene === 'manuscript') {
-    dirty = false;
-    bookBuilder(true);
-    return;
-  }
-  if (scene === 'grid') {
-    gridGallery();
-    return;
-  }
-  if (scene === 'cover') {
-    book.cover = defaultCover();
-    const img = new Image();
-    img.src = 'assets/welcome-editorial-glass.png';
-    await img.decode();
-    const canvas = document.createElement('canvas');
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    canvas.getContext('2d')!.drawImage(img, 0, 0);
-    book.cover.parts.front.image = canvas.toDataURL('image/png');
-    book.cover.parts.front.text = book.title;
-    book.cover.parts.front.color = '#153D42';
-    book.cover.parts.front.size = 24;
-    book.cover.parts.front.y = 20;
-    coverEditor();
-    return;
-  }
-  if (scene === 'export') {
-    coverOutputDialog();
-    return;
-  }
-  if (scene === 'pages') {
-    window.prepareNovelProof();
-    goToBookPage(book.pages.findIndex((p) => p.section.startsWith('I ·')));
-    showTab('structure');
-    return;
-  }
-};

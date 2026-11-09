@@ -10,11 +10,6 @@
 // lo de cada clase de control (value, checked, showModal…) queda libre hasta tipar cada llamada.
 type UIElement = HTMLElement & { [key: string]: any };
 
-// ── Sistema de componentes (ui/) ──
-
-// ── Modelo, idioma y anfitrión ──
-declare var chrome: any;
-
 // ── Fuentes y separación silábica ──
 declare var createHyphenator: any;
 declare var hyphenationPatternsEs: any;

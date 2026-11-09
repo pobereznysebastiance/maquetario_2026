@@ -2,8 +2,7 @@
 // elemento seleccionado. Saca de Diseño, Texto y Capas lo que ahora vive acá y lleva los atajos
 // de herramientas (grilla, foliado, cornisa) a su sección por nombre, no por posición.
 //
-// distributeObjects es global porque la usa tests/inspector-organization-tests.js;
-// prepareObjectOrganizationPreview, porque la llama la autoprueba (desktop/src/main/selftest.ts).
+// distributeObjects es global porque la usa tests/inspector-organization-tests.js.
 //
 // Fuente TypeScript: se compila a build/inspector-organization.js (desktop/scripts/build.mjs).
 import type { BookObject } from './model.ts';
@@ -11,8 +10,6 @@ import type { BookObject } from './model.ts';
 declare global {
   /** Iguala los espacios entre tres o más objetos seleccionados, conservando los extremos. */
   var distributeObjects: (axis: 'x' | 'y') => void;
-  /** Prepara la captura de la pestaña Objeto (autoprueba). */
-  var prepareObjectOrganizationPreview: () => void;
 }
 
 const objectTab = document.createElement('button');
@@ -251,13 +248,3 @@ if (alignLesson) {
 }
 organizationLabels();
 inspector();
-globalThis.prepareObjectOrganizationPreview = function () {
-  hideWelcome();
-  if ($('#modal').open) $('#modal').close();
-  if (fontBrowser.open) fontBrowser.close();
-  window.prepareNovelProof();
-  active = 8;
-  selected = book.pages[active].objects[0].id;
-  showTab('object');
-  render(true);
-};

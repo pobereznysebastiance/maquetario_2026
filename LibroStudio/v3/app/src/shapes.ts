@@ -4,8 +4,8 @@
 // Objeto, y validación de sus campos en el modelo.
 //
 // Publica shapeKind, shapeNames y newShape (los usa tests/shapes-tests.js, que también cambia
-// shapeKind: por eso vive en globalThis), shapeChooser (captura de Host.cs),
-// prepareGlassShapePreview (captura) y shapeOutputReady (lo espera el anfitrión antes de imprimir).
+// shapeKind: por eso vive en globalThis) y shapeOutputReady (lo espera el proceso principal antes
+// de imprimir).
 //
 // Ojo con el orden: este archivo reemplaza M.validate envolviendo al anterior, al cargar (después
 // de master-refinement, que lo envolvió antes).
@@ -26,10 +26,6 @@ declare global {
   var shapeNames: Record<string, ShapeLabels>;
   /** Figura nueva del tipo shapeKind, con relleno y trazo por defecto. */
   var newShape: (x: number, y: number, w: number, h: number) => BookObject;
-  /** Diálogo para elegir la figura que se va a dibujar. */
-  var shapeChooser: () => void;
-  /** Arma la página de muestra con figuras, para la captura. */
-  var prepareGlassShapePreview: () => void;
   /** Las imágenes dentro de figuras terminaron de cargar (lo espera el anfitrión). */
   var shapeOutputReady: boolean;
 }
@@ -164,7 +160,6 @@ function shapeChooser(): void {
       }),
   );
 }
-globalThis.shapeChooser = shapeChooser;
 const shapeTool = document.createElement('button');
 shapeTool.type = 'button';
 shapeTool.className = 'tool';
@@ -369,41 +364,6 @@ decorateInspector(() => {
   shapeAppearance();
   shapeTool.querySelector('span')!.textContent = bw('Figuras', 'Shapes', 'Figuras');
 }, 'shapes');
-globalThis.prepareGlassShapePreview = function () {
-  hideWelcome();
-  if ($('#modal').open) $('#modal').close();
-  if (fontBrowser.open) fontBrowser.close();
-  document.body.classList.remove('focused');
-  window.prepareNovelProof();
-  active = spread = 0;
-  book.pages[0].objects = [];
-  shapeKind = 'round';
-  const panel = newShape(17, 38, 114, 115);
-  panel.fill = '#EDF4EE';
-  panel.stroke = '#C19C61';
-  panel.strokeWidth = 0.5;
-  panel.cornerRadius = 6;
-  shapeKind = 'ellipse';
-  const circle = newShape(27, 51, 22, 22);
-  circle.fill = '#3CD1BB';
-  circle.stroke = 'none';
-  shapeKind = 'polygon';
-  const polygon = newShape(106, 155, 25, 25);
-  polygon.fill = 'none';
-  polygon.stroke = '#27756D';
-  polygon.sides = 6;
-  book.pages[0].objects = [
-    panel,
-    circle,
-    polygon,
-    M.text('El atlas de las\ncasas vacías', 28, 84, 92, 42, 24),
-    M.text('Una historia comienza\ncon una página.', 28, 129, 80, 20, 11),
-  ];
-  selected = panel.id;
-  showTab('object');
-  render(true);
-  updateFocusControl();
-};
 
 extend.result(
   'prepareOutput',

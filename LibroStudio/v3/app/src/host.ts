@@ -1,7 +1,6 @@
 // Capa de host: la única parte de la interfaz que sabe en qué programa corre.
 // - Electron: el preload expone window.maquetarioNative.
-// - WebView2 (Maquetario.exe en C#, versión anterior): window.chrome.webview.
-// - Navegador común: sin funciones de escritorio.
+// - Navegador común (scripts/serve-ui.cjs): sin funciones de escritorio.
 // El resto del código usa sólo window.MaquetarioHost.
 //
 // Fuente TypeScript: se compila a build/host.js (desktop/scripts/build.mjs).
@@ -26,11 +25,11 @@ export interface MaquetarioNative {
   onMessage(callback: (reply: HostReply) => void): void;
 }
 
-export type HostKind = 'electron' | 'webview2' | 'browser';
+export type HostKind = 'electron' | 'browser';
 
 export interface MaquetarioHostApi {
   readonly kind: HostKind;
-  /** Hay programa de escritorio detrás (Electron o WebView2). */
+  /** Hay programa de escritorio detrás (Electron). */
   readonly available: boolean;
   readonly platform: string;
   readonly selfTest: boolean;
@@ -46,26 +45,22 @@ declare global {
 }
 
 const electron = window.maquetarioNative;
-const webview = window.chrome && window.chrome.webview;
-const kind: HostKind = electron ? 'electron' : webview ? 'webview2' : 'browser';
+const kind: HostKind = electron ? 'electron' : 'browser';
 const host = {
   kind,
   available: kind !== 'browser',
-  platform: electron ? electron.platform : webview ? 'win32' : 'browser',
+  platform: electron ? electron.platform : 'browser',
   selfTest: !!(electron && electron.selfTest),
   postMessage(message: unknown): void {
     if (electron) electron.postMessage(message);
-    else if (webview) webview.postMessage(message);
     else throw new Error('Esta función requiere la app de escritorio de Maquetario.');
   },
   onMessage(callback: (reply: HostReply) => void): void {
     if (electron) electron.onMessage(callback);
-    else if (webview)
-      webview.addEventListener('message', (event: { data: HostReply }) => callback(event.data));
   },
   fontUrl(id: string): string {
     const file = encodeURIComponent(id) + '.ttf';
-    return electron ? '/__fonts/' + file : 'https://fonts.maquetario.local/' + file;
+    return '/__fonts/' + file;
   },
 };
 globalThis.MaquetarioHost = Object.freeze(host);
