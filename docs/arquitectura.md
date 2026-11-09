@@ -608,12 +608,7 @@ Cada grupo es una entrega con la autoprueba en verde, los PDF idénticos y el in
    - `src/core-api.ts` da `M`, `UI` y `editor` a los módulos de app: core es otro bundle y un `import` directo duplicaría el modelo y el estado. Los componentes (`components/` y los `.tsx` de `src/`) leen y asignan `editor.x`.
 
    Lista de extensiones y recorridos de las Hojas idénticos. Inventario: lecturas y asignaciones de globales desde módulos 2575 → 1703 (en `components/` 956 → 391; de estado 761 → 516). Quedan publicados `bw`, `LibroI18n`, `M`/`UI`, los diálogos y `notifyEditorState` para `studio.ts`, las pruebas y la autoprueba.
-5. **El núcleo en piezas.** De `studio.ts` salen módulos con `export`:
-   - utilidades: `$`, `$$`, `esc`, `icon`, medidas;
-   - dibujo: `paper`, `renderPages`, `autoElement`, que es lo más extendido;
-   - inspector, comandos, guardar/abrir.
-
-   Cada función extendida pasa por `extensible`. Al final `studio.ts` deja de ser un script global y entra como módulo en `core`.
+5. **El núcleo en piezas.** De `studio.ts` salen módulos sin efectos en `core` y lo que corre al cargar queda como cableado, hasta que `studio.ts` deja de ser un script. Plan detallado (09-nov) en «Grupo 5: `studio.ts` en módulos», más abajo. **Sin empezar:** el lienzo sigue con el paso 6 (edición y arrastre) sobre `studio.ts`, así que los primeros cortes son los bloques que no toca.
 6. **Módulos y pantallas.** Por inventario, de menos a más lectores. Primero los 25 sin usos externos, que pasan a privados; después cada módulo con su `import`. **Primera tanda el 09-nov** (sin tocar el lienzo: `studio.ts`, `frame-handles`, `review-workspace`, `layout-tools`, `shapes`, `canvas-navigation`, `continuous-canvas` y `editorial` quedan para su tanda):
    - Sin usos externos, dejan de ser globales: `askChoice`, `openSheetContent`, `browserCurrentVariant`, `currentInspectorView`, `fontLibraryReady`, `hideToast`, `novelProofReport`, `renderBookRoute` y `setLanguage`; `hyphenationFields` y `bindParagraphHyphenation` se borran (nadie los llamaba). `composeReady` y `composeAlgorithm` siguen: son la consola de desarrollo del motor.
    - Partes sin efectos que se importan (el módulo con efectos las usa y publica sólo lo que piden pruebas, proceso principal o `studio.ts`): `inspector-registry.ts` (la pausa sobre `inspector()` pasó a `inspector-registry-wiring.ts`), `hyphenation.ts`, `paragraph-format.ts`, `font-catalog.ts` (`nativeFaces` es un accesor sobre su estado), `output-words.ts`, `length-fields.ts` (las Hojas ya no necesitan el global `adaptLengthControls`), `inspector-tabs.ts`, `book-navigation.ts`, `save-as.ts` y `text-fold.ts`.
@@ -639,6 +634,81 @@ Cada grupo es una entrega con la autoprueba en verde, los PDF idénticos y el in
 - 0 estado asignado desde otros archivos;
 - 0 extensiones que busquen en `window`;
 - y los globales publicados reducidos al contrato (objeto de prueba y lista del proceso principal).
+
+### Grupo 5: `studio.ts` en módulos (plan, 09-nov)
+
+`src/global/studio.ts` tiene 1349 líneas (después del paso 5 del lienzo) y se compila sin envoltorio a `build/studio.js`, que carga entre `core.js` y `app.js`. Es un script: sus `function` de nivel superior son propiedades de `window` y sus `const`/`let` son globales léxicos (`$`, `M`, `paper`… se leen por nombre, pero `window.$` no existe). Todo `src/` ve sus declaraciones sin `declare global`, y no puede importar nada. El inventario cuenta 75 globales del núcleo.
+
+**Mapa por bloques** (`globals-report`; «afuera» = archivos de `src/` que lo leen o asignan):
+
+| Bloque | Líneas | Globales | Afuera | Pruebas | Contrato | Extensiones por nombre | Efectos al cargar | Lienzo |
+|---|---|---|---|---|---|---|---|---|
+| 1. Utilidades e íconos: `$`, `$$`, `esc`, `M`, `paths`, `icon`, `icons` | 16–105 | 7 | 45 (`$` 39, `$$` 9, `icon` 5) | `$` 26, `M` 21, `$$` 9 | — | — | — | no |
+| 2. Anfitrión y avisos: `nativeCall`, `toast`, `syncNative`, `selectObject`, `pending`, `overflowCount` | 106–158 | 8 | 34 (`toast` 19, `selectObject` 15, `nativeCall` 14) | `selectObject` 4, `syncNative` 3, `nativeCall` 2 | `nativeCall`, `toast` | `toast` 1, `syncNative` (nombre calculado) | `window.nativeCall`, `MaquetarioHost.onMessage` | no |
+| 3. Deshacer: `snapshot`, `changed`, `commit`, `undo`, `redo` | 159–209 | 5 | 27 (`commit` 25) | 4 nombres | — | `commit` 1 | — | no |
+| 4. Medidas, rutas y marcado del inspector: `documentUnit`, `displayMeasure`, `displayDimensions`, `get`, `set`, `positions`, `folioPositions`, `inspector`, `commitBinding`, `commitObjectField`, `section`, `toggle`, `row`, `number`, `options` | 210–334 | 15 | 27 (`documentUnit` 13, `inspector` 8) | 3 nombres | — | `inspector` 4 | — | no |
+| 5. Plantillas y miniaturas: `templates`, `templateMini`, `renderTemplates`, `thumbs` | 335–410 | 4 | 0 | `renderTemplates` 1 | — | `renderTemplates` 1, `thumbs` 2 | — | las miniaturas dibujan el libro (`ui/book`) |
+| 6. Dibujo del pliego: `verticalSpread`, `calculateScale`, `autoElement`, `paper`, `screenPage`, `renderPages`, `render`, `updateStatus`, `checkOverflow` | 411–589 | 9 | 27 (`renderPages` 13, `render` 9) | `render` 21, `paper` 5, `autoElement` 3, `renderPages` 3 | — | `paper` 7, `autoElement` 5, `render` 4, `updateStatus` 2, `renderPages` 1, `checkOverflow` 1, `screenPage` 1 | — | sí (pasos 1–5: `renderPages` ya es la fachada de `<Spread/>`) |
+| 7. Edición y arrastre: `startEditing`, `finishEditing`, `objectDown`, `moveObject`, `upObject`, `pageDown` | 590–736 | 6 | 25 (`finishEditing` 25) | 2 nombres | — | `objectDown` 6, `startEditing` 4, `pageDown` 3, `finishEditing`, `moveObject`, `upObject` 2 | — | sí (paso 6) |
+| 8. Eventos del lienzo: `canvasHit` y los oyentes de `#spread` | 737–795 | 1 | 0 | — | — | — | oyentes de `#spread` | sí (paso 2, hecho) |
+| 9. Imágenes: `chooseImage`, `imageTarget` | 796–849 | 2 | 2 | — | — | — | `#imageInput.onchange` | inserta en la página |
+| 10. Pestañas y herramientas: `showTab`, `setTool` | 850–874 | 2 | 21 (`showTab` 19) | `showTab` 16 | `showTab` | `setTool` 4, `showTab` 2 | — | `setTool` (herramientas del lienzo) |
+| 11. Diálogos: `modal()` y `modal.sheet/info/workspace/confirm` | 875–966 | 1 | 11 | — | — | — | asigna `modal.*` | no |
+| 12. Formato del libro: `settings`, `applyBookSettings` | 967–1068 | 2 | 10 | `settings` 1 | — | `applyBookSettings` 4 | — | no |
+| 13. Archivo y guardado: `confirmChanges`, `saveProject`, `download`, `openBook`, `loadProject` | 1069–1162 | 5 | 9 | `saveProject` 1 | `confirmChanges` | `saveProject` 2, `loadProject` 2 | `window.saveProject`, `#openInput.onchange` | no |
+| 14. Comandos: `command` | 1163–1245 | 1 | 3 | — | — | `command` 1 | — | en parte (agrega, borra y ordena objetos y páginas) |
+| 15. Salida: `preparePrint`, `clearPrint` | 1246–1261 | 2 | 7 | `clearPrint` 5, `preparePrint` 2 | los dos | `preparePrint` 1 | `window.preparePrint`, `window.clearPrint` | no (dibuja `#printRoot`) |
+| 16. Recuperación: `recoveryDb`, `storeRecovery`, `recoveryTimer` | 1262–1277 | 2 | 1 | — | — | — | — | no |
+| 17. Arranque y atajos: `buildToolbar`, `togglePreview`, `setZoom` | 1278–1349 | 3 | 1 | — | — | `setZoom` 1 | `buildToolbar()`, pestañas, `#addPage`, atajos de teclado, `ResizeObserver`, `beforeunload`, `render(true)`, aviso de listo al anfitrión | zoom y atajos |
+
+- Sin usos fuera de `studio.ts`, pasan a privados al cortar: `icons`, `pending`, `recoveryTimer`, `section`, `toggle`, `row`, `number`, `options`, `templateMini`, `templates`, `canvasHit`, `imageTarget`, `storeRecovery` y `buildToolbar`.
+- `editor-state-wiring.ts` extiende `updateStatus`, `syncNative` y `checkOverflow` con un nombre calculado: el inventario no lo ve. Contarlas a mano.
+- **Lo del lienzo** son los bloques 6, 7 y 8, más `setTool`, `chooseImage`, `setZoom`, los atajos de teclado y la parte de `command` que toca objetos y páginas. El paso 5 (`<Spread/>`, hecho) dejó `renderPages` como fachada vacía y pasó el dibujo a `components/canvas/Spread.tsx`; el 6 ordena la edición y el arrastre. Esos bloques se cortan al final, con el agente del lienzo o después de él.
+
+**Cómo se corta un bloque**
+- **Destino.** Un módulo sin efectos en `src/core/`, importado desde `src/entries/core.ts` después de `state/editor.ts`. Va en `core` porque carga antes que `studio.js`. Así `studio.ts`, que sigue siendo un script, encuentra los nombres ya publicados. Y los módulos de `app` que los extienden por nombre los encuentran registrados.
+- **Publicación.** `globalThis.x = x` con su `declare global`, mientras lo use `studio.ts`, las pruebas o `scripts/style-snapshot.js`. Desde `app` se toma por `core-api.ts`; nunca con un `import` directo, que lo duplicaría en el otro bundle.
+- **Extensiones.** Toda función que otros extienden por nombre pasa a `extensible('x', …)` en el mismo corte. Hoy las funciones comunes del script funcionan porque `extend` reemplaza `window.x` y las llamadas internas pasan por `window`. En un módulo, las llamadas internas a la función local saltearían la extensión. Son `toast`, `commit`, `syncNative`, `updateStatus`, `checkOverflow`, `showTab`, `saveProject`, `loadProject`, `command`, `preparePrint`, `renderTemplates`, `thumbs`, `finishEditing`, `moveObject`, `upObject` y `setZoom`.
+- **Efectos.** Lo que corre al cargar (oyentes, `MaquetarioHost.onMessage`, `window.x = …`, `render(true)`) no va al módulo: queda en `studio.ts`, que se va achicando hasta ser sólo el cableado.
+- **La declaración sale de `studio.ts` en el mismo corte.** Si quedan las dos, un `const` o `let` del script tapa al global del módulo, y un `function` del script lo reemplaza.
+
+**Orden de cortes** (un commit cada uno; los cinco primeros no tocan el lienzo):
+1. **Utilidades:** `src/core/dom.ts` (`$`, `$$`, `esc`) y `src/core/icons.ts` (`paths`, `icon`, `icons`). `M` pasa a publicarse desde `core` (`globalThis.M = LibroModel`). No tienen efectos ni extensiones, y es el bloque con más lectores (44 archivos, 26 pruebas leen `$`). `category-design.ts` amplía `paths` con `Object.assign`: tiene que seguir siendo el mismo objeto.
+2. **Anfitrión y avisos:** `src/core/host-bridge.ts` (`pending`, `nativeCall`, `toast` con su cola, `syncNative`). `toast` y `syncNative` pasan a `extensible`. `window.nativeCall` y `MaquetarioHost.onMessage` quedan en el cableado.
+3. **Deshacer y recuperación:** `src/core/history.ts` (`snapshot`, `changed`, `commit`, `undo`, `redo`) y `src/core/recovery.ts` (`recoveryDb`, `storeRecovery`, `recoveryTimer`). `changed` programa la copia de recuperación, así que van juntos. `commit` pasa a `extensible`.
+4. **Medidas, rutas y la fachada del inspector:** `src/core/book-paths.ts` (`get`, `set`, `selectObject`, `documentUnit`, `displayMeasure`, `displayDimensions`, `positions`, `folioPositions`) y `src/core/inspector.ts` (`inspector`, `commitBinding`, `commitObjectField`). Los ayudantes de marcado (`section`, `toggle`, `row`, `number`, `options`) quedan privados del módulo que todavía los use. Si sólo los usa código que ya no se llama, se borran.
+5. **Diálogos, archivo, formato, salida y recuperación de cambios:**
+   - `modal()` va a `app` (`components/dialog/modal.ts`), porque lo que llama (`openSheet`, `openWorkWindow`, `openConfirmSheet`) está en `app`. Se publica para `studio.ts`, que lo usa sólo al llamarse.
+   - En `core`: `src/core/project-file.ts` (`confirmChanges`, `saveProject`, `download`, `openBook`, `loadProject`), `src/core/book-settings.ts` (`settings`, `applyBookSettings`) y `src/core/print.ts` (`preparePrint`, `clearPrint`).
+   - `confirmChanges`, `preparePrint` y `clearPrint` están en el contrato: `main-contract.ts` los sigue llamando por el nombre global hasta que los tome de `core-api.ts`.
+6. **Comandos:** `src/core/commands.ts` (`command`), coordinado con el lienzo, porque agrega, borra y ordena objetos y páginas.
+7. **Lo del lienzo, después de su paso 6:** plantillas y miniaturas (las miniaturas dibujan el libro: los PDF tienen que salir idénticos), dibujo del pliego, edición y arrastre, eventos, imágenes, pestañas y herramientas, `setZoom` y los atajos.
+8. **Fin del script:**
+   - Lo que queda de `studio.ts` es el arranque. Pasa a `src/core/studio-wiring.ts`, importado al final de `entries/core.ts`.
+   - Se borran `src/global/`, `build/studio.js`, su `<script>` en `index.html` y su entrada en `desktop/scripts/build.mjs`.
+   - Los efectos corren en el mismo lugar que hoy: después de `core` y antes de `app`.
+   - Con un solo punto de entrada para la interfaz, `core-api.ts` pasa a ser un re-export.
+
+**Riesgos**
+- **Orden de carga.** `core.js` → `studio.js` → `app.js`. Un módulo de `core` corre antes que `studio.js`: al cargar no puede usar nada de `studio.ts`, sólo cuando lo llaman. Lo que `studio.ts` usa al cargar (`buildToolbar()`, `render(true)`) tiene que estar publicado antes, y `core` lo cumple. En cada corte se compara el orden de los módulos con efectos en `core.js` y en `app.js`, como en el grupo 6.
+- **`extensible`.**
+  - Las llamadas internas, como se explicó arriba.
+  - `extensible` lanza un error si el nombre ya está registrado, y `extend` lanza uno si el nombre todavía no existe. El registro tiene que ocurrir antes de cualquier `extend`: otra razón para `core`.
+  - `MaquetarioExtensions.list()` sigue el orden de la primera extensión, no el del registro, así que mover el registro no lo cambia. Lo confirma `verificacion-extensiones.json`.
+- **Cadenas del contrato.** El proceso principal ya sólo nombra `maquetarioMain`, y `main-contract.ts` llama por nombre a `showTab`, `confirmChanges`, `nativeCall`, `toast`, `preparePrint` y `clearPrint`. Si uno deja de ser global, `main-contract.ts` lo toma de `core-api.ts`. `globals-report` marca lo que alcanza el contrato y controla que haya 0 nombres sueltos.
+- **`core` frente a `app`.** Son bundles separados: un módulo de `core` importado desde `app` se duplica (dos copias, dos estados, efectos dos veces). Desde `app` se usa `core-api.ts`. Por eso `modal` va a `app`.
+- **`studio.ts` es un script aparte.**
+  - No puede importar: sólo usa lo publicado.
+  - Sus `const`/`let` son globales léxicos. Al publicarlos con `globalThis` pasan a ser propiedades: quien los lee por nombre no nota la diferencia, pero algo que leía `window.x` y no lo encontraba, empieza a encontrarlo.
+  - Los tipos: hoy `src/` ve todas sus declaraciones sin `declare global`, y el módulo nuevo tiene que declararlas.
+- **Choque con el lienzo.** Se corta de arriba (bloques 1 a 4) y de abajo (11 a 16), no del medio (líneas 411 a 849, ni `setZoom` y los atajos). Cada corte se rebasa sobre el último paso del lienzo antes de entregarse.
+- **Pruebas que leen o asignan.** `$` 26 archivos, `M` 21, `render` 21, `showTab` 16, `clearPrint` 5… siguen publicados hasta que tengan su objeto de prueba. El estado ya va por `maquetarioEditor`.
+
+**Pruebas de cada corte.**
+- Autoprueba idéntica (PDF y JSON) y `verificacion-extensiones.json` igual.
+- `globals-report` antes y después: los globales del núcleo bajan y los publicados por módulos suben mientras dura la mudanza.
+- El orden de los módulos con efectos en `core.js` y `app.js`.
+- Los recorridos de la interfaz y las suites de `tests/` en Chrome: integración, asistente, navegación y avisos.
 
 ### Riesgos
 
