@@ -1,0 +1,1361 @@
+{
+  "version": 3,
+  "title": "El atlas de las casas vacías",
+  "width": 148,
+  "height": 210,
+  "format": "A5",
+  "facing": true,
+  "margins": {
+    "top": 22,
+    "bottom": 22,
+    "inside": 23,
+    "outside": 20
+  },
+  "grid": {
+    "enabled": false,
+    "rows": 1,
+    "cols": 1,
+    "gapX": 0,
+    "gapY": 0,
+    "fit": "margins"
+  },
+  "folio": {
+    "enabled": true,
+    "pos": "bottom-outer",
+    "odd": "{page}",
+    "even": "{page}",
+    "size": 9,
+    "font": "Georgia",
+    "align": "center",
+    "distance": 12,
+    "offsetX": 0,
+    "offsetY": 0,
+    "rule": false,
+    "vertical": false,
+    "scope": "all",
+    "start": 1,
+    "format": "arabic"
+  },
+  "header": {
+    "enabled": true,
+    "pos": "top",
+    "odd": "{section}",
+    "even": "{book}",
+    "size": 8,
+    "font": "Georgia",
+    "align": "center",
+    "distance": 12,
+    "offsetX": 0,
+    "offsetY": 0,
+    "rule": false,
+    "vertical": false,
+    "scope": "all"
+  },
+  "titulillo": {
+    "enabled": false,
+    "pos": "outer",
+    "odd": "{section}",
+    "even": "{book}",
+    "size": 8,
+    "font": "Georgia",
+    "align": "center",
+    "distance": 8,
+    "offsetX": 0,
+    "offsetY": 0,
+    "rule": false,
+    "vertical": false,
+    "scope": "all"
+  },
+  "chapter": "",
+  "pages": [
+    {
+      "id": "6m0esjyp8",
+      "section": "",
+      "hideHeader": true,
+      "hideTitle": true,
+      "hideFolio": true,
+      "objects": [
+        {
+          "id": "2v1orq0vq",
+          "type": "text",
+          "text": "El atlas de las casas vacías",
+          "x": 23,
+          "y": 75,
+          "w": 102,
+          "h": 110,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 21,
+                "leading": 31.5
+              }
+            }
+          ]
+        }
+      ],
+      "partName": "Portadilla"
+    },
+    {
+      "id": "uff3y5ws3",
+      "section": "",
+      "hideHeader": true,
+      "hideTitle": true,
+      "hideFolio": true,
+      "objects": [
+        {
+          "id": "cy68czlh2",
+          "type": "text",
+          "text": "",
+          "x": 23,
+          "y": 65,
+          "w": 102,
+          "h": 110,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 18,
+                "leading": 27
+              }
+            }
+          ]
+        }
+      ],
+      "partName": "Blanco de cortesía"
+    },
+    {
+      "id": "2vzzjpdt8",
+      "section": "",
+      "hideHeader": true,
+      "hideTitle": true,
+      "hideFolio": true,
+      "objects": [
+        {
+          "id": "efj929hd2",
+          "type": "text",
+          "text": "El atlas de las casas vacías\n\nAutoría de demostración\n\nNOVELA",
+          "x": 23,
+          "y": 48,
+          "w": 102,
+          "h": 110,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 19,
+                "leading": 28.5
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 19,
+                "leading": 28.5
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 19,
+                "leading": 28.5
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 19,
+                "leading": 28.5
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 19,
+                "leading": 28.5
+              }
+            }
+          ]
+        }
+      ],
+      "partName": "Portada"
+    },
+    {
+      "id": "xhbdxiee3",
+      "section": "",
+      "hideHeader": true,
+      "hideTitle": true,
+      "hideFolio": true,
+      "objects": [
+        {
+          "id": "t3s44upsl",
+          "type": "text",
+          "text": "Maqueta editorial de prueba · 2026\nTexto original de demostración generado para probar Maquetario.\nNo es una edición comercial. No incluye ISBN.\nAutoría, derechos y datos de impresión: completar antes de publicar.",
+          "x": 23,
+          "y": 100,
+          "w": 102,
+          "h": 110,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 9,
+                "leading": 13.5
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 9,
+                "leading": 13.5
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 9,
+                "leading": 13.5
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 9,
+                "leading": 13.5
+              }
+            }
+          ]
+        }
+      ],
+      "partName": "Legales"
+    },
+    {
+      "id": "jxaeue6ts",
+      "section": "",
+      "hideHeader": true,
+      "hideTitle": true,
+      "hideFolio": true,
+      "objects": [
+        {
+          "id": "2heeg4zm7",
+          "type": "text",
+          "text": "A quienes vuelven sin saber\nque también los lugares los esperan.",
+          "x": 23,
+          "y": 80,
+          "w": 102,
+          "h": 110,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 12,
+                "leading": 18
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 12,
+                "leading": 18
+              }
+            }
+          ]
+        }
+      ],
+      "partName": "Dedicatoria"
+    },
+    {
+      "id": "trjn7smsi",
+      "section": "",
+      "hideHeader": true,
+      "hideTitle": true,
+      "hideFolio": true,
+      "objects": [
+        {
+          "id": "vgrnxn589",
+          "type": "text",
+          "text": "Una casa no termina en sus paredes.\nTermina donde alguien deja de recordarla.\n— Epígrafe original de esta edición",
+          "x": 23,
+          "y": 70,
+          "w": 102,
+          "h": 110,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 12,
+                "leading": 18
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 12,
+                "leading": 18
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 12,
+                "leading": 18
+              }
+            }
+          ]
+        }
+      ],
+      "partName": "Epígrafe"
+    },
+    {
+      "id": "razi0aoev",
+      "section": "",
+      "hideHeader": true,
+      "hideTitle": true,
+      "hideFolio": true,
+      "objects": [
+        {
+          "id": "pck62ug2l",
+          "type": "text",
+          "text": "",
+          "x": 23,
+          "y": 28,
+          "w": 102,
+          "h": 155,
+          "size": 11,
+          "leading": 20,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#202125",
+          "bold": false,
+          "italic": false,
+          "toc": true
+        }
+      ],
+      "partName": "Índice"
+    },
+    {
+      "id": "knh3vb0xp",
+      "section": "Prólogo · La llave",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "6nv2cohe1",
+          "type": "text",
+          "text": "Prólogo · La llave",
+          "x": 23,
+          "y": 35,
+          "w": 102,
+          "h": 33,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "chapter",
+              "overrides": {}
+            }
+          ]
+        },
+        {
+          "id": "cknpij2m0",
+          "type": "text",
+          "text": "La llave llegó en un sobre sin remitente. Era pequeña, de hierro oscuro, y llevaba atado un cartón con una dirección que Clara reconoció antes de terminar de leerla. La casa de su padre seguía existiendo. Durante doce años había preferido pensar que el río se la había llevado.\nDejó el sobre junto a la taza. Desde la ventana de su departamento podía ver otras ventanas: cientos de rectángulos encendidos donde la gente cenaba, discutía, buscaba algo en un cajón. Ninguno le dijo qué hacer con aquella llave. A la mañana siguiente compró un pasaje.\nNo llevaba una valija grande. Solo ropa para tres días y el cuaderno en el que anotaba los nombres de las calles que iban desapareciendo de los mapas. Trabajaba corrigiendo planos municipales. Sabía que borrar una línea era fácil. Averiguar quién había vivido detrás de ella llevaba mucho más tiempo.",
+          "x": 23,
+          "y": 76,
+          "w": 102,
+          "h": 111,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ],
+      "partName": "Prólogo · La llave"
+    },
+    {
+      "id": "a57uuwxbf",
+      "section": "I · La orilla",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "up8elojx3",
+          "type": "text",
+          "text": "I · La orilla",
+          "x": 23,
+          "y": 35,
+          "w": 102,
+          "h": 33,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "chapter",
+              "overrides": {}
+            }
+          ]
+        },
+        {
+          "id": "aa5sizaiq",
+          "type": "text",
+          "text": "El colectivo la dejó frente a una estación que ya no vendía boletos. En el antiguo andén había macetas de albahaca y un perro dormido. Clara bajó con el cuaderno contra el pecho. El aire conservaba ese olor a madera mojada que en la ciudad solo encontraba al abrir ciertos libros.\nLa calle de su infancia era más corta de lo que recordaba. Le faltaban dos manzanas: el río, esa vez sí, se las había llevado. Caminó hasta la panadería. Una mujer acomodaba facturas detrás del vidrio. Cuando Clara preguntó por la casa del agrimensor, la mujer dejó la bandeja sobre el mostrador.\n—La casa está —dijo—. Lo que no sabemos es por cuánto tiempo.\nSe llamaba Inés. Había conocido al padre de Clara y hablaba de él en presente, como si fuera a aparecer buscando el pan de cada tarde. Le explicó que el municipio pensaba levantar una defensa contra las crecidas. En los planos nuevos, todas las viviendas de la orilla figuraban desocupadas.",
+          "x": 23,
+          "y": 76,
+          "w": 102,
+          "h": 111,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ],
+      "partName": "I · La orilla"
+    },
+    {
+      "id": "3ek311tea",
+      "section": "",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "qsdbc1zmp",
+          "type": "text",
+          "text": "—Hay gente todavía —dijo Clara.\nInés miró hacia la calle. Una bicicleta pasó cargada de bolsas. Al otro lado, alguien sacudía un mantel desde un balcón.\n—Eso no siempre alcanza para que te dibujen en un plano.\nLa casa tenía la puerta azul y una enredadera que había encontrado el modo de entrar por las persianas. La llave giró con dificultad. Adentro no había ruinas ni un tesoro. Había polvo, una silla, el dibujo claro que un cuadro ausente había dejado en la pared. La luz de la tarde se detenía en los mismos lugares.\nClara abrió las ventanas. En el escritorio encontró un atlas sin tapa, cosido con hilo de encuadernar. Cada hoja mostraba una casa distinta. No eran planos profesionales. Había medidas, sí, pero también árboles, manchas de humedad, el nombre de un gato. En el margen de una página, su padre había escrito: «No confundir una casa cerrada con una casa vacía».\nSe sentó a leer hasta que oscureció. La última hoja estaba dedicada a su propia casa. Tenía dibujadas las ventanas, el patio y el naranjo. Donde debía estar la habitación de Clara había un rectángulo en blanco. No era un error de impresión ni una página arrancada. Su padre había dejado ese espacio sin terminar.",
+          "x": 23,
+          "y": 22,
+          "w": 102,
+          "h": 165,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ea30o2myk",
+      "section": "",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "ij2qm6rte",
+          "type": "text",
+          "text": "Esa noche durmió en el sillón, con el atlas sobre una caja. Cada ruido parecía tener una explicación antigua. El golpe de una rama. Una teja floja. El agua moviéndose detrás del terraplén. Antes de quedarse dormida decidió que al día siguiente pediría los planos nuevos.",
+          "x": 23,
+          "y": 22,
+          "w": 102,
+          "h": 165,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "w5azub1cb",
+      "section": "II · Las medidas",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "77hbv62pf",
+          "type": "text",
+          "text": "II · Las medidas",
+          "x": 23,
+          "y": 35,
+          "w": 102,
+          "h": 33,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "chapter",
+              "overrides": {}
+            }
+          ]
+        },
+        {
+          "id": "ccw6vehz6",
+          "type": "text",
+          "text": "En la oficina municipal la recibió un muchacho que no tendría más de veinte años. Clara explicó que necesitaba consultar el proyecto de la defensa. Él buscó una carpeta y la desplegó sobre una mesa. Una línea roja atravesaba la orilla con una precisión impecable.\nSobre el papel no estaba la panadería. Tampoco la casa del hombre que reparaba radios ni el patio donde Inés tendía sábanas. Todos esos lugares formaban una sola superficie gris, señalada con dos palabras: «Área liberada». Clara reconoció el lenguaje. Lo utilizaba todos los días sin pensar en él.\n—¿Quién hizo el relevamiento?\nEl muchacho revisó una carátula. El informe tenía tres años. Se había realizado después de una evacuación preventiva. Nadie había vuelto a comprobar quiénes regresaron.\n—Podés presentar observaciones hasta el viernes —dijo—. Pero tienen que venir con documentación.",
+          "x": 23,
+          "y": 76,
+          "w": 102,
+          "h": 111,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ],
+      "partName": "II · Las medidas"
+    },
+    {
+      "id": "4zt3w5kga",
+      "section": "",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "61fkr42fg",
+          "type": "text",
+          "text": "Era martes. Clara pensó en su pasaje de vuelta, guardado en el bolsillo del abrigo. Pensó también en la hoja incompleta del atlas. No canceló nada todavía. Pidió una copia de la carpeta y salió a la calle con la incómoda sensación de haber llevado aquella línea roja durante mucho tiempo dentro de su propio trabajo.\nFue a ver a Inés. Sobre la mesa de la panadería extendieron el plano municipal y el atlas. El dibujo de su padre mostraba una acequia que no aparecía en el proyecto. Era una línea delgada, apenas un desvío detrás de las casas. Inés la señaló con un dedo cubierto de harina.\n—Por acá salió el agua la última vez.\nPasaron la tarde recorriendo la orilla. Golpearon puertas, anotaron nombres, midieron patios. En una casa les mostraron una foto del agua llegando al segundo escalón. En otra, un hombre aseguró que nunca había habido una acequia. Después recordó que de chico pescaba ranas detrás del almacén.\nClara dibujó hasta que le dolieron los dedos. Cada familia conservaba un fragmento distinto del mismo lugar. La historia no estaba completa en ninguna mesa, pero podía armarse si alguien se tomaba el trabajo de caminar de una a otra.\nCuando volvió a la casa encontró a un vecino esperando en el umbral. Llevaba una radio envuelta en un repasador. Era Julián, el reparador. Dijo que había venido a devolverla hacía años, pero nunca encontraba a nadie. La dejó sobre el escritorio y miró el atlas abierto.",
+          "x": 23,
+          "y": 22,
+          "w": 102,
+          "h": 165,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d3t30v9fr",
+      "section": "",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "jbs44y6wm",
+          "type": "text",
+          "text": "—Tu padre no dibujaba para quedarse con las casas —dijo—. Dibujaba para que no desaparecieran antes de tiempo.",
+          "x": 23,
+          "y": 22,
+          "w": 102,
+          "h": 165,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2nn6dzkc9",
+      "section": "III · La hoja en blanco",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "4ibrock6g",
+          "type": "text",
+          "text": "III · La hoja en blanco",
+          "x": 23,
+          "y": 35,
+          "w": 102,
+          "h": 33,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "chapter",
+              "overrides": {}
+            }
+          ]
+        },
+        {
+          "id": "0gw56q364",
+          "type": "text",
+          "text": "El miércoles llovió desde temprano. No una tormenta, sino esa lluvia paciente que hace parecer definitivas las cosas. Clara trabajó en la mesa de la cocina. A un lado tenía los planos; al otro, los testimonios que había recogido. En el medio, una taza que se enfriaba sin que llegara a beberla.\nLe faltaba la cota del desagüe. Sin esa medida, la acequia era una anécdota. Con ella podía convertirse en una observación técnica. Buscó entre los papeles del escritorio y encontró una libreta de tapas verdes. La letra de su padre era cada vez más pequeña hacia el final.\nNo había un gran secreto. Había cuentas, una lista del almacén, teléfonos de vecinos. En una página encontró las medidas que buscaba. En la siguiente, una fecha: el día en que ella se había ido. Debajo, una frase: «Cambiar la cerradura del patio. La llave de Clara sigue sirviendo».",
+          "x": 23,
+          "y": 76,
+          "w": 102,
+          "h": 111,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ],
+      "partName": "III · La hoja en blanco"
+    },
+    {
+      "id": "pwyaux7bf",
+      "section": "",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "kdqullg7c",
+          "type": "text",
+          "text": "Durante años había contado su partida como una ruptura limpia. Una discusión, una puerta, una ciudad nueva. Recordó entonces que su padre le había ofrecido acompañarla a la estación. Ella había dicho que no. La memoria, pensó, también simplificaba sus planos para que resultaran más fáciles de leer.\nJulián llegó con pilas para la radio. Mientras buscaban una emisora, Clara le preguntó por el rectángulo vacío de su habitación.\n—Me pidió que no moviera nada —dijo él—. Después se dio cuenta de que eso tampoco estaba bien. No quería conservarte como se conserva un mueble.\nLa radio encontró una voz entre dos bandas de ruido. Un locutor anunció el nivel del río. Faltaban varios metros para una alerta, pero la gente de la orilla sabía escuchar las cifras sin tomarlas como promesas.\nPor la tarde Clara abrió la puerta de su antiguo cuarto. Había una cama sin colchón y una caja de libros escolares. Se sentó en el suelo. No sintió que regresaba a su infancia. Sintió que entraba por primera vez en una habitación de la que podía hacerse responsable.\nVolvió a la cocina y empezó a dibujar. Puso la ventana, la cama y la grieta que bajaba desde el techo. No dibujó a una niña esperando el verano. Dibujó el cuarto tal como estaba, con espacio suficiente para una persona que todavía no sabía cuánto tiempo iba a quedarse.",
+          "x": 23,
+          "y": 22,
+          "w": 102,
+          "h": 165,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oqh4yhve9",
+      "section": "IV · El jueves",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "vagv3403c",
+          "type": "text",
+          "text": "IV · El jueves",
+          "x": 23,
+          "y": 35,
+          "w": 102,
+          "h": 33,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "chapter",
+              "overrides": {}
+            }
+          ]
+        },
+        {
+          "id": "as7ndwame",
+          "type": "text",
+          "text": "El jueves la panadería cerró una hora antes. Inés dejó un cartel en la puerta y reunió a los vecinos alrededor de las mesas. Clara llevó un borrador del informe. Le parecía demasiado breve para todo lo que habían contado y demasiado largo para que alguien tuviera paciencia de leerlo.\nNo propuso salvar cada ladrillo. Explicó la diferencia entre la obra necesaria y el relevamiento equivocado. Había casas ocupadas que no estaban registradas, un desagüe omitido y un recorrido alternativo que merecía estudiarse. No podía prometerles una resolución favorable. Podía prometer que sus nombres aparecerían donde antes había una mancha gris.\nDiscutieron durante dos horas. Algunos querían rechazar cualquier intervención. Otros preferían aceptar una mudanza antes de otra crecida. Un hombre se levantó y dijo que ya había esperado demasiado. Nadie lo detuvo. Inés le guardó una copia del informe por si cambiaba de idea.",
+          "x": 23,
+          "y": 76,
+          "w": 102,
+          "h": 111,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ],
+      "partName": "IV · El jueves"
+    },
+    {
+      "id": "v19e3cxas",
+      "section": "",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "gqqxgv7y6",
+          "type": "text",
+          "text": "Al caer la noche juntaron las firmas. Clara escribió en una hoja aparte los desacuerdos. Julián la observó, sorprendido.\n—¿También vas a poner eso?\n—Si lo saco, el plano vuelve a quedar demasiado limpio.\nCaminaron juntos hasta el terraplén. Desde allí se veía el barrio encendido en pequeños grupos de ventanas. Una defensa podía proteger esas luces. También podía convertirse en la razón por la que dejaran de estar. La dificultad no estaba en elegir una imagen hermosa de la orilla. Estaba en aceptar que había que medirla sin dejar de verla.\nEsa noche Clara llamó a la ciudad. Pidió unos días más en el trabajo. Su jefa quiso saber si se trataba de un asunto familiar. Clara miró el atlas sobre la mesa.\n—Sí —respondió—. Pero no solamente.\nOrdenó las hojas del informe en tres juegos. Numeró las páginas, comprobó cada referencia y corrigió una fecha. Después volvió al atlas. La hoja de su casa ya no tenía un rectángulo vacío. Entre las líneas nuevas reconoció su propia letra, distinta de la de su padre. Por primera vez esa diferencia le pareció una forma de continuidad.",
+          "x": 23,
+          "y": 22,
+          "w": 102,
+          "h": 165,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ob25pm8gw",
+      "section": "V · El nombre del agua",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "p4ot52hqx",
+          "type": "text",
+          "text": "V · El nombre del agua",
+          "x": 23,
+          "y": 35,
+          "w": 102,
+          "h": 33,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "chapter",
+              "overrides": {}
+            }
+          ]
+        },
+        {
+          "id": "dwxsclvf1",
+          "type": "text",
+          "text": "El viernes fueron al municipio bajo un cielo que por fin empezaba a abrirse. El muchacho de la oficina les indicó una ventanilla. Entregaron las copias, esperaron un sello y recibieron un número de expediente. No hubo aplausos ni una respuesta inmediata. Solo tinta azul sobre un papel y la obligación de volver a preguntar.\nClara sintió una decepción breve, casi vergonzosa. Había imaginado que el esfuerzo debía producir un cambio visible. Inés dobló su copia con cuidado y la guardó en una bolsa para que no se mojara.\n—Antes no teníamos ni esto —dijo.\nAl salir encontraron al hombre que se había ido de la reunión. Esperaba junto a su bicicleta. No firmó el documento, pero les entregó una fotografía. Mostraba la acequia durante una crecida antigua: el agua corría por detrás de las casas y regresaba al río sin atravesar la calle. En el reverso había una fecha escrita por su madre.",
+          "x": 23,
+          "y": 76,
+          "w": 102,
+          "h": 111,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ],
+      "partName": "V · El nombre del agua"
+    },
+    {
+      "id": "qgex8aj4t",
+      "section": "",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "v5p6wtki2",
+          "type": "text",
+          "text": "Volvieron a entrar para agregarla al expediente. Esta vez Clara no esperó una escena decisiva. Entendió que el trabajo consistía, en buena parte, en conseguir que una prueba llegara a tiempo al lugar donde alguien podía leerla.\nEl domingo abrió el atlas en el patio. Había dejado de llover y el naranjo todavía sostenía gotas entre las hojas. Julián reparaba la radio en una silla baja. Inés llegó con pan y preguntó cuándo regresaba Clara a la ciudad.\n—El martes —dijo—. Y vuelvo el próximo fin de semana.\nNinguno pareció sorprenderse. Había muchas cosas que revisar: los planos alternativos, la cubierta de la casa, los papeles de su padre. También había que decidir qué hacer con aquella habitación. Por primera vez la lista no le pareció una condena.\nEn la última página del atlas escribió el nombre del barrio. Debajo agregó la fecha y una nota: «Este libro no está terminado». No era una disculpa. Era una instrucción para quien lo abriera después.",
+          "x": 23,
+          "y": 22,
+          "w": 102,
+          "h": 165,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "z61mxp5jc",
+      "section": "Epílogo · Las ventanas",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "raj845no7",
+          "type": "text",
+          "text": "Epílogo · Las ventanas",
+          "x": 23,
+          "y": 35,
+          "w": 102,
+          "h": 33,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "chapter",
+              "overrides": {}
+            }
+          ]
+        },
+        {
+          "id": "uxgp4pjb0",
+          "type": "text",
+          "text": "Meses más tarde llegó la primera respuesta. El municipio suspendía ese tramo de la obra hasta completar un nuevo relevamiento. No significaba que todas las casas fueran a quedarse. Significaba que nadie podía seguir llamándolas vacías sin ir a comprobarlo.\nClara guardó la resolución en el atlas. Había vuelto a su trabajo y ahora tardaba un poco más en corregir ciertos planos. Cuando encontraba una superficie gris, preguntaba de dónde venía el dato. A veces la respuesta era suficiente. Otras veces pedía una segunda visita.\nLa casa de la orilla ya tenía un techo reparado. En su antiguo cuarto había una mesa, una lámpara y estantes sin terminar. La llave seguía siendo la misma. Clara dejó una copia en la panadería y otra con Julián.\nUna tarde abrió todas las ventanas antes de ponerse a dibujar. Del otro lado llegaban una radio, el golpe de una pelota y el ruido del agua contra el terraplén. No eran pruebas de que el mundo estuviera a salvo. Eran señales de que todavía estaba habitado.",
+          "x": 23,
+          "y": 76,
+          "w": 102,
+          "h": 111,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            },
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ],
+      "partName": "Epílogo · Las ventanas"
+    },
+    {
+      "id": "q8vynn2yr",
+      "section": "",
+      "hideHeader": false,
+      "hideTitle": false,
+      "hideFolio": false,
+      "objects": [
+        {
+          "id": "c1u90ni2b",
+          "type": "text",
+          "text": "Apoyó el lápiz sobre una hoja nueva. Esta vez empezó por las puertas.",
+          "x": 23,
+          "y": 22,
+          "w": 102,
+          "h": 165,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "body",
+              "overrides": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4tg4c54pe",
+      "section": "",
+      "hideHeader": true,
+      "hideTitle": true,
+      "hideFolio": true,
+      "objects": [
+        {
+          "id": "071m6ebz0",
+          "type": "text",
+          "text": "A las bibliotecas de barrio, que guardan mucho más que libros.\nA quienes prestan una silla y escuchan antes de preguntar.",
+          "x": 23,
+          "y": 45,
+          "w": 102,
+          "h": 110,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 11,
+                "leading": 16.5
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 11,
+                "leading": 16.5
+              }
+            }
+          ]
+        }
+      ],
+      "partName": "Agradecimientos"
+    },
+    {
+      "id": "uzjrf244f",
+      "section": "",
+      "hideHeader": true,
+      "hideTitle": true,
+      "hideFolio": true,
+      "objects": [
+        {
+          "id": "9rbht66ir",
+          "type": "text",
+          "text": "Esta maqueta se compuso en Maquetario.\nFormato A5 · Georgia 11/15\nPrueba de estructura, estilos, cornisas, índice y salida PDF.\nNoviembre de 2026",
+          "x": 23,
+          "y": 100,
+          "w": 102,
+          "h": 110,
+          "size": 11,
+          "leading": 15,
+          "font": "Georgia",
+          "align": "left",
+          "color": "#29252A",
+          "bold": false,
+          "italic": false,
+          "paragraphMap": [
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 9,
+                "leading": 13.5
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 9,
+                "leading": 13.5
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 9,
+                "leading": 13.5
+              }
+            },
+            {
+              "styleId": "front",
+              "overrides": {
+                "size": 9,
+                "leading": 13.5
+              }
+            }
+          ]
+        }
+      ],
+      "partName": "Colofón"
+    }
+  ],
+  "author": "Autoría de demostración",
+  "paragraphStyles": [
+    {
+      "id": "body",
+      "name": "Cuerpo de novela",
+      "properties": {
+        "font": "Georgia",
+        "size": 11,
+        "leading": 15,
+        "align": "justify",
+        "lastAlign": "left",
+        "firstIndent": 4,
+        "spaceAfter": 1.3
+      }
+    },
+    {
+      "id": "chapter",
+      "name": "Título de capítulo",
+      "properties": {
+        "font": "Georgia",
+        "size": 25,
+        "leading": 30,
+        "align": "left",
+        "firstIndent": 0,
+        "spaceAfter": 0
+      }
+    },
+    {
+      "id": "front",
+      "name": "Preliminares",
+      "properties": {
+        "font": "Georgia",
+        "size": 11,
+        "leading": 16,
+        "align": "center",
+        "firstIndent": 0,
+        "spaceAfter": 2
+      }
+    }
+  ],
+  "toc": {
+    "title": "Índice",
+    "includeSections": false,
+    "includeHeadings": false,
+    "entries": [
+      {
+        "id": "6skmqgq1i",
+        "label": "Prólogo · La llave",
+        "pageId": "knh3vb0xp"
+      },
+      {
+        "id": "6frgulm8l",
+        "label": "I · La orilla",
+        "pageId": "a57uuwxbf"
+      },
+      {
+        "id": "z3buh2flr",
+        "label": "II · Las medidas",
+        "pageId": "w5azub1cb"
+      },
+      {
+        "id": "duhgpagvk",
+        "label": "III · La hoja en blanco",
+        "pageId": "2nn6dzkc9"
+      },
+      {
+        "id": "fng1p5yqq",
+        "label": "IV · El jueves",
+        "pageId": "oqh4yhve9"
+      },
+      {
+        "id": "ar660eadp",
+        "label": "V · El nombre del agua",
+        "pageId": "ob25pm8gw"
+      },
+      {
+        "id": "lblgutpr1",
+        "label": "Epílogo · Las ventanas",
+        "pageId": "z61mxp5jc"
+      }
+    ]
+  }
+}

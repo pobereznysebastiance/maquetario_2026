@@ -2,6 +2,7 @@
 // (LibroStudio/v3/app/src/model-migrations.ts y M.validate en model.ts).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   checkProjectVersion,
   CURRENT_VERSION,
@@ -24,6 +25,22 @@ test('un proyecto de la versión actual se valida igual que antes', () => {
   assert.equal(migrateProject(project), project, 'sin pasos, no copia ni cambia nada');
   assert.deepEqual(validate(project), project);
   assert.deepEqual(validate(JSON.parse(JSON.stringify(project))), project);
+});
+
+// La novela de ejemplo armada y guardada por la 3.24 (rama main: composeNovel(novelSample()) y
+// JSON.stringify(book), como su saveProject). Un archivo real de la versión que usan los alumnos.
+test('un proyecto guardado por la 3.24 se abre tal cual', () => {
+  const saved = JSON.parse(
+    readFileSync(new URL('./fixtures/novela-3.24.mqt', import.meta.url), 'utf8'),
+  );
+  const opened = validate(saved);
+  assert.equal(opened.version, CURRENT_VERSION);
+  assert.equal(opened.pages.length, 24);
+  assert.deepEqual(
+    opened.paragraphStyles.map((s: { name: string }) => s.name),
+    ['Cuerpo de novela', 'Título de capítulo', 'Preliminares'],
+  );
+  assert.deepEqual(opened, saved, 'no hace falta ningún paso de migración');
 });
 
 test('hoy no hay pasos y la versión actual es la 3', () => {

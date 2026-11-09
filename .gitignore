@@ -20,3 +20,5 @@ node_modules/
 
 # Copias de trabajo de los agentes de Claude Code
 /.claude/worktrees/
+# Proyectos reales que usan las pruebas (desktop/test/project-format.test.ts).
+!desktop/test/fixtures/*.mqt

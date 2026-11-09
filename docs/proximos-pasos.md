@@ -55,9 +55,8 @@ Hoja de ruta para retomar. Estado al cierre (09-nov, noche): todo subido, `npm t
 - **Informes:** `docs/informe/beta-0.1.html` (para Seba: novedades respecto de la 3.24, qué probar, qué devolución sirve) y `docs/informe/beta-0.1-presentacion.html` (para quienes prueban, a partir del texto de la 3.20). Cómo regenerarlos, en "Informes" al final.
 - **Pendiente:**
   - Juntar la devolución de Seba y de quienes prueben, y ordenarla antes de seguir.
-  - Probar con un proyecto real hecho en la 3.20/3.24 (se abre por las migraciones de `model-migrations.ts`, pero no se probó con un archivo de esa versión).
-  - En Tipografía (Selección), el cuarto botón de Alineación queda cortado contra el borde del panel.
-  - En Libro, los botones de tipo de letra (cornisa, titulillo, folio y notas al pie) se ven grises y angostos ("Georg…"), distintos de los otros selectores.
+  - Proyecto de la 3.24: probado el 09-nov. La novela de ejemplo armada y guardada con el código de la 3.24 (rama `main`) se abre tal cual, sin migración, y el pliego se ve igual que en la 3.24; queda como prueba fija (`desktop/test/fixtures/novela-3.24.mqt`). Falta un archivo de la 3.20 (no está en git): pedirle a Seba uno real de un alumno.
+  - Hecho el 09-nov: la Alineación de Tipografía ya no queda cortada (llena la columna del control) y los botones de tipo de letra se ven como los otros campos.
   - El `git stash` local "tanda workspace/page-priority/…" es obsoleto (la capa legacy ya se vació): se puede borrar.
 
 ## Antes de cada commit

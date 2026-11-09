@@ -57,6 +57,24 @@
   border-color: var(--line-strong);
   background: var(--surface-selected);
 }
+/* En una fila del inspector se ve como los otros campos y llena la columna del control (antes
+   quedaba gris, angosto y con el nombre cortado). */
+#inspectorContent .field-row > .font-visual-select {
+  width: 100%;
+  max-width: none;
+  height: var(--control-field);
+  padding: 0 var(--space-sm);
+  border-color: var(--line-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-field);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--type-callout);
+}
+#inspectorContent .field-row > .font-visual-select:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--surface-field-hover);
+}
 .modal-grid .font-visual-select {
   width: 100%;
   max-width: 100%;

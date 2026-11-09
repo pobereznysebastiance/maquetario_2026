@@ -289,6 +289,25 @@
   width: calc(var(--field-width) / 4 - var(--space-2xs));
   height: var(--control-field);
 }
+/* En una fila del inspector, la alineación llena la columna del control: con el ancho fijo de
+   arriba, el cuarto botón quedaba cortado contra el borde del panel. */
+#inspectorContent .field-row > .alignment {
+  width: 100%;
+  min-width: 0;
+  gap: var(--space-3xs);
+}
+#inspectorContent .field-row > .alignment button {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  padding-inline: 0;
+  /* El borde de .alignment button (más abajo) toma el color del texto: el mismo tono que los
+     botones de alineación de Párrafo. */
+  border-color: var(--line-default);
+}
+#inspectorContent .field-row > .alignment button.active {
+  border-color: var(--action);
+}
 .object-alignment button {
   padding: var(--space-sm) var(--space-2xs);
   font-size: var(--type-callout);
