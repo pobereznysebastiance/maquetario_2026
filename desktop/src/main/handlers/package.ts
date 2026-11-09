@@ -8,7 +8,7 @@ import { cleanName, exists, MAX_PROJECT_BYTES } from '../files.ts';
 import { availableFaces, PACKAGE_MANIFEST } from '../fonts/catalog.ts';
 import { canPackage, faceBytes, isOpenTypeCff } from '../fonts/opentype.ts';
 import { exclusive, exec, type Session } from '../session.ts';
-import { pdf, prepareOutput } from './output.ts';
+import { exactPdf, prepareOutput, printTrim } from './output.ts';
 
 const IMAGE_TYPES: Record<string, string> = {
   'data:image/png;base64': '.png',
@@ -40,7 +40,8 @@ export interface PackageRequest {
 
 async function writePackagePdf(session: Session, file: string, options: unknown) {
   const page = await prepareOutput(session, options);
-  await writeFile(file, await pdf(session, page));
+  const trim = await printTrim(session, options, page.scale);
+  await writeFile(file, await exactPdf(session, page, trim));
 }
 
 export async function createProjectPackage(

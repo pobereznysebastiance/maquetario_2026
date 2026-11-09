@@ -234,7 +234,7 @@ El inspector muestra tres pestañas: **Libro**, **Página** y **Selección**. Lo
 
 ## Problemas conocidos
 
-- El tamaño de hoja de los PDF puede diferir 0,1–0,3 mm del pedido (Chromium redondea; la versión C# anterior tenía lo mismo). Se corrige fijando MediaBox/TrimBox al post-procesar (etapa 4).
+- ~~El tamaño de hoja de los PDF puede diferir 0,1–0,3 mm del pedido~~ (resuelto el 09-nov, etapa 4): `desktop/src/main/print-boxes.ts` reescribe en cada página MediaBox (la hoja exacta, anclada arriba a la izquierda), CropBox, TrimBox (el corte: el libro o el desplegado de la cubierta con su demasía) y BleedBox (corte + sangrado). Usa la copia de pdf-lib de la interfaz. Si pdf-lib no puede con un archivo, sale el PDF de Chromium tal cual. CMYK y PDF/X: `docs/IMPRENTA_09-nov_pdfx.md`.
 - En Electron no se sabe si una impresora tiene doble faz: se ofrece siempre y, si no puede, falla al imprimir.
 - El catálogo de fuentes en Windows no lee el registro (sí las carpetas del sistema y del usuario).
 - El código de aula guardado por la versión C# (DPAPI) no se migra: hay que volver a conectar el aula una vez.

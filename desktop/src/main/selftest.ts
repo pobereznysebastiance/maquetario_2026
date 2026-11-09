@@ -9,7 +9,8 @@ import { argValue, dataDir, rendererDir } from './env.ts';
 import { writeAtomic } from './files.ts';
 import { readFaces } from './fonts/opentype.ts';
 import { replacePackageFaces, setPackageFonts, getPackageFaces } from './fonts/catalog.ts';
-import { pdf, prepareOutput } from './handlers/output.ts';
+import { exactPdf, prepareOutput, printTrim } from './handlers/output.ts';
+import type { TrimSpec } from './print-boxes.ts';
 import { createProjectPackage, type PackageRequest } from './handlers/package.ts';
 import { readRecents, recordRecent, saveProject } from './handlers/project.ts';
 import { delay, exec, waitFor, type Session } from './session.ts';
@@ -80,10 +81,18 @@ export async function runSelfTest(session: Session): Promise<boolean> {
       throw new Error(JSON.stringify(value));
     return { checks: ((value as { checks?: unknown[] }).checks ?? []).length };
   };
-  const writePdf = async (file: string, prepare: string, page = A5, wait = 350) => {
+  // Los PDF salen con las cajas de imprenta exactas (print-boxes.ts); `trim` es el corte, si no
+  // es la hoja entera.
+  const writePdf = async (
+    file: string,
+    prepare: string,
+    page = A5,
+    wait = 350,
+    trim: TrimSpec | null = null,
+  ) => {
     await exec(session, prepare);
     await delay(wait);
-    const bytes = await pdf(session, page);
+    const bytes = await exactPdf(session, page, trim);
     await exec(session, 'window.clearPrint()');
     if (bytes.subarray(0, 5).toString('latin1') !== '%PDF-')
       throw new Error(`PDF inválido: ${file}`);
@@ -133,12 +142,14 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   await step('PDF del índice', () =>
     writePdf('prueba-indice.pdf', 'window.prepareIndexPrint()', A5, 200),
   );
-  await testStep('PDF con marcas de corte', () =>
+  await testStep('PDF con marcas de corte', async () =>
     writePdf(
       'prueba-marcas.pdf',
       'window.prepareMarkedOutputTest()',
       { width: 162, height: 224 },
       300,
+      // Las mismas opciones que tests/output-tests.js → prepareMarkedOutputTest.
+      await printTrim(session, { mode: 'reading', paper: 'book', fit: true, crop: true }),
     ),
   );
   await testStep('PDF tipográfico', async () => {
@@ -304,7 +315,11 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     await exec(session, 'window.prepareCoverProof()');
     await delay(300);
     const page = await prepareOutput(session, { kind: 'cover', crop: true });
-    const bytes = await pdf(session, page);
+    const bytes = await exactPdf(
+      session,
+      page,
+      await printTrim(session, { kind: 'cover', crop: true }, page.scale),
+    );
     await exec(session, "window.clearPrint();document.querySelector('#modal').close()");
     await writeFile(join(out, 'prueba-cubierta.pdf'), bytes);
     return { page };

@@ -1,6 +1,7 @@
 // Salida: PDF, impresión y lista de impresoras.
 import { dialog, type WebContentsPrintOptions } from 'electron';
 import { writeFile } from 'node:fs/promises';
+import { fixPrintBoxes, type TrimSpec } from '../print-boxes.ts';
 import { delay, exec, exclusive, waitFor, type Session } from '../session.ts';
 
 const MM_PER_INCH = 25.4;
@@ -8,6 +9,8 @@ const MM_PER_INCH = 25.4;
 export interface PageGeometry {
   width: number;
   height: number;
+  /** Escala del libro en la hoja (1 = tamaño real), como la informa prepareOutput. */
+  scale?: number;
 }
 
 /** PDF de la página actual de la ventana, al tamaño indicado en milímetros, sin márgenes. */
@@ -19,6 +22,47 @@ export function pdf(session: Session, page: PageGeometry): Promise<Buffer> {
     pageSize: { width: page.width / MM_PER_INCH, height: page.height / MM_PER_INCH },
     scale: 1,
   });
+}
+
+/**
+ * PDF con las cajas de imprenta exactas (print-boxes.ts): MediaBox de la hoja pedida y, si se
+ * conoce, TrimBox y BleedBox del corte. Sin corte, el corte es la hoja entera.
+ */
+export async function exactPdf(
+  session: Session,
+  page: PageGeometry,
+  trim?: TrimSpec | null,
+): Promise<Buffer> {
+  const raw = await pdf(session, page);
+  try {
+    return Buffer.from(await fixPrintBoxes(raw, page, trim));
+  } catch (error) {
+    // Las cajas son una mejora: si pdf-lib no puede con el archivo, sale el PDF de Chromium.
+    console.warn('[salida] no se pudieron fijar las cajas del PDF:', error);
+    return raw;
+  }
+}
+
+/**
+ * Corte y sangrado de una salida, en mm y a la escala de la hoja. Los datos salen de la interfaz
+ * con la misma cuenta que usa prepareOutput: el interior es el libro (una o dos páginas por
+ * cara, sin sangrado); la cubierta es el desplegado más la demasía (wrap), con su sangrado,
+ * que es donde la interfaz pone las marcas de corte (src/publications.ts → coverArtwork).
+ */
+export async function printTrim(
+  session: Session,
+  options: unknown,
+  scale = 1,
+): Promise<TrimSpec | null> {
+  const expression = `(()=>{try{const o=${JSON.stringify(options ?? {})}||{};
+if(o.kind==='cover'){if(!book.cover)return null;const c=book.cover,g=coverGeometry(c),wrap=c.wrap||0;
+return{width:g.width+2*wrap,height:g.height+2*wrap,bleed:c.bleed||0};}
+const g=outputGeometry(o);return{width:book.width*g.columns,height:book.height*g.rows,bleed:0};
+}catch{return null}})()`;
+  const trim = await exec<TrimSpec | null>(session, expression).catch(() => null);
+  if (!trim || ![trim.width, trim.height, trim.bleed].every(Number.isFinite)) return null;
+  const k = Number.isFinite(scale) && scale > 0 ? scale : 1;
+  return { width: trim.width * k, height: trim.height * k, bleed: trim.bleed * k };
 }
 
 /**
@@ -114,7 +158,8 @@ export function outputDocument(session: Session, payload: OutputPayload, physica
         });
         return { printed: true, printer };
       }
-      return { base64: (await pdf(session, page)).toString('base64') };
+      const trim = await printTrim(session, payload.options, page.scale);
+      return { base64: (await exactPdf(session, page, trim)).toString('base64') };
     } finally {
       await clearPrint(session);
     }
@@ -127,7 +172,7 @@ export function legacyExport(session: Session, payload: { width?: unknown; heigh
     try {
       await exec(session, 'window.preparePrint()');
       await delay(350);
-      const bytes = await pdf(session, {
+      const bytes = await exactPdf(session, {
         width: Number(payload.width),
         height: Number(payload.height),
       });
