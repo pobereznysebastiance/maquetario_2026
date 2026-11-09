@@ -86,10 +86,12 @@ export interface OutputWindowProps {
   onFormChange: (target: HTMLElement) => void;
   /** Se amplió o se volvió a mostrar las opciones. */
   onExpand: (expanded: boolean) => void;
+  /** Sólo PDF: "PDF para imprenta (PDF/X-4)" arranca marcado (la última elección). */
+  pdfx?: boolean;
 }
 
 /** Ventana de salida del interior: opciones a la izquierda, revisión de la salida a la derecha. */
-export const OutputWindow = ({ destination, onFormChange, onExpand }: OutputWindowProps) => {
+export const OutputWindow = ({ destination, onFormChange, onExpand, pdfx }: OutputWindowProps) => {
   useLanguage();
   const [expanded, setExpanded] = useState(false);
   const root = useFormChange(onFormChange);
@@ -174,6 +176,20 @@ export const OutputWindow = ({ destination, onFormChange, onExpand }: OutputWind
           ))}
         </div>
         <p className="help">{w.guidesNote}</p>
+        {print ? null : (
+          // PDF/X-4 con RGB etiquetado (desktop/src/main/pdfx.ts): la imprenta convierte a CMYK.
+          <div className="output-pdfx">
+            <label className="check-line">
+              <input id="outPdfx" type="checkbox" defaultChecked={!!pdfx} />
+              {LibroI18n.tr('PDF para imprenta (PDF/X-4)')}
+            </label>
+            <p className="help">
+              {LibroI18n.tr(
+                'El color queda en RGB etiquetado (sRGB) con la condición de impresión FOGRA39 (offset, papel estucado): la imprenta lo convierte a CMYK. Si te piden CMYK o PDF/X-1a, consultá antes.',
+              )}
+            </p>
+          </div>
+        )}
         <p id="outputError" className="inline-error"></p>
         <div className="notice">
           {w.note}

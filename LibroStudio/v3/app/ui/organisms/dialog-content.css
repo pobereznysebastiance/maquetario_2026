@@ -345,6 +345,15 @@ dialog.output-modal .dialog-frame .dialog-body {
   gap: var(--space-2xs);
   margin-top: var(--space-lg);
 }
+/* PDF para imprenta: aparte de las opciones de la simulación, con su línea de ayuda. */
+.output-pdfx {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: var(--border-width) solid var(--line-subtle);
+}
+.output-pdfx .help {
+  margin: var(--space-2xs) 0 0;
+}
 .output-review-options .check-line {
   line-height: var(--leading-text);
 }

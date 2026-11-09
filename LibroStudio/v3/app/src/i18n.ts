@@ -419,6 +419,13 @@ const labels: TranslationRow[] = [
   ['Estás acá', 'You are here', 'Você está aqui'],
   ['Revisar el libro completo', 'Check the whole book', 'Revisar o livro completo'],
   ['Revisar salida PDF', 'Review PDF output', 'Revisar saída PDF'],
+  // ── Salida: PDF para imprenta (src/components/output/) ──
+  ['PDF para imprenta (PDF/X-4)', 'Print-ready PDF (PDF/X-4)', 'PDF para gráfica (PDF/X-4)'],
+  [
+    'El color queda en RGB etiquetado (sRGB) con la condición de impresión FOGRA39 (offset, papel estucado): la imprenta lo convierte a CMYK. Si te piden CMYK o PDF/X-1a, consultá antes.',
+    'Color stays in tagged RGB (sRGB) with the FOGRA39 printing condition (offset, coated paper): the printer converts it to CMYK. If they ask for CMYK or PDF/X-1a, check with them first.',
+    'A cor fica em RGB etiquetado (sRGB) com a condição de impressão FOGRA39 (offset, papel couché): a gráfica converte para CMYK. Se pedirem CMYK ou PDF/X-1a, consulte antes.',
+  ],
 ];
 labels.push(...extraTranslations);
 const map = new Map(

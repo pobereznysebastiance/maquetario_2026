@@ -72,7 +72,28 @@ export type OutputJob = {
   printer?: string;
   copies: number;
   duplex: string;
+  /** Sólo PDF: PDF/X-4 para imprenta (docs/IMPRENTA_09-nov_pdfx.md → "Contrato"). */
+  pdfx?: boolean;
+  /** Título del documento PDF/X (XMP e Info). */
+  title?: string;
 };
+
+/** La elección "PDF para imprenta" se recuerda en el programa (no en el libro). */
+const PDFX_STORE = 'maquetario-output-pdfx';
+function pdfxPreferred(): boolean {
+  try {
+    return localStorage.getItem(PDFX_STORE) === '1';
+  } catch {
+    return false;
+  }
+}
+function rememberPdfx(on: boolean): void {
+  try {
+    localStorage.setItem(PDFX_STORE, on ? '1' : '0');
+  } catch {
+    // Sin almacenamiento: vale hasta cerrar la app.
+  }
+}
 
 const outputWords = {
   es: {
@@ -218,7 +239,12 @@ declare global {
   var outputPreview: () => void;
   var readPrinters: () => Promise<void>;
   var outputDialog: (destination: string) => Promise<void>;
-  var sendOutput: (destination: string, config: OutputJob) => Promise<void>;
+  /** Manda la salida al anfitrión. Con report, el error también se le pasa a quien llamó. */
+  var sendOutput: (
+    destination: string,
+    config: OutputJob,
+    report?: (message: string) => void,
+  ) => Promise<void>;
   /** Las imágenes de la salida terminaron de cargar (lo espera el anfitrión antes de imprimir). */
   var outputReady: boolean;
   /** Habilita o deshabilita la acción de la ventana de salida abierta (#outputApply). */
@@ -480,11 +506,17 @@ globalThis.outputDialog = async function (destination) {
     print ? w.title : w.pdf,
     createElement(OutputWindow, {
       destination,
+      pdfx: pdfxPreferred(),
       onFormChange: (target) => {
         // El zoom de la revisión (output-review.ts).
         if (target.id === 'outputReviewZoom') {
           setOutputReviewScale((target as HTMLSelectElement).value);
           outputPreview();
+          return;
+        }
+        // PDF para imprenta: no cambia la simulación, sólo se recuerda.
+        if (target.id === 'outPdfx') {
+          rememberPdfx((target as HTMLInputElement).checked);
           return;
         }
         // Las opciones de salida (no los controles de la revisión, que tienen los suyos).
@@ -502,12 +534,13 @@ globalThis.outputDialog = async function (destination) {
       action: {
         id: 'outputApply',
         label: print ? w.send : w.save,
-        run: () => {
+        run: async () => {
           if (print && !$('#outPrinter').value) throw Error(w.unavailable);
           const options = outputConfigFromDialog(),
             printer = print ? $('#outPrinter').value : '',
             copies = print ? Number($('#outCopies').value) : 1,
-            duplex = print ? $('#outDuplex').value : 'one';
+            duplex = print ? $('#outDuplex').value : 'one',
+            pdfx = !print && !!$('#outPdfx')?.checked;
           if (!Number.isInteger(copies) || copies < 1 || copies > 99) throw Error('1–99');
           if (
             print &&
@@ -516,8 +549,26 @@ globalThis.outputDialog = async function (destination) {
           )
             throw Error(w.noDuplex);
           outputGeometry(options);
-          closeOutputWindow();
-          sendOutput(destination, { options, printer, copies, duplex });
+          if (!pdfx) {
+            closeOutputWindow();
+            sendOutput(destination, { options, printer, copies, duplex });
+            return false;
+          }
+          // PDF/X-4: la ventana queda abierta mientras se arma (no se ve en el PDF: la impresión
+          // sólo muestra #printRoot). Si falla, el error queda en la ventana; si sale, se cierra.
+          let failure = '';
+          setOutputApplyDisabled(true);
+          await sendOutput(
+            destination,
+            { options, printer, copies, duplex, pdfx: true, title: book.title },
+            (message) => (failure = message),
+          );
+          if (!$('#outputApply')) return false;
+          setOutputApplyDisabled(false);
+          if (failure) {
+            $('#outputError').textContent = failure;
+            $('#outputError').scrollIntoView({ block: 'nearest' });
+          } else closeOutputWindow();
           return false;
         },
       },
@@ -527,7 +578,7 @@ globalThis.outputDialog = async function (destination) {
   if (print) readPrinters();
   outputPreview();
 };
-globalThis.sendOutput = async function (destination, config) {
+globalThis.sendOutput = async function (destination, config, report) {
   const w = ow();
   if (busy) return;
   busy = true;
@@ -547,7 +598,8 @@ globalThis.sendOutput = async function (destination, config) {
             ? ' - Cubierta'
             : config.options.mode === 'booklet'
               ? ' - booklet'
-              : ' - Interior'),
+              : ' - Interior') +
+          (result.pdfx ? ' - PDFX4' : ''),
       });
       toast(
         saved.saved
@@ -557,7 +609,10 @@ globalThis.sendOutput = async function (destination, config) {
       );
     }
   } catch (error) {
-    toast(w.error + (error as Error).message, 'error');
+    const message = w.error + (error as Error).message;
+    // Quien llamó también lo muestra (la ventana de salida, en #outputError).
+    report?.(message);
+    toast(message, 'error');
   } finally {
     busy = false;
     document.querySelector('main')!.inert = false;

@@ -26,4 +26,4 @@ npm run dist         # instalador y zip para el sistema actual (desktop/release/
 
 La arquitectura y las decisiones están en `docs/arquitectura.md`; la hoja de ruta, en `docs/proximos-pasos.md`.
 
-Los avisos de DM Sans, pdf-lib y sus componentes están en `LibroStudio/v3/app/licenses/`. La biblioteca de separación silábica conserva su aviso en `LibroStudio/v3/app/hyphenation/LICENSE`.
+Los avisos de DM Sans, pdf-lib y sus componentes, harfbuzzjs y HarfBuzz (motor de composición) y los perfiles ICC de la salida PDF/X-4 están en `LibroStudio/v3/app/licenses/`. La biblioteca de separación silábica conserva su aviso en `LibroStudio/v3/app/hyphenation/LICENSE`.
