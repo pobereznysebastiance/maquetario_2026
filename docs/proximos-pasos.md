@@ -1,6 +1,6 @@
 # Próximos pasos (rama version-juan)
 
-Hoja de ruta para retomar. Estado al cierre (09-nov): todo subido, `npm test` y `npm run self-test` en verde.
+Hoja de ruta para retomar. Estado al cierre (09-nov, tarde): todo subido, `npm test`, `npm run typecheck` y `npm run self-test` en verde. Versión **BETA 0.1** (`0.1.0-beta`), instalador y PDF de presentación entregados a Seba.
 
 ## Estado (09-nov)
 
@@ -40,6 +40,24 @@ Hoja de ruta para retomar. Estado al cierre (09-nov): todo subido, `npm test` y 
   - 61 estilos en línea desde JS, la mayoría posiciones del libro;
   - 1 botón creado a mano;
   - 242 globales publicados con `globalThis.x =`. La mayoría los publica `src/core/core-wiring.ts` para los módulos, las pruebas y el lienzo, que todavía los leen por nombre; `node scripts/globals-report.mjs` dice quién usa cada uno.
+
+## BETA 0.1 (09-nov, tarde)
+
+- **Versión:** `desktop/package.json` → `0.1.0-beta`. Lo que se lee dice "BETA 0.1" (`src/version-label.ts` en la interfaz, `appVersionLabel()` en `desktop/src/main/env.ts`); los metadatos del PDF guardan la versión técnica. Como la licencia usa `maxMajor: null`, el cambio de número no la afecta.
+- **Instalador:** en esta compu `npm run dist` falla al comprimir (7-Zip: "Internal Error: The failure in hardware (RAM or CPU)"); sale con `npm run dist -- -c.compression=normal`. Revisar el equipo (memoria y temperatura): también se apagó de golpe.
+- **Interfaz, hecho hoy:**
+  - El inspector sigue a lo que se toca (objeto → Selección; vacío de la página desde Selección → Página). Con una caja de texto, Tipografía y Párrafo van primero.
+  - Riel con las seis herramientas del lienzo; Texto unifica "Crear texto" y "Caja de texto"; Grilla, Foliado y Cornisa salen del riel; Cubierta pasa a la barra del documento.
+  - Vistas del riel: Páginas · Estructura · Índice · Capas (Estructura del libro salió de la pestaña Libro).
+  - Pestaña Libro: "Formato y márgenes" primero (los márgenes estaban dentro de Grilla); el ajuste fino del foliado es un desplegable común.
+  - Guías desde las reglas (`src/ruler-guides.ts`): arrastrar para sacar, mover o quitar.
+  - Doble clic en el tirador inferior de una caja de texto la ajusta a su texto (`fitTextFrame`, `frame-handles.ts`).
+- **Informes:** `docs/informe/beta-0.1.html` (para Seba: novedades respecto de la 3.24, qué probar, qué devolución sirve) y `docs/informe/beta-0.1-presentacion.html` (para quienes prueban, a partir del texto de la 3.20). Cómo regenerarlos, en "Informes" al final.
+- **Pendiente:**
+  - Juntar la devolución de Seba y de quienes prueben, y ordenarla antes de seguir.
+  - Probar con un proyecto real hecho en la 3.20/3.24 (se abre por las migraciones de `model-migrations.ts`, pero no se probó con un archivo de esa versión).
+  - En Tipografía (Selección), el cuarto botón de Alineación queda cortado contra el borde del panel.
+  - El `git stash` local "tanda workspace/page-priority/…" es obsoleto (la capa legacy ya se vació): se puede borrar.
 
 ## Antes de cada commit
 
@@ -186,7 +204,7 @@ En React (`src/components/`):
 
 ## 3. Experiencia de uso
 
-Observaciones en `docs/evaluacion-uso.md` (13 puntos). Las más visibles: la etiqueta "Página activa N" pintada sobre el papel, las siete pestañas del inspector, y las muchas puertas de ayuda (Tutorial, Aprender, Recorrido, "?", glosario).
+Observaciones en `docs/evaluacion-uso.md` (13 puntos). Resueltas: las siete pestañas del inspector (ahora tres, que siguen a la selección), las muchas puertas de ayuda (una sola: Ayuda) y el riel mezclado (sólo herramientas del lienzo). Sigue a la vista: la etiqueta "Página activa N" pintada sobre el papel. La próxima tanda sale de la devolución de BETA 0.1.
 
 ## 4. Distribución
 
@@ -201,9 +219,16 @@ Observaciones en `docs/evaluacion-uso.md` (13 puntos). Las más visibles: la eti
 
 Pago único con actualizaciones (`maxMajor: null`), edición `estandar`, 2 computadoras por compra, 7 días sin conexión. Detalle en `docs/arquitectura.md`.
 
-## Informe para Seba
+## Informes
 
-Fuente: `docs/informe/informe.html`. Regenerar el PDF:
+PDF con la tipografía de la app (`scripts/render-pdf.cjs`). BETA 0.1, para Seba y para quienes prueban:
+
+```bash
+npx electron scripts/render-pdf.cjs docs/informe/beta-0.1.html "Maquetario BETA 0.1 - Novedades y qué probar.pdf" "Maquetario BETA 0.1 · Novedades y qué probar"
+npx electron scripts/render-pdf.cjs docs/informe/beta-0.1-presentacion.html "Maquetario BETA 0.1 - Presentación y prueba.pdf" "Maquetario BETA 0.1 · Presentación y prueba"
+```
+
+Informe técnico de la rama (fuente `docs/informe/informe.html`):
 
 ```bash
 npx electron scripts/render-pdf.cjs docs/informe/informe.html "docs/informe/Maquetario - Informe técnico version-juan.pdf" "Maquetario · Informe técnico de la rama version-juan"

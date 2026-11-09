@@ -220,13 +220,13 @@ El inspector muestra tres pestañas: **Libro**, **Página** y **Selección**. Es
 
 | Pestaña | Pasadas | `tab` después de `inspector()` |
 |---|---|---|
-| Libro | `structure`, `design` | `design` |
+| Libro | `design` (Formato y márgenes, Grilla, Misceláneas, Foliado, Cornisa, Titulillo, Fuentes) | `design` |
 | Página | `pages` | `pages` |
-| Selección | caja de texto: `object`, `text` · otro objeto o varios: `object` · nada: `selection` (estado vacío) | `text`, `object` o `selection` |
+| Selección | caja de texto: `text`, `object` (tipografía y párrafo primero) · otro objeto o varios: `object` · nada: `selection` (estado vacío) | `text`, `object` o `selection` |
 
 Sin libro abierto (`hasDocument` falso), las tres pestañas muestran sólo un estado vacío (`.inspector-empty`, "Creá o abrí un libro para ver sus propiedades.") y el consejo del pie se esconde.
 
-**Índice** (`index`) y **Capas** (`layers`) son vistas del riel izquierdo, con su selector junto a Páginas (`src/components/rail/RailViews.tsx`). `showTab()` acepta los nombres viejos (`design`, `text`, `object`, `pages`, `structure`, `index`, `layers`) y los lleva a la pestaña o vista nueva; `inspectorTabFor(nombre)` dice cuál. La pestaña elegida se guarda en `maquetario-inspector-view`, y el orden y plegado de secciones guardados por pestaña vieja se pasaron a la nueva.
+**Estructura del libro** (`structure`), **Índice** (`index`) y **Capas** (`layers`) son vistas del riel izquierdo, con su selector junto a Páginas (`src/components/rail/RailViews.tsx`; cada módulo registra la suya con `registerRailView`). El inspector sigue a lo que se toca: elegir un objeto lleva a Selección y tocar el vacío de la página, estando en Selección, lleva a Página (`inspector-views.tsx`, extensiones de `objectDown` y `pageDown`). En el riel van sólo las herramientas del lienzo (Seleccionar, Mano, Texto, Imagen, Marco, Figuras); la Cubierta está en la barra del documento. `showTab()` acepta los nombres viejos (`design`, `text`, `object`, `pages`, `structure`, `index`, `layers`) y los lleva a la pestaña o vista nueva; `inspectorTabFor(nombre)` dice cuál. La pestaña elegida se guarda en `maquetario-inspector-view`, y el orden y plegado de secciones guardados por pestaña vieja se pasaron a la nueva.
 
 ### Paneles de React en el inspector (etapa 3, D2): base hecha el 09-nov
 
