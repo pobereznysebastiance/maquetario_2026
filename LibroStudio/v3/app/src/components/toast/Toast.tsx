@@ -11,7 +11,7 @@
 //
 // toast() sigue siendo la función global de siempre: studio.ts la declara y junta en cola los
 // avisos pedidos antes de que cargue build/app.js; este módulo la reemplaza (extend.replace) y
-// muestra lo que quedó en la cola. hideToast() la usa la autoprueba para las capturas.
+// muestra lo que quedó en la cola.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
@@ -20,11 +20,6 @@ import { Toast } from 'radix-ui';
 import { Icon } from '../Icon.tsx';
 import { mount, useLanguage } from '../../react/mount.tsx';
 import { bw, i18n } from '../../i18n/language.ts';
-
-declare global {
-  /** Esconde el aviso que se ve (si hay uno). */
-  var hideToast: () => void;
-}
 
 interface ToastItem {
   id: number;
@@ -104,6 +99,5 @@ export const Toaster = () => {
 
 mount($('#toast'), <Toaster />);
 extend.replace('toast', showToast, 'toast');
-globalThis.hideToast = hideToast;
 // Lo que se pidió antes de que cargara este módulo (sólo se ve el último, como siempre).
 for (const [message, type] of pendingToasts.splice(0)) showToast(message, type);

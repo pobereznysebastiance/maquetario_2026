@@ -14,6 +14,7 @@ import { Icon } from '../Icon.tsx';
 import { fieldKey, lengthUnit, onNativeChange, Row, SectionHeading } from './fields.tsx';
 import { bw } from '../../i18n/language.ts';
 import { editor, M } from '../../core-api.ts';
+import { registerInspectorPanel } from '../../inspector-registry.ts';
 
 type Field = HTMLInputElement | HTMLSelectElement;
 type RuleType = 'header' | 'titulillo' | 'folio';

@@ -33,6 +33,16 @@ import {
 } from './fields.tsx';
 import { bw } from '../../i18n/language.ts';
 import { editor, M } from '../../core-api.ts';
+import { readHyphenationFields } from '../../hyphenation.ts';
+import { registerInspectorPanel } from '../../inspector-registry.ts';
+import { currentParagraph, paragraphFormat, paragraphMeta, pw } from '../../paragraph-format.ts';
+import {
+  chooseDefaultFace,
+  familyFaces,
+  fw,
+  selectedFace,
+  variations,
+} from '../../font-catalog.ts';
 
 type Face = NativeFontFace;
 type Axis = Face['axes'][number] & { name?: string };

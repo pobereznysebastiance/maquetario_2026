@@ -2,9 +2,11 @@
 //
 // prepareNovelProof, novelProofContent y prepareNovelPdf son globales porque los llama la
 // autoprueba (desktop/src/main/selftest.ts) y, prepareNovelProof, también otros módulos y pruebas
-// para partir de un libro conocido. novelProofReport guarda el último informe.
+// para partir de un libro conocido.
 //
 // Fuente TypeScript: se compila a build/book-proof.js (desktop/scripts/build.mjs).
+
+import { goToBookPage } from './book-navigation.ts';
 
 /** Informe de la prueba: tamaño del libro, problemas de la revisión y partes con nombre. */
 export interface NovelProofReport {
@@ -22,8 +24,6 @@ declare global {
   var novelProofContent: () => string;
   /** Prepara la salida de lectura (formato libro, con cornisas y folios) para el PDF de prueba. */
   var prepareNovelPdf: () => void;
-  /** Último informe de prepareNovelProof. */
-  var novelProofReport: NovelProofReport | undefined;
 }
 
 globalThis.prepareNovelProof = function () {
@@ -37,7 +37,6 @@ globalThis.prepareNovelProof = function () {
     issues: preflightBook(),
     parts: book.pages.map((p, i) => ({ page: i + 1, name: p.partName })).filter((p) => p.name),
   };
-  globalThis.novelProofReport = report;
   goToBookPage(book.pages.findIndex((p) => p.section.startsWith('I ·')));
   showTab('structure');
   return JSON.stringify(report);

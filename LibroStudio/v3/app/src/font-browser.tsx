@@ -10,7 +10,7 @@
 //   las pruebas. El <dialog> mantiene el id #fontBrowser (lo cierra la autoprueba).
 // - fontBrowserFamily, fontBrowserVariant y fontBrowserMatches: estado que vive en globalThis
 //   porque tests/font-browser-tests.js lo lee y lo cambia.
-// - browserCurrentVariant (font-glyphs), openFontBrowser, filterFontBrowser y applyFontBrowser
+// - openFontBrowser, filterFontBrowser y applyFontBrowser
 //   (pruebas, review-workspace y las capturas de estilo).
 // - decorateFontBrowsers: page-priority.ts la extiende, así que acá se llama por su nombre global
 //   (no por uno local) para pasar por esa extensión, como antes.
@@ -24,6 +24,9 @@ import { useLanguage } from './react/mount.tsx';
 import { bw } from './i18n/language.ts';
 import { openWorkWindow } from './components/dialog/dialogs.tsx';
 import { editor } from './core-api.ts';
+import { chooseDefaultFace, familyFaces, fw, selectedFace, variations } from './font-catalog.ts';
+import { currentParagraph, paragraphFormat } from './paragraph-format.ts';
+import { foldEditorial } from './text-fold.ts';
 
 /** Cara tipográfica del catálogo y sus instancias: los tipos son los de fonts.ts (NativeFontFace). */
 export type UIFontInstance = NativeFontInstance;
@@ -52,8 +55,6 @@ declare global {
   var fontBrowserVariant: string;
   /** Familias que coinciden con la búsqueda. */
   var fontBrowserMatches: string[];
-  /** Estilo elegido en el explorador (o el estilo por defecto de la familia). */
-  var browserCurrentVariant: () => BrowserVariant | undefined;
   /** Aplica la búsqueda del explorador a la lista de familias. */
   var filterFontBrowser: () => void;
   /** Abre el explorador para un selector de fuente. */
@@ -114,6 +115,7 @@ function browserVariants(family: string): BrowserVariant[] {
     ...f.instances.map((i, n) => ({ key: f.id + '@' + n, label: i.name, face: f, instance: i })),
   ]);
 }
+/** Estilo elegido en el explorador (o el estilo por defecto de la familia). */
 function browserCurrentVariant(): BrowserVariant | undefined {
   const variants = browserVariants(fontBrowserFamily);
   return (
@@ -122,7 +124,6 @@ function browserCurrentVariant(): BrowserVariant | undefined {
     variants[0]
   );
 }
-globalThis.browserCurrentVariant = browserCurrentVariant;
 /** Si el estilo elegido no es de la familia, pasa al estilo por defecto. */
 function syncVariant(): void {
   const variants = browserVariants(fontBrowserFamily);

@@ -11,6 +11,8 @@ import { createElement } from 'react';
 import { CoverSheetWindow } from './components/output/OutputWindow.tsx';
 import { setPrinters } from './components/output/printers.ts';
 import { bw } from './i18n/language.ts';
+import { chooseDefaultFace } from './font-catalog.ts';
+import { ow } from './output-words.ts';
 
 declare global {
   /** Familia CSS por defecto para los textos de la cubierta (Georgia o su cara más cercana). */
@@ -18,12 +20,6 @@ declare global {
   /** Diálogo para imprimir o exportar la cubierta sobre una hoja. */
   var coverSheetDialog: (destination: string) => void;
 }
-
-function coverFontFamily(): string {
-  const face = chooseDefaultFace('Georgia');
-  return face ? '"MQT_' + face.id + '",Georgia,serif' : 'Georgia,serif';
-}
-globalThis.coverFontFamily = coverFontFamily;
 
 extend.before(
   'updateCoverPreview',

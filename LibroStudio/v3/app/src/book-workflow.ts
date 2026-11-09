@@ -6,9 +6,6 @@
 // y la revisión del libro completo. También define bw(es, en, pt), el texto en el idioma de la
 // interfaz que usa casi toda la app: por eso este archivo carga antes que los que lo llaman.
 //
-// renderBookRoute es global (la llama tests/learning-tests.js) y dentro de este archivo se llama
-// por globalThis, para que corra con las extensiones que pueda tener.
-//
 // Fuente TypeScript: se compila a build/book-workflow.js (desktop/scripts/build.mjs).
 import type { Book, BookObject, Page } from './model.ts';
 import type { NovelSample } from './novel-sample.ts';
@@ -19,6 +16,7 @@ import { structurePanelFor } from './components/inspector/StructurePanel.tsx';
 import { M, UI } from './core-api.ts';
 import { closeSheet } from './components/dialog/dialogs.tsx';
 import { bw } from './i18n/language.ts';
+import { registerInspectorPanel } from './inspector-registry.ts';
 
 /** Datos del armador de novelas: título, autoría y manuscrito; lo demás es opcional. */
 export type NovelData = Pick<NovelSample, 'title' | 'author' | 'source'> & Partial<NovelSample>;
@@ -94,20 +92,12 @@ registerHelpSection(
     },
   }),
 );
-function goToBookPage(index: number): void {
-  finishEditing();
-  active = index;
-  spread = Math.floor(index / (book.facing ? 2 : 1)) * (book.facing ? 2 : 1);
-  selected = null;
-  multiSelection.clear();
-  render(true);
-}
 // Estructura del libro: la sección de la pestaña Libro (components/inspector/StructurePanel.tsx).
 registerInspectorPanel('structure:structure', structurePanelFor(titleOfPart), 'book-workflow');
 extend.after(
   'render',
   function (full = true) {
-    globalThis.renderBookRoute();
+    renderBookRoute();
   },
   'book-workflow',
 );
@@ -564,17 +554,13 @@ document.addEventListener('maquetario:language', () => {
       'Montar a partir de um manuscrito',
     );
 });
-// Publicado a propósito. bw: casi toda la interfaz. renderBookRoute: la llama
-// tests/learning-tests.js. goToBookPage: editorial-assistant,
-// book-proof y cover-measurements. composeNovel, installNovel y preflightBook: book-proof y sus
+// Publicado a propósito. bw: casi toda la interfaz. composeNovel, installNovel y preflightBook: book-proof y sus
 // pruebas (installNovel también scripts/style-snapshot.js). bookBuilder: cover-measurements.
 // preflightDialog: la barra del documento (DocumentBar.tsx).
 // manuscriptParts: tests/book-proof-tests.js.
 declare global {
   /** Texto en el idioma de la interfaz (castellano, inglés, portugués). */
   var bw: (es: string, en: string, pt: string) => string;
-  var renderBookRoute: () => void;
-  var goToBookPage: (index: number) => void;
   var composeNovel: (data: NovelData) => Book;
   var installNovel: (b: Book) => void;
   /** Revisión del libro: objetos fuera de la página y cajas de texto desbordadas. */
@@ -584,8 +570,6 @@ declare global {
   var preflightDialog: () => void;
   var manuscriptParts: (source: string) => ManuscriptPart[];
 }
-globalThis.renderBookRoute = renderBookRoute;
-globalThis.goToBookPage = goToBookPage;
 globalThis.composeNovel = composeNovel;
 globalThis.installNovel = installNovel;
 globalThis.preflightBook = preflightBook;
@@ -593,4 +577,4 @@ globalThis.bookBuilder = bookBuilder;
 globalThis.preflightDialog = preflightDialog;
 globalThis.manuscriptParts = manuscriptParts;
 globalThis.showWelcome = showWelcome;
-globalThis.renderBookRoute();
+renderBookRoute();

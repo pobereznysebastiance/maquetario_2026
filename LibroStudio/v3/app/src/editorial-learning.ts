@@ -3,7 +3,7 @@
 // "Glosario editorial" en la bienvenida. También suma la orientación del lomo a la cubierta.
 //
 // editorialTerms, glossaryMatches, renderGlossary y showGlossary son globales: los usan
-// tests/learning-tests.js y scripts/style-snapshot.js. foldEditorial lo usa font-browser.js.
+// tests/learning-tests.js y scripts/style-snapshot.js.
 //
 // Fuente TypeScript: se compila a build/editorial-learning.js (desktop/scripts/build.mjs).
 'use strict';
@@ -11,6 +11,7 @@ import type { CoverDesign } from './publications.ts';
 import { glossaryHelpSection, renderGlossary } from './components/help/Glossary.tsx';
 import { bw } from './i18n/language.ts';
 import { closeSheet } from './components/dialog/dialogs.tsx';
+import { foldEditorial } from './text-fold.ts';
 
 /** Texto en castellano, inglés y portugués. */
 type Words = [string, string, string];
@@ -433,12 +434,6 @@ const glossaryCategory: Record<GlossaryCategory, Words> = {
   type: ['Tipografía', 'Typography', 'Tipografia'],
   production: ['Producción', 'Production', 'Produção'],
 };
-const foldEditorial = (s: string): string =>
-  s
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
-globalThis.foldEditorial = foldEditorial;
 /** Sección "Glosario" del centro de Ayuda (React, components/help/Glossary.tsx). */
 registerHelpSection(
   glossaryHelpSection({

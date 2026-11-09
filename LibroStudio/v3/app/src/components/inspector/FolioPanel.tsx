@@ -24,6 +24,7 @@ import {
 } from './fields.tsx';
 import { bw } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
+import { registerInspectorPanel } from '../../inspector-registry.ts';
 
 /** Ajuste fino: el número del desplazamiento y su deslizador, que previsualiza sin grabar. */
 const FineOffset = ({ axis }: { axis: 'offsetX' | 'offsetY' }) => {

@@ -7,23 +7,24 @@
 // font-glyphs.ts, project-package.ts, settings-panel.ts, editorial-rules.ts y las pruebas.
 // ensureBookFonts y applyFace las extienden font-browser.js y paragraphs.js por nombre: las
 // llamadas de acá que corren después de cargar pasan por globalThis para incluir esas
-// extensiones. El estado que se lee o se reasigna desde afuera (nativeFaces, portableFontFaces,
-// fontFolders, fontCatalogPromise, fontLoadErrors, fontLibraryReady) vive en globalThis.
+// extensiones. El estado que se lee o se reasigna desde afuera (portableFontFaces,
+// fontCatalogPromise, fontLoadErrors) vive en globalThis; nativeFaces es un accesor sobre el
+// catálogo (font-catalog.ts, que también tiene las funciones del catálogo sin efectos al cargar).
 //
 // Fuente TypeScript: se compila a build/fonts.js (desktop/scripts/build.mjs).
 
 import type { BookObject } from './model.ts';
-import { i18n } from './i18n/language.ts';
+import {
+  chooseDefaultFace,
+  catalogFaces,
+  setCatalogFaces,
+  obtainFonts,
+  selectedFace,
+  updatePortableFontCatalog,
+  variations,
+} from './font-catalog.ts';
 
-/** Lo que mira selectedFace: un objeto de texto, un formato de párrafo o un elemento automático. */
-interface FontRef {
-  font?: string;
-  fontFaceId?: string;
-  fontStyleName?: string;
-  fontWeight?: number;
-  fontItalic?: boolean;
-  [extra: string]: any;
-}
+import type { FontRef } from './font-catalog.ts';
 
 declare global {
   /** Instancia con nombre de una fuente variable (coordenadas de sus ejes). */
@@ -44,31 +45,20 @@ declare global {
     [extra: string]: any;
   }
 
-  /** Textos de la interfaz de fuentes en el idioma actual. */
-  var fw: () => Record<string, string>;
-  /** Se está leyendo el catálogo de fuentes del equipo. */
-  var fontCatalogLoading: () => boolean;
   /** Catálogo efectivo: caras del paquete del proyecto y después las del sistema. */
   var nativeFaces: NativeFontFace[];
-  /** Carpetas de fuentes agregadas por el usuario. */
-  var fontFolders: string[];
   /** Ids de las caras que no se pudieron cargar. */
   var fontLoadErrors: Set<string>;
   /** Carga del catálogo de fuentes del sistema (null hasta que arranca). */
   var fontCatalogPromise: Promise<void> | null;
   /** Caras que trae el paquete del proyecto abierto (van antes que las del sistema). */
   var portableFontFaces: NativeFontFace[];
-  /** El catálogo de fuentes ya terminó de cargar (o no hay app de escritorio). */
-  var fontLibraryReady: boolean;
   /** Rearma nativeFaces y fontList con las caras del paquete y las del sistema. */
   var updatePortableFontCatalog: () => void;
-  var familyFaces: (family: string | undefined) => NativeFontFace[];
   /** La cara más cercana a Regular (peso 400, no cursiva) de la familia. */
   var chooseDefaultFace: (family: string | undefined) => NativeFontFace | undefined;
   /** La cara guardada en o (id, estilo, instancia o peso) o, si no está, la de la familia. */
   var selectedFace: (o: FontRef) => NativeFontFace | undefined;
-  /** Valores normales de los ejes variables de la cara. */
-  var variations: (face: NativeFontFace) => Record<string, number>;
   /** Carga la cara con FontFace (una sola vez por id). */
   var ensureFace: (face: NativeFontFace | null | undefined) => Promise<FontFace | void>;
   /** Carga las caras que usa el libro. */
@@ -79,135 +69,23 @@ declare global {
     face: NativeFontFace,
     instance?: NativeFontInstance | null,
   ) => Promise<void>;
-  /** Pide el catálogo al proceso principal (fontCatalog, refreshFonts o chooseFontFolder). */
-  var obtainFonts: (action?: string) => Promise<void>;
 }
 
-const fontWords: Record<string, Record<string, string>> = {
-  es: {
-    library: 'Fuentes de tu equipo',
-    folder: 'Agregar carpeta de fuentes',
-    refresh: 'Volver a leer fuentes',
-    weight: 'Peso / estilo',
-    axes: 'Ejes variables',
-    loading: 'Leyendo fuentes del equipo…',
-    hint: 'Lee TTF, OTF y TTC de Windows y de tus carpetas. Las subcarpetas también se incluyen.',
-    search: 'Buscar familia…',
-    preview: 'Vista previa de la familia',
-    empty: 'Seleccioná un cuadro de texto para elegir un peso o una variable.',
-    missing: 'La fuente guardada no está disponible: agregá su carpeta o elegí otra familia.',
-    fail: 'No se pudo cargar la fuente: ',
-    saved:
-      'Los proyectos guardan la familia, el estilo y los ejes. Para editarlos en otra PC, necesitás las mismas fuentes.',
-    variable: 'Variable',
-    families: 'familias',
-    faces: 'estilos',
-    face: 'estilo',
-    folders: 'Carpetas adicionales',
-    noFolders: 'Sin carpetas adicionales.',
-    manage: 'Administrar carpetas',
-  },
-  en: {
-    library: 'Fonts on your computer',
-    folder: 'Add font folder',
-    refresh: 'Rescan fonts',
-    weight: 'Weight / style',
-    axes: 'Variable axes',
-    loading: 'Reading fonts on your computer…',
-    hint: 'Reads Windows TTF, OTF and TTC fonts and your folders, including subfolders.',
-    search: 'Search families…',
-    preview: 'Family preview',
-    empty: 'Select a text frame to choose a weight or variation.',
-    missing: 'The saved font is unavailable: add its folder or choose another family.',
-    fail: 'Could not load font: ',
-    saved:
-      'Projects save the family, style and axes. To edit on another PC, you need the same fonts.',
-    variable: 'Variable',
-    families: 'families',
-    faces: 'styles',
-    face: 'style',
-    folders: 'Additional folders',
-    noFolders: 'No additional folders.',
-    manage: 'Manage folders',
-  },
-  pt: {
-    library: 'Fontes do seu computador',
-    folder: 'Adicionar pasta de fontes',
-    refresh: 'Reler fontes',
-    weight: 'Peso / estilo',
-    axes: 'Eixos variáveis',
-    loading: 'Lendo fontes do computador…',
-    hint: 'Lê fontes TTF, OTF e TTC do Windows e das suas pastas, incluindo subpastas.',
-    search: 'Buscar família…',
-    preview: 'Prévia da família',
-    empty: 'Selecione uma caixa de texto para escolher um peso ou variação.',
-    missing: 'A fonte salva não está disponível: adicione sua pasta ou escolha outra família.',
-    fail: 'Não foi possível carregar a fonte: ',
-    saved:
-      'Os projetos salvam a família, o estilo e os eixos. Para editar em outro PC, você precisa das mesmas fontes.',
-    variable: 'Variável',
-    families: 'famílias',
-    faces: 'estilos',
-    face: 'estilo',
-    folders: 'Pastas adicionais',
-    noFolders: 'Nenhuma pasta adicional.',
-    manage: 'Gerenciar pastas',
-  },
-};
-const fw = () => fontWords[i18n.language || 'es'];
-globalThis.fw = fw;
-/** Se está leyendo el catálogo de fuentes del equipo (lo muestra la biblioteca de fuentes). */
-globalThis.fontCatalogLoading = () => fontLoading;
-globalThis.nativeFaces = [];
-globalThis.fontFolders = [];
-let fontLoading = true;
+// nativeFaces vive en font-catalog.ts: el global es un accesor (lo leen otros módulos y las pruebas).
+Object.defineProperty(globalThis, 'nativeFaces', {
+  get: catalogFaces,
+  set: setCatalogFaces,
+  configurable: true,
+  enumerable: true,
+});
 globalThis.fontLoadErrors = new Set();
 const loadedFaces = new Map<string, Promise<FontFace>>();
 globalThis.fontCatalogPromise = null;
-let localFontFaces: NativeFontFace[] = nativeFaces;
 globalThis.portableFontFaces = [];
-function updatePortableFontCatalog(): void {
-  const catalog = new Map(localFontFaces.map((face) => [face.id, face]));
-  for (const face of portableFontFaces) catalog.delete(face.id);
-  nativeFaces = [...portableFontFaces, ...catalog.values()];
-  fontList = [...new Set(nativeFaces.map((face) => face.family))].sort((a, b) =>
-    a.localeCompare(b),
-  );
-  if (!fontList.length) fontList = ['Georgia', 'Times New Roman', 'Arial'];
-}
 globalThis.updatePortableFontCatalog = updatePortableFontCatalog;
-function familyFaces(family: string | undefined): NativeFontFace[] {
-  return nativeFaces.filter((f) => f.family === family);
-}
-globalThis.familyFaces = familyFaces;
-function chooseDefaultFace(family: string | undefined): NativeFontFace | undefined {
-  return familyFaces(family)
-    .slice()
-    .sort(
-      (a, b) =>
-        Math.abs(a.weight - 400) +
-        (a.italic ? 1000 : 0) -
-        (Math.abs(b.weight - 400) + (b.italic ? 1000 : 0)),
-    )[0];
-}
 globalThis.chooseDefaultFace = chooseDefaultFace;
-function selectedFace(o: FontRef): NativeFontFace | undefined {
-  const family = familyFaces(o.font),
-    savedStyle = o.fontStyleName;
-  return (
-    family.find((f) => f.id === o.fontFaceId) ||
-    family.find((f) => savedStyle && f.style === savedStyle) ||
-    family.find((f) => savedStyle && f.instances.some((i) => i.name === savedStyle)) ||
-    family.find((f) => o.fontWeight && f.weight === o.fontWeight && f.italic === !!o.fontItalic) ||
-    chooseDefaultFace(o.font)
-  );
-}
+// El motor de composición (src/modules/compose.ts) es otro bundle: lo lee del global.
 globalThis.selectedFace = selectedFace;
-function variations(face: NativeFontFace): Record<string, number> {
-  let values = face.axes.map((a) => [a.tag, a.normal]);
-  return Object.fromEntries(values);
-}
-globalThis.variations = variations;
 function ensureFace(face: NativeFontFace | null | undefined): Promise<FontFace | void> {
   if (!face) return Promise.resolve();
   if (loadedFaces.has(face.id)) return loadedFaces.get(face.id)!;
@@ -269,31 +147,6 @@ async function applyFace(
   }, false);
 }
 globalThis.applyFace = applyFace;
-async function obtainFonts(action = 'fontCatalog'): Promise<void> {
-  if (!native) {
-    fontLoading = false;
-    return;
-  }
-  fontLoading = true;
-  inspector();
-  try {
-    const result = await nativeCall(action, { refresh: action === 'refreshFonts' });
-    if (!result) return;
-    localFontFaces = result.faces || [];
-    updatePortableFontCatalog();
-    fontFolders = result.folders || [];
-    fontList = [...new Set(nativeFaces.map((f) => f.family))].sort((a, b) => a.localeCompare(b));
-    if (!fontList.length) fontList = ['Georgia', 'Times New Roman', 'Arial'];
-    await globalThis.ensureBookFonts();
-    renderPages();
-  } catch (error) {
-    toast(fw().fail + (error as Error).message, 'error');
-  } finally {
-    fontLoading = false;
-    inspector();
-  }
-}
-globalThis.obtainFonts = obtainFonts;
 extend.result(
   'paper',
   function (result: HTMLElement, i: number, px: number, print = false) {
@@ -350,11 +203,9 @@ extend.after(
   },
   'fonts',
 );
-globalThis.fontLibraryReady = false;
 async function startFontLibrary(): Promise<void> {
   for (let n = 0; n < 100 && !native; n++) await new Promise((r) => setTimeout(r, 100));
   if (native) await obtainFonts();
-  fontLibraryReady = true;
 }
 fontCatalogPromise = startFontLibrary();
 

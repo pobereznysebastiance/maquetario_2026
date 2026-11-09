@@ -27,6 +27,7 @@ import { Icon } from '../Icon.tsx';
 import { useLanguage } from '../../react/mount.tsx';
 import { printersSnapshot, subscribePrinters } from './printers.ts';
 import { bw, i18n } from '../../i18n/language.ts';
+import { ow } from '../../output-words.ts';
 
 /** Escucha los "change" de la ventana en captura (también los que no burbujean). */
 function useFormChange(onFormChange: (target: HTMLElement) => void) {

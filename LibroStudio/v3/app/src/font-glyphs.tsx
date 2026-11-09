@@ -21,6 +21,8 @@ import { Select } from './components/form/Form.tsx';
 import { Icon } from './components/Icon.tsx';
 import { bw } from './i18n/language.ts';
 import { editor } from './core-api.ts';
+import { currentParagraph, paragraphFormat, paragraphMeta } from './paragraph-format.ts';
+import { chooseDefaultFace, selectedFace, variations } from './font-catalog.ts';
 
 declare global {
   /** Códigos Unicode que tiene la fuente elegida en la paleta. */

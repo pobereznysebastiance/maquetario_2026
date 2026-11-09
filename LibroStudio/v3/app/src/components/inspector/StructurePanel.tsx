@@ -18,6 +18,7 @@ import { Icon } from '../Icon.tsx';
 import { SectionHeading, SectionTitle } from './fields.tsx';
 import { bw, i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
+import { goToBookPage } from '../../book-navigation.ts';
 
 const StructurePanel = ({ titleOf }: { titleOf: (page: Page) => string }) => {
   useLanguage();

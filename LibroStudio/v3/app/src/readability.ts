@@ -9,7 +9,7 @@
 // Fuente TypeScript: se compila a build/readability.js (desktop/scripts/build.mjs).
 import { refreshCanvasBar } from './components/canvas-bar/canvas-bar-state.ts';
 import { bw } from './i18n/language.ts';
-import { M } from './core-api.ts';
+import { saveProjectAs } from './save-as.ts';
 ('use strict');
 
 /** Retícula de la biblioteca: columnas (c), filas (r) y medianiles (gx, gy) en mm. */
@@ -36,39 +36,6 @@ declare global {
   var saveProjectAs: () => Promise<boolean>;
 }
 
-async function saveProjectAs(): Promise<boolean> {
-  if (!hasDocument) {
-    settings(true);
-    return false;
-  }
-  finishEditing();
-  try {
-    M.validate(book);
-    if (native) {
-      if (!(await nativeCall('saveAs', { json: JSON.stringify(book, null, 2), name: book.title })))
-        return false;
-    } else
-      download(
-        new Blob([JSON.stringify(book, null, 2)], { type: 'application/json' }),
-        book.title + '.mqt',
-      );
-    dirty = false;
-    syncNative();
-    toast(
-      bw(
-        'Copia guardada. Los próximos cambios se guardan en este archivo.',
-        'Copy saved. Future changes will be saved in this file.',
-        'Cópia salva. As próximas alterações serão salvas neste arquivo.',
-      ),
-    );
-    return true;
-  } catch (e) {
-    toast((e as Error).message, 'error');
-    return false;
-  }
-}
-// "Guardar como…" está en la barra superior (components/topbar/Topbar.tsx).
-globalThis.saveProjectAs = saveProjectAs;
 document.addEventListener(
   'keydown',
   (e) => {

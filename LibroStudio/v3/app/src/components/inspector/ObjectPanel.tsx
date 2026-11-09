@@ -18,6 +18,7 @@ import { Icon } from '../Icon.tsx';
 import { fieldKey, lengthUnit, onNativeChange, SectionHeading, SectionTitle } from './fields.tsx';
 import { bw, i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
+import { registerInspectorPanel } from '../../inspector-registry.ts';
 
 /** Encabezado de una sección (section() de studio.ts): el título ya viene traducido. */
 const Heading = ({ icon, title }: { icon: string; title: string }) => (

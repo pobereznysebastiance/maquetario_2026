@@ -13,6 +13,7 @@ import { Icon } from '../Icon.tsx';
 import { bw } from '../../i18n/language.ts';
 import { closeSheet, openSheet } from '../dialog/dialogs.tsx';
 import { editor } from '../../core-api.ts';
+import { goToBookPage } from '../../book-navigation.ts';
 
 const PreflightReport = ({ issues, pages }: { issues: PreflightIssue[]; pages: number }) => (
   <>

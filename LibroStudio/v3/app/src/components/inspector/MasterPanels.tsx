@@ -21,6 +21,7 @@ import {
 } from './fields.tsx';
 import { bw } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
+import { registerInspectorPanel } from '../../inspector-registry.ts';
 
 type MasterType = 'header' | 'titulillo';
 

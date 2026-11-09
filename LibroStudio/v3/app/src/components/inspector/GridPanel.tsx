@@ -10,6 +10,7 @@ import { openGuideDialog, type BookGuide } from '../../editorial.ts';
 import { NumberField, Row, SwitchHeading, TermHelp, tt } from './fields.tsx';
 import { Icon } from '../Icon.tsx';
 import { editor } from '../../core-api.ts';
+import { registerInspectorPanel } from '../../inspector-registry.ts';
 
 /** Dos medidas lado a lado con su etiqueta debajo (pair() de studio.ts). */
 const Pair = ({

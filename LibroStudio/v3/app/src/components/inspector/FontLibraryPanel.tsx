@@ -9,6 +9,8 @@
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
 import { Btn, SectionHeading } from './fields.tsx';
+import { registerInspectorPanel } from '../../inspector-registry.ts';
+import { fontCatalogLoading, fontFolders, fw, obtainFonts } from '../../font-catalog.ts';
 
 /** Líneas grises de "cargando" (UI.skeleton). */
 const Skeleton = ({ lines, label }: { lines: number; label: string }) => (

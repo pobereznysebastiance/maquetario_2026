@@ -16,6 +16,7 @@ import { Icon } from '../Icon.tsx';
 import { Btn, fieldKey, Heading, onNativeChange, SectionHeading, tt } from './fields.tsx';
 import { bw } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
+import { registerInspectorPanel } from '../../inspector-registry.ts';
 
 /** Escucha el "change" nativo de un campo (una sola vez por nodo). */
 const onChange = onNativeChange<HTMLInputElement>;

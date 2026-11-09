@@ -22,39 +22,22 @@ import { notifyEditorState } from './react/editor-state.ts';
 import { mount } from './react/mount.tsx';
 import { mountRailViews } from './components/rail/RailViews.tsx';
 import { Inspector, planFor, type InspectorView } from './components/inspector/Inspector.tsx';
+import { VIEWS, isRailTab } from './inspector-tabs.ts';
 import { editor } from './core-api.ts';
 
 /** Vista del riel izquierdo. */
 type RailView = 'pages' | 'index' | 'layers';
 
 declare global {
-  /** Pestaña (o vista del riel) que corresponde a un nombre de pestaña, viejo o nuevo. */
-  var inspectorTabFor: (name: string) => string;
   /** Muestra una vista del riel izquierdo: pages (miniaturas), index o layers. */
   var showRailView: (name: RailView) => void;
   /** Vista del riel que se ve ahora. */
   var currentRailView: () => RailView;
-  /** Pestaña visible del inspector. */
-  var currentInspectorView: () => InspectorView;
 }
 
 const VIEW_STORE = 'maquetario-inspector-view';
 const TIP_STORE = 'maquetario-inspector-tip-hidden';
 const SECTION_STORES = ['maquetario-inspector-order', 'maquetario-inspector-collapsed'];
-
-/** Nombre de pestaña (viejo o nuevo) → pestaña visible. */
-const VIEWS: Record<string, InspectorView> = {
-  book: 'book',
-  structure: 'book',
-  design: 'book',
-  page: 'page',
-  pages: 'page',
-  selection: 'selection',
-  text: 'selection',
-  object: 'selection',
-};
-const isRailTab = (name: string): name is 'index' | 'layers' =>
-  name === 'index' || name === 'layers';
 
 const readStore = (key: string): string | null => {
   try {
@@ -214,8 +197,6 @@ function showRailView(name: RailView): void {
 }
 globalThis.showRailView = showRailView;
 globalThis.currentRailView = () => rail;
-globalThis.currentInspectorView = () => view;
-globalThis.inspectorTabFor = (name) => (isRailTab(name) ? name : VIEWS[name] || 'book');
 
 // ── Consejo del pie: se puede descartar ──
 $('#inspectorTipClose').addEventListener('click', () => {

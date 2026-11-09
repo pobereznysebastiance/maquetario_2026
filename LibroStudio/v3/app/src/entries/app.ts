@@ -2,7 +2,7 @@
 // Fuente: se compila a build/app.js (desktop/scripts/build.mjs). El orden de los
 // import es el orden de carga: cada módulo corre al importarse, como corría su <script> en index.html.
 
-import '../inspector-registry.ts';
+import '../inspector-registry-wiring.ts';
 import '../components/rail/rail-tools.ts';
 import '../editorial.ts';
 import '../i18n.ts';

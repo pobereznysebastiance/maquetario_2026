@@ -4,7 +4,7 @@
 //
 // openSettings es global: la usan el menú de studio.ts, workspace.ts y la autoprueba
 // (desktop/src/main/selftest.ts, que busca #settingsLanguage). maquetarioUpdateAvailable la llama
-// el proceso principal (desktop/src/main/main.ts). setLanguage queda publicada como antes.
+// el proceso principal (desktop/src/main/main.ts).
 // Mismos ids que la versión en HTML: #settings-section-account, #settingsConnect,
 // #settingsSignOut, #settingsDownloadUpdate, #settingsLanguage, #settingsInterfaceSize,
 // #settingsRulers, #settings-section-workspace, #settingsWorkspace (y las casillas con
@@ -20,6 +20,7 @@ import { Icon } from '../Icon.tsx';
 import { CheckItem, Select, SettingRow } from '../form/Form.tsx';
 import { bw, i18n } from '../../i18n/language.ts';
 import { confirmAction, openSheet } from '../dialog/dialogs.tsx';
+import { fontFolders, obtainFonts } from '../../font-catalog.ts';
 
 /** Versión nueva del programa en Motiova (mismo formato que desktop/src/main/motiova/desktop.ts). */
 interface UpdateInfo {
@@ -50,8 +51,6 @@ interface AppInfo {
 declare global {
   /** Abre Configuración; focusSection lleva a una sección ('account', 'workspace'…). */
   var openSettings: (focusSection?: string) => Promise<void>;
-  /** Cambia el idioma de la interfaz por LibroI18n.set. */
-  var setLanguage: (value: Language) => void;
   /** Aviso de versión nueva; lo llama el proceso principal al abrir. */
   var maquetarioUpdateAvailable: (update: { version?: string } | null | undefined) => void;
 }
@@ -515,4 +514,3 @@ globalThis.maquetarioUpdateAvailable = (update) => {
 };
 
 globalThis.openSettings = openSettings;
-globalThis.setLanguage = setLanguage;

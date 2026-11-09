@@ -7,6 +7,8 @@
 //
 // Fuente TypeScript: se compila a build/editor-controls.js (desktop/scripts/build.mjs).
 
+import { inspectorTabFor } from './inspector-tabs.ts';
+
 declare global {
   /** Capa que oscurece la ventana y deja a la vista el objetivo del tutorial. */
   var spotlight: SVGSVGElement;

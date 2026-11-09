@@ -8,12 +8,10 @@
 import { mount } from '../../react/mount.tsx';
 import {
   DialogHost,
-  askChoice,
   closeSheet,
   confirmAction,
   openConfirmSheet,
   openSheet,
-  openSheetContent,
   openWorkWindow,
 } from './dialogs.tsx';
 
@@ -36,12 +34,9 @@ window.addEventListener(
   true,
 );
 
-// Las usan studio.ts, settings-panel.ts y la autoprueba (desktop/src/main/selftest.ts).
-globalThis.askChoice = askChoice;
+// Las usan studio.ts y la autoprueba (desktop/src/main/selftest.ts); los módulos las importan.
 globalThis.confirmAction = confirmAction;
 globalThis.openSheet = openSheet;
 globalThis.openWorkWindow = openWorkWindow;
 globalThis.openConfirmSheet = openConfirmSheet;
 globalThis.closeSheet = closeSheet;
-// El centro de Ayuda (components/help/) lo usa para saber si su Ventana sigue abierta.
-globalThis.openSheetContent = openSheetContent;

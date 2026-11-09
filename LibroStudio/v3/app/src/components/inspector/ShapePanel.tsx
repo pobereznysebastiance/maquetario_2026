@@ -14,6 +14,7 @@ import { Icon } from '../Icon.tsx';
 import { Btn, fieldKey, lengthUnit, onNativeChange, SectionHeading } from './fields.tsx';
 import { bw } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
+import { registerInspectorPanel } from '../../inspector-registry.ts';
 
 /** Una figura sin forma todavía (marco o imagen común) pasa a rectángulo al tocar su aspecto. */
 const init = (o: Record<string, any>) => {

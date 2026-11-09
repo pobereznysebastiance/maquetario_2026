@@ -7,6 +7,7 @@
 // Fuente TypeScript: se compila a build/cover-actions.js (desktop/scripts/build.mjs).
 
 import { bw } from './i18n/language.ts';
+import { outputPaperDimensions } from './output-words.ts';
 
 /** Lo que devuelve prepareOutput (output.js). */
 interface OutputInfo {

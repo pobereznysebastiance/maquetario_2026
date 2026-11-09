@@ -7,6 +7,8 @@ import type { BookObject } from './model.ts';
 import { Icon } from './components/Icon.tsx';
 import { bw } from './i18n/language.ts';
 import { editor, M } from './core-api.ts';
+import { paragraphFormat, paragraphKeys, pw } from './paragraph-format.ts';
+import { selectedFace } from './font-catalog.ts';
 
 interface ParagraphStyle {
   id: string;
