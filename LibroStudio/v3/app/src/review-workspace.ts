@@ -114,6 +114,8 @@ export type ReviewWords = (typeof reviewText)['es'];
 const rw = (): ReviewWords => reviewText[LibroI18n.language || 'es'];
 
 declare global {
+  /** Deja la app con un libro en blanco (pantalla sin libro). La usa scripts/style-snapshot.js. */
+  var activateBlankDocument: () => void;
   /** Textos del espacio de revisión en el idioma actual (los usa inspector-organization.js). */
   var rw: () => ReviewWords;
   /** Cara de salida que muestra la revisión (la cambia tests/review-tests.js). */
@@ -517,6 +519,7 @@ function activateBlankDocument(): void {
   refreshEmptyCanvas();
   render(true);
 }
+globalThis.activateBlankDocument = activateBlankDocument;
 // The example is loaded only through its explicit welcome action.
 (async () => {
   for (let n = 0; n < 100 && !native; n++) await new Promise((r) => setTimeout(r, 100));
