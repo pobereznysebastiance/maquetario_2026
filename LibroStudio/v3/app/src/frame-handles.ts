@@ -25,6 +25,8 @@ declare global {
   ) => Rect;
   /** Autoprueba: deja seleccionada una caja de texto con sus controladores visibles. */
   var showHandlePreview: () => void;
+  /** Ajusta el alto de una caja de texto a su texto (doble clic en el borde inferior). */
+  var fitTextFrame: (o: BookObject, el: HTMLElement) => boolean;
 }
 
 // Los controladores los dibuja la capa de selección (components/canvas/SelectionLayer.tsx).
@@ -157,6 +159,53 @@ window.addEventListener(
   },
   true,
 );
+/**
+ * Alto justo para el texto de una caja: la caja termina donde termina su último renglón (más el
+ * margen inferior del último párrafo y el relleno de la caja). Mide en pantalla y pasa a mm con la
+ * escala de la propia caja, así vale con cualquier zoom. Devuelve si cambió el alto.
+ */
+function fitTextFrame(o: BookObject, el: HTMLElement): boolean {
+  const content = el.querySelector<HTMLElement>('.text-content');
+  if (!content || o.locked || !o.h) return false;
+  const box = el.getBoundingClientRect(),
+    pxPerMm = box.height / o.h;
+  if (!pxPerMm) return false;
+  // El texto suelto (sin párrafos con formato) se mide con un rango; los párrafos, con su margen.
+  const range = document.createRange();
+  range.selectNodeContents(content);
+  let bottom = range.getBoundingClientRect().bottom;
+  for (const child of content.children) {
+    const margin = parseFloat(getComputedStyle(child).marginBottom) || 0;
+    bottom = Math.max(bottom, child.getBoundingClientRect().bottom + margin);
+  }
+  bottom += parseFloat(getComputedStyle(content).paddingBottom) || 0;
+  const wanted = (bottom - box.top) / pxPerMm,
+    h = Math.round(Math.min(Math.max(wanted, 3), book.height - o.y) * 10) / 10;
+  if (Math.abs(h - o.h) < 0.05) return false;
+  commit(() => {
+    o.h = h;
+  }, false);
+  return true;
+}
+globalThis.fitTextFrame = fitTextFrame;
+
+// Doble clic en el borde inferior de una caja de texto: la caja se ajusta al texto (como en
+// InDesign). Va en la captura para ganarle al doble clic del lienzo, que entra a editar la caja.
+document.addEventListener(
+  'dblclick',
+  (e) => {
+    const handle = (e.target as Element).closest?.<HTMLElement>('.frame-handle[data-handle="s"]');
+    const el = handle?.closest<HTMLElement>('.paper-object.text');
+    if (!el) return;
+    const o = book.pages.flatMap((p) => p.objects).find((x) => x.id === el.dataset.id);
+    if (!o || o.type !== 'text') return;
+    e.preventDefault();
+    e.stopPropagation();
+    fitTextFrame(o, el);
+  },
+  true,
+);
+
 globalThis.showHandlePreview = function () {
   active = spread = 0;
   selected = book.pages[0].objects.filter((o) => o.type === 'text').slice(-1)[0].id;

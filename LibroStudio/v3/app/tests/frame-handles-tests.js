@@ -97,6 +97,31 @@ registerIntegrationTest(function (result) {
       maquetarioEditor.undoStack.length === undoDepth,
     'Escape cancela el redimensionado: tamaño de antes, caja elegida y sin paso de deshacer',
   );
+  // Doble clic en el borde inferior: la caja se ajusta a su texto (crece o se achica) y no entra
+  // a editar. Un segundo doble clic no cambia nada.
+  const fitBox = selectObject(),
+    handleAt = () =>
+      $(`#spread .paper-object[data-id="${fitBox.id}"] > .frame-handle[data-handle="s"]`),
+    doubleClick = () =>
+      handleAt().dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }));
+  Object.assign(fitBox, { x: 20, y: 20, w: 80, h: 150, text: 'Una línea corta.' });
+  renderPages();
+  doubleClick();
+  assert(
+    fitBox.h < 40 && fitBox.h >= 3 && !maquetarioEditor.editing,
+    'Doble clic en el borde inferior achica la caja al texto, sin entrar a editar',
+  );
+  fitBox.text = Array.from({ length: 12 }, () => 'Un renglón de prueba para llenar la caja.').join(
+    '\n',
+  );
+  fitBox.h = 10;
+  renderPages();
+  doubleClick();
+  const grown = fitBox.h;
+  assert(grown > 30, 'Doble clic en el borde inferior agranda la caja hasta su último renglón');
+  renderPages();
+  doubleClick();
+  assert(Math.abs(fitBox.h - grown) < 0.2, 'Un segundo doble clic deja la caja igual');
   maquetarioEditor.book = original;
   maquetarioEditor.active = previousActive;
   maquetarioEditor.spread = previousSpread;
