@@ -51,16 +51,10 @@ interface Slot {
 /** Secciones de cada pasada, en orden. */
 function sectionsOf(pass: string): Slot[] {
   switch (pass) {
-    case 'structure':
-      return [
-        {
-          name: 'structure',
-          title: bw('Estructura del libro', 'Book structure', 'Estrutura do livro'),
-          key: 'pages',
-        },
-      ];
     case 'design':
       return [
+        // Primero las medidas de la página; la grilla se ajusta a ellas.
+        { name: 'margins', title: 'Formato y márgenes', key: 'margins' },
         { name: 'grid', title: 'Grilla', key: 'grid' },
         // Misceláneas y líneas (RulesPanel.tsx): sin data-section, después de la grilla.
         { name: 'rules' },
@@ -123,7 +117,7 @@ function sectionsOf(pass: string): Slot[] {
 
 /** Pasadas de la pestaña visible y la que queda en tab (la pestaña interna de antes). */
 export function planFor(view: InspectorView): { passes: string[]; primary: string } {
-  if (view === 'book') return { passes: ['structure', 'design'], primary: 'design' };
+  if (view === 'book') return { passes: ['design'], primary: 'design' };
   if (view === 'page') return { passes: ['pages'], primary: 'pages' };
   const o = selectObject();
   if (editor.multiSelection.size > 1) return { passes: ['object'], primary: 'object' };

@@ -1,5 +1,5 @@
-// Inspector · Libro · Grilla en React (etapa 3, D2): columnas, filas, medianiles, ajuste a los
-// márgenes o al borde y márgenes de la página. Mismo marcado que en HTML (section(), row(), pair()
+// Inspector · Libro · Formato y márgenes (el formato del libro y los márgenes de la página) y Grilla
+// (columnas, filas, medianiles y ajuste a los márgenes o al borde), en React (etapa 3, D2). Mismo marcado que en HTML (section(), row(), pair()
 // y los botones de ajuste del viejo inspector en HTML); la validación de grilla y márgenes la hace
 // commitBinding(), como antes. Al final, las guías individuales (antes las agregaba editorial.ts
 // después de dibujar el inspector).
@@ -7,7 +7,15 @@
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 import { useLanguage } from '../../react/mount.tsx';
 import { openGuideDialog, type BookGuide } from '../../editorial.ts';
-import { NumberField, Row, SwitchHeading, TermHelp, tt } from './fields.tsx';
+import {
+  NumberField,
+  Row,
+  SectionHeading,
+  SectionTitle,
+  SwitchHeading,
+  TermHelp,
+  tt,
+} from './fields.tsx';
 import { Icon } from '../Icon.tsx';
 import { editor } from '../../core-api.ts';
 import { registerInspectorPanel } from '../../inspector-registry.ts';
@@ -108,15 +116,40 @@ export const GridPanel = () => {
         <FitButton fit="margins" label="A los márgenes" />
         <FitButton fit="page" label="Al borde de página" />
       </div>
-      <Pair
-        label="Márgenes"
-        paths={['margins.top', 'margins.bottom']}
-        labels={['Superior', 'Inferior']}
-      />
-      <Pair paths={['margins.inside', 'margins.outside']} labels={['Interior', 'Exterior']} />
       <GuideControls />
     </>
   );
 };
 
+/**
+ * Formato y márgenes: medidas de la página, antes que la grilla (la grilla se ajusta a ellas).
+ * Los márgenes eran parte de la sección Grilla; son del libro, no de la grilla.
+ */
+export const MarginsPanel = () => {
+  useLanguage();
+  const book = editor.book;
+  return (
+    <>
+      <SectionHeading>
+        <Icon name="pages" />
+        <SectionTitle source="Formato y márgenes">{tt('Formato y márgenes')}</SectionTitle>
+      </SectionHeading>
+      <Row label="Formato">
+        <button
+          type="button"
+          className="btn"
+          id="marginsFormat"
+          title={tt('Cambiar el formato del libro')}
+          onClick={() => settings(false)}
+        >
+          {book.format + ' · ' + displayDimensions(book.width, book.height)}
+        </button>
+      </Row>
+      <Pair paths={['margins.top', 'margins.bottom']} labels={['Superior', 'Inferior']} />
+      <Pair paths={['margins.inside', 'margins.outside']} labels={['Interior', 'Exterior']} />
+    </>
+  );
+};
+
+registerInspectorPanel('design:margins', () => <MarginsPanel />, 'grid-panel');
 registerInspectorPanel('design:grid', () => <GridPanel />, 'grid-panel');

@@ -1,5 +1,6 @@
-// Registro de las vistas del riel izquierdo que no son las miniaturas (Índice y Capas): cada
-// módulo registra la suya (editorial.ts → index, layout-tools.ts → layers) y RailViews.tsx la
+// Registro de las vistas del riel izquierdo que no son las miniaturas (Estructura, Índice y Capas):
+// cada módulo registra la suya (book-workflow.ts → structure, editorial.ts → index,
+// layout-tools.ts → layers) y RailViews.tsx la
 // dibuja en #railView cuando inspector-views.tsx la elige con showRailView.
 //
 // Es un módulo sin efectos ni dependencias de React en tiempo de ejecución: lo importan módulos
@@ -9,7 +10,7 @@
 
 import type { ReactNode } from 'react';
 
-export type RailViewName = 'index' | 'layers';
+export type RailViewName = 'structure' | 'index' | 'layers';
 
 const views = new Map<RailViewName, () => ReactNode>();
 

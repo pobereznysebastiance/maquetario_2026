@@ -26,7 +26,7 @@ import { noBookReason } from '../../react/no-book.ts';
 import { i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
 
-type RailView = 'pages' | 'index' | 'layers';
+type RailView = 'pages' | 'structure' | 'index' | 'layers';
 
 /** Herramientas del riel. */
 export const ToolRail = () => {
@@ -62,6 +62,7 @@ export const ToolRail = () => {
 
 const VIEWS: { view: RailView; label: string; icon: string; panel: string }[] = [
   { view: 'pages', label: 'Páginas', icon: 'pages', panel: 'thumbnails' },
+  { view: 'structure', label: 'Estructura', icon: 'layout', panel: 'railView' },
   { view: 'index', label: 'Índice', icon: 'index', panel: 'railView' },
   { view: 'layers', label: 'Capas', icon: 'layers', panel: 'railView' },
 ];

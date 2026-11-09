@@ -8,7 +8,6 @@ import type { InspectorView } from './components/inspector/Inspector.tsx';
 /** Nombre de pestaña (viejo o nuevo) → pestaña visible. */
 export const VIEWS: Record<string, InspectorView> = {
   book: 'book',
-  structure: 'book',
   design: 'book',
   page: 'page',
   pages: 'page',
@@ -17,8 +16,8 @@ export const VIEWS: Record<string, InspectorView> = {
   object: 'selection',
 };
 /** Las vistas del riel que también se piden como pestaña. */
-export const isRailTab = (name: string): name is 'index' | 'layers' =>
-  name === 'index' || name === 'layers';
+export const isRailTab = (name: string): name is 'structure' | 'index' | 'layers' =>
+  name === 'structure' || name === 'index' || name === 'layers';
 
 /** Pestaña (o vista del riel) que corresponde a un nombre de pestaña, viejo o nuevo. */
 export const inspectorTabFor = (name: string): string =>

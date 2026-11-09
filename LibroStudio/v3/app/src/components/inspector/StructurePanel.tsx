@@ -1,6 +1,7 @@
-// Inspector · Libro · Estructura del libro, en React (etapa 3, D2, paso 6 del plan del inspector).
+// Estructura del libro, en React: una vista del riel izquierdo (junto a Páginas, Índice y Capas).
+// Antes era la primera sección de la pestaña Libro; es para recorrer el libro, no un ajuste.
 //
-// El marco de la sección lo pone Inspector.tsx (pasada 'structure'). Mismo marcado que tenía en HTML: resumen, "Armar otro
+// La sección la pone structurePanelFor (abajo). Mismo marcado que tenía en HTML: resumen, "Armar otro
 // libro…", las partes del libro (ir al comienzo de cada una) y la ayuda. Suma lo que antes le
 // agregaban dos decoradores desde afuera:
 // - "Formato y configuración" (#structureSettings), que insertaba inspector-views.tsx;
@@ -92,7 +93,12 @@ const StructurePanel = ({
   );
 };
 
-/** El panel, con el nombre de cada parte como lo arma book-workflow.ts. */
+/**
+ * La vista Estructura del riel, con el nombre de cada parte como lo arma book-workflow.ts. Va en una
+ * sección, como Índice y Capas (el margen de la vista sale de .rail-view .section).
+ */
 export const structurePanelFor = (titleOf: (page: Page) => string, build: () => void) => () => (
-  <StructurePanel titleOf={titleOf} build={build} />
+  <section className="section" data-section="Estructura del libro" data-key="pages">
+    <StructurePanel titleOf={titleOf} build={build} />
+  </section>
 );

@@ -26,7 +26,7 @@ import { VIEWS, isRailTab } from './inspector-tabs.ts';
 import { editor } from './core-api.ts';
 
 /** Vista del riel izquierdo. */
-type RailView = 'pages' | 'index' | 'layers';
+type RailView = 'pages' | 'structure' | 'index' | 'layers';
 
 declare global {
   /** Muestra una vista del riel izquierdo: pages (miniaturas), index o layers. */

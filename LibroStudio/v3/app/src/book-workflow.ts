@@ -13,10 +13,10 @@ import { bookBuilderForm } from './components/book-builder/BookBuilder.tsx';
 import { routeHelpSection } from './components/help/sections.tsx';
 import { openPreflight } from './components/preflight/PreflightSheet.tsx';
 import { structurePanelFor } from './components/inspector/StructurePanel.tsx';
+import { registerRailView } from './components/rail/rail-views.ts';
 import { M, UI } from './core-api.ts';
 import { closeSheet } from './components/dialog/dialogs.tsx';
 import { bw } from './i18n/language.ts';
-import { registerInspectorPanel } from './inspector-registry.ts';
 import { refreshHelp, registerHelpSection } from './components/help/help-center.tsx';
 import { modal } from './components/dialog/modal.ts';
 
@@ -94,11 +94,11 @@ registerHelpSection(
     },
   }),
 );
-// Estructura del libro: la sección de la pestaña Libro (components/inspector/StructurePanel.tsx).
-registerInspectorPanel(
-  'structure:structure',
+// Estructura del libro (components/inspector/StructurePanel.tsx): una vista del riel, junto a
+// Páginas, Índice y Capas. Es para recorrer el libro, no un ajuste: no va en la pestaña Libro.
+registerRailView(
+  'structure',
   structurePanelFor(titleOfPart, () => bookBuilder()),
-  'book-workflow',
 );
 extend.after(
   'render',

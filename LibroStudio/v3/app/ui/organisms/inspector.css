@@ -605,13 +605,6 @@
 }
 .folio-placement {
   margin: var(--space-sm) 0;
-  padding: var(--space-sm);
-  border: var(--border-width) solid var(--line-default);
-  border-radius: var(--radius-md);
-}
-.folio-placement strong {
-  color: var(--text-accent);
-  font-weight: var(--weight-semibold);
 }
 .folio-placement .field-row input[type='range'] {
   grid-column: 1 / -1;

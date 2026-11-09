@@ -107,9 +107,11 @@ export const FolioPanel = () => {
       <Row label="Comenzar en">
         <NumberField path="folio.start" min={1} max={9999} step={1} unit="" />
       </Row>
-      <div className="folio-placement">
-        <strong>{bw('Ajuste fino de posición', 'Fine position', 'Ajuste fino de posição')}</strong>
-        {'\n    '}
+      {/* Desplegable común (como Guías individuales): nada de tarjeta dentro de la sección. */}
+      <details className="folio-placement">
+        <summary>
+          {bw('Ajuste fino de posición', 'Fine position', 'Ajuste fino de posição')}
+        </summary>
         <p className="help">
           {bw(
             'Mové el folio con los deslizadores o escribí la medida exacta. El eje del margen queda protegido.',
@@ -119,7 +121,7 @@ export const FolioPanel = () => {
         </p>
         <FineOffset axis="offsetX" />
         <FineOffset axis="offsetY" />
-      </div>
+      </details>
       <MasterDetails type="folio" offsets={false} />
     </>
   );

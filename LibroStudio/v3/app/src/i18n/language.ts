@@ -55,6 +55,8 @@ const labels: TranslationRow[] = [
   ['A los márgenes', 'Margins', 'Às margens'],
   ['Al borde de página', 'Page edges', 'À borda da página'],
   ['Márgenes', 'Margins', 'Margens'],
+  ['Formato y márgenes', 'Format and margins', 'Formato e margens'],
+  ['Cambiar el formato del libro', 'Change the book format', 'Alterar o formato do livro'],
   ['Superior', 'Top', 'Superior'],
   ['Inferior', 'Bottom', 'Inferior'],
   ['Interior', 'Inside', 'Interna'],
