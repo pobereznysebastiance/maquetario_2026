@@ -3,10 +3,13 @@
 // Los objetos ocultos no se dibujan y los bloqueados no se seleccionan ni se editan.
 //
 // snapLines y snappedFrame son globales porque las usa tests/layout-tools-tests.js;
-// updateSnapButton, porque la llama inspector-organization.js.
+// updateSnapButton, porque la llama inspector-organization.js. El botón del imán lo dibuja la
+// barra del documento en React (src/components/documentbar/DocumentBar.tsx) con snapButtonState()
+// y toggleSnap(); updateSnapButton() sólo le avisa que se redibuje.
 //
 // Fuente TypeScript: se compila a build/layout-tools.js (desktop/scripts/build.mjs).
 import type { Book, BookObject, Rect } from './model.ts';
+import { notifyEditorState } from './react/editor-state.ts';
 
 /** Posiciones (mm) a las que se ajusta el imán, por eje. */
 export interface SnapLines {
@@ -34,7 +37,7 @@ declare global {
     tolerance: number,
     bounds: { width: number; height: number },
   ) => SnapResult;
-  /** Estado y textos del botón del imán. */
+  /** Redibuja el botón del imán (estado y textos). */
   var updateSnapButton: () => void;
 }
 
@@ -203,26 +206,21 @@ function snappedFrame(
   return { rect: r, hits };
 }
 globalThis.snappedFrame = snappedFrame;
-function updateSnapButton(): void {
-  const b = $('#snapButton');
-  if (!b) return;
-  b.classList.toggle('on', book.snap?.enabled !== false);
-  b.title = lw().snapHint;
-  b.innerHTML = '⌁ <span class="snap-label">' + lw().snap + '</span>';
-  b.setAttribute('aria-pressed', String(book.snap?.enabled !== false));
+/** Estado y textos del botón del imán (lo dibuja la barra del documento). */
+export function snapButtonState(): { on: boolean; label: string; hint: string } {
+  return { on: book.snap?.enabled !== false, label: lw().snap, hint: lw().snapHint };
 }
-globalThis.updateSnapButton = updateSnapButton;
-const snapButton = document.createElement('button');
-snapButton.id = 'snapButton';
-snapButton.className = 'quiet';
-snapButton.onclick = () => {
+/** Prende o apaga el imán (se puede deshacer). */
+export function toggleSnap(): void {
   finishEditing();
   commit(() => {
     book.snap = { enabled: book.snap?.enabled === false, tolerance: book.snap?.tolerance || 7 };
   }, false);
-};
-$('#documentSettings').before(snapButton);
-updateSnapButton();
+}
+function updateSnapButton(): void {
+  notifyEditorState();
+}
+globalThis.updateSnapButton = updateSnapButton;
 extend.after(
   'moveObject',
   function (e: PointerEvent) {

@@ -18,6 +18,8 @@ import '../paragraphs.ts';
 import '../review-tutorial.ts';
 import '../novel-sample.ts';
 import '../book-workflow.ts';
+import '../components/statusbar/StatusBar.tsx';
+import '../components/documentbar/DocumentBar.tsx';
 import '../book-proof.ts';
 import '../publications.ts';
 import '../readability.ts';

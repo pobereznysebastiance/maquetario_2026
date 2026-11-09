@@ -132,7 +132,9 @@ let book = M.create(),
   /** Elemento de texto que se está editando en el lienzo, o null. */
   editing: HTMLElement | null = null,
   drag: ObjectDrag | null = null,
-  recoveryTimer: number | undefined;
+  recoveryTimer: number | undefined,
+  /** Cajas de texto con texto sobrante en el pliego visible (la cuenta checkOverflow). */
+  overflowCount = 0;
 const selectObject = () => book.pages[active]?.objects.find((o) => o.id === selected);
 /** Pedido al proceso principal de Electron; rechaza fuera de la app de escritorio. */
 function nativeCall(action: string, payload: Record<string, unknown> = {}): Promise<any> {
@@ -167,13 +169,14 @@ function toast(msg: string, type = 'success'): void {
   pendingToasts.push([msg, type]);
 }
 /**
- * Avisa al anfitrión si hay cambios sin guardar y actualiza el indicador de la barra de estado
- * (#savedState) y el punto del nombre del documento: una sola fuente, la variable dirty.
+ * Avisa al anfitrión si hay cambios sin guardar y marca body.has-unsaved-changes (color del punto
+ * del nombre y del estado). Una sola fuente, la variable dirty: el texto del indicador de guardado
+ * lo dibuja la barra de estado en React, que se redibuja después de esta función
+ * (src/react/editor-state.ts).
  */
 function syncNative(): void {
   if (native) nativeCall('dirty', { dirty, title: book.title }).catch(() => {});
   document.body.classList.toggle('has-unsaved-changes', dirty);
-  $('#savedState').innerHTML = `<i></i> ${dirty ? 'Cambios sin guardar' : 'Guardado en tu equipo'}`;
 }
 /** Guarda el estado para deshacer. */
 function snapshot(): void {
@@ -770,10 +773,8 @@ function renderPages(): void {
   ).join('');
   requestAnimationFrame(checkOverflow);
 }
+/** Redibuja la pantalla. Nombre y formato del libro: barra del documento (React), vía updateStatus. */
 function render(full = true): void {
-  $('#documentName').textContent = book.title;
-  $('#documentFormat').textContent =
-    `${book.format === 'Personalizado' ? 'Personalizado' : book.format} · ${displayDimensions(book.width, book.height)}`;
   $$('.tool').forEach((e) => e.classList.toggle('active', e.dataset.tool === tool));
   $('#undo').disabled = !undoStack.length;
   $('#redo').disabled = !redoStack.length;
@@ -785,12 +786,11 @@ function render(full = true): void {
   }
   updateStatus();
 }
+/**
+ * Estado de la pantalla después de un cambio. La barra de estado y la del documento (React) se
+ * redibujan después de esta función (src/react/editor-state.ts).
+ */
 function updateStatus(): void {
-  $('#statusText').textContent = `Página ${active + 1} de ${book.pages.length}`;
-  const o = selectObject();
-  $('#selectionText').textContent = o
-    ? `${o.type === 'text' ? 'Texto' : o.type === 'image' ? 'Imagen' : 'Marco'} · ${o.w.toFixed(1)} × ${o.h.toFixed(1)} mm`
-    : 'Sin selección';
   $('#undo').disabled = !undoStack.length;
   $('#redo').disabled = !redoStack.length;
 }
@@ -808,9 +808,8 @@ function checkOverflow(): void {
       el.append(plus);
     }
   });
-  $('#overflowStatus').textContent = count
-    ? `${count} caja${count > 1 ? 's' : ''} con texto sobrante`
-    : '';
+  // La barra de estado (React) muestra la cuenta: se redibuja después de esta función.
+  overflowCount = count;
 }
 function startEditing(el: HTMLElement): void {
   if (preview || busy) return;
@@ -1701,7 +1700,6 @@ $('#preview').onclick = () => {
 };
 $('#export').onclick = exportDialog;
 $('#addPage').onclick = () => command('addPage');
-$('#documentSettings').onclick = () => settings(false);
 $('#zoom').oninput = (e: Event) => {
   zoom = Number((e.target as HTMLInputElement).value) / 100;
   $('#fitZoom').textContent = Math.round(zoom * 100) + '%';

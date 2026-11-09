@@ -393,7 +393,7 @@ function tr(text: string): string {
   return text;
 }
 const excluded =
-  '#spreadStage,#printRoot,#documentName,.user-content,.thumb-head,#language,script,style,textarea,[contenteditable="true"]';
+  '#spreadStage,#printRoot,#documentName,.user-content,.thumb-head,#language,script,style,textarea,[contenteditable="true"],[data-react]';
 function translate(): void {
   const roots = [
     $('.topbar'),

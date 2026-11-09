@@ -16,17 +16,30 @@
 //   que llegan en castellano desde el resto de la app se traducen con LibroI18n.tr() antes de
 //   dibujarlos (Radix anuncia el texto apenas se monta, antes de que pase el traductor del DOM).
 // - Íconos con <Icon name="…" /> (src/components/Icon.tsx), el mismo set que icon() de studio.ts.
+// - Estado del editor: el componente lee los globales del núcleo (book, active, dirty…) y se
+//   redibuja con useEditorState() (src/react/editor-state.ts), que avisa el núcleo.
+// - mount() marca el contenedor con data-react: el traductor del DOM (src/i18n.ts) no entra ahí,
+//   porque React traduce sus textos (bw / LibroI18n.tr) y no hay que tocarle los nodos.
+// - Con { sync: true } el primer dibujo es inmediato: para barras fijas de la pantalla, que otros
+//   módulos o pruebas buscan apenas carga build/app.js. Montar después de book-workflow.ts (bw).
 // - Nada de React toca lo que dibuja el libro (#spread, #printRoot, miniaturas).
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 import { StrictMode, useEffect, useState, type ReactNode } from 'react';
+import { flushSync } from 'react-dom';
 import { createRoot, type Root } from 'react-dom/client';
 
-/** Monta un árbol de React dentro de host (un nodo que ya existe en la página). */
-export function mount(host: Element, node: ReactNode): Root {
+/**
+ * Monta un árbol de React dentro de host (un nodo que ya existe en la página). Lo que hubiera
+ * adentro lo reemplaza React. Con sync, el primer dibujo ocurre antes de volver.
+ */
+export function mount(host: Element, node: ReactNode, { sync = false } = {}): Root {
+  host.setAttribute('data-react', '');
   const root = createRoot(host);
-  root.render(<StrictMode>{node}</StrictMode>);
+  const render = () => root.render(<StrictMode>{node}</StrictMode>);
+  if (sync) flushSync(render);
+  else render();
   return root;
 }
 

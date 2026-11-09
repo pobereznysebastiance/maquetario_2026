@@ -181,7 +181,7 @@ body[data-rulers='hidden'] #spreadStage {
 .focused .book-route {
   justify-content: center;
 }
-.focused .documentbar > div {
+.focused .document-title {
   flex: 1 1 0%;
 }
 .focused .canvas-hint {

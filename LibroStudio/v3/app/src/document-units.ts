@@ -82,22 +82,8 @@ extend.after(
   'document-units',
 );
 
-const statusUnit = $('.statusbar .status-spacer').nextElementSibling!;
-extend.after(
-  'updateStatus',
-  function () {
-    statusUnit.textContent = bw('Unidades', 'Units', 'Unidades') + ': ' + documentUnit();
-    const object = selectObject();
-    if (object) {
-      const text = $('#selectionText');
-      text.textContent =
-        text.textContent!.split(' · ')[0] + ' · ' + displayDimensions(object.w, object.h);
-    }
-    if ($('#documentFormat'))
-      $('#documentFormat').textContent =
-        book.format + ' · ' + displayDimensions(book.width, book.height);
-  },
-  'document-units',
-);
+// La unidad, las medidas de la selección y el formato en la unidad del documento los muestran las
+// barras de estado y del documento (src/components/statusbar y documentbar), con documentUnit()
+// y displayDimensions().
 
 export {};
