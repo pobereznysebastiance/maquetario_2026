@@ -10,8 +10,10 @@
     "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
+    // React (etapa 3): JSX automático; los componentes van en .tsx (src/components/, src/react/).
+    "jsx": "react-jsx",
     "skipLibCheck": true,
     "types": []
   },
-  "include": ["**/*.ts", "../globals.d.ts"]
+  "include": ["**/*.ts", "**/*.tsx", "../globals.d.ts"]
 }

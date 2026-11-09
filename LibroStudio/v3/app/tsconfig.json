@@ -12,7 +12,8 @@
     "types": [],
     "module": "Preserve",
     "moduleResolution": "Bundler",
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "jsx": "react-jsx"
   },
   "include": ["*.js", "ui/*.js", "globals.d.ts", "src/**/*.ts"],
   "exclude": ["pdf-lib.min.js", "sample-image.js", "tests"]

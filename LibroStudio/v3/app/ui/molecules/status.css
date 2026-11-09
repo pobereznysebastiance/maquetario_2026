@@ -30,12 +30,21 @@
   background: var(--status-warning-surface);
 }
 
-/* Mensaje emergente (#toast, contenido de UI.toast): una sola definición. Hoja opaca arriba al
-   centro, debajo de la barra superior, para que no se lea lo que queda debajo. El tipo se lee por
-   el ícono (éxito en verde agua, error y advertencia con su color, información en verde claro) y,
-   en error y advertencia, también por el borde. El de error se puede cerrar. Oculto hasta que
-   llega un aviso. */
+/* Mensaje emergente: componente React de src/components/toast/ (Radix Toast), montado en #toast.
+   Una sola definición. Hoja opaca arriba al centro, debajo de la barra superior, para que no se
+   lea lo que queda debajo. El tipo se lee por el ícono (éxito en verde agua, error y advertencia
+   con su color, información en verde claro) y, en error y advertencia, también por el borde. El
+   de error se puede cerrar. Radix monta el aviso abierto (data-state="open") y lo saca después
+   de la animación de salida (data-state="closed"). */
 #toast {
+  display: contents;
+}
+.toast-viewport {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.toast {
   position: fixed;
   top: calc(var(--topbar-height) + var(--space-sm));
   left: 50%;
@@ -52,49 +61,56 @@
   font-size: var(--type-body);
   font-weight: var(--weight-medium);
   box-shadow: var(--elevation-3);
-  opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, calc(-1 * var(--space-sm)));
-  transition:
-    opacity var(--duration-base) var(--ease-out),
-    transform var(--duration-base) var(--ease-out);
-}
-#toast.visible {
-  opacity: 1;
   transform: translate(-50%, 0);
 }
-#toast > .icon {
+.toast[data-state='open'] {
+  animation: toast-in var(--duration-base) var(--ease-out);
+}
+.toast[data-state='closed'] {
+  animation: toast-out var(--duration-base) var(--ease-out) forwards;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-1 * var(--space-sm)));
+  }
+}
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translate(-50%, calc(-1 * var(--space-sm)));
+  }
+}
+.toast > .icon {
   flex-shrink: 0;
   width: var(--icon-sm);
   height: var(--icon-sm);
   color: var(--status-success);
 }
-#toast[data-type='info'] > .icon {
+.toast[data-type='info'] > .icon {
   color: var(--status-info);
 }
-#toast[data-type='warning'] {
+.toast[data-type='warning'] {
   border-color: var(--status-warning-line);
 }
-#toast[data-type='warning'] > .icon {
+.toast[data-type='warning'] > .icon {
   color: var(--status-warning);
 }
-#toast[data-type='error'] {
+.toast[data-type='error'] {
   padding-right: var(--space-xs);
   border-color: var(--status-error-line);
 }
-#toast[data-type='error'] > .icon {
+.toast[data-type='error'] > .icon {
   color: var(--status-error);
 }
-/* El de error recibe clics sólo mientras se ve: tiene el botón de cerrar. */
-#toast[data-type='error'].visible {
+/* El de error recibe clics mientras se ve: tiene el botón de cerrar. Los demás dejan pasar el
+   puntero a la barra de abajo. */
+.toast[data-type='error'][data-state='open'] {
   pointer-events: auto;
 }
-#toast .icon-btn {
+.toast .icon-btn {
   flex-shrink: 0;
   width: var(--control-sm);
   height: var(--control-sm);
-}
-/* Oculto, el botón no queda en el orden de tabulación. */
-#toast:not(.visible) .icon-btn {
-  visibility: hidden;
 }

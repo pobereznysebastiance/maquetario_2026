@@ -224,7 +224,7 @@ body[data-rulers='hidden'] #spreadStage {
       .templates,
       .statusbar,
       .tutorial-card,
-      #toast,
+      .toast,
       .welcome-header,
       .welcome-copy,
       .welcome-footer,

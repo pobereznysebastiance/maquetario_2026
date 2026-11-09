@@ -5,6 +5,7 @@
 import '../inspector-registry.ts';
 import '../editorial.ts';
 import '../i18n.ts';
+import '../components/toast/Toast.tsx';
 import '../output.ts';
 import '../fonts.ts';
 import '../frame-handles.ts';

@@ -130,7 +130,6 @@ let book = M.create(),
   /** Elemento de texto que se está editando en el lienzo, o null. */
   editing: HTMLElement | null = null,
   drag: ObjectDrag | null = null,
-  toastTimer: number | undefined,
   recoveryTimer: number | undefined;
 const selectObject = () => book.pages[active]?.objects.find((o) => o.id === selected);
 /** Pedido al proceso principal de Electron; rechaza fuera de la app de escritorio. */
@@ -155,25 +154,15 @@ MaquetarioHost.onMessage((data) => {
     data.error ? p.reject(Error(data.error)) : p.resolve(data.result);
   }
 });
+/** Avisos pedidos antes de que cargue el componente de avisos (build/app.js): [mensaje, tipo]. */
+const pendingToasts: [message: string, type: string][] = [];
+/**
+ * Aviso del sistema: toast(mensaje, tipo), tipo 'success' (por defecto) | 'info' | 'warning' |
+ * 'error'. Lo muestra el componente React de src/components/toast/, que reemplaza esta función al
+ * cargar (extend.replace); hasta entonces, los avisos esperan en pendingToasts.
+ */
 function toast(msg: string, type = 'success'): void {
-  const t = $('#toast');
-  // El de error trae botón de cerrar ("Cerrar" se traduce solo, como el resto de los textos).
-  t.innerHTML = UI.toast({
-    message: msg,
-    type,
-    closeLabel: type === 'error' ? 'Cerrar' : undefined,
-  });
-  t.dataset.type = type;
-  t.setAttribute('role', type === 'error' ? 'alert' : 'status');
-  t.classList.add('visible');
-  clearTimeout(toastTimer);
-  const close = t.querySelector<HTMLButtonElement>('.icon-btn');
-  if (close)
-    close.onclick = () => {
-      clearTimeout(toastTimer);
-      t.classList.remove('visible');
-    };
-  toastTimer = setTimeout(() => t.classList.remove('visible'), type === 'error' ? 7000 : 4300);
+  pendingToasts.push([msg, type]);
 }
 /**
  * Avisa al anfitrión si hay cambios sin guardar y actualiza el indicador de la barra de estado

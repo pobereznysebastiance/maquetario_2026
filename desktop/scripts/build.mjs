@@ -59,6 +59,9 @@ await Promise.all([
 //   esbuild sólo les saca los tipos, así sus let/const/function de nivel superior siguen siendo
 //   globales como en un .js clásico (studio.ts: book, render, $…, que otros archivos asignan y
 //   extienden por nombre). Van al mismo build/: no repetir nombres con las entradas.
+// - React y Radix (etapa 3) se empaquetan dentro de build/app.js: JSX automático (archivos .tsx
+//   en src/components/ y src/react/) y React en modo producción. Con MAQUETARIO_REACT_DEV=1 se
+//   arma con el React de desarrollo (avisos y comprobaciones en la consola, más pesado).
 const ui = join(root, '../LibroStudio/v3/app');
 rmSync(join(ui, 'build'), { recursive: true, force: true });
 const uiOptions = {
@@ -68,6 +71,12 @@ const uiOptions = {
   charset: 'utf8',
   sourcemap: 'linked',
   logLevel: 'info',
+  jsx: 'automatic',
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(
+      process.env.MAQUETARIO_REACT_DEV ? 'development' : 'production',
+    ),
+  },
 };
 const tsIn = (dir) =>
   readdirSync(dir)

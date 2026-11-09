@@ -232,20 +232,7 @@ const UI = {
     return `<div class="setting-row"><div class="setting-row-label">${html(o.label)}${o.help ? `<p class="setting-row-help">${html(o.help)}</p>` : ''}</div><div class="setting-row-control">${o.control}</div></div>`;
   },
 
-  /**
-   * Molécula: contenido del aviso del sistema (#toast): ícono de estado y mensaje.
-   * type: 'success' (por defecto) | 'info' | 'warning' | 'error'.
-   * closeLabel: si viene, agrega el botón de cerrar (sólo ícono, con ese nombre accesible).
-   */
-  toast(o: { type?: string; message: string; closeLabel?: string }): string {
-    const icons: Record<string, string> = {
-      success: 'check',
-      info: 'info',
-      warning: 'alert',
-      error: 'error',
-    };
-    return `${icon(icons[o.type ?? ''] || icons.success)}<span class="toast-message">${html(o.message)}</span>${o.closeLabel ? UI.iconButton({ label: o.closeLabel, icon: 'close' }) : ''}`;
-  },
+  // El aviso (toast) es un componente React: src/components/toast/Toast.tsx.
 };
 
 export type UIComponents = typeof UI;
