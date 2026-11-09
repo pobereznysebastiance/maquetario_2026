@@ -35,6 +35,7 @@ import { bw } from '../../i18n/language.ts';
 import { editor, M } from '../../core-api.ts';
 import { readHyphenationFields } from '../../hyphenation.ts';
 import { registerInspectorPanel } from '../../inspector-registry.ts';
+import { roleName } from '../../roles.ts';
 import {
   currentParagraph,
   paragraphFormat,
@@ -204,7 +205,7 @@ export const ParagraphPanel = () => {
           ) : null}
           {styles.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.name}
+              {s.role && s.name !== roleName(s.role) ? `${s.name} · ${roleName(s.role)}` : s.name}
             </option>
           ))}
         </select>

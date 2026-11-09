@@ -68,6 +68,7 @@ import '../components/inspector/GridPanel.tsx';
 import '../components/inspector/MasterPanels.tsx';
 import '../components/inspector/TextPanels.tsx';
 import '../components/inspector/FootnotePanels.tsx';
+import '../components/inspector/RolePanel.tsx';
 import '../components/inspector/ShapePanel.tsx';
 import '../category-design.ts';
 import '../ui/focus.ts';

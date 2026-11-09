@@ -549,6 +549,17 @@ Pedido de la cátedra de Tipografía I (ver `docs/proximos-pasos.md`, sección 5
 - **Validación:** `model.ts` valida `book.footnotes` al abrir (claves, cuerpo, interlineado, espacio, numeración, hasta 6400 notas de 20 000 caracteres).
 - Un libro sin notas se dibuja idéntico (comprobado con `scripts/compare-outputs.mjs`). Pruebas: `tests/footnotes-tests.js`.
 
+## Roles de texto (hecho el 09-nov)
+
+Pedido de la cátedra de Tipografía I: cada texto tiene un rol con los nombres de la planilla "Pauta de uso tipográfico". `src/roles.ts` (sin efectos al cargar) y `components/inspector/RolePanel.tsx` (Selección → Rol, primera sección con una caja de texto).
+
+- **Un rol es un estilo de párrafo con `style.role`**, no un sistema aparte: uno por rol en cada libro (`model.ts` lo valida; la lista fija es `ROLE_IDS`, publicada como `M.roleIds` para no importar el modelo desde la app). Los nombres, en `roles.ts`.
+- **Elegir un rol** vincula los párrafos elegidos (toda la caja o el de "Aplicar a"; al escribir, el del cursor) al estilo del rol. Si todavía no existe: si los párrafos ya comparten un estilo sin rol, ese estilo pasa a ser el del rol (un libro armado con "Cuerpo de novela" no cambia); si no, se crea con el formato del párrafo. "Sin rol" desvincula conservando el formato.
+- **"¿Sólo acá o en todo el rol?"**: un cambio sobre un texto con rol queda como ajuste local, igual que con cualquier estilo. El panel compara el formato del texto con el del rol (`roleDeviation`), dice qué cambió y ofrece "En todo el rol" (pasa al estilo y deja de ser ajuste local) o "Volver al rol". Sin diálogos en cada cambio.
+- **Ancho de caja:** `style.columns`, en columnas de la grilla. Elegirlo ajusta la caja (desde la columna más cercana); otra caja del rol con otro ancho lo avisa y se ajusta con un botón.
+- La lista de estilos de Párrafo y estilos muestra el rol de cada estilo. Pruebas: `tests/roles-tests.js`.
+- Para la tabla de pautas (lo próximo): por rol, el estilo da tipografía, cuerpo, interlineado, alineación y ancho de caja; las excepciones son los textos con `roleDeviation`.
+
 ## Pasar una pantalla a React (etapa 3)
 
 Convención única: la resume el comentario de `src/react/mount.tsx`. Cada regla salió de algo que falló al integrar.

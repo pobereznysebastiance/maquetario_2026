@@ -3,7 +3,7 @@
 // cargar: se importa. El panel, los estilos y el dibujo en la página están en paragraphs.ts.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
-import type { Book, BookObject } from './model.ts';
+import type { Book, BookObject, RoleId } from './model.ts';
 import { i18n } from './i18n/language.ts';
 import { M } from './core-api.ts';
 
@@ -21,6 +21,10 @@ export interface ParagraphStyle {
   id: string;
   name: string;
   properties: ParagraphFormat;
+  /** Rol de texto de la planilla de la cátedra (src/roles.ts): uno por libro. */
+  role?: RoleId;
+  /** Ancho de caja del rol, en columnas de la grilla. */
+  columns?: number;
 }
 
 const paragraphWords = {
@@ -160,7 +164,8 @@ export const paragraphKeys: string[] = [
   'spaceBefore',
   'spaceAfter',
 ];
-function paragraphBase(o: BookObject): ParagraphFormat {
+/** Formato que da la caja misma, sin estilo ni ajustes locales. */
+export function paragraphBase(o: BookObject): ParagraphFormat {
   return {
     font: o.font,
     size: o.size,

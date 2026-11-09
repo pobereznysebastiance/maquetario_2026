@@ -113,6 +113,8 @@ function sectionsOf(pass: string): Slot[] {
       ];
     case 'text':
       return [
+        // El rol de la planilla de la cátedra (RolePanel.tsx) va primero: decide el formato.
+        { name: 'role', title: 'Rol', key: 'text', className: 'role-panel' },
         // Lo más usado con una caja de texto va primero: la letra, después el párrafo.
         { name: 'typography', title: 'Tipografía', key: 'text' },
         { name: 'paragraph', className: 'paragraph-panel' },

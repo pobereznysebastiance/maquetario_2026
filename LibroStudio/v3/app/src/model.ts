@@ -70,6 +70,27 @@ export interface TocEntry {
 }
 
 /**
+ * Roles de texto (pedido de la cátedra de Tipografía I, planilla "Pauta de uso tipográfico"): un
+ * estilo de párrafo puede ser el de un rol (style.role), uno por rol en cada libro. Los nombres
+ * están en src/roles.ts.
+ */
+export const ROLE_IDS = [
+  'title',
+  'subtitle',
+  'body',
+  'secondary-a',
+  'secondary-b',
+  'highlight-a',
+  'highlight-b',
+  'highlight-c',
+  'list-a',
+  'list-b',
+  'list-c',
+  'other',
+] as const;
+export type RoleId = (typeof ROLE_IDS)[number];
+
+/**
  * Notas al pie del libro: formato y contenido. La llamada en el texto es un carácter de uso privado
  * (U+E000…U+F8FF) dentro de o.text; su clave es el código en hexadecimal ('e000'). Ver
  * src/footnote-model.ts.
@@ -532,6 +553,16 @@ function validate(input: any): Book {
       ))
   )
     throw Error('Estilos de párrafo inválidos.');
+  const roles = (b.paragraphStyles || []).filter((s: any) => s.role !== undefined);
+  if (
+    roles.some(
+      (s: any) =>
+        !ROLE_IDS.includes(s.role) ||
+        (s.columns !== undefined && (!Number.isInteger(s.columns) || !number(s.columns, 1, 12))),
+    ) ||
+    new Set(roles.map((s: any) => s.role)).size !== roles.length
+  )
+    throw Error('Roles de texto inválidos.');
   for (const p of b.pages)
     for (const o of p.objects || [])
       if (
@@ -671,6 +702,7 @@ const LibroModel = {
   tocEntries,
   tocText,
   withoutNoteMarks,
+  roleIds: ROLE_IDS,
   validate,
 };
 export type LibroModelApi = typeof LibroModel;
