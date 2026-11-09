@@ -1,6 +1,8 @@
 // Tutorial guiado: las lecciones (una por sección de la interfaz, en castellano, inglés y
 // portugués) y la tarjeta que las recorre: avanzar, volver, saltar a un capítulo y abrir la
-// sección de cada lección. El paso actual se recuerda en localStorage.
+// sección de cada lección. El paso actual se recuerda en localStorage. La tarjeta se dibuja en
+// React (components/tutorial/TutorialCard.tsx); acá se elige el paso, se abre su pestaña y se
+// señala el control.
 //
 // Son globales:
 // - guideLessons y lesson: review-tutorial.ts suma lecciones, inspector-organization.js y
@@ -17,6 +19,7 @@
 // Fuente TypeScript: se compila a build/tutorial.js (desktop/scripts/build.mjs).
 
 import { tutorialHelpSection } from './components/help/sections.tsx';
+import { renderTutorialCard } from './components/tutorial/TutorialCard.tsx';
 
 /** Una lección del tutorial (title, body y task: castellano, inglés y portugués). */
 export interface GuideLesson {
@@ -558,44 +561,6 @@ lesson(
   ],
   'print',
 );
-const tutorialUI = {
-  es: {
-    label: 'Guía de Maquetario',
-    previous: 'Anterior',
-    next: 'Siguiente',
-    finish: 'Finalizar',
-    close: 'Pausar tutorial',
-    action: 'Abrir esta sección',
-    note: 'Tus cambios se hacen en el libro actual. Podés deshacerlos con Ctrl+Z.',
-    exercise: 'Probalo en tu libro',
-    contents: 'Elegir capítulo',
-    done: 'Recorrido completado. Podés volver a cualquier capítulo desde Ayuda.',
-  },
-  en: {
-    label: 'Maquetario guide',
-    previous: 'Back',
-    next: 'Next',
-    finish: 'Finish',
-    close: 'Pause tutorial',
-    action: 'Open this section',
-    note: 'Edits apply to your current book. Undo with Ctrl+Z.',
-    exercise: 'Try it in your book',
-    contents: 'Choose a chapter',
-    done: 'Tour complete. Revisit any chapter from Help.',
-  },
-  pt: {
-    label: 'Guia do Maquetario',
-    previous: 'Anterior',
-    next: 'Próximo',
-    finish: 'Concluir',
-    close: 'Pausar tutorial',
-    action: 'Abrir esta seção',
-    note: 'As alterações afetam seu livro atual. Desfaça com Ctrl+Z.',
-    exercise: 'Experimente no seu livro',
-    contents: 'Escolher capítulo',
-    done: 'Percurso concluído. Volte a qualquer capítulo pela Ajuda.',
-  },
-};
 globalThis.tutorialIndex = 0;
 const tutorialCard = document.createElement('aside');
 tutorialCard.className = 'tutorial-card';
@@ -604,9 +569,6 @@ tutorialCard.hidden = true;
 tutorialCard.setAttribute('aria-live', 'polite');
 document.body.append(tutorialCard);
 globalThis.tutorialCard = tutorialCard;
-function tutorialLocale() {
-  return { code: LibroI18n.language, index: { es: 0, en: 1, pt: 2 }[LibroI18n.language] || 0 };
-}
 function startTutorial(index?: number): void {
   hideWelcome();
   if ($('#modal').open) $('#modal').close();
@@ -627,9 +589,7 @@ globalThis.showTutorialStep = function (index: number) {
   finishEditing();
   tutorialIndex = Math.max(0, Math.min(guideLessons.length - 1, index));
   localStorage.setItem('maquetario-tutorial-step', String(tutorialIndex));
-  const { code, index: lang } = tutorialLocale(),
-    w = tutorialUI[code],
-    step = guideLessons[tutorialIndex];
+  const step = guideLessons[tutorialIndex];
   showTab(step.tab);
   $$('.tour-target').forEach((n) => n.classList.remove('tour-target'));
   const target = $(step.target);
@@ -639,33 +599,23 @@ globalThis.showTutorialStep = function (index: number) {
     if (target.closest('#inspectorContent'))
       target.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
-  tutorialCard.innerHTML = `<div class="tutorial-card-head"><span>${w.label} · ${tutorialIndex + 1} / ${guideLessons.length}</span><button class="icon-btn" id="pauseTutorial" title="${w.close}">${icon('close')}</button></div><div class="tutorial-progress"><span style="width:${((tutorialIndex + 1) / guideLessons.length) * 100}%"></span></div><div class="tutorial-body"><h2>${step.title[lang]}</h2><p>${step.body[lang]}</p><div class="tutorial-exercise"><strong>${w.exercise}</strong><br>${step.task[lang]}</div><button id="tutorialAction" class="tutorial-action">${w.action}</button></div><select id="tutorialJump" class="tutorial-jump" aria-label="${w.contents}">${guideLessons.map((s, i) => `<option value="${i}" ${i === tutorialIndex ? 'selected' : ''}>${i + 1}. ${s.title[lang]}</option>`).join('')}</select><div class="tutorial-nav"><button class="btn" id="tutorialPrev" ${tutorialIndex === 0 ? 'disabled' : ''}>← ${w.previous}</button><button class="btn primary" id="tutorialNext">${tutorialIndex === guideLessons.length - 1 ? w.finish : w.next} →</button></div><div class="tutorial-note">${w.note}</div>`;
-  $('#pauseTutorial').onclick = closeTutorial;
-  $('#tutorialPrev').onclick = () => showTutorialStep(tutorialIndex - 1);
-  $('#tutorialNext').onclick = () => {
-    if (tutorialIndex === guideLessons.length - 1) {
-      closeTutorial();
-      localStorage.setItem('maquetario-tutorial-step', '0');
-      toast(w.done);
-    } else showTutorialStep(tutorialIndex + 1);
-  };
-  $('#tutorialJump').onchange = (e) =>
-    showTutorialStep(Number((e.target as HTMLSelectElement).value));
-  $('#tutorialAction').onclick = () => {
-    if (step.action === 'settings') settings(false);
-    else if (step.action === 'pdf') outputDialog('pdf');
-    else if (step.action === 'print') outputDialog('print');
-    else if (['folio', 'header'].includes(step.action)) setTool(step.action);
-    else {
-      showTab(step.tab);
-      const el = $(step.target);
-      if (el) {
-        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        el.focus?.();
-      }
-    }
-  };
+  renderTutorialCard(tutorialCard, runStepAction);
 };
+/** "Abrir esta sección": la herramienta o el panel del paso. */
+function runStepAction(step: GuideLesson): void {
+  if (step.action === 'settings') settings(false);
+  else if (step.action === 'pdf') outputDialog('pdf');
+  else if (step.action === 'print') outputDialog('print');
+  else if (['folio', 'header'].includes(step.action)) setTool(step.action);
+  else {
+    showTab(step.tab);
+    const el = $(step.target);
+    if (el) {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      el.focus?.();
+    }
+  }
+}
 globalThis.startTutorial = startTutorial;
 // Centro de Ayuda: la sección "Tutorial guiado" (React, components/help/sections.tsx).
 registerHelpSection(tutorialHelpSection);

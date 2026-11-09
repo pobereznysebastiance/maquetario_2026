@@ -6,6 +6,7 @@
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
+import { useLanguage } from '../../react/mount.tsx';
 import type { HelpSection } from './help-center.tsx';
 
 const tr = (text: string) => LibroI18n.tr(text);
@@ -13,6 +14,7 @@ const tr = (text: string) => LibroI18n.tr(text);
 // ── Tutorial guiado ──
 
 const TutorialSection = () => {
+  useLanguage();
   const lang = { es: 0, en: 1, pt: 2 }[LibroI18n.language] || 0,
     saved = Number(localStorage.getItem('maquetario-tutorial-step')) || 0;
   // startTutorial por globalThis: review-workspace.ts la extiende (pide un libro antes).
@@ -110,30 +112,33 @@ const shortcutRows = (): [[string, string, string], string][] => [
   ],
 ];
 
-const ShortcutsSection = () => (
-  <>
-    <h2 className="help-heading">
-      {bw('Moverse por la maqueta', 'Navigate the layout', 'Navegar pela diagramação')}
-    </h2>
-    <table className="canvas-shortcut-table">
-      <tbody>
-        {shortcutRows().map(([keys, action]) => (
-          <tr key={keys[0]}>
-            <th>{bw(...keys)}</th>
-            <td>{action}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-    <p className="help">
-      {bw(
-        'Los atajos de navegación no se activan mientras escribís en un campo o editás texto. El 100% usa píxeles de pantalla y no calibra el tamaño físico de tu monitor.',
-        'Navigation shortcuts do not activate while typing in fields or editing text. 100% uses screen pixels and does not calibrate physical monitor size.',
-        'Atalhos de navegação não ativam ao digitar em campos ou editar texto. 100% usa pixels de tela e não calibra o tamanho físico do monitor.',
-      )}
-    </p>
-  </>
-);
+const ShortcutsSection = () => {
+  useLanguage();
+  return (
+    <>
+      <h2 className="help-heading">
+        {bw('Moverse por la maqueta', 'Navigate the layout', 'Navegar pela diagramação')}
+      </h2>
+      <table className="canvas-shortcut-table">
+        <tbody>
+          {shortcutRows().map(([keys, action]) => (
+            <tr key={keys[0]}>
+              <th>{bw(...keys)}</th>
+              <td>{action}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="help">
+        {bw(
+          'Los atajos de navegación no se activan mientras escribís en un campo o editás texto. El 100% usa píxeles de pantalla y no calibra el tamaño físico de tu monitor.',
+          'Navigation shortcuts do not activate while typing in fields or editing text. 100% uses screen pixels and does not calibrate physical monitor size.',
+          'Atalhos de navegação não ativam ao digitar em campos ou editar texto. 100% usa pixels de tela e não calibra o tamanho físico do monitor.',
+        )}
+      </p>
+    </>
+  );
+};
 
 export const shortcutsHelpSection: HelpSection = {
   id: 'shortcuts',
@@ -157,6 +162,7 @@ export interface RouteSource {
 }
 
 const RouteSection = ({ source }: { source: RouteSource }) => {
+  useLanguage();
   const here = source.current();
   return (
     <>

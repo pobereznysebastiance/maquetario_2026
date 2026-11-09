@@ -8,6 +8,7 @@
 // Fuente TypeScript: se compila a build/editorial-learning.js (desktop/scripts/build.mjs).
 'use strict';
 import type { CoverDesign } from './publications.ts';
+import { glossaryHelpSection, renderGlossary } from './components/help/Glossary.tsx';
 
 /** Texto en castellano, inglés y portugués. */
 type Words = [string, string, string];
@@ -430,71 +431,17 @@ const glossaryCategory: Record<GlossaryCategory, Words> = {
   type: ['Tipografía', 'Typography', 'Tipografia'],
   production: ['Producción', 'Production', 'Produção'],
 };
-/** Término que muestra el glosario abierto. */
-let glossaryTerm: string | undefined = 'grid';
 const foldEditorial = (s: string): string =>
   s
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 globalThis.foldEditorial = foldEditorial;
-/** Sección "Glosario" del centro de Ayuda: el término pedido (o el último visto) y su definición. */
-registerHelpSection({
-  id: 'glossary',
-  label: 'Glosario',
-  order: 2,
-  render(host, term) {
-    if (term) glossaryTerm = editorialTerms.some((t) => t[0] === term) ? term : 'grid';
-    host.innerHTML = `<h2 class="help-heading">Glosario</h2><p class="builder-intro">${bw('Un diccionario para entender lo que estás diseñando. Buscá un término o explorá una categoría.', 'A dictionary to understand what you are designing. Search a term or explore a category.', 'Um dicionário para entender o que você está criando. Busque um termo ou explore uma categoria.')}</p><div class="glossary-filters"><input id="glossarySearch" type="search" aria-label="${bw('Buscar término', 'Search term', 'Buscar termo')}" placeholder="${bw('Buscar: medianil, sangrado, lomo…', 'Search: gutter, bleed, spine…', 'Buscar: sangria, lombada, grade…')}"><select id="glossaryCategory"><option value="all">${bw('Todas las categorías', 'All categories', 'Todas as categorias')}</option>${Object.entries(
-      glossaryCategory,
-    )
-      .map(([k, v]) => `<option value="${k}">${bw(...v)}</option>`)
-      .join(
-        '',
-      )}</select></div><div class="glossary-layout"><nav id="glossaryList" aria-label="${bw('Términos', 'Terms', 'Termos')}"></nav><article id="glossaryDefinition"></article></div><p class="help glossary-note">${bw('Glosario educativo. Las convenciones pueden variar según el país y la imprenta. Aprender un concepto no significa que exista una corrección automática para él.', 'Educational glossary. Conventions can vary by country and printer. Learning a concept does not imply automatic correction support.', 'Glossário educativo. Convenções podem variar conforme país e gráfica. Aprender um conceito não implica correção automática.')}</p>`;
-    $('#glossarySearch').oninput = renderGlossary;
-    $('#glossaryCategory').onchange = renderGlossary;
-    renderGlossary();
-  },
-});
-/** Abre el glosario del centro de Ayuda en un término (si no existe, en "grid"). */
-function showGlossary(term = 'grid'): void {
-  openHelp('glossary', term);
-}
-globalThis.showGlossary = showGlossary;
-function glossaryMatches(query: string, category: string): EditorialTerm[] {
-  const q = foldEditorial(query);
-  return editorialTerms.filter(
-    (t) =>
-      (category === 'all' || t[1] === category) &&
-      foldEditorial([...t[2], ...t[3]].join(' ')).includes(q),
-  );
-}
-globalThis.glossaryMatches = glossaryMatches;
-function renderGlossary(): void {
-  const matches = glossaryMatches($('#glossarySearch').value, $('#glossaryCategory').value);
-  if (!matches.some((t) => t[0] === glossaryTerm)) glossaryTerm = matches[0]?.[0];
-  $('#glossaryList').innerHTML = matches.length
-    ? matches
-        .map(
-          (t) =>
-            `<button type="button" data-glossary-term="${t[0]}" class="${t[0] === glossaryTerm ? 'active' : ''}">${bw(...t[2])}</button>`,
-        )
-        .join('')
-    : `<p class="help">${bw('No encontramos ese término.', 'No matching terms.', 'Nenhum termo encontrado.')}</p>`;
-  $$('[data-glossary-term]').forEach(
-    (b) =>
-      (b.onclick = () => {
-        glossaryTerm = b.dataset.glossaryTerm;
-        renderGlossary();
-      }),
-  );
-  const t = editorialTerms.find((t) => t[0] === glossaryTerm);
-  $('#glossaryDefinition').innerHTML = t
-    ? `<span class="eyebrow">${bw(...glossaryCategory[t[1]])}</span><h2>${bw(...t[2])}</h2><p>${bw(...t[3])}</p><div class="glossary-example"><strong>${bw('Ejemplo', 'Example', 'Exemplo')}</strong><p>${bw(...t[4])}</p></div><button type="button" class="btn" id="glossaryOpenTool">${bw('Encontrarlo en Maquetario', 'Find it in Maquetario', 'Encontrar no Maquetario')} →</button>`
-    : '';
-  if (t)
-    $('#glossaryOpenTool').onclick = () => {
+/** Sección "Glosario" del centro de Ayuda (React, components/help/Glossary.tsx). */
+registerHelpSection(
+  glossaryHelpSection({
+    categories: glossaryCategory,
+    openTool: (t) => {
       // El glosario está en el centro de Ayuda (Ventana de React): se cierra antes de ir.
       closeSheet();
       if (!hasDocument) {
@@ -513,8 +460,23 @@ function renderGlossary(): void {
         else if (t[5] === 'output') outputDialog('pdf');
         else showTab(t[5]);
       }, 30);
-    };
+    },
+  }),
+);
+/** Abre el glosario del centro de Ayuda en un término (si no existe, en "grid"). */
+function showGlossary(term = 'grid'): void {
+  openHelp('glossary', term);
 }
+globalThis.showGlossary = showGlossary;
+function glossaryMatches(query: string, category: string): EditorialTerm[] {
+  const q = foldEditorial(query);
+  return editorialTerms.filter(
+    (t) =>
+      (category === 'all' || t[1] === category) &&
+      foldEditorial([...t[2], ...t[3]].join(' ')).includes(q),
+  );
+}
+globalThis.glossaryMatches = glossaryMatches;
 globalThis.renderGlossary = renderGlossary;
 /** Rótulo del inspector → término del glosario. */
 const termMap: Record<string, string> = {

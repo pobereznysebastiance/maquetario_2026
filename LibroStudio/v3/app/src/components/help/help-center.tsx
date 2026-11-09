@@ -32,7 +32,8 @@ export interface HelpSection {
   order: number;
   /**
    * Contenido de la sección para arg (por ejemplo, un término): un nodo de React, o nada si dibuja
-   * HTML en host (ya traducido). Se vuelve a llamar al cambiar el idioma o el pedido.
+   * HTML en host (ya traducido). Se vuelve a llamar con cada pedido; la que dibuja HTML, también
+   * al cambiar el idioma (la de React se traduce sola, con useLanguage, sin perder su estado).
    */
   render: (host: HTMLElement, arg?: string) => ReactNode | void;
 }
@@ -81,12 +82,24 @@ const SectionView = ({
   const language = useLanguage();
   const host = useRef<HTMLDivElement | null>(null);
   const [content, setContent] = useState<ReactNode>(null);
+  /** La sección dibuja HTML (no devolvió React) y en qué idioma lo hizo. */
+  const html = useRef<{ language: string } | null>(null);
   useLayoutEffect(() => {
     const element = host.current!;
     element.replaceChildren();
-    setContent(section.render(element, arg) ?? null);
+    const node = section.render(element, arg);
+    html.current = node === undefined ? { language } : null;
+    setContent(node ?? null);
     element.closest('.dialog-body')?.scrollTo(0, 0);
-  }, [section, arg, nonce, language]);
+    // El idioma lo atiende abajo (sólo para HTML): una sección de React se traduce sola y no
+    // pierde su estado (la búsqueda del glosario, el término elegido).
+  }, [section, arg, nonce]);
+  useLayoutEffect(() => {
+    if (!html.current || html.current.language === language) return;
+    html.current = { language };
+    host.current!.replaceChildren();
+    section.render(host.current!, arg);
+  }, [section, arg, language]);
   return (
     <>
       <div ref={host} />
