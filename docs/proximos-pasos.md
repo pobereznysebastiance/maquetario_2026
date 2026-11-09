@@ -206,6 +206,31 @@ En React (`src/components/`):
 
 Observaciones en `docs/evaluacion-uso.md` (13 puntos). Resueltas: las siete pestañas del inspector (ahora tres, que siguen a la selección), las muchas puertas de ayuda (una sola: Ayuda) y el riel mezclado (sólo herramientas del lienzo). Sigue a la vista: la etiqueta "Página activa N" pintada sobre el papel. La próxima tanda sale de la devolución de BETA 0.1.
 
+## 5. Pedido de la cátedra (Tipografía I, FAU-UNNE)
+
+Llegó el 09-nov por Seba (pedido de Tomás), con la planilla "Pauta de uso tipográfico" de la clase 3. En orden:
+
+1. **Notas al pie** (urgente: los alumnos están maquetando novelas). Ver el estado abajo.
+2. **Roles en vez de estilos globales.** Cada texto tiene un rol con los nombres exactos de la planilla: Título, Subtítulo (con variables), Texto principal, Texto secundario A/B, Frases destacadas A/B/C, Listados A/B/C, Otros. Se arma sobre lo que ya hay (`book.paragraphStyles` + `paragraphMap[].styleId` con retoques), no un sistema nuevo. Tocar una caja con rol pregunta "¿sólo acá o en todo el rol?". El ancho de caja en columnas es del rol.
+3. **La tabla es donde se decide.** Se ve, se edita (cambia el libro entero), marca las excepciones y se descarga. Columnas como la planilla: Tipografía y cuerpo; Variable (Escritura, Peso, Rendimiento, Inclinación); Alineación (izquierda, derecha, centrado, justificado); Ancho de caja; Interlineado (amplio, normal, ajustado, con el valor); Operación tipográfica; Zonas activas de la grilla en tres dobles páginas representativas. Folio y cornisa se llenan solos en Otros. Leyenda obligatoria, en la vista y en el descargable: "Pautas tipográficas Material adaptado y desarrollado por la Cátedra de Tipografía I de la UNNE (Universidad Nacional del Nordeste) para fines académicos y editoriales."
+4. **Cubierta, Aprendizaje y partes del libro.** Conmutador visible Interior/Cubierta; acceso a bibliografía y tutoriales siempre a la vista; Estructura del libro como lista de partes de Lupton para tildar (portadilla, portada, créditos, dedicatoria, índice, prólogo, cuerpo, colofón…).
+
+**Notas al pie: diseño previsto (todavía sin código).** Lo que se averiguó del programa:
+- El texto de una caja es texto plano (`o.text`, párrafos separados por `\n`); el formato va aparte en `o.paragraphMap`. `paragraphs.ts` dibuja cada párrafo (`extend.result('paper')`) y, al editar, relee `content.innerText` en el `input`.
+- No hay reflujo entre cajas (el manuscrito se reparte al importar). El texto sobrante se mide en el DOM (`checkOverflow` en `canvas-layer.ts`: `scrollHeight > clientHeight`).
+- No existe nada de notas en el código.
+
+Propuesta:
+- **Marca en el texto:** un carácter de uso privado por nota (U+E000…U+F8FF, 6400 por libro) dentro de `o.text`; sobrevive a `innerText` sin tocar el modelo de texto. Al dibujar, se envuelve en un `span.note-ref` con `contenteditable=false` (el cursor no entra) que muestra el número por CSS (`::after { content: attr(data-n) }`), así `innerText` sigue devolviendo sólo la marca.
+- **Contenido:** `book.footnotes = { size, leading, font, rule, restart: 'book' | 'section', notes: { 'E003': 'texto' } }`, validado en `model.ts`. Numeración en el orden de lectura (páginas, objetos, texto), con caché.
+- **Dibujo:** módulo nuevo `src/footnotes.ts` (import en `entries/app.ts` después de `paragraphs.ts`), `extend.result('paper')`: junta las marcas de la página, dibuja `div.footnotes` al pie de la caja tipográfica (filete corto + "N  texto") y achica en el dibujo la altura de la caja que se superpone, sin tocar `o.h`; lo que no entra queda como texto sobrante y lo marca la revisión de siempre. Un libro sin notas se dibuja idéntico (comprobar con `scripts/compare-outputs.mjs`).
+- **Insertar:** botón "Nota al pie" en Selección (sección nueva `text:notes`, con la lista de notas de la caja para escribirlas) y atajo mientras se edita (Ctrl+S, Z, Y, P y Ctrl+Mayús+S están tomados). Guardar el rango de la selección para no perderlo al tocar el inspector.
+- **Libro → Notas al pie:** cuerpo, interlineado, fuente, filete, numeración continua o por capítulo. `set()` de `book-paths.ts` necesita que exista `book.footnotes`: crearlo con valores por defecto antes de dibujar el panel.
+- **Limpieza:** las notas sin marca se borran al terminar de editar (deshacer usa instantáneas del libro entero). Pegar texto quita las marcas (`paragraphs.ts`, `paste`): cortar y pegar una nota la pierde, por ahora.
+- **Pendiente de revisar:** otros que leen `o.text` (conteo de palabras, índice, asistente, legibilidad, motor de composición) van a ver el carácter de uso privado: filtrarlo donde moleste.
+
+**Preguntas para la cátedra:** dónde cortan Amplio/Normal/Ajustado (propuesta: interlineado / cuerpo < 1,2 ajustado, hasta 1,4 normal, más amplio); qué esperan en "Operación tipográfica" (color, filete, texto libre); si se puede usar el logo de Tipografía I y si el texto dice "folleto" o "libro"; Escritura (versalitas, mayúsculas sostenidas) y Rendimiento todavía no son propiedades del texto.
+
 ## 4. Distribución
 
 - **Etapa 1 cerrada (08-nov):** se retiró la versión C#/WebView2 (`LibroStudio/v3/Host*.cs`, `Build.ps1`, `Build-Installer.ps1`, `Maquetario.iss`), su rama en `src/host.ts` y las vistas de captura que sólo llamaba ese programa. Se conserva `LibroStudio/v3/installer-brand/` (imágenes del instalador). Queda lo que depende de Motiova y de la venta (abajo).
