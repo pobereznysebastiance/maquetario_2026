@@ -24,7 +24,7 @@ registerIntegrationTest(function (result) {
   );
   assert(M.validate(b).toc.entries.length === 1, 'Guardado compatible del índice');
   showTab('index');
-  assert(!!$('#insertToc') && !!$('#indexTool'), 'Sección Índice visible');
+  assert(!!$('#insertToc') && !!$('#railTab-index'), 'Sección Índice visible');
   const saved = M.clone(maquetarioEditor.book);
   ensureToc();
   const toc = M.text('', 20, 20, 108, 170);

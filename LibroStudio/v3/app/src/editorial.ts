@@ -153,16 +153,6 @@ export interface BookGuide {
   position: number;
 }
 // Guías propias del libro, sobre la grilla: las dibuja el lienzo (components/canvas/CanvasGuides.tsx).
-registerTool({
-  id: 'indexTool',
-  icon: 'index',
-  label: () => i18n.tr('Índice'),
-  shortcut: null,
-  onSelect: () => {
-    finishEditing();
-    showTab('index');
-  },
-});
 globalThis.prepareIndexPrint = function () {
   const original = M.clone(book),
     o = M.text('', 20, 20, book.width - 40, book.height - 40);

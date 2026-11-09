@@ -1,13 +1,14 @@
-// Organismo: riel izquierdo. Las herramientas (#tools: Seleccionar, Mano, Crear texto, Imagen,
-// Marco, Figuras, Grilla, Foliado, Cornisa, Caja de texto, Índice, Capas, Cubierta) y el selector
-// de vistas del riel (.rail-switch: Páginas · Índice · Capas).
+// Organismo: riel izquierdo. Las herramientas del lienzo (#tools: Seleccionar, Mano, Texto, Imagen,
+// Marco, Figuras) y el selector de vistas del riel (.rail-switch: Páginas · Índice · Capas). Lo que
+// no actúa sobre la página no va acá: grilla, foliado y cornisa están en la pestaña Libro y la
+// Cubierta en la barra del documento (#coverTool).
 //
 // - Las herramientas salen del registro (rail-tools.ts: registerTool). La activa es la del global
 //   tool (estado del editor): se redibuja con useEditorState(), y setTool avisa al terminar.
 // - La vista del riel la lleva inspector-views.tsx (showRailView / currentRailView), que avisa con
 //   notifyEditorState(); acá sólo se dibujan las pestañas, el clic y las flechas.
-// - Mismos ids y atributos que antes: data-tool, #handTool, #shapeTool, #indexTool, #layersTool,
-//   #coverTool, #railTab-pages|index|layers, data-rail-view, data-tab. El espacio de trabajo
+// - Mismos ids y atributos que antes: data-tool, #handTool, #shapeTool, #railTab-pages|index|layers,
+//   data-rail-view, data-tab. El espacio de trabajo
 //   (workspace.ts) les sigue poniendo data-workspace-hidden.
 // - No toca las miniaturas (#thumbnails): son dibujo del libro.
 //

@@ -318,16 +318,6 @@ function moveLayer(direction: number): void {
     [list[index], list[next]] = [list[next], list[index]];
   }, false);
 }
-registerTool({
-  id: 'layersTool',
-  icon: 'layers',
-  label: () => lw().layers,
-  shortcut: null,
-  onSelect: () => {
-    finishEditing();
-    showTab('layers');
-  },
-});
 document.addEventListener('maquetario:language', () => {
   updateSnapButton();
 });

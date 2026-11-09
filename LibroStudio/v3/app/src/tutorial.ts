@@ -347,7 +347,7 @@ lesson(
 lesson(
   'folio',
   'design',
-  '[data-tool="folio"]',
+  '#inspectorContent [data-section="Foliado"]',
   ['18. Automatizar el foliado', '18. Automate page numbers', '18. Automatize a numeração'],
   [
     'En Foliado activá la numeración. Elegí formato arábigo o romano, número inicial y posición. Personalizar permite configurar pares e impares, tipografía, separación del borde y desplazamientos. La numeración cambia al agregar o mover páginas. Para ocultar el folio de una página especial, usá su excepción en la pestaña Página.',
@@ -364,7 +364,7 @@ lesson(
 lesson(
   'headers',
   'design',
-  '[data-tool="header"]',
+  '#inspectorContent [data-section="Cornisa"]',
   ['19. Configurar cornisas', '19. Set running headers', '19. Configure cabeçalhos'],
   [
     'Cornisa es un elemento automático para todo el libro. Puede ir arriba, abajo o en un lateral, con rotación opcional. Usá {book}, {section}, {page} y {total} para contenido dinámico. El carácter | separa extremos. Podés definir textos distintos en pares e impares y ocultarlos en páginas especiales.',

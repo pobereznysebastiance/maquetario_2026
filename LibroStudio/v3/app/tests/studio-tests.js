@@ -33,7 +33,15 @@ window.runIntegrationTests = function () {
   maquetarioEditor.undoStack = [];
   maquetarioEditor.redoStack = [];
   render(true);
-  assert($$('.tool').length >= 8, 'Ocho herramientas visibles');
+  // En el riel sólo van las herramientas que actúan sobre la página.
+  const railTools = $$('#tools .tool')
+    .map((b) => b.dataset.tool)
+    .join(',');
+  assert(
+    railTools === 'select,hand,text,image,frame,shape',
+    'Riel con las seis herramientas del lienzo (sin grilla, foliado, cornisa, índice, capas ni cubierta)',
+  );
+  assert(!!$('.documentbar #coverTool'), 'Cubierta en la barra del documento');
   assert($$('.page').length === 2, 'Páginas enfrentadas');
   assert($$('.auto-folio').length === 2, 'Foliado en ambas páginas');
   let serialized = JSON.stringify(maquetarioEditor.book);

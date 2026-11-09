@@ -52,7 +52,7 @@ registerIntegrationTest(function (result) {
   showRailView('pages');
   if (start === null) localStorage.removeItem('maquetario-tutorial-step');
   else localStorage.setItem('maquetario-tutorial-step', start);
-  check(!!$('#layersTool') && !!$('#snapButton'), 'Capas e imán accesibles');
+  check(!!$('#railTab-layers') && !!$('#snapButton'), 'Capas e imán accesibles');
   check(ww().created.includes('Sebastián Poberezny'), 'Crédito del autor correcto');
   showTab('design');
   return result;

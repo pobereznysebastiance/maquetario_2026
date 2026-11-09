@@ -34,7 +34,9 @@ declare global {
 globalThis.registerTool = registerTool;
 
 // Herramientas del núcleo (src/core/tools.ts: setTool). Los nombres van en castellano y se traducen al
-// dibujar (src/i18n.ts); "Crear texto" y "Caja de texto" tienen su texto propio.
+// dibujar (src/i18n.ts); "Texto" tiene su texto propio. En el riel van sólo las herramientas que
+// actúan sobre la página: la grilla, el foliado y la cornisa son ajustes del libro (pestaña Libro),
+// Índice y Capas son vistas del riel (junto a Páginas) y la Cubierta está en la barra del documento.
 const tr = (text: string) => (globalThis.LibroI18n ? i18n.tr(text) : text);
 const textTitle = () => bw('Crear caja de texto', 'Create a text frame', 'Criar caixa de texto');
 for (const spec of [
@@ -42,21 +44,11 @@ for (const spec of [
   {
     tool: 'text',
     icon: 'text',
-    label: () => bw('Crear texto', 'Create text', 'Criar texto'),
+    label: () => bw('Texto', 'Text', 'Texto'),
     title: textTitle,
     shortcut: 'T',
   },
   { tool: 'image', icon: 'image', label: () => tr('Imagen'), shortcut: 'I' },
   { tool: 'frame', icon: 'frame', label: () => tr('Marco'), shortcut: 'F' },
-  { tool: 'grid', icon: 'grid', label: () => tr('Grilla'), shortcut: '' },
-  { tool: 'folio', icon: 'folio', label: () => tr('Foliado'), shortcut: '' },
-  { tool: 'header', icon: 'header', label: () => tr('Cornisa'), shortcut: '' },
-  {
-    tool: 'box',
-    icon: 'box',
-    label: () => bw('Caja de texto', 'Text frame', 'Caixa de texto'),
-    title: textTitle,
-    shortcut: '',
-  },
 ] satisfies RailTool[])
   registerTool(spec);
