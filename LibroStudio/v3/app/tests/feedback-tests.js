@@ -128,12 +128,12 @@ registerNavigationTest(async function (result) {
     );
     startTutorial(0);
     check(
-      spotlight.style.display !== 'none' &&
+      !spotlight.hasAttribute('hidden') &&
         Number(spotlight.querySelector('rect').getAttribute('width')) > 0,
       'El tutorial ilumina el objetivo y oscurece el entorno',
     );
     closeTutorial();
-    check(spotlight.style.display === 'none', 'Al cerrar el tutorial se recupera la iluminación');
+    check(spotlight.hasAttribute('hidden'), 'Al cerrar el tutorial se recupera la iluminación');
     return result;
   } finally {
     closeTutorial();

@@ -411,6 +411,12 @@ dialog.output-modal .dialog-frame .dialog-body {
   color: var(--text-secondary);
   font-size: var(--type-md);
 }
+/* La hoja de la simulación: se escala desde su esquina y se ubica en la caja (review-workspace.ts
+   y output-review.ts ponen la escala y la posición). */
+#outputPreview .output-sheet {
+  position: absolute;
+  transform-origin: top left;
+}
 .output-review-pane .output-sheet {
   box-shadow: var(--elevation-page);
 }

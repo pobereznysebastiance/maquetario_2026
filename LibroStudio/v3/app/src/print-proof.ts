@@ -76,42 +76,55 @@ function sheetSizeStatus(art: [number, number], paper: [number, number], ratio: 
   );
 }
 
-extend(
+// Estado de la hoja en la simulación del interior: antes se calcula (y, si no entra, la
+// simulación se arma reducida); después se escribe y se vuelve a dejar la casilla como estaba.
+// La simulación (review-workspace) atrapa sus propios errores, así que la de después siempre corre.
+let sheetCheck: { fit: boolean; status: string; tooLarge: boolean } | 'failed' | null = null;
+extend.before(
   'outputPreview',
-  (interiorPreviewBeforeStatus) =>
-    function () {
-      const checkbox = $('#outFit');
-      if (!checkbox || !$('#outputPreview')) return interiorPreviewBeforeStatus();
-      const config = outputConfigFromDialog();
-      try {
-        const trial = outputGeometry({ ...config, fit: true });
-        const artwork = outputGeometry({ ...config, paper: 'book', fit: false });
-        const status = sheetSizeStatus(
-          [artwork.width, artwork.height],
-          [trial.width, trial.height],
-          trial.ratio,
-        );
-        const tooLarge = !config.fit && trial.ratio < 0.999;
-        if (tooLarge) checkbox.checked = true;
-        try {
-          interiorPreviewBeforeStatus();
-        } finally {
-          checkbox.checked = config.fit;
-        }
-        $('#outputSummary').textContent += ' · ' + status;
-        if (tooLarge) {
-          $('#outputError').textContent = bw(
-            'La simulación está reducida. Activá la reducción o elegí una hoja mayor para exportar.',
-            'The simulation is scaled down. Enable shrinking or choose a larger sheet to export.',
-            'A simulação está reduzida. Ative a redução ou escolha uma folha maior para exportar.',
-          );
-          setOutputApplyDisabled(true);
-        }
-      } catch {
-        interiorPreviewBeforeStatus();
-        $('#outputPreview').replaceChildren();
-      }
-    },
+  function () {
+    sheetCheck = null;
+    const checkbox = $('#outFit');
+    if (!checkbox || !$('#outputPreview')) return;
+    const config = outputConfigFromDialog();
+    try {
+      const trial = outputGeometry({ ...config, fit: true });
+      const artwork = outputGeometry({ ...config, paper: 'book', fit: false });
+      const status = sheetSizeStatus(
+        [artwork.width, artwork.height],
+        [trial.width, trial.height],
+        trial.ratio,
+      );
+      const tooLarge = !config.fit && trial.ratio < 0.999;
+      if (tooLarge) checkbox.checked = true;
+      sheetCheck = { fit: config.fit, status, tooLarge };
+    } catch {
+      sheetCheck = 'failed';
+    }
+  },
+  'print-proof',
+);
+extend.after(
+  'outputPreview',
+  function () {
+    const check = sheetCheck;
+    sheetCheck = null;
+    if (!check) return;
+    if (check === 'failed') {
+      $('#outputPreview').replaceChildren();
+      return;
+    }
+    $('#outFit').checked = check.fit;
+    $('#outputSummary').textContent += ' · ' + check.status;
+    if (check.tooLarge) {
+      $('#outputError').textContent = bw(
+        'La simulación está reducida. Activá la reducción o elegí una hoja mayor para exportar.',
+        'The simulation is scaled down. Enable shrinking or choose a larger sheet to export.',
+        'A simulação está reduzida. Ative a redução ou escolha uma folha maior para exportar.',
+      );
+      setOutputApplyDisabled(true);
+    }
+  },
   'print-proof',
 );
 

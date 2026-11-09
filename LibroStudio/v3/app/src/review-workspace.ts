@@ -9,7 +9,7 @@
 //
 // Fuente TypeScript: se compila a build/review-workspace.js (desktop/scripts/build.mjs).
 
-import type { BookObject } from './model.ts';
+import type { Book, BookObject } from './model.ts';
 
 const reviewText = {
   es: {
@@ -146,7 +146,7 @@ function refreshEmptyCanvas(): void {
   emptyCanvas.hidden = hasDocument;
   // Imprimir, Vista previa y Exportar: los habilita la barra superior (React) según hasDocument.
   globalThis.notifyEditorState?.();
-  emptyCanvas.innerHTML = `<div>${icon('pages')}<h2>${w.emptyTitle}</h2><p>${w.emptyBody}</p><button id="emptyNew" class="btn primary">${w.create}</button><button id="emptyOpen" class="btn">${w.open}</button></div>`;
+  emptyCanvas.innerHTML = `<div>${icon('pages')}<h2>${w.emptyTitle}</h2><p>${w.emptyBody}</p>${UI.button({ id: 'emptyNew', variant: 'primary', label: w.create })}${UI.button({ id: 'emptyOpen', label: w.open })}</div>`;
   $('#emptyNew').onclick = () => settings(true);
   $('#emptyOpen').onclick = openBook;
 }
@@ -160,20 +160,25 @@ extend.after(
 );
 window.hideWelcome = hideWelcome;
 // Al crear un libro (o aplicar el formato), ya hay documento.
-extend(
+let bookBeforeSettings: Book | null = null;
+extend.before(
   'applyBookSettings',
-  (applyBeforeBlank) =>
-    function (isNew: boolean, values: unknown) {
-      const previous = book;
-      const applied = applyBeforeBlank(isNew, values);
-      if (book !== previous || (!isNew && applied)) {
-        hasDocument = true;
-        multiSelection.clear();
-        refreshEmptyCanvas();
-        render(true);
-      }
-      return applied;
-    },
+  function () {
+    bookBeforeSettings = book;
+  },
+  'review-workspace',
+);
+extend.result(
+  'applyBookSettings',
+  function (applied: boolean, isNew: boolean) {
+    if (book !== bookBeforeSettings || (!isNew && applied)) {
+      hasDocument = true;
+      multiSelection.clear();
+      refreshEmptyCanvas();
+      render(true);
+    }
+    return applied;
+  },
   'review-workspace',
 );
 extend.after(
@@ -212,93 +217,89 @@ const previousDemo = new MutationObserver(() => {
 });
 previousDemo.observe(welcome, { childList: true, subtree: true });
 // Starting the tour does not load the demo. Users create their own blank document first.
-extend(
+extend.instead(
   'startTutorial',
-  (tutorialBeforeBlank) =>
-    function (index?: number) {
-      if (!hasDocument) {
-        hideWelcome();
-        // Cuando se cierra la Hoja de libro nuevo: si se creó el libro, sigue el tutorial.
-        void Promise.resolve(settings(true)).then(() => {
-          if (hasDocument) tutorialBeforeBlank(index);
-        });
-        return;
-      }
-      tutorialBeforeBlank(index);
-    },
+  () => !hasDocument,
+  function (index?: number) {
+    hideWelcome();
+    // Cuando se cierra la Hoja de libro nuevo: si se creó el libro, sigue el tutorial (ya con
+    // documento, esta ruta no vuelve a entrar).
+    void Promise.resolve(settings(true)).then(() => {
+      if (hasDocument) startTutorial(index);
+    });
+  },
   'review-workspace',
 );
 window.startTutorial = startTutorial;
-extend(
+extend.replace(
   'outputPreview',
-  (oldOutputPreview) =>
-    function () {
-      if (!$('#outputSummary')) return;
-      try {
-        const config = outputConfigFromDialog(),
-          signature = JSON.stringify(config);
-        if (signature !== reviewSignature) {
-          reviewFace = 0;
-          reviewSignature = signature;
-        }
-        const info = prepareOutput(config as unknown as Record<string, unknown>),
-          sheets = [...$('#printRoot').querySelectorAll('.output-sheet')];
-        reviewFace = Math.max(0, Math.min(reviewFace, sheets.length - 1));
-        const sheet = sheets[reviewFace].cloneNode(true) as HTMLElement,
-          box = $('#outputPreview'),
-          px = 96 / 25.4,
-          k = Math.min((box.clientWidth - 10) / (info.width * px), 210 / (info.height * px));
-        sheet.style.transform = `scale(${k})`;
-        sheet.style.transformOrigin = 'top left';
-        sheet.style.position = 'absolute';
-        sheet.style.left = (box.clientWidth - info.width * px * k) / 2 + 'px';
-        sheet.style.top = (box.clientHeight - info.height * px * k) / 2 + 'px';
-        box.replaceChildren(sheet);
-        let controls: HTMLElement = $('#reviewFaces');
-        if (!controls) {
-          controls = document.createElement('div');
-          controls.id = 'reviewFaces';
-          box.before(controls);
-        }
-        const w = rw();
-        controls.innerHTML = `<button type="button" id="reviewFirst" aria-label="${w.first}" ${reviewFace === 0 ? 'disabled' : ''}>|‹</button><button type="button" id="reviewPrev" aria-label="${w.previous}" ${reviewFace === 0 ? 'disabled' : ''}>‹</button><label>${w.face} <input id="reviewFaceInput" type="number" min="1" max="${sheets.length}" value="${reviewFace + 1}"> ${w.of} ${sheets.length}</label><button type="button" id="reviewNext" aria-label="${w.next}" ${reviewFace === sheets.length - 1 ? 'disabled' : ''}>›</button><button type="button" id="reviewLast" aria-label="${w.last}" ${reviewFace === sheets.length - 1 ? 'disabled' : ''}>›|</button>`;
-        const faces = outputGeometry(config).faces,
-          pages = faces[reviewFace]
-            .map((i) => (i < book.pages.length ? M.folio(book, i) : w.blank))
-            .join(' | ');
-        $('#outputSummary').textContent =
-          `${w.pages}: ${pages} · ${displayDimensions(info.width, info.height)} · ${Math.round(info.scale * 100)}%`;
-        $('.output-preview-title').textContent = w.preview;
-        $('#reviewFirst').onclick = () => {
-          reviewFace = 0;
-          outputPreview();
-        };
-        $('#reviewPrev').onclick = () => {
-          reviewFace--;
-          outputPreview();
-        };
-        $('#reviewNext').onclick = () => {
-          reviewFace++;
-          outputPreview();
-        };
-        $('#reviewLast').onclick = () => {
-          reviewFace = sheets.length - 1;
-          outputPreview();
-        };
-        $('#reviewFaceInput').onchange = (e: Event) => {
-          reviewFace = Math.floor(Number((e.target as HTMLInputElement).value)) - 1;
-          if (!Number.isFinite(reviewFace)) reviewFace = 0;
-          outputPreview();
-        };
-        $('#outputError').textContent = '';
-        setOutputApplyDisabled(false);
-      } catch (error) {
-        $('#outputError').textContent = (error as Error).message;
-        setOutputApplyDisabled(true);
-      } finally {
-        clearPrint();
+  function () {
+    if (!$('#outputSummary')) return;
+    try {
+      const config = outputConfigFromDialog(),
+        signature = JSON.stringify(config);
+      if (signature !== reviewSignature) {
+        reviewFace = 0;
+        reviewSignature = signature;
       }
-    },
+      const info = prepareOutput(config as unknown as Record<string, unknown>),
+        sheets = [...$('#printRoot').querySelectorAll('.output-sheet')];
+      reviewFace = Math.max(0, Math.min(reviewFace, sheets.length - 1));
+      const sheet = sheets[reviewFace].cloneNode(true) as HTMLElement,
+        box = $('#outputPreview'),
+        px = 96 / 25.4,
+        k = Math.min((box.clientWidth - 10) / (info.width * px), 210 / (info.height * px));
+      sheet.style.transform = `scale(${k})`;
+      sheet.style.left = (box.clientWidth - info.width * px * k) / 2 + 'px';
+      sheet.style.top = (box.clientHeight - info.height * px * k) / 2 + 'px';
+      box.replaceChildren(sheet);
+      let controls: HTMLElement = $('#reviewFaces');
+      if (!controls) {
+        controls = document.createElement('div');
+        controls.id = 'reviewFaces';
+        box.before(controls);
+      }
+      const w = rw();
+      const first = reviewFace === 0,
+        last = reviewFace === sheets.length - 1;
+      controls.innerHTML = `${UI.textButton({ id: 'reviewFirst', label: '|‹', aria: { label: w.first }, disabled: first })}${UI.textButton({ id: 'reviewPrev', label: '‹', aria: { label: w.previous }, disabled: first })}<label>${w.face} <input id="reviewFaceInput" type="number" min="1" max="${sheets.length}" value="${reviewFace + 1}"> ${w.of} ${sheets.length}</label>${UI.textButton({ id: 'reviewNext', label: '›', aria: { label: w.next }, disabled: last })}${UI.textButton({ id: 'reviewLast', label: '›|', aria: { label: w.last }, disabled: last })}`;
+      const faces = outputGeometry(config).faces,
+        pages = faces[reviewFace]
+          .map((i) => (i < book.pages.length ? M.folio(book, i) : w.blank))
+          .join(' | ');
+      $('#outputSummary').textContent =
+        `${w.pages}: ${pages} · ${displayDimensions(info.width, info.height)} · ${Math.round(info.scale * 100)}%`;
+      $('.output-preview-title').textContent = w.preview;
+      $('#reviewFirst').onclick = () => {
+        reviewFace = 0;
+        outputPreview();
+      };
+      $('#reviewPrev').onclick = () => {
+        reviewFace--;
+        outputPreview();
+      };
+      $('#reviewNext').onclick = () => {
+        reviewFace++;
+        outputPreview();
+      };
+      $('#reviewLast').onclick = () => {
+        reviewFace = sheets.length - 1;
+        outputPreview();
+      };
+      $('#reviewFaceInput').onchange = (e: Event) => {
+        reviewFace = Math.floor(Number((e.target as HTMLInputElement).value)) - 1;
+        if (!Number.isFinite(reviewFace)) reviewFace = 0;
+        outputPreview();
+      };
+      $('#outputError').textContent = '';
+      setOutputApplyDisabled(false);
+    } catch (error) {
+      $('#outputError').textContent = (error as Error).message;
+      setOutputApplyDisabled(true);
+    } finally {
+      clearPrint();
+    }
+  },
   'review-workspace',
 );
 extend.before(
@@ -368,26 +369,34 @@ extend.after(
   },
   'review-workspace',
 );
-extend(
+extend.before(
   'objectDown',
-  (objectBeforeMulti) =>
-    function (e: MouseEvent, o: BookObject, index: number, el: HTMLElement, resize = false) {
-      if (e.shiftKey && !resize && !editing && !o.locked && !o.hidden) {
-        e.stopPropagation();
-        e.preventDefault();
-        if (active !== index) multiSelection.clear();
-        active = index;
-        if (multiSelection.size === 0 && selected && selected !== o.id)
-          multiSelection.add(selected);
-        multiSelection.has(o.id) ? multiSelection.delete(o.id) : multiSelection.add(o.id);
-        selected = o.id;
-        render(false);
-        return;
-      }
-      if (!resize && !multiSelection.has(o.id)) multiSelection.clear();
-      objectBeforeMulti(e, o, index, el, resize);
-      updateActivePage();
-    },
+  function (e: MouseEvent, o: BookObject, index: number, el: HTMLElement, resize = false) {
+    if (!resize && !multiSelection.has(o.id)) multiSelection.clear();
+  },
+  'review-workspace',
+);
+extend.after(
+  'objectDown',
+  function () {
+    updateActivePage();
+  },
+  'review-workspace',
+);
+extend.instead(
+  'objectDown',
+  (e: MouseEvent, o: BookObject, index: number, el: HTMLElement, resize = false) =>
+    e.shiftKey && !resize && !editing && !o.locked && !o.hidden,
+  function (e: MouseEvent, o: BookObject, index: number) {
+    e.stopPropagation();
+    e.preventDefault();
+    if (active !== index) multiSelection.clear();
+    active = index;
+    if (multiSelection.size === 0 && selected && selected !== o.id) multiSelection.add(selected);
+    multiSelection.has(o.id) ? multiSelection.delete(o.id) : multiSelection.add(o.id);
+    selected = o.id;
+    render(false);
+  },
   'review-workspace',
 );
 extend.before(

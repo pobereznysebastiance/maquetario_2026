@@ -983,7 +983,7 @@ function setTool(name: string): void {
     if (name === 'text' || name === 'box') showTab('text');
   }
   // La herramienta activa la marca el riel (src/components/rail/Rail.tsx) al terminar setTool.
-  $('#spread').style.cursor = tool === 'select' ? 'default' : 'crosshair';
+  $('#spread').dataset.cursor = tool === 'select' ? 'default' : 'crosshair';
 }
 // ── Diálogos: tres tipos (D4, docs/INTERFAZ_08-nov_decisiones-etapa3.md) ──
 //

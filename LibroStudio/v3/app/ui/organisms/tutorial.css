@@ -144,6 +144,10 @@
   height: 100%;
   pointer-events: none;
 }
+/* Sin paso a la vista (o con un diálogo encima): la iluminación se esconde (editor-controls.ts). */
+#tutorialSpotlight[hidden] {
+  display: none;
+}
 #tutorialSpotlight path {
   fill: var(--material-spotlight);
 }

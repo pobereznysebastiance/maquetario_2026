@@ -126,6 +126,14 @@ const UI = {
     return `<button${buttonAttrs(o, o.active ? 'active' : undefined)}>${iconLabel(o.icon, o.label)}</button>`;
   },
 
+  /**
+   * Átomo: ayuda de término (.term-help), el "?" junto a un rótulo del inspector que abre el
+   * glosario en ese término. label es el nombre accesible ("Aprender: Medianil").
+   */
+  termHelp(o: ButtonBase & { label: string }): string {
+    return `<button${attrs({ type: 'button', id: o.id, class: 'term-help', 'aria-label': o.label, ...dataAttrs(o.data) })}>${icon('help')}</button>`;
+  },
+
   /** Átomo: botón de sólo ícono (.icon-btn), siempre con nombre accesible (title y aria-label). */
   iconButton(o: ButtonBase & { label: string; icon: string }): string {
     return `<button${attrs({ type: 'button', id: o.id, class: 'icon-btn', title: o.label, 'aria-label': o.label, disabled: !!o.disabled, ...dataAttrs(o.data), ...ariaAttrs(o.aria) })}>${icon(o.icon)}</button>`;

@@ -150,7 +150,7 @@ function shapeChooser(): void {
         selected = null;
         tool = 'shape';
         showTab('object');
-        $('#spread').style.cursor = 'crosshair';
+        $('#spread').dataset.cursor = 'crosshair';
         toast(
           bw(
             'Arrastrá en una página para crear la figura.',
@@ -259,7 +259,7 @@ extend.instead(
         tool = 'select';
       }, true);
       showTab('object');
-      $('#spread').style.cursor = 'default';
+      $('#spread').dataset.cursor = 'default';
     };
     const cancel = (ev: PointerEvent) => {
       page.removeEventListener('pointermove', move);

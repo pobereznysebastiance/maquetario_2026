@@ -102,48 +102,58 @@ globalThis.restoreCanvasAnchor = function (anchor: CanvasAnchor): void {
   canvasStage.scrollLeft = spread.offsetLeft + anchor.x * scale - anchor.clientX;
   canvasStage.scrollTop = spread.offsetTop + anchor.y * scale - anchor.clientY;
 };
-extend(
+// Antes de dibujar: qué punto del lienzo está en el centro (y de qué pliego), para volver a
+// ponerlo ahí después. Lo usa la extensión de después.
+let anchorBeforeRender: CanvasAnchor | null = null,
+  keyBeforeRender = '';
+extend.before(
   'renderPages',
-  (pagesBeforeCanvas) =>
-    function () {
-      const stageRect = canvasStage.getBoundingClientRect(),
-        anchor = canvasSpreadKey
-          ? canvasAnchor(
-              stageRect.left + canvasStage.clientWidth / 2,
-              stageRect.top + canvasStage.clientHeight / 2,
-            )
-          : null,
-        key =
-          String(verticalSpread()) +
-          ':' +
-          book.pages
-            .slice(spread, spread + (book.facing ? 2 : 1))
-            .map((p) => p.id)
-            .join('|');
-      pagesBeforeCanvas();
-      const art = $('#spread'),
-        width = parseFloat(art.style.width) || 1,
-        height = parseFloat(art.style.height) || 1,
-        surfaceWidth = Math.max(canvasStage.clientWidth, width) + canvasPadding * 2,
-        surfaceHeight = Math.max(canvasStage.clientHeight, height) + canvasPadding * 2;
-      Object.assign(canvasSurface.style, {
-        width: surfaceWidth + 'px',
-        height: surfaceHeight + 'px',
-      });
-      Object.assign(art.style, {
-        position: 'absolute',
-        left: (surfaceWidth - width) / 2 + 'px',
-        top: (surfaceHeight - height) / 2 + 'px',
-      });
-      if (anchor && key === canvasSpreadKey) restoreCanvasAnchor(anchor);
-      else {
-        canvasStage.scrollLeft = (surfaceWidth - canvasStage.clientWidth) / 2;
-        canvasStage.scrollTop = (surfaceHeight - canvasStage.clientHeight) / 2;
-      }
-      canvasSpreadKey = key;
-      updateCanvasZoomDisplay();
-      updateCanvasCursor();
-    },
+  function () {
+    const stageRect = canvasStage.getBoundingClientRect();
+    anchorBeforeRender = canvasSpreadKey
+      ? canvasAnchor(
+          stageRect.left + canvasStage.clientWidth / 2,
+          stageRect.top + canvasStage.clientHeight / 2,
+        )
+      : null;
+    keyBeforeRender =
+      String(verticalSpread()) +
+      ':' +
+      book.pages
+        .slice(spread, spread + (book.facing ? 2 : 1))
+        .map((p) => p.id)
+        .join('|');
+  },
+  'canvas-navigation',
+);
+extend.after(
+  'renderPages',
+  function () {
+    const anchor = anchorBeforeRender,
+      key = keyBeforeRender;
+    const art = $('#spread'),
+      width = parseFloat(art.style.width) || 1,
+      height = parseFloat(art.style.height) || 1,
+      surfaceWidth = Math.max(canvasStage.clientWidth, width) + canvasPadding * 2,
+      surfaceHeight = Math.max(canvasStage.clientHeight, height) + canvasPadding * 2;
+    Object.assign(canvasSurface.style, {
+      width: surfaceWidth + 'px',
+      height: surfaceHeight + 'px',
+    });
+    Object.assign(art.style, {
+      position: 'absolute',
+      left: (surfaceWidth - width) / 2 + 'px',
+      top: (surfaceHeight - height) / 2 + 'px',
+    });
+    if (anchor && key === canvasSpreadKey) restoreCanvasAnchor(anchor);
+    else {
+      canvasStage.scrollLeft = (surfaceWidth - canvasStage.clientWidth) / 2;
+      canvasStage.scrollTop = (surfaceHeight - canvasStage.clientHeight) / 2;
+    }
+    canvasSpreadKey = key;
+    updateCanvasZoomDisplay();
+    updateCanvasCursor();
+  },
   'canvas-navigation',
 );
 function actualCanvasPercent(): number {

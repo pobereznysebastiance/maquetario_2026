@@ -24,8 +24,6 @@ globalThis.updateFocusControl = updateFocusControl;
 extend.after(
   'applyPanelSizes',
   function () {
-    if (document.body.classList.contains('focused'))
-      $('.app-layout').style.gridTemplateColumns = 'minmax(0,1fr)';
     requestAnimationFrame(renderPages);
   },
   'focus-layout',

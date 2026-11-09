@@ -79,7 +79,7 @@ const spotlight = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 spotlight.id = 'tutorialSpotlight';
 spotlight.setAttribute('aria-hidden', 'true');
 spotlight.innerHTML = '<path fill-rule="evenodd"/><rect rx="6"/>';
-spotlight.style.display = 'none';
+spotlight.toggleAttribute('hidden', true);
 document.body.append(spotlight);
 globalThis.spotlight = spotlight;
 
@@ -97,7 +97,7 @@ function updateTutorialSpotlight(): void {
     tutorialCard.hidden ||
     !!document.querySelector('dialog[open]') ||
     !target?.getClientRects().length;
-  spotlight.style.display = blocked ? 'none' : '';
+  spotlight.toggleAttribute('hidden', !!blocked);
   if (!blocked) {
     const rect = target.getBoundingClientRect();
     let x = Math.max(0, rect.left - 5),
@@ -141,8 +141,11 @@ function updateTutorialSpotlight(): void {
     ) {
       const left =
         right + card.width + 20 < innerWidth ? right + 10 : Math.max(10, x - card.width - 10);
-      tutorialCard.style.left =
-        left / (parseFloat(getComputedStyle(tutorialCard).zoom) || 1) + 'px';
+      // La posición va en la variable de la tarjeta (ui/organisms/tutorial.css), no en left.
+      tutorialCard.style.setProperty(
+        '--tutorial-card-left',
+        left / (parseFloat(getComputedStyle(tutorialCard).zoom) || 1) + 'px',
+      );
     }
   }
   if (!tutorialCard.hidden) spotlightFrame = requestAnimationFrame(updateTutorialSpotlight);
@@ -150,7 +153,7 @@ function updateTutorialSpotlight(): void {
 extend.after(
   'showTutorialStep',
   function (index: number) {
-    tutorialCard.style.left = '';
+    tutorialCard.style.removeProperty('--tutorial-card-left');
     cancelAnimationFrame(spotlightFrame);
     updateTutorialSpotlight();
   },
@@ -160,8 +163,8 @@ extend.after(
   'closeTutorial',
   function () {
     cancelAnimationFrame(spotlightFrame);
-    spotlight.style.display = 'none';
-    tutorialCard.style.left = '';
+    spotlight.toggleAttribute('hidden', true);
+    tutorialCard.style.removeProperty('--tutorial-card-left');
   },
   'editor-controls',
 );

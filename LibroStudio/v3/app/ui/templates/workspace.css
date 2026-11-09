@@ -100,7 +100,11 @@ body[data-rulers='hidden'] #spreadStage {
   align-items: flex-end;
   height: var(--ruler-size);
   background:
-    repeating-linear-gradient(90deg, var(--line-strong) 0 var(--border-width), transparent var(--border-width) var(--ruler-tick)),
+    repeating-linear-gradient(
+      90deg,
+      var(--line-strong) 0 var(--border-width),
+      transparent var(--border-width) var(--ruler-tick)
+    ),
     var(--surface-canvas-ruler);
   background-size: auto var(--ruler-tick-length);
   box-shadow: 0 var(--border-width) var(--surface-canvas);
@@ -113,7 +117,11 @@ body[data-rulers='hidden'] #spreadStage {
   align-items: center;
   width: var(--ruler-size);
   background:
-    repeating-linear-gradient(0deg, var(--line-strong) 0 var(--border-width), transparent var(--border-width) var(--ruler-tick)),
+    repeating-linear-gradient(
+      0deg,
+      var(--line-strong) 0 var(--border-width),
+      transparent var(--border-width) var(--ruler-tick)
+    ),
     var(--surface-canvas-ruler);
   background-size: var(--ruler-tick-length) auto;
   box-shadow: var(--border-width) 0 var(--surface-canvas);
@@ -139,7 +147,9 @@ body[data-rulers='hidden'] #spreadStage {
   --layout-left-wide: 248px; /* riel con Índice o Capas */
   --layout-center-min: 250px;
   --layout-right: 320px;
-  grid-template-columns: var(--layout-left) minmax(var(--layout-center-min), 1fr) var(--layout-right);
+  grid-template-columns: var(--layout-left) minmax(var(--layout-center-min), 1fr) var(
+      --layout-right
+    );
 }
 .ui-large .app-layout {
   --layout-left: 200px;
@@ -149,6 +159,14 @@ body[data-rulers='hidden'] #spreadStage {
 .canvas-hint {
   bottom: var(--space-2xs);
   font-size: var(--type-xs);
+}
+/* Cursor del pliego según la herramienta (setTool, figuras): flecha al seleccionar, cruz al
+   crear. La mano (.canvas-hand) gana con su propia regla. */
+#spread[data-cursor='default'] {
+  cursor: default;
+}
+#spread[data-cursor='crosshair'] {
+  cursor: crosshair;
 }
 /* Modo foco ("Ampliar área"): sólo el lienzo. Gana a lo que panel-resize.js deja en línea. */
 .focused .app-layout {
@@ -195,7 +213,19 @@ body[data-rulers='hidden'] #spreadStage {
 }
 
 /* ── Migrado de review.css: sin documento sólo se ve la mesa vacía ── */
-.no-document :is(#spreadStage, .ruler-x, .ruler-y, .canvas-hint, .template-panel, .inspector-content, #activePageStatus, .doc-format, #documentName, #thumbnails) {
+.no-document
+  :is(
+    #spreadStage,
+    .ruler-x,
+    .ruler-y,
+    .canvas-hint,
+    .template-panel,
+    .inspector-content,
+    #activePageStatus,
+    .doc-format,
+    #documentName,
+    #thumbnails
+  ) {
   visibility: hidden;
 }
 

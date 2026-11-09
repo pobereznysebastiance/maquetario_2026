@@ -502,14 +502,12 @@ function decorateGlossaryHints(): void {
     // Los paneles de React ya dibujan el texto traducido: dejan el castellano en data-text-source.
     const term = termMap[el.dataset.textSource || el.textContent.trim()];
     if (!term) continue;
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'term-help';
-    b.innerHTML = icon('help');
-    b.setAttribute(
-      'aria-label',
-      bw('Aprender: ', 'Learn: ', 'Aprender: ') +
-        bw(...editorialTerms.find((t) => t[0] === term)![2]),
+    const b = UI.element(
+      UI.termHelp({
+        label:
+          bw('Aprender: ', 'Learn: ', 'Aprender: ') +
+          bw(...editorialTerms.find((t) => t[0] === term)![2]),
+      }),
     );
     b.onclick = (e) => {
       e.stopPropagation();
@@ -525,23 +523,6 @@ extend.after(
   'render',
   function (full = true) {
     decorateGlossaryHints();
-  },
-  'editorial-learning',
-);
-extend.result(
-  'showWelcome',
-  async function (pending: Promise<void>) {
-    await pending;
-    if (!$('#welcomeGlossary')) {
-      const b = document.createElement('button');
-      b.id = 'welcomeGlossary';
-      b.textContent = bw('Glosario editorial', 'Editorial glossary', 'Glossário editorial') + ' ↗';
-      b.onclick = () => {
-        hideWelcome();
-        showGlossary();
-      };
-      $('.welcome-links')?.append(b);
-    }
   },
   'editorial-learning',
 );
