@@ -23,6 +23,7 @@ import type {
   ComposeReport,
   ComposeReportOptions,
 } from './modules/compose.ts';
+import type { PdfLayout } from './contract/pdf-layout.ts';
 
 type ComposeModule = typeof import('./modules/compose.ts');
 
@@ -138,11 +139,17 @@ declare global {
    * prendido; el proceso principal espera que no sea false (desktop/src/main/handlers/output.ts).
    */
   var composeOutputReady: boolean | undefined;
+  /**
+   * PDF propio (paso 6): lo que hay que dibujar de la salida armada en #printRoot, para que el
+   * proceso principal escriba el PDF (desktop/src/main/compose-pdf.ts). Con el medio print emulado.
+   */
+  var composePdfLayout: () => Promise<PdfLayout>;
 }
 globalThis.composeReport = async (options) => (await loadComposeEngine()).composeReport(options);
 globalThis.composeReady = async () => (await loadComposeEngine()).composeReady();
 globalThis.composeAlgorithm = async (name) => (await loadComposeEngine()).setComposeAlgorithm(name);
 globalThis.composeActivate = (options) => activate(options);
+globalThis.composePdfLayout = async () => (await loadComposeEngine()).composePdfLayout();
 
 // Con la llave prendida, el motor se instala y se carga al arrancar.
 if (composeEnabled())

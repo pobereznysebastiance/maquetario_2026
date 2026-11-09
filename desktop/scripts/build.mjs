@@ -102,6 +102,12 @@ cpSync(
   join(dirname(fileURLToPath(import.meta.resolve('harfbuzzjs'))), 'harfbuzz.wasm'),
   join(ui, 'build', 'harfbuzz.wasm'),
 );
+// El recorte de fuentes del PDF propio (desktop/src/main/font-subset.ts) lo lee el proceso
+// principal de la carpeta de la interfaz, que va en el instalador.
+cpSync(
+  join(dirname(fileURLToPath(import.meta.resolve('harfbuzzjs'))), 'harfbuzz-subset.wasm'),
+  join(ui, 'build', 'harfbuzz-subset.wasm'),
+);
 
 // Perfiles ICC de la salida PDF/X-4 (src/main/pdfx.ts; licencias en assets/icc/LICENCIAS.md).
 cpSync(join(root, 'assets/icc'), join(root, 'dist/icc'), { recursive: true });

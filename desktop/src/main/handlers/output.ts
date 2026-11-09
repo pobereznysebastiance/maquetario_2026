@@ -2,7 +2,11 @@
 import { dialog, type WebContentsPrintOptions } from 'electron';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { appVersion } from '../env.ts';
+import type { PdfLayout } from '../../../../LibroStudio/v3/app/src/contract/pdf-layout.ts';
+import { buildComposedPdf, type ComposedPdfReport } from '../compose-pdf.ts';
+import { appVersion, rendererDir } from '../env.ts';
+import { findFace } from '../fonts/catalog.ts';
+import { faceBytes } from '../fonts/opentype.ts';
 import { applyPdfX, pdfxHeader } from '../pdfx.ts';
 import {
   applyPrintBoxes,
@@ -59,7 +63,16 @@ export async function exactPdf(
   trim?: TrimSpec | null,
   pdfx?: PdfXRequest | null,
 ): Promise<Buffer> {
-  const raw = await pdf(session, page);
+  return finishPdf(await pdf(session, page), page, trim, pdfx);
+}
+
+/** Cajas de imprenta (y PDF/X-4, si se pide) sobre un PDF ya escrito: el de Chromium o el propio. */
+export async function finishPdf(
+  raw: Uint8Array,
+  page: PageGeometry,
+  trim?: TrimSpec | null,
+  pdfx?: PdfXRequest | null,
+): Promise<Buffer> {
   try {
     const doc = await openPdf(raw);
     applyPrintBoxes(doc, page, trim);
@@ -74,10 +87,55 @@ export async function exactPdf(
   } catch (error) {
     // Con PDF/X pedido no se entrega otra cosa: la persona lo pidió para la imprenta.
     if (pdfx) throw new Error(`No se pudo armar el PDF/X-4: ${(error as Error).message}`);
-    // Las cajas son una mejora: si pdf-lib no puede con el archivo, sale el PDF de Chromium.
+    // Las cajas son una mejora: si pdf-lib no puede con el archivo, sale el PDF tal cual.
     console.warn('[salida] no se pudieron fijar las cajas del PDF:', error);
-    return raw;
+    return Buffer.from(raw);
   }
+}
+
+/**
+ * PDF propio del motor de composición (etapa 4, paso 6), sobre la salida ya armada en #printRoot
+ * (prepareOutput): la página describe qué dibujar (composePdfLayout, con el medio "print"
+ * emulado, que es el que ve printToPDF) y compose-pdf.ts escribe el PDF con las fuentes
+ * recortadas. Después, las mismas cajas y el PDF/X-4 que el de Chromium. Sólo con el motor
+ * prendido; no reemplaza al de Chromium.
+ */
+export async function composedPdf(
+  session: Session,
+  page: PageGeometry,
+  trim?: TrimSpec | null,
+  pdfx?: PdfXRequest | null,
+): Promise<{ bytes: Buffer; report: ComposedPdfReport; notes: Record<string, number> }> {
+  const contents = session.win.webContents;
+  const debug = contents.debugger;
+  const attached = !debug.isAttached();
+  if (attached) debug.attach('1.3');
+  let layout: PdfLayout;
+  try {
+    await debug.sendCommand('Emulation.setEmulatedMedia', { media: 'print' });
+    layout = await callMain(session, 'composePdfLayout');
+  } finally {
+    await debug.sendCommand('Emulation.setEmulatedMedia', { media: '' }).catch(() => undefined);
+    if (attached) debug.detach();
+  }
+  const { bytes, report } = await buildComposedPdf(layout, {
+    fontBytes: async (url) => {
+      const id = decodeURIComponent(url.slice(url.lastIndexOf('/') + 1)).split('.')[0] ?? '';
+      const face = findFace(id);
+      if (!face) throw new Error(`La fuente ${url} no está en el catálogo.`);
+      return new Uint8Array(await faceBytes(face));
+    },
+    subsetWasm: new Uint8Array(
+      await readFile(join(rendererDir(), 'build', 'harfbuzz-subset.wasm')),
+    ),
+    title: pdfx?.title ?? (await bookTitle(session)),
+    creator: `Maquetario ${appVersion()}`,
+  });
+  return {
+    bytes: await finishPdf(bytes, page, trim, pdfx),
+    report: { ...report, lines: layout.composedLines, words: layout.domWords },
+    notes: layout.notes,
+  };
 }
 
 /** Título del libro abierto (para el PDF/X), si la ventana no lo manda. */

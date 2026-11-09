@@ -11,7 +11,13 @@ import { args, argValue, dataDir, rendererDir } from './env.ts';
 import { writeAtomic } from './files.ts';
 import { readFaces } from './fonts/opentype.ts';
 import { replacePackageFaces, setPackageFonts, getPackageFaces } from './fonts/catalog.ts';
-import { exactPdf, prepareOutput, printTrim, type PdfXRequest } from './handlers/output.ts';
+import {
+  composedPdf,
+  exactPdf,
+  prepareOutput,
+  printTrim,
+  type PdfXRequest,
+} from './handlers/output.ts';
 import { inspectPdfX, pdfxProblems } from './pdfx.ts';
 import { openPdf, type TrimSpec } from './print-boxes.ts';
 import { createProjectPackage, type PackageRequest } from './handlers/package.ts';
@@ -455,6 +461,32 @@ export async function runSelfTest(session: Session): Promise<boolean> {
         A5,
         350,
       );
+    });
+  // El PDF propio (etapa 4, paso 6): la misma salida escrita sin Chromium, con las fuentes
+  // recortadas, junto al de Chromium y también en PDF/X-4. Va aparte y no se compara.
+  if (args.includes('--compose'))
+    await step('PDF propio de la novela (motor, aparte)', async () => {
+      const folder = 'motor-de-composicion';
+      await exec(session, mainExpression('prepareNovelPdf'));
+      await delay(350);
+      await waitFor(session, mainExpression('composeOutputReady'), 100, 100);
+      try {
+        const own = await composedPdf(session, A5);
+        await writeFile(join(out, folder, 'El atlas de las casas vacias - propio.pdf'), own.bytes);
+        const title = 'El atlas de las casas vacías';
+        const pdfx = await composedPdf(session, A5, null, { title });
+        const file = join(out, folder, 'El atlas de las casas vacias - propio PDFX4.pdf');
+        await writeFile(file, pdfx.bytes);
+        const problems = pdfxProblems(inspectPdfX(await openPdf(pdfx.bytes), pdfx.bytes));
+        await writeFile(
+          join(out, folder, 'pdf-propio.json'),
+          JSON.stringify({ ...own.report, notes: own.notes, pdfxProblems: problems }, null, 2),
+        );
+        if (problems.length) throw new Error(problems.join(' · '));
+        return { bytes: own.bytes.length, ...own.report };
+      } finally {
+        await exec(session, mainExpression('clearPrint'));
+      }
     });
 
   const ok = results.every((r) => r.ok);

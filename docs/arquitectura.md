@@ -859,9 +859,10 @@ Cada grupo es una entrega con la autoprueba en verde, los PDF idénticos y el in
 4. **Motor de composición propio** (HarfBuzz/WASM, justificación Knuth-Plass) y PDF de imprenta (en curso).
    - **Hecho:**
      - detrás de una llave apagada, el motor dibuja pantalla, vista continua y PDF con los mismos cortes (ejes variables, interletraje, castellano, espacios duros, tramos), y la salida espera a que esté compuesto (`docs/MOTOR_09-nov_composicion.md`);
+     - con la llave prendida, un PDF propio sin Chromium (fuentes recortadas con harfbuzz-subset, ToUnicode, cajas y PDF/X-4), por ahora sólo en `npm run self-test -- --compose`: en la novela coinciden las 319 líneas y el texto copiable, 46 KB contra 103 KB;
      - cajas exactas;
      - PDF/X-4 con RGB etiquetado y FOGRA39, sin CMYK (`docs/IMPRENTA_09-nov_pdfx.md`).
-   - **Falta:** prender la llave para todos; el tope de guiones y la última línea en la interfaz; macOS y Linux; CMYK si una imprenta lo pide.
+   - **Falta:** prender la llave para todos; que el PDF propio dibuje figuras SVG, texto girado, cubierta y marcas, y un camino real de exportación; el tope de guiones y la última línea en la interfaz; macOS y Linux; CMYK si una imprenta lo pide.
    - **Decisiones pendientes:**
      - los estilos de carácter (formato de los tramos, cómo se crean y cómo se ven sin el motor);
      - los valores por defecto, con Seba, mirando el PDF de `--compose`;

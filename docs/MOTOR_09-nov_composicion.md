@@ -1,6 +1,6 @@
 # Motor de composición propio (etapa 4) · prototipo
 
-Estado al 09-nov: motor en `packages/compose`, **cargado en la app detrás de una llave apagada** y, con la llave prendida, **dibujando los párrafos** (pasos 1, 2 y 4 del plan; ver "Dibujo con el motor"). Con la llave apagada el libro se dibuja como siempre (DOM/CSS, PDF de Chromium) y los PDF de la autoprueba no cambian. `composeReport()` mide la paridad con los cortes de Chromium (números más abajo). En Electron, la carga del WASM y la CSP quedaron probadas (hay que reiniciar la app para que tome la CSP nueva).
+Estado al 09-nov: motor en `packages/compose`, **cargado en la app detrás de una llave apagada** y, con la llave prendida, **dibujando los párrafos** (pasos 1, 2 y 4 del plan; ver "Dibujo con el motor"). Con la llave prendida también escribe su **propio PDF**, sin Chromium (paso 6; ver "PDF propio"). Con la llave apagada el libro se dibuja como siempre (DOM/CSS, PDF de Chromium) y los PDF de la autoprueba no cambian. `composeReport()` mide la paridad con los cortes de Chromium (números más abajo). En Electron, la carga del WASM y la CSP quedaron probadas (hay que reiniciar la app para que tome la CSP nueva).
 
 ## Qué hay
 
@@ -170,6 +170,79 @@ Revisión en Chrome sin ventana (`node scripts/compose-parity.mjs --draw --shot 
 | Edición | al empezar, 0 líneas del motor y el texto igual al del libro; al terminar, recompuesto y el texto sin cambios |
 | Salida con una fuente que el motor no tenía (Cambria) | `composeOutputReady` en `false` enseguida y en `true` a los 50 ms, con los 85 párrafos de la salida compuestos |
 
+## PDF propio (paso 6, detrás de la llave)
+
+Con la llave prendida, la salida también se puede escribir **sin Chromium**. El PDF de siempre (el de `printToPDF`) sigue siendo el de Chromium: el propio es una salida aparte, que hoy sólo arma la autoprueba con `--compose`.
+
+**Cómo se arma:**
+1. `prepareOutput` deja la salida en `#printRoot`, como siempre, y espera al motor (`composeOutputReady`).
+2. El proceso principal emula el medio `print` (CDP `Emulation.setEmulatedMedia`), que es el que ve `printToPDF`, y le pide a la página `composePdfLayout()` (`src/modules/compose.ts`). La forma de los datos está en `src/contract/pdf-layout.ts`. Por cada hoja, en puntos:
+   - **Párrafos compuestos por el motor:** glifo por glifo, con las posiciones del motor. Cada línea va donde la puso la página; la línea de base sale de una marca vacía al final de la fila.
+   - **El resto del texto** (cornisas, folios, índice, párrafos que el motor saltea): palabra por palabra, donde la ubicó Chromium. Cada palabra se conforma con el motor en la misma fuente y no se recompone; una palabra cortada con guion discrecional se parte donde cambia la línea. La negrita o cursiva sintéticas (la familia no tiene esa cara) se imitan con trazo y sesgo, como hace Chromium.
+   - **Imágenes** PNG y JPEG recortadas a su caja (`object-fit`), **filetes lisos** y **filetes de puntos** (los del índice).
+   - Lo que no sabe dibujar lo cuenta en `notes`, por motivo, en vez de inventarlo: figuras SVG, texto girado, imágenes de otro formato, otros tipos de filete.
+3. `desktop/src/main/compose-pdf.ts` escribe el PDF con pdf-lib (la copia de la app, en sus piezas de bajo nivel):
+   - cada fuente va como **Type0 / CIDFontType2** (CIDFontType0 si es CFF), con `Identity-H`, `W` con los avances de la instancia y **`ToUnicode`**, para que el texto se pueda copiar y buscar;
+   - la fuente va **recortada con `harfbuzz-subset.wasm`** (`desktop/src/main/font-subset.ts`): conserva los índices de glifo y, si es variable, queda fija en la instancia usada;
+   - el texto se escribe con un `Tm` por tramo y un `TJ` con los desplazamientos que hacen falta para que cada glifo caiga donde lo puso el motor;
+   - los espacios entre palabras son glifos de espacio, para que el texto copiado los tenga.
+4. Después, las mismas cajas (`print-boxes.ts`) y el mismo PDF/X-4 (`pdfx.ts`) que el de Chromium. `exactPdf` pasó a llamar a `finishPdf`, que hace eso sobre cualquier PDF.
+
+**Autoprueba:** `npm run self-test -- --compose` deja en `motor-de-composicion/`, junto al PDF de Chromium con el motor:
+- `… - propio.pdf` y `… - propio PDFX4.pdf`;
+- `pdf-propio.json`, con las fuentes recortadas, las líneas y las palabras dibujadas, lo anotado y los problemas de PDF/X (tiene que estar vacío).
+
+El WASM de recorte lo copia `build.mjs` a `LibroStudio/v3/app/build/` (va en el instalador). Pruebas: `desktop/test/compose-pdf.test.ts`:
+- el texto se recupera del PDF con su ToUnicode igual al que compuso el motor;
+- la fuente recortada conserva índices y avances;
+- una fuente variable (Bahnschrift, si está) queda estática en la instancia pedida.
+
+### Comparación con el de Chromium (novela de la autoprueba)
+
+Corrida en Electron (`--self-test --compose`, perfil propio). Los dos PDF son de la misma salida con el motor, así que tienen los mismos cortes. Medido con PyMuPDF: líneas por texto, línea de base del primer tramo y caja de la línea.
+
+| | Chromium | Propio |
+|---|---|---|
+| Páginas | 24 | 24 |
+| Líneas de texto | 319 | 319 (las 319 coinciden por texto) |
+| Texto extraíble | — | igual en las 24 páginas (espacios incluidos) |
+| Fuentes | Georgia (Type0) y una Type3 (la negrita sintética de "Índice") | Georgia (Type0), 78 glifos: 219,7 KB → 17,0 KB recortada |
+| Tamaño | 102,8 KB | **46,2 KB** |
+| PDF/X-4 | 206 KB (la novela sin el motor, en la carpeta principal) | 148,6 KB, sin problemas en `inspectPdfX` |
+
+Diferencias por línea (propio − Chromium, en puntos):
+
+| | mediana | p95 | máxima |
+|---|---|---|---|
+| Línea de base | 0,11 | 0,35 | 0,38 (0,13 mm) |
+| Borde izquierdo | 0 | 0 | 0,001 |
+| Borde derecho | 0,03 | 0,06 | 0,15 |
+| Ancho de la línea | 0,03 | 0,06 | 0,15 |
+
+- **Borde izquierdo y ancho:** coinciden. La diferencia del borde derecho (0,03 pt de mediana, el propio apenas más corto) es la del cuerpo truncado: Chromium dibuja las palabras con su cuerpo y el motor con el exacto.
+- **Línea de base:** hasta 0,38 pt, en los dos sentidos (la media da 0). No lo investigué; parece que Chromium redondea la posición vertical de las líneas en la salida.
+- **Visualmente**, las páginas son iguales a ojo, comparadas una al lado de la otra a 110 ppp. Lo único distinto: los puntos del índice salen un poco más claros (puntos redondos del grosor del filete, contra el dibujo de Chromium) y la negrita sintética de "Índice" es una aproximación.
+- Lo anotado en la novela: 1 texto con negrita sintética, imitada. No quedó nada sin dibujar.
+
+### Qué falta para que el propio reemplace al de Chromium
+
+1. **Lo que todavía no dibuja:**
+   - figuras SVG;
+   - texto girado (titulillo lateral);
+   - imágenes que no son PNG ni JPEG (SVG, WebP);
+   - `object-position` distinto del centro;
+   - filetes de otros tipos;
+   - fondos, sombras, transparencias, degradés;
+   - la cubierta, que se arma por otro camino;
+   - las marcas de corte y guías de los pliegos.
+
+   La novela no tiene nada de eso; un libro con figuras o con la cubierta todavía necesita a Chromium.
+2. **Una salida real:** hoy el propio sólo sale en la autoprueba. Falta un camino en la ventana de salida (detrás de la llave) y medir cuánto tarda en un libro de 200 páginas.
+3. **Fuentes CFF (.otf):** el camino `CIDFontType0` + `FontFile3/OpenType` está escrito pero no probado con una fuente real.
+4. **Negrita y cursiva sintéticas:** son aproximaciones (trazo de 1/25 del cuerpo y sesgo de 0,2).
+5. **CMYK y sobreimpresión:** el propio ya tiene el texto en operadores propios, así que es el lugar natural para escribir negro 100 % K. Es lo que sigue de la etapa 4 (`docs/IMPRENTA_09-nov_pdfx.md`).
+6. **Revisar con Seba** la novela en papel con los dos PDF, antes de decidir.
+
 ## Qué falta
 
 1. Estilos de carácter en la app: formato definitivo de los tramos, cómo se crean en el editor y cómo se ven sin el motor (hoy el motor lee `paragraphMap[i].runs`, provisorio).
@@ -216,5 +289,5 @@ La idea es que el motor decida **qué va en cada línea y dónde va cada palabra
 3. **Adaptador del modelo** (empezado en `composeReport`: cuerpo, sangrías, sangría de primera línea, alineación, separación silábica e idioma): de `BookObject` + `paragraphFormat` (cuerpo, interlineado, sangría, espacio antes y después, alineación, separación silábica e idioma) a párrafos del motor, con tramos de distinto estilo dentro del párrafo (extender `createParagraph` a varios tramos).
 4. **(Hecho, detrás de la llave de desarrollo)** Dibujo con llave: líneas posicionadas en `paper()` mediante `extend.result('paper', …)` sin tocar el camino de hoy. Desborde por cuenta de líneas. Autoprueba con la llave apagada (PDF idénticos) y una corrida aparte con la llave prendida para revisar.
 5. **Calidad tipográfica:** reglas de corte del castellano, tope de guiones seguidos y largo mínimo de la última línea (hechos en el motor); falta bandera izquierda/centro/derecha, viudas y huérfanas al encadenar cuadros, márgenes ópticos, y después interletraje y escala de glifos dentro de un rango para justificar mejor.
-6. **PDF propio** con las mismas líneas (pdf-lib + subset de HarfBuzz), MediaBox/TrimBox/BleedBox exactas, y después CMYK y PDF/X.
+6. **(Hecho, detrás de la llave, sólo en la autoprueba)** PDF propio con las mismas líneas (pdf-lib + recorte con HarfBuzz), con las cajas y el PDF/X-4 de siempre. Falta lo de "Qué falta para que el propio reemplace al de Chromium", y después CMYK.
 7. Con los PDF revisados con Seba, la llave pasa a prendida por defecto y el camino de Chromium queda para la vista mientras se edita.

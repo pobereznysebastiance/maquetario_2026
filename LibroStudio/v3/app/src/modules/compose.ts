@@ -2,14 +2,24 @@
 // con la llave prendida (src/compose-loader.ts). Trae packages/compose y HarfBuzz (WASM): por eso
 // no va en build/app.js, que es un script clásico y se carga siempre.
 //
-// Por ahora no dibuja nada. composeReport mide la paridad con lo que hace hoy Chromium: compone
-// cada párrafo del libro con el motor, al ancho de su caja, y compara sus cortes de línea con los
-// del DOM de la página (Range.getClientRects sobre el mismo paper() que usan la salida y la
-// revisión del libro, fuera de la pantalla). Plan: docs/MOTOR_09-nov_composicion.md.
+// Con la llave prendida dibuja los párrafos que puede componer (composePage, extendiendo paper)
+// y describe la salida armada para el PDF propio (composePdfLayout). composeReport mide la
+// paridad con Chromium: compone cada párrafo del libro con el motor, al ancho de su caja, y
+// compara sus cortes de línea con los del DOM de la página (Range.getClientRects sobre el mismo
+// paper() que usan la salida y la revisión del libro, fuera de la pantalla).
+// Plan: docs/MOTOR_09-nov_composicion.md.
 //
 // Fuente TypeScript: se compila a build/compose.mjs (desktop/scripts/build.mjs); harfbuzz.wasm
 // se copia al lado.
 import type { BookObject } from '../model.ts';
+import type {
+  PdfFont,
+  PdfImage,
+  PdfLayout,
+  PdfRect,
+  PdfSheet,
+  PdfText,
+} from '../contract/pdf-layout.ts';
 import {
   breakLines,
   type ComposeFont,
@@ -17,8 +27,10 @@ import {
   createRunParagraph,
   type Hyphenator,
   type HyphenLanguage,
+  type Line,
   loadFont,
   type Paragraph,
+  shape,
   SOFT_HYPHEN,
   withVariations,
 } from '../../../../../packages/compose/src/browser.ts';
@@ -614,7 +626,29 @@ interface ComposedSegment {
   style: Record<string, string> | null;
 }
 
-const composed = new Map<string, ComposedSegment[][]>();
+/** Un tramo ya resuelto: lo que el PDF propio necesita para escribir sus glifos. */
+interface ComposedRun {
+  font: ComposeFont;
+  url: string;
+  variations: Record<string, number>;
+  /** Cuerpo con que se compuso (el de Chromium), en puntos. */
+  size: number;
+  color: string;
+  italic: boolean;
+}
+
+/** Lo que se guarda de cada párrafo compuesto: las filas para el DOM y las líneas del motor. */
+interface ComposedEntry {
+  text: string;
+  rows: ComposedSegment[][];
+  lines: Line[];
+  runs: ComposedRun[];
+}
+
+const composed = new Map<string, ComposedEntry>();
+
+/** Qué composición dibujó cada párrafo del DOM (la lee composePdfLayout para el PDF propio). */
+const drawnParagraphs = new WeakMap<HTMLElement, ComposedEntry>();
 
 /** Las líneas del motor para un párrafo (en caché por texto, formato, fuentes y ancho). */
 function composeParagraph(
@@ -622,7 +656,7 @@ function composeParagraph(
   index: number,
   text: string,
   f: Record<string, any>,
-): ComposedSegment[][] | null {
+): ComposedEntry | null {
   if (unsupported(text)) return null;
   const sizePx = (size: number) => ((size * 25.4) / 72) * OUTPUT_PX;
   // El cuerpo como lo usa Chromium (px truncado a centésimas): así el ancho de cada palabra en
@@ -661,8 +695,8 @@ function composeParagraph(
     options.language,
     method,
   ]);
-  let lines = composed.get(key);
-  if (!lines) {
+  let entry = composed.get(key);
+  if (!entry) {
     const paragraph = createRunParagraph(
       runs.map((r) => ({
         text: text.slice(r.start, r.end),
@@ -673,16 +707,29 @@ function composeParagraph(
       { ...options, size: runs[0]!.size },
     );
     const styles = runs.map((r) => (r.styled ? runStyle(r.format, r.weight, f.size) : null));
-    lines = breakLines(paragraph, width, { algorithm: method, indent, justify }).lines.map((line) =>
-      line.segments.map((segment) => ({
-        text: segment.text,
-        extra: segment.spaceExtra,
-        style: styles[segment.run] ?? null,
+    const lines = breakLines(paragraph, width, { algorithm: method, indent, justify }).lines;
+    entry = {
+      text,
+      lines,
+      rows: lines.map((line) =>
+        line.segments.map((segment) => ({
+          text: segment.text,
+          extra: segment.spaceExtra,
+          style: styles[segment.run] ?? null,
+        })),
+      ),
+      runs: runs.map((r) => ({
+        font: r.font,
+        url: r.url,
+        variations: r.variations,
+        size: r.size,
+        color: r.format.color || '#000000',
+        italic: !!(r.format.fontItalic || r.format.italic),
       })),
-    );
-    composed.set(key, lines);
+    };
+    composed.set(key, entry);
   }
-  return lines;
+  return entry;
 }
 
 const NBSP = String.fromCharCode(0xa0);
@@ -722,8 +769,10 @@ export function composePage(page: HTMLElement, pageIndex: number, px: number): H
       if (!text.trim()) return;
       const element = box.querySelector<HTMLElement>(`[data-paragraph-index="${index}"]`);
       const f = paragraphFormat(book, o, index);
-      const lines = element && composeParagraph(o, index, text, f);
-      if (!element || !lines) return;
+      const entry = element && composeParagraph(o, index, text, f);
+      if (!element || !entry) return;
+      const lines = entry.rows;
+      drawnParagraphs.set(element, entry);
       element.classList.add('mqt-composed');
       element.replaceChildren(
         ...lines.map((segments) => {
@@ -811,4 +860,406 @@ export async function loadBookFonts(): Promise<void> {
 export async function composeReady(): Promise<void> {
   await loadBookFonts();
   if (!editing) render(true);
+}
+
+// ── PDF propio (paso 6 del plan): de la salida armada a una descripción para escribir el PDF ──
+//
+// composePdfLayout lee #printRoot ya armado (prepareOutput, con la llave prendida) y devuelve,
+// por hoja, lo que hay que dibujar en puntos desde la esquina superior izquierda:
+// - los párrafos compuestos por el motor, glifo por glifo, con las posiciones del motor (la
+//   línea se ubica donde la puso la página y la línea de base sale de una marca en el DOM);
+// - el resto del texto (cornisas, folios, índice, párrafos que el motor saltea) palabra por
+//   palabra donde lo ubicó Chromium, conformado con el motor en la misma fuente: no se recompone;
+// - imágenes PNG y JPEG y filetes (bordes lisos).
+// Lo que no sabe dibujar lo cuenta en `notes`. El proceso principal escribe el PDF
+// (desktop/src/main/compose-pdf.ts) con las fuentes recortadas; la forma de los datos está en
+// src/contract/pdf-layout.ts. Las medidas del DOM sólo valen
+// con el medio "print" emulado (el proceso principal lo pide antes de llamar).
+
+const PX_TO_PT = 72 / 96;
+
+const parseColor = (css: string): [number, number, number] => {
+  const hex = /^#([0-9a-f]{6})$/i.exec(css.trim());
+  if (hex) {
+    const n = parseInt(hex[1]!, 16);
+    return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+  }
+  const rgb = /rgba?\(([^)]+)\)/.exec(css);
+  if (rgb) {
+    const [r, g, b] = rgb[1]!.split(/[\s,/]+/).map(Number);
+    return [(r ?? 0) / 255, (g ?? 0) / 255, (b ?? 0) / 255];
+  }
+  return [0, 0, 0];
+};
+
+/** Las fuentes del PDF: una por archivo e instancia, con los glifos que se usan. */
+class PdfFonts {
+  readonly list = new Map<string, { font: ComposeFont; info: PdfFont }>();
+  use(font: ComposeFont, url: string, italic: boolean): string {
+    const key = url + JSON.stringify(font.variations);
+    if (!this.list.has(key)) {
+      let name = 'Fuente';
+      try {
+        name = font.hbFace.getName(6, 'en') || font.hbFace.getName(4, 'en') || name;
+      } catch {}
+      this.list.set(key, {
+        font,
+        info: {
+          key,
+          url,
+          variations: { ...font.variations },
+          name: name.replace(/[^A-Za-z0-9-]/g, '') || 'Fuente',
+          upem: font.upem,
+          ascender: font.ascender,
+          descender: font.descender,
+          italic,
+          widths: {},
+          unicode: {},
+        },
+      });
+    }
+    return key;
+  }
+  glyph(key: string, gid: number, text: string): void {
+    const entry = this.list.get(key)!;
+    if (!(gid in entry.info.widths)) entry.info.widths[gid] = entry.font.hbFont.glyphHAdvance(gid);
+    if (text && !(gid in entry.info.unicode)) entry.info.unicode[gid] = text;
+  }
+  space(key: string): number | undefined {
+    return this.list.get(key)!.font.hbFont.glyph(32);
+  }
+}
+
+/** Línea de base de un elemento de una línea: una marca vacía al final, en px. */
+function baselineOf(row: HTMLElement): number {
+  const probe = document.createElement('span');
+  probe.className = 'mqt-baseline-probe';
+  Object.assign(probe.style, { display: 'inline-block', width: '0', height: '0' });
+  row.append(probe);
+  const y = probe.getBoundingClientRect().bottom;
+  probe.remove();
+  return y;
+}
+
+/** Ascendente con que Chromium ubica el texto de un elemento (para las palabras del DOM), en px. */
+const ascents = new Map<string, number>();
+function ascentOf(element: HTMLElement): number {
+  const key = getComputedStyle(element).font;
+  const known = ascents.get(key);
+  if (known !== undefined) return known;
+  const sample = document.createElement('span');
+  Object.assign(sample.style, { whiteSpace: 'nowrap' });
+  sample.textContent = 'x';
+  element.append(sample);
+  const range = document.createRange();
+  range.selectNodeContents(sample);
+  const top = range.getBoundingClientRect().top;
+  const ascent = baselineOf(sample) - top;
+  sample.remove();
+  ascents.set(key, ascent);
+  return ascent;
+}
+
+/**
+ * La cara con que el motor puede dibujar el texto de un elemento según su CSS calculado, y si
+ * Chromium la engrosa o la inclina por su cuenta (negrita o cursiva sintéticas: la familia no
+ * tiene esa cara). Lo sintético se imita en el PDF (trazo y sesgo), no se cambia de cara.
+ */
+function cssFace(
+  style: CSSStyleDeclaration,
+): { url: string; weight: number; fakeBold: boolean; fakeItalic: boolean } | null {
+  const first = style.fontFamily
+    .split(',')[0]!
+    .trim()
+    .replace(/^["']|["']$/g, '');
+  const weight = Number(style.fontWeight) || 400;
+  const italic = style.fontStyle === 'italic';
+  const id = /^MQT_(.+)$/.exec(first)?.[1];
+  let face: NativeFontFace | undefined;
+  let url: string | undefined;
+  if (id) {
+    face = (globalThis.nativeFaces ?? []).find((f) => f.id === id);
+    url = MaquetarioHost.fontUrl(id);
+  } else if (drawFonts) {
+    url = drawFonts[`${first}|${weight}|${italic ? 'italic' : 'normal'}`];
+  } else {
+    face = selectedFace({ font: first, fontWeight: weight, fontItalic: italic });
+    if (face) url = MaquetarioHost.fontUrl(face.id);
+  }
+  if (!url) return null;
+  const variable = !!face?.axes.some((axis) => axis.tag === 'wght');
+  return {
+    url,
+    weight,
+    fakeBold: !!face && !variable && weight - face.weight >= 200,
+    fakeItalic: !!face && italic && !face.italic,
+  };
+}
+
+/** Ejes de font-variation-settings ("wght" 650, "wdth" 85). */
+function variationSettings(css: string): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const m of css.matchAll(/["']([A-Za-z0-9 ]{4})["']\s+(-?[\d.]+)/g))
+    out[m[1]!] = Number(m[2]);
+  return out;
+}
+
+/** Si el elemento o algún contenedor está girado (una traslación sola no cuenta). */
+function rotated(element: HTMLElement): boolean {
+  for (let node: HTMLElement | null = element; node; node = node.parentElement) {
+    const m = /matrix\(([^)]+)\)/.exec(getComputedStyle(node).transform);
+    if (!m) continue;
+    const [, b, c] = m[1]!.split(',').map(Number);
+    if (Math.abs(b!) > 1e-6 || Math.abs(c!) > 1e-6) return true;
+  }
+  return false;
+}
+
+export async function composePdfLayout(): Promise<PdfLayout> {
+  const root = document.querySelector<HTMLElement>('#printRoot');
+  const sheets = [...(root?.querySelectorAll<HTMLElement>('.output-sheet') ?? [])];
+  if (!sheets.length) throw new Error('No hay salida armada (#printRoot).');
+  if (!sheets[0]!.getBoundingClientRect().width)
+    throw new Error('La salida no tiene medidas: emulá el medio "print" antes.');
+  const fonts = new PdfFonts();
+  const layout: PdfLayout = { sheets: [], fonts: [], composedLines: 0, domWords: 0, notes: {} };
+  const note = (why: string, n = 1) => (layout.notes[why] = (layout.notes[why] ?? 0) + n);
+  const range = document.createRange();
+
+  // Las fuentes del texto que queda del DOM se cargan antes (las de los párrafos ya están).
+  const domFaces = new Map<string, Promise<ComposeFont | null>>();
+  const domFont = (url: string) => {
+    let promise = domFaces.get(url);
+    if (!promise) domFaces.set(url, (promise = fontFrom(url).catch(() => null)));
+    return promise;
+  };
+
+  for (const sheetElement of sheets) {
+    const box = sheetElement.getBoundingClientRect();
+    const sheet: PdfSheet = {
+      width: box.width * PX_TO_PT,
+      height: box.height * PX_TO_PT,
+      texts: [],
+      images: [],
+      rects: [],
+    };
+    const xOf = (px: number) => (px - box.left) * PX_TO_PT;
+    const yOf = (px: number) => (px - box.top) * PX_TO_PT;
+
+    // ── Párrafos compuestos por el motor ──
+    for (const paragraph of sheetElement.querySelectorAll<HTMLElement>('.mqt-composed')) {
+      const entry = drawnParagraphs.get(paragraph);
+      const page = paragraph.closest<HTMLElement>('.print-page');
+      if (!entry || !page) {
+        note('párrafo compuesto sin datos del motor');
+        continue;
+      }
+      // Escala de la página en la hoja (pliegos, libritos): px de la página por px del libro.
+      const k = page.getBoundingClientRect().width / ((book.width * 96) / 25.4);
+      const rows = [...paragraph.querySelectorAll<HTMLElement>(':scope > .mqt-line')];
+      rows.forEach((row, index) => {
+        const line = entry.lines[index];
+        if (!line?.glyphs.length) return;
+        range.selectNodeContents(row);
+        const first = [...range.getClientRects()].find((r) => r.width > 0);
+        if (!first) return;
+        layout.composedLines++;
+        const baseline = yOf(baselineOf(row));
+        const x0 = line.glyphs[0]!.x;
+        const left = xOf(first.left);
+        let current: PdfText | null = null;
+        line.glyphs.forEach((glyph, i) => {
+          const run = entry.runs[glyph.run]!;
+          const key = fonts.use(run.font, run.url, run.italic);
+          if (!current || current.font !== key) {
+            current = {
+              font: key,
+              size: run.size * k,
+              color: parseColor(run.color),
+              y: baseline,
+              glyphs: [],
+            };
+            sheet.texts.push(current);
+          }
+          const x = left + (glyph.x - x0) * k;
+          // El texto del glifo (ToUnicode): de su carácter al del glifo siguiente, sin pasar el
+          // final de la palabra; el guion que agrega el corte es "-".
+          const next = line.glyphs[i + 1];
+          let end = glyph.cluster + 1;
+          while (end < entry.text.length && !/\s/.test(entry.text[end]!)) end++;
+          if (next && !next.hyphen && next.cluster > glyph.cluster)
+            end = Math.min(end, next.cluster);
+          const text = glyph.hyphen
+            ? '-'
+            : next && next.cluster === glyph.cluster && !next.hyphen
+              ? ''
+              : entry.text.slice(glyph.cluster, end);
+          fonts.glyph(key, glyph.id, text);
+          current.glyphs.push({ gid: glyph.id, x });
+          // Espacio entre palabras: un glifo de espacio, para que el texto se pueda copiar.
+          if (next && !next.hyphen && /\s/.test(entry.text.slice(end, next.cluster))) {
+            const space = fonts.space(key);
+            if (space !== undefined) {
+              fonts.glyph(key, space, ' ');
+              current.glyphs.push({ gid: space, x: x + glyph.advance * k });
+            }
+          }
+        });
+      });
+    }
+
+    // ── El resto del texto: palabra por palabra, donde lo puso Chromium ──
+    const walker = document.createTreeWalker(sheetElement, NodeFilter.SHOW_TEXT);
+    const words: { node: Text; start: number; end: number; element: HTMLElement }[] = [];
+    for (
+      let node = walker.nextNode() as Text | null;
+      node;
+      node = walker.nextNode() as Text | null
+    ) {
+      const element = node.parentElement;
+      if (!element || element.closest('.mqt-composed') || !node.data.trim()) continue;
+      const style = getComputedStyle(element);
+      if (style.visibility === 'hidden' || style.display === 'none') continue;
+      if (rotated(element)) {
+        note('texto girado');
+        continue;
+      }
+      for (const m of node.data.matchAll(/[^\s]+/g))
+        words.push({ node, start: m.index, end: m.index + m[0].length, element });
+    }
+    for (const word of words) {
+      const style = getComputedStyle(word.element);
+      const face = cssFace(style);
+      if (!face) {
+        note(`texto sin fuente para el motor (${style.fontFamily.split(',')[0]})`);
+        continue;
+      }
+      const file = await domFont(face.url);
+      if (!file) {
+        note('texto con una fuente que no se pudo leer');
+        continue;
+      }
+      const sizePx = parseFloat(style.fontSize);
+      const font = withVariations(file, {
+        wght: face.weight,
+        wdth: 100,
+        opsz: sizePx,
+        ...variationSettings(style.fontVariationSettings),
+      });
+      const key = fonts.use(font, face.url, style.fontStyle === 'italic');
+      if (face.fakeBold || face.fakeItalic) note('negrita o cursiva sintética (imitada en el PDF)');
+      const spacing = (parseFloat(style.letterSpacing) || 0) * PX_TO_PT;
+      const ascent = ascentOf(word.element);
+      const color = parseColor(style.color);
+      // Una palabra cortada al final de una línea (guion discrecional) se parte donde cambia la línea.
+      const raw = word.node.data.slice(word.start, word.end);
+      const pieces: { from: number; to: number; rect: DOMRect }[] = [];
+      for (let i = 0; i < raw.length; i++) {
+        if (raw[i] === SOFT_HYPHEN) continue;
+        range.setStart(word.node, word.start + i);
+        range.setEnd(word.node, word.start + i + 1);
+        const rect = [...range.getClientRects()].find((r) => r.width > 0);
+        if (!rect) continue;
+        const last = pieces.at(-1);
+        if (last && Math.abs(last.rect.top - rect.top) < 1) last.to = i + 1;
+        else pieces.push({ from: i, to: i + 1, rect });
+      }
+      pieces.forEach((piece, p) => {
+        const text =
+          raw.slice(piece.from, piece.to).replaceAll(SOFT_HYPHEN, '') +
+          (p < pieces.length - 1 ? '-' : '');
+        const shaped = shape(font, text, { size: sizePx * PX_TO_PT, letterSpacing: spacing });
+        const item: PdfText = {
+          font: key,
+          size: sizePx * PX_TO_PT,
+          color,
+          y: yOf(piece.rect.top + ascent),
+          glyphs: [],
+          ...(face.fakeBold ? { fakeBold: true } : {}),
+          ...(face.fakeItalic ? { fakeItalic: true } : {}),
+        };
+        let x = xOf(piece.rect.left);
+        shaped.glyphs.forEach((glyph, i) => {
+          const next = shaped.glyphs[i + 1];
+          const end = next && next.cluster > glyph.cluster ? next.cluster : text.length;
+          fonts.glyph(
+            key,
+            glyph.id,
+            next?.cluster === glyph.cluster ? '' : text.slice(glyph.cluster, end),
+          );
+          item.glyphs.push({ gid: glyph.id, x: x + glyph.xOffset });
+          x += glyph.advance;
+        });
+        sheet.texts.push(item);
+      });
+      if (pieces.length) layout.domWords++;
+    }
+
+    // ── Imágenes y filetes ──
+    for (const image of sheetElement.querySelectorAll<HTMLImageElement>('img')) {
+      const rect = image.getBoundingClientRect();
+      if (!rect.width || !rect.height) continue;
+      if (!/^data:image\/(png|jpeg);base64,/.test(image.src)) {
+        note('imagen que no es PNG ni JPEG');
+        continue;
+      }
+      const style = getComputedStyle(image);
+      const nw = image.naturalWidth || rect.width;
+      const nh = image.naturalHeight || rect.height;
+      const scale =
+        style.objectFit === 'cover'
+          ? Math.max(rect.width / nw, rect.height / nh)
+          : style.objectFit === 'contain'
+            ? Math.min(rect.width / nw, rect.height / nh)
+            : style.objectFit === 'none'
+              ? 1
+              : NaN;
+      const w = Number.isNaN(scale) ? rect.width : nw * scale;
+      const h = Number.isNaN(scale) ? rect.height : nh * scale;
+      if (style.objectPosition && !/^50% 50%$/.test(style.objectPosition))
+        note('imagen con object-position (se centra)');
+      sheet.images.push({
+        src: image.src,
+        x: xOf(rect.left + (rect.width - w) / 2),
+        y: yOf(rect.top + (rect.height - h) / 2),
+        width: w * PX_TO_PT,
+        height: h * PX_TO_PT,
+        clip: {
+          x: xOf(rect.left),
+          y: yOf(rect.top),
+          width: rect.width * PX_TO_PT,
+          height: rect.height * PX_TO_PT,
+        },
+      });
+    }
+    for (const element of sheetElement.querySelectorAll<HTMLElement>('*')) {
+      const style = getComputedStyle(element);
+      if (element.closest('svg')) continue;
+      const rect = element.getBoundingClientRect();
+      for (const side of ['Top', 'Right', 'Bottom', 'Left'] as const) {
+        const width = parseFloat(style.getPropertyValue(`border-${side.toLowerCase()}-width`));
+        const kind = style.getPropertyValue(`border-${side.toLowerCase()}-style`);
+        if (!width || kind === 'none' || kind === 'hidden') continue;
+        if (kind !== 'solid' && kind !== 'dotted') {
+          note(`filete ${kind}`);
+          continue;
+        }
+        const color = parseColor(style.getPropertyValue(`border-${side.toLowerCase()}-color`));
+        const horizontal = side === 'Top' || side === 'Bottom';
+        sheet.rects.push({
+          x: xOf(side === 'Right' ? rect.right - width : rect.left),
+          y: yOf(side === 'Bottom' ? rect.bottom - width : rect.top),
+          width: (horizontal ? rect.width : width) * PX_TO_PT,
+          height: (horizontal ? width : rect.height) * PX_TO_PT,
+          color,
+          ...(kind === 'dotted' ? { dotted: true } : {}),
+        });
+      }
+    }
+    const shapes = sheetElement.querySelectorAll('svg').length;
+    if (shapes) note('figuras (SVG)', shapes);
+    layout.sheets.push(sheet);
+  }
+  layout.fonts = [...fonts.list.values()].map((entry) => entry.info);
+  return layout;
 }

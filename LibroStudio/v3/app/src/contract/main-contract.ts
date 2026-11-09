@@ -103,6 +103,7 @@ const maquetarioMain: MaquetarioMainApi = {
   startTutorial: (index) => window.startTutorial(index),
   composeActivate: () => composeActivate(),
   composeReport: () => composeReport(),
+  composePdfLayout: () => composePdfLayout(),
 };
 
 globalThis.maquetarioMain = maquetarioMain;

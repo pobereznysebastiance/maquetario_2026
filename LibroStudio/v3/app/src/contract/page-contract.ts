@@ -13,6 +13,8 @@
 // Este archivo sólo tiene tipos y no depende de nada de la app: lo importan las dos partes
 // (import type). Cambiar un nombre acá rompe la compilación de las dos.
 
+import type { PdfLayout } from './pdf-layout.ts';
+
 /** Tamaño de página de la salida en mm (prepareOutput). */
 export interface OutputPage {
   width: number;
@@ -108,6 +110,8 @@ export interface MaquetarioMainApi {
   startTutorial(index?: number): void;
   composeActivate(): Promise<void>;
   composeReport(): Promise<unknown>;
+  /** PDF propio del motor: lo que hay que dibujar de la salida armada (con el medio print emulado). */
+  composePdfLayout(): Promise<PdfLayout>;
 }
 
 /** Las pruebas de la interfaz (tests/), como las junta test-loader.js. */
