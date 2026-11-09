@@ -400,13 +400,6 @@ function moveLayer(direction: number): void {
     [list[index], list[next]] = [list[next], list[index]];
   }, false);
 }
-const tabLayer = document.createElement('button');
-tabLayer.className = 'tab';
-tabLayer.dataset.tab = 'layers';
-tabLayer.setAttribute('role', 'tab');
-tabLayer.textContent = lw().layers;
-tabLayer.onclick = () => showTab('layers');
-$('.tabs').append(tabLayer);
 const layerButton = document.createElement('button');
 layerButton.id = 'layersTool';
 layerButton.className = 'tool';
@@ -417,7 +410,6 @@ layerButton.onclick = () => {
 };
 $('#tools').append(layerButton);
 document.addEventListener('maquetario:language', () => {
-  tabLayer.textContent = lw().layers;
   layerButton.querySelector('span')!.textContent = lw().layers;
   updateSnapButton();
 });

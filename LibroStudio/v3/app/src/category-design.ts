@@ -33,6 +33,9 @@ Object.assign(paths, {
   more: 'M6 9l6 6 6-6',
 });
 const categoryIcons: Record<string, string> = {
+  book: 'book',
+  page: 'pages',
+  selection: 'select',
   structure: 'book',
   design: 'grid',
   text: 'text',
@@ -74,7 +77,8 @@ function refreshCategoryTabs(): void {
   }
   const space = categoryTabs.clientWidth;
   const widths = tabs.map((button) => button.getBoundingClientRect().width);
-  const overflows = widths.reduce((sum, width) => sum + width, 0) > space;
+  // Con las pestañas repartidas (flex), la suma puede pasarse por redondeo: margen de 1 px.
+  const overflows = widths.reduce((sum, width) => sum + width, 0) > space + 1;
   let remaining = space - (overflows ? 37 : 0);
   for (const [index, button] of tabs.entries()) {
     remaining -= widths[index];

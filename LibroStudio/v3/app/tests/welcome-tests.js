@@ -49,8 +49,9 @@ registerIntegrationTest(function (result) {
     'Tutorial no modifica el libro',
   );
   showTutorialStep(17);
-  check(tab === 'layers', 'Recorrido abre sección Capas');
+  check(currentRailView() === 'layers', 'Recorrido abre la vista Capas del riel');
   closeTutorial();
+  showRailView('pages');
   if (start === null) localStorage.removeItem('maquetario-tutorial-step');
   else localStorage.setItem('maquetario-tutorial-step', start);
   check(!!$('#layersTool') && !!$('#snapButton'), 'Capas e imán accesibles');

@@ -36,7 +36,10 @@ window.runFontIntegrationTests = async function () {
     );
   }
   showTab('text');
-  assert(!!$('#fontVariant') && !!$('#addFontFolder'), 'Selector de estilos y carpetas visible');
+  assert(!!$('#fontVariant'), 'Selector de estilos visible en Selección');
+  showTab('design');
+  assert(!!$('#addFontFolder'), 'Carpetas de fuentes en Libro');
+  showTab('text');
   renderPages();
   assert(
     $('#spread .paper-object.text').style.fontFamily.includes('MQT_'),

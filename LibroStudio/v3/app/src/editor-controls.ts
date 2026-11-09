@@ -88,7 +88,10 @@ function updateTutorialSpotlight(): void {
   const step = guideLessons[tutorialIndex];
   let target = step && $(step.target);
   if (!target?.getClientRects().length && step) {
-    target = step.id === 'templates' ? $('#toggleGridStrip') : $(`[data-tab="${step.tab}"]`);
+    target =
+      step.id === 'templates'
+        ? $('#toggleGridStrip')
+        : $(`[data-tab="${inspectorTabFor(step.tab)}"]`);
   }
   const blocked =
     tutorialCard.hidden ||

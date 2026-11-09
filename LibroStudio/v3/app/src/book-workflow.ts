@@ -1,6 +1,6 @@
 // Ruta del libro y armador de novelas. Pone la barra "Tu libro, paso a paso" bajo la barra del
-// documento, la pestaña Libro (estructura: ir al comienzo de cada parte), los controles de
-// misceláneas y líneas en Diseño, el armador de novelas (manuscrito con # por capítulo → libro A5
+// documento, el panel de estructura de la pestaña Libro (ir al comienzo de cada parte), los
+// controles de misceláneas y líneas, el armador de novelas (manuscrito con # por capítulo → libro A5
 // con preliminares, índice y estilos, medido con el mismo motor de párrafos que el editor y el PDF)
 // y la revisión del libro completo. También define bw(es, en, pt), el texto en el idioma de la
 // interfaz que usa casi toda la app: por eso este archivo carga antes que los que lo llaman.
@@ -55,12 +55,6 @@ function renderBookRoute(): void {
   $('#reviewBook').onclick = () => preflightDialog();
   $('#outputBook').onclick = () => outputDialog('pdf');
 }
-const structureTab = document.createElement('button');
-structureTab.className = 'tab';
-structureTab.dataset.tab = 'structure';
-structureTab.setAttribute('role', 'tab');
-structureTab.onclick = () => showTab('structure');
-$('.tabs').prepend(structureTab);
 function structurePanel(): void {
   const h = $('#inspectorContent'),
     items = book.pages
@@ -69,7 +63,7 @@ function structurePanel(): void {
   h.innerHTML = section(
     bw('Estructura del libro', 'Book structure', 'Estrutura do livro'),
     'pages',
-    `<p class="structure-summary">${book.pages.length} ${bw('páginas. Elegí una parte para ir a su comienzo.', 'pages. Choose a part to go to its start.', 'páginas. Escolha uma parte para ir ao início.')}</p><button id="structureBuild" class="btn wide">${bw('Armar otro libro…', 'Build another book…', 'Montar outro livro…')}</button>${items.map(({ p, i }, n) => `<button class="structure-item ${active >= i && active < (items[n + 1]?.i ?? book.pages.length) ? 'current' : ''}" data-go-part="${i}"><small>${i + 1}</small><span class="user-content">${esc(titleOfPart(p))}</span><em>${(items[n + 1]?.i ?? book.pages.length) - i} p.</em></button>`).join('')}<p class="help">${bw('La página activa se marca con borde cobre. Páginas permite ocultar cornisas y folios solo en esa página.', 'The active page has a copper outline. Pages lets you hide headers and folios on that page.', 'A página ativa tem contorno cobre. Páginas permite ocultar cabeçalhos e fólios nessa página.')}</p>`,
+    `<p class="structure-summary">${book.pages.length} ${bw('páginas. Elegí una parte para ir a su comienzo.', 'pages. Choose a part to go to its start.', 'páginas. Escolha uma parte para ir ao início.')}</p><button id="structureBuild" class="btn wide">${bw('Armar otro libro…', 'Build another book…', 'Montar outro livro…')}</button>${items.map(({ p, i }, n) => `<button class="structure-item ${active >= i && active < (items[n + 1]?.i ?? book.pages.length) ? 'current' : ''}" data-go-part="${i}"><small>${i + 1}</small><span class="user-content">${esc(titleOfPart(p))}</span><em>${(items[n + 1]?.i ?? book.pages.length) - i} p.</em></button>`).join('')}<p class="help">${bw('En la pestaña Página podés ocultar cornisas y folios solo en la página activa.', 'The Page tab lets you hide headers and folios on the active page only.', 'Na aba Página você pode ocultar cabeçalhos e fólios somente na página ativa.')}</p>`,
   );
   $('#structureBuild').onclick = () => bookBuilder();
   $$('[data-go-part]').forEach((b) => (b.onclick = () => goToBookPage(Number(b.dataset.goPart))));
@@ -90,7 +84,6 @@ extend.after(
   'render',
   function (full = true) {
     globalThis.renderBookRoute();
-    structureTab.textContent = bw('Libro', 'Book', 'Livro');
   },
   'book-workflow',
 );
@@ -696,4 +689,3 @@ globalThis.bookBuilder = bookBuilder;
 globalThis.manuscriptParts = manuscriptParts;
 globalThis.showWelcome = showWelcome;
 globalThis.renderBookRoute();
-structureTab.textContent = bw('Libro', 'Book', 'Livro');

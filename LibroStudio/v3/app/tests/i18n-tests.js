@@ -14,5 +14,6 @@ registerIntegrationTest(function (result) {
   }
   showTab('index');
   LibroI18n.translate();
+  showRailView('pages');
   return result;
 }, 'i18n');

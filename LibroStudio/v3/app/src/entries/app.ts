@@ -56,3 +56,4 @@ import '../workspace.ts';
 import '../rulers.ts';
 import '../inspector-sections.ts';
 import '../welcome-links.ts';
+import '../inspector-views.ts';

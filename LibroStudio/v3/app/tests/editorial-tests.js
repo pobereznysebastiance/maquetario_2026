@@ -34,6 +34,7 @@ registerIntegrationTest(function (result) {
   assert(!!$('.toc-paper-row'), 'Índice colocado en la página');
   book = saved;
   showTab('design');
+  showRailView('pages');
   render(true);
   return result;
 }, 'editorial');

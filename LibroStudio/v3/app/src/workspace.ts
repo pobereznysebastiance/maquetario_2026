@@ -1,4 +1,4 @@
-// Espacios de trabajo: qué herramientas, pestañas y zonas se ven.
+// Espacios de trabajo: qué herramientas, pestañas (y vistas del riel) y zonas se ven.
 //   Inicial         → lo esencial para empezar (menos herramientas, más simple).
 //   Predeterminado  → todo, como siempre.
 //   Personalizado   → la selección que cada persona arma en Configuración y queda guardada.
@@ -135,40 +135,31 @@ const ITEMS: WorkspaceItem[] = [
     label: () => t('Libro', 'Book', 'Livro'),
     locked: true,
   },
+  // Los ids viejos se conservan para respetar los espacios personalizados ya guardados:
+  // Páginas pasó a la pestaña Página y Texto a Selección (que también muestra el objeto).
   {
-    id: 'tab:design',
+    id: 'tab:pages',
     group: 'tabs',
-    selector: '.tab[data-tab="design"]',
-    label: () => t('Diseño', 'Design', 'Design'),
+    selector: '.tab[data-tab="page"]',
+    label: () => t('Página', 'Page', 'Página'),
   },
   {
     id: 'tab:text',
     group: 'tabs',
-    selector: '.tab[data-tab="text"]',
-    label: () => t('Texto', 'Text', 'Texto'),
+    selector: '.tab[data-tab="selection"]',
+    label: () => t('Selección', 'Selection', 'Seleção'),
   },
-  {
-    id: 'tab:object',
-    group: 'tabs',
-    selector: '.tab[data-tab="object"]',
-    label: () => t('Objeto', 'Object', 'Objeto'),
-  },
-  {
-    id: 'tab:pages',
-    group: 'tabs',
-    selector: '.tab[data-tab="pages"]',
-    label: () => t('Páginas', 'Pages', 'Páginas'),
-  },
+  // Índice y Capas son vistas del riel izquierdo.
   {
     id: 'tab:index',
     group: 'tabs',
-    selector: '.tab[data-tab="index"]',
+    selector: '[data-rail-view="index"]',
     label: () => t('Índice', 'Contents', 'Sumário'),
   },
   {
     id: 'tab:layers',
     group: 'tabs',
-    selector: '.tab[data-tab="layers"]',
+    selector: '[data-rail-view="layers"]',
     label: () => t('Capas', 'Layers', 'Camadas'),
   },
   {
@@ -190,7 +181,6 @@ const SIMPLE_HIDDEN = [
   'tool:index',
   'tool:layers',
   'tool:cover',
-  'tab:object',
   'tab:index',
   'tab:layers',
   'zone:templates',
@@ -254,6 +244,10 @@ function apply(): void {
     );
     if (first && typeof showTab === 'function') showTab(first.dataset.tab!);
   }
+  // Lo mismo con la vista del riel (Índice, Capas): vuelve a Páginas.
+  const rail = document.querySelector('.rail-switch [aria-selected="true"]');
+  if (rail?.hasAttribute('data-workspace-hidden') && typeof showRailView === 'function')
+    showRailView('pages');
   // Sólo si cambió: escribir el mismo texto igual dispara el observador y entraría en bucle.
   const label = document.querySelector('#workspace > span');
   const name = MODES[state.mode].title();

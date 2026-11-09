@@ -16,9 +16,11 @@ registerIntegrationTest(function (result) {
     );
     setReadability('standard');
     showTab('design');
+    // Rol de subtítulo de macOS (D3): el cuerpo de texto (13 px) en semibold, no un tamaño más grande.
+    const heading = getComputedStyle($('.section-heading'));
     check(
-      parseFloat(getComputedStyle($('.section-heading')).fontSize) >= 16,
-      'Categorías de al menos 16 px',
+      parseFloat(heading.fontSize) >= 13 && Number(heading.fontWeight) >= 600,
+      'Categorías con el rol de subtítulo (13 px semibold)',
     );
     check(parseFloat(getComputedStyle($('.help')).fontSize) >= 12, 'Ayudas de al menos 12 px');
     const originalObjects = JSON.stringify(book.pages.map((p) => p.objects));

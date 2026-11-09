@@ -225,13 +225,13 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   await step('espacios de trabajo', async () => {
     const result = await exec<string>(
       session,
-      "(()=>{const W=MaquetarioWorkspace,h=s=>document.querySelector(s)?.hasAttribute('data-workspace-hidden');W.setMode('simple');const simple={frame:h('[data-tool=\"frame\"]'),select:h('[data-tool=\"select\"]'),objectTab:h('.tab[data-tab=\"object\"]'),templates:h('.template-panel')};W.setVisible('tool:frame',true);const custom={mode:W.mode(),frame:h('[data-tool=\"frame\"]')};W.setMode('default');const any=document.querySelectorAll('[data-workspace-hidden]').length;return JSON.stringify({simple,custom,any});})()",
+      "(()=>{const W=MaquetarioWorkspace,h=s=>document.querySelector(s)?.hasAttribute('data-workspace-hidden');W.setMode('simple');const simple={frame:h('[data-tool=\"frame\"]'),select:h('[data-tool=\"select\"]'),layersView:h('[data-rail-view=\"layers\"]'),templates:h('.template-panel')};W.setVisible('tool:frame',true);const custom={mode:W.mode(),frame:h('[data-tool=\"frame\"]')};W.setMode('default');const any=document.querySelectorAll('[data-workspace-hidden]').length;return JSON.stringify({simple,custom,any});})()",
     );
     const r = JSON.parse(result);
     const ok =
       r.simple.frame &&
       !r.simple.select &&
-      r.simple.objectTab &&
+      r.simple.layersView &&
       r.simple.templates &&
       r.custom.mode === 'custom' &&
       !r.custom.frame &&

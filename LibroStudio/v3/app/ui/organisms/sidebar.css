@@ -23,10 +23,12 @@
   background: transparent;
   border-color: transparent;
   color: var(--text-tertiary);
-  font-size: var(--type-footnote);
+  font-size: var(--type-body);
   font-weight: var(--weight-medium);
   box-shadow: inset 0 calc(-1 * var(--space-3xs)) 0 transparent;
-  transition: color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 .inspector .tab:hover {
   background: transparent;

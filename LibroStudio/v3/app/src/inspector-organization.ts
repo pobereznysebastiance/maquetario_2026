@@ -1,6 +1,7 @@
-// Pestaña "Objeto" del inspector: geometría, alineación, distribución, orden y bloqueo del
-// elemento seleccionado. Saca de Diseño, Texto y Capas lo que ahora vive acá y lleva los atajos
-// de herramientas (grilla, foliado, cornisa) a su sección por nombre, no por posición.
+// Panel del objeto (pasada 'object' de la pestaña Selección): geometría, alineación,
+// distribución, orden y bloqueo del elemento seleccionado. Saca de Libro, del texto y de Capas lo
+// que ahora vive acá y lleva los atajos de herramientas (grilla, foliado, cornisa) a su sección
+// por nombre, no por posición.
 //
 // distributeObjects es global porque la usa tests/inspector-organization-tests.js.
 //
@@ -12,12 +13,6 @@ declare global {
   var distributeObjects: (axis: 'x' | 'y') => void;
 }
 
-const objectTab = document.createElement('button');
-objectTab.className = 'tab';
-objectTab.dataset.tab = 'object';
-objectTab.setAttribute('role', 'tab');
-objectTab.onclick = () => showTab('object');
-$('[data-tab="text"]').after(objectTab);
 function editableObjectSelection(): BookObject[] {
   return book.pages[active].objects.filter(
     (o) =>
@@ -57,7 +52,7 @@ function objectInspector(): void {
       bw('Objeto seleccionado', 'Selected object', 'Objeto selecionado'),
       'select',
       o
-        ? `<div class="selection-chip">${icon(o.type === 'text' ? 'text' : o.type === 'image' ? 'image' : 'frame')} ${bw(o.type === 'text' ? 'Caja de texto' : o.type === 'image' ? 'Imagen' : 'Marco', o.type === 'text' ? 'Text frame' : o.type === 'image' ? 'Image' : 'Frame', o.type === 'text' ? 'Caixa de texto' : o.type === 'image' ? 'Imagem' : 'Quadro')}</div>${o.type === 'text' ? `<button class="btn wide" id="objectGoText">${bw('Editar tipografía y párrafos →', 'Edit type and paragraphs →', 'Editar tipografia e parágrafos →')}</button>` : ''}<p class="help">${bw('Estos controles modifican el elemento completo. La alineación del texto dentro de una caja está en Texto.', 'These controls modify the whole element. Text alignment within a frame is in Text.', 'Estes controles alteram o elemento inteiro. O alinhamento do texto dentro da caixa fica em Texto.')}</p>`
+        ? `<div class="selection-chip">${icon(o.type === 'text' ? 'text' : o.type === 'image' ? 'image' : 'frame')} ${bw(o.type === 'text' ? 'Caja de texto' : o.type === 'image' ? 'Imagen' : 'Marco', o.type === 'text' ? 'Text frame' : o.type === 'image' ? 'Image' : 'Frame', o.type === 'text' ? 'Caixa de texto' : o.type === 'image' ? 'Imagem' : 'Quadro')}</div>${o.type === 'text' ? `<button class="btn wide" id="objectGoText">${bw('Editar tipografía y párrafos →', 'Edit type and paragraphs →', 'Editar tipografia e parágrafos →')}</button>` : ''}<p class="help">${bw('Estos controles modifican el elemento completo. La alineación del texto dentro de la caja está más abajo, en Párrafo y estilos.', 'These controls modify the whole element. Text alignment within the frame is further down, under Paragraphs and styles.', 'Estes controles alteram o elemento inteiro. O alinhamento do texto dentro da caixa fica mais abaixo, em Parágrafos e estilos.')}</p>`
         : `<p class="help">${bw('Seleccioná una caja, una imagen o un marco en la página.', 'Select a frame or image on the page.', 'Selecione uma caixa ou imagem na página.')}</p>`,
     ) +
     section(
@@ -171,15 +166,8 @@ decorateInspector(() => {
   if (tab === 'text') {
     host.querySelector('[data-section="Transformar objeto"]')?.remove();
     host.querySelector('#alignReference')?.closest('.section')?.remove();
-    const help = host.querySelector('[data-section="Edición"]');
-    if (help) {
-      help.innerHTML = section(
-        bw('Edición de texto', 'Text editing', 'Edição de texto'),
-        'text',
-        `<p class="help">${bw('Doble clic dentro de una caja para escribir. Sus medidas, ubicación y alineación con otros elementos se ajustan en Objeto.', 'Double-click inside a text frame to type. Adjust its size, position and alignment with other elements in Object.', 'Clique duas vezes na caixa para escrever. Medidas, posição e alinhamento com outros elementos ficam em Objeto.')}</p><button class="btn wide" id="textGoObject">${bw('Ir a Objeto →', 'Go to Object →', 'Ir para Objeto →')}</button>`,
-      );
-      $('#textGoObject').onclick = () => showTab('object');
-    }
+    // La ayuda de edición sobra: medidas y alineación están arriba, en la misma pestaña Selección.
+    host.querySelector('[data-section="Edición"]')?.remove();
   }
   if (tab === 'layers') {
     host.querySelector('#alignReference')?.closest('.section')?.remove();
@@ -188,7 +176,6 @@ decorateInspector(() => {
   organizationLabels();
 }, 'inspector-organization');
 function organizationLabels(): void {
-  objectTab.textContent = bw('Objeto', 'Object', 'Objeto');
   for (const name of ['text', 'box']) {
     const b = $(`[data-tool="${name}"]`);
     if (b) {

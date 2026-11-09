@@ -28,9 +28,9 @@ export const extraTranslations: TranslationRow[] = [
     'Cabeçalhos, títulos correntes e números são atualizados em todo o livro ao alterar seções ou reorganizar páginas.',
   ],
   [
-    'Podés definir contenido distinto para pares e impares desde Diseño.',
-    'You can set different content for odd and even pages in Design.',
-    'Você pode definir conteúdos diferentes para páginas pares e ímpares em Design.',
+    'Podés definir contenido distinto para pares e impares desde la pestaña Libro.',
+    'You can set different content for odd and even pages in the Book tab.',
+    'Você pode definir conteúdos diferentes para páginas pares e ímpares na aba Livro.',
   ],
   [
     'Doble clic en el texto para escribir. Arrastrá para mover una caja, imagen o marco. Usá su esquina inferior derecha para cambiar el tamaño.',

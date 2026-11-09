@@ -1,4 +1,4 @@
-// Editorial: la pestaña Índice (tabla de contenidos dibujada en el papel y en el PDF), los
+// Editorial: la vista Índice del riel (tabla de contenidos dibujada en el papel y en el PDF), los
 // controles extra de texto (tracking, sangría, espacio entre párrafos, glifos) y las guías
 // individuales del libro. Agrega el botón Índice a la barra de herramientas.
 //
@@ -223,8 +223,9 @@ function extraTextControls(): void {
   };
 }
 function extraGuideControls(): void {
+  // En Libro, la estructura va primero: las guías acompañan a la grilla.
   const host = $('#inspectorContent'),
-    first = host.querySelector('.section');
+    first = host.querySelector('.section[data-key="grid"]') || host.querySelector('.section');
   if (!first) return;
   const box = document.createElement('div');
   box.innerHTML = `<details class="guide-controls"><summary>Guías individuales</summary><p class="help">Guías horizontales y verticales en todas las páginas. No se imprimen.</p><button class="btn wide" id="addGuide">Agregar guía</button><div class="guide-list">${(book.guides || []).map((g: BookGuide, i: number) => `<div class="field-row"><span>${g.axis === 'v' ? 'Vertical' : 'Horizontal'} · ${displayMeasure(g.position)} ${documentUnit()}</span><button class="icon-btn" data-remove-guide="${i}" aria-label="Quitar guía">${icon('close')}</button></div>`).join('')}</div></details>`;

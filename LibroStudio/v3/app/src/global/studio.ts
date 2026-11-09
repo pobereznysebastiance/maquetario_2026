@@ -337,13 +337,7 @@ function inspector(): void {
         'grid',
         row('Columnas', number('grid.cols', 1, 12, 1, '')) +
           row('Filas', number('grid.rows', 1, 40, 1, '')) +
-          pair(
-            'Medianiles',
-            'grid.gapX',
-            'grid.gapY',
-            'Horizontal · columnas',
-            'Vertical · filas',
-          ) +
+          pair('Medianiles', 'grid.gapX', 'grid.gapY', 'Entre columnas', 'Entre filas') +
           `<div class="sub-label">Ajustar grilla a</div><div class="segmented"><button data-fit="margins" class="${book.grid.fit === 'margins' ? 'active' : ''}">A los márgenes</button><button data-fit="page" class="${book.grid.fit === 'page' ? 'active' : ''}">Al borde de página</button></div>` +
           pair('Márgenes', 'margins.top', 'margins.bottom', 'Superior', 'Inferior') +
           pair('', 'margins.inside', 'margins.outside', 'Interior', 'Exterior'),
@@ -413,7 +407,7 @@ function inspector(): void {
       section(
         'Elementos automáticos',
         'link',
-        '<p class="help">Cornisas, titulillos y folios se actualizan en todo el libro al cambiar una sección o reorganizar páginas.<br><br>Podés definir contenido distinto para pares e impares desde Diseño.</p>',
+        '<p class="help">Cornisas, titulillos y folios se actualizan en todo el libro al cambiar una sección o reorganizar páginas.<br><br>Podés definir contenido distinto para pares e impares desde la pestaña Libro.</p>',
       );
   }
   bindInspector();

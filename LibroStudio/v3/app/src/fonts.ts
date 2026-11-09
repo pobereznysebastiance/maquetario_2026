@@ -398,11 +398,12 @@ decorateInspector(() => {
       if (styles && face) styles.remove();
     }
   }
-  if (tab === 'text') {
+  // Las fuentes del equipo son del documento, no de la caja: van en Libro, al final.
+  if (tab === 'design') {
     const sectionNode = document.createElement('section');
     sectionNode.className = 'section font-library';
     sectionNode.innerHTML = `<div class="section-heading">${icon('text')} ${w.library}</div><p class="help">${fontLoading ? w.loading : `${new Set(nativeFaces.map((f) => f.family)).size} ${w.families} · ${nativeFaces.length} ${w.faces}`}</p>${fontLoading ? UI.skeleton({ lines: 4, label: w.loading }) : ''}<details class="font-library-options"><summary>${w.manage}</summary><button class="btn wide" id="addFontFolder">${icon('folder')} ${w.folder}</button><button class="btn wide" id="refreshFontCatalog">${w.refresh}</button><p class="help">${w.hint}</p><details><summary>${w.folders}</summary><div class="font-folder-list user-content">${fontFolders.length ? fontFolders.map((f) => `<p>${esc(f)}</p>`).join('') : w.noFolders}</div></details><p class="help">${w.saved}</p></details>`;
-    host.prepend(sectionNode);
+    host.append(sectionNode);
     $('#addFontFolder').disabled = $('#refreshFontCatalog').disabled = fontLoading;
     $('#addFontFolder').onclick = () => obtainFonts('chooseFontFolder');
     $('#refreshFontCatalog').onclick = () => obtainFonts('refreshFonts');

@@ -213,6 +213,18 @@ Cada cadena es una línea de registro; ningún módulo reasigna `inspector`. El 
 
 Criterio de aceptación: autoprueba completa en verde, contador de reemplazos de funciones globales en baja en `npm run lint:design`.
 
+### Tres pestañas y vistas del riel (etapa 3, D3)
+
+El inspector muestra tres pestañas: **Libro**, **Página** y **Selección**. Los módulos siguen dibujando por pestaña interna (`tab`), y `src/inspector-views.ts` (último import de `src/entries/app.ts`) arma cada pestaña visible juntando pasadas de la cadena del inspector:
+
+| Pestaña | Pasadas (`tab`) | `tab` al terminar |
+|---|---|---|
+| Libro | `structure`, `design` | `design` |
+| Página | `pages` (sin la tarjeta del documento) | `pages` |
+| Selección | caja de texto: `object`, `text` · otro objeto o varios: `object` · nada: estado vacío | `text`, `object` o `selection` |
+
+**Índice** (`index`) y **Capas** (`layers`) son vistas del riel izquierdo, con su selector junto a Páginas: una envoltura `extend.around` registrada al final dibuja esa pestaña con la misma cadena y pasa el resultado a `#railView`. `showTab()` acepta los nombres viejos (`design`, `text`, `object`, `pages`, `structure`, `index`, `layers`) y los lleva a la pestaña o vista nueva; `inspectorTabFor(nombre)` dice cuál. La pestaña elegida se guarda en `maquetario-inspector-view`, y el orden y plegado de secciones guardados por pestaña vieja se pasaron a la nueva. Después de cada armado, las unidades que venían en la etiqueta ("Grosor · mm") pasan adentro del campo.
+
 ## Etapas
 
 1. **Electron con la interfaz actual** (cerrada el 08-nov). Funciona en macOS y Linux además de Windows; la versión C#/WebView2 (`Host*.cs`, `Build*.ps1`, `Maquetario.iss`) y su rama en la interfaz se retiraron. Pendiente, porque depende de Motiova o de la venta: URLs y clave pública de producción, `licenseMode: "enforce"` y la firma de código (ver "Licencias y conexión con Motiova").

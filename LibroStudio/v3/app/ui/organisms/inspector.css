@@ -30,10 +30,10 @@
   background: transparent;
   box-shadow: none;
   color: var(--text-primary);
-  font-size: var(--type-title2);
+  /* Títulos de sección a headline (13 px semibold): no pesan más que el contenido. */
+  font-size: var(--type-headline);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-title);
 }
 #inspectorContent .section-heading .icon {
   width: var(--icon-sm);
@@ -705,6 +705,45 @@
 }
 @media (max-width: 1250px) {
   .tabs .tab {
-    font-size: var(--type-xs);
+    font-size: var(--type-callout);
   }
+}
+
+/* ── Tres pestañas (Libro · Página · Selección): reparten el ancho del panel ── */
+.inspector .tabs .tab {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.inspector .tabs .tab:focus-visible {
+  outline-offset: calc(-1 * var(--space-3xs));
+}
+
+/* Selección sin nada elegido: un estado vacío claro, sin tarjeta. */
+.inspector-empty {
+  padding: var(--space-2xl) var(--space-lg);
+}
+.inspector-empty-title {
+  margin: 0 0 var(--space-xs);
+  color: var(--text-primary);
+  font-size: var(--type-headline);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+}
+.inspector-empty .help {
+  color: var(--text-secondary);
+  font-size: var(--type-callout);
+  line-height: var(--leading-text);
+}
+
+/* Consejo del pie: se puede descartar (queda oculto en localStorage). */
+.inspector-foot[hidden] {
+  display: none;
+}
+.inspector-foot #inspectorTip {
+  flex: 1;
+  min-width: 0;
+}
+.inspector-tip-close {
+  flex-shrink: 0;
+  align-self: flex-start;
 }

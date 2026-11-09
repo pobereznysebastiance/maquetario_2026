@@ -104,12 +104,12 @@ lesson(
 lesson(
   'pages',
   'pages',
-  '[data-tab="pages"]',
+  '[data-tab="page"]',
   ['2. Organizar las páginas', '2. Organize pages', '2. Organize as páginas'],
   [
-    'Hacé clic en una página para activarla. Las miniaturas permiten cambiar de doble página. En Páginas podés agregar, duplicar, eliminar o mover la página activa antes o después. Los folios se recalculan. Eliminar una página también quita sus objetos; Deshacer permite recuperarla.',
-    'Click a page to activate it and use thumbnails to switch spreads. Pages lets you add, duplicate, delete or move the active page earlier or later. Page numbers recalculate. Deleting a page removes its objects too; Undo restores it.',
-    'Clique em uma página para ativá-la e use as miniaturas para mudar de dupla. Em Páginas, adicione, duplique, exclua ou mova a página ativa. Os números são recalculados. Excluir a página remove seus objetos; Desfazer permite recuperá-la.',
+    'Hacé clic en una página para activarla. Las miniaturas permiten cambiar de doble página. En la pestaña Página podés agregar, duplicar, eliminar o mover la página activa antes o después. Los folios se recalculan. Eliminar una página también quita sus objetos; Deshacer permite recuperarla.',
+    'Click a page to activate it and use thumbnails to switch spreads. The Page tab lets you add, duplicate, delete or move the active page earlier or later. Page numbers recalculate. Deleting a page removes its objects too; Undo restores it.',
+    'Clique em uma página para ativá-la e use as miniaturas para mudar de dupla. Na aba Página, adicione, duplique, exclua ou mova a página ativa. Os números são recalculados. Excluir a página remove seus objetos; Desfazer permite recuperá-la.',
   ],
   [
     'Agregá una página vacía y movela con Antes o Después. Comprobá su nueva numeración.',
@@ -402,7 +402,7 @@ lesson(
 lesson(
   'sections',
   'pages',
-  '[data-tab="pages"]',
+  '[data-tab="page"]',
   [
     '20. Definir capítulos y excepciones',
     '20. Define sections and exceptions',
@@ -422,7 +422,7 @@ lesson(
 lesson(
   'running-title',
   'design',
-  '[data-tab="design"]',
+  '[data-tab="book"]',
   ['21. Agregar un titulillo', '21. Add a running title', '21. Adicione um título corrente'],
   [
     'Titulillo es un segundo elemento automático independiente de la cornisa. Podés usarlo para el nombre de una colección, una sección breve o una referencia lateral. Tiene sus propias posiciones, pares e impares y desplazamientos. Evitá superponerlo con el folio o con la caja de texto.',
