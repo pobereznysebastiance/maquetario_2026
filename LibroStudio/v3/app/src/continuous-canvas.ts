@@ -223,14 +223,7 @@ extend.instead(
         canvasPadding + (row?.offset || 0) + ((row?.height || 0) - canvasStage.clientHeight) / 2;
     }
     paintContinuousRows();
-    $('#rulerX').innerHTML = Array.from(
-      { length: 10 },
-      (_, i) => `<span>${displayMeasure((i * referenceWidth) / 10)}</span>`,
-    ).join('');
-    $('#rulerY').innerHTML = Array.from(
-      { length: 8 },
-      (_, i) => `<span>${displayMeasure((i * referenceHeight) / 8)}</span>`,
-    ).join('');
+    // Las marcas de las reglas las pone la capa de selección (components/canvas/CanvasGuides.tsx).
     updateCanvasZoomDisplay();
     updateCanvasCursor();
   },

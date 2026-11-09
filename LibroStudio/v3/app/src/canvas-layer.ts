@@ -1,6 +1,6 @@
 // Capa de selección del lienzo (components/canvas/SelectionLayer.tsx): la engancha al dibujo.
 // - Cada página que arma screenPage (pliego o vista continua) se le avisa a la capa, que se dibuja
-//   sobre ella en el acto.
+//   sobre ella en el acto (grilla y guías, selección, rótulo) y pone las marcas de las reglas.
 // - checkOverflow mide las cajas con texto sobrante; la marca + la dibuja la capa (sólo se
 //   redibuja si cambió qué cajas desbordan: durante un arrastre se mide en cada movimiento).
 //
@@ -11,8 +11,8 @@ import { setOverflowing, trackPage } from './components/canvas/SelectionLayer.ts
 
 extend.result(
   'screenPage',
-  function (page: HTMLElement, _drawn: HTMLElement, index: number) {
-    trackPage(page, index);
+  function (page: HTMLElement, _drawn: HTMLElement, index: number, px: number) {
+    trackPage(page, index, px);
     return page;
   },
   'canvas-layer',
@@ -35,6 +35,6 @@ extend.replace(
 );
 
 // Lo que ya estaba dibujado al cargar este módulo.
-for (const page of $$('#spread .page')) trackPage(page, Number(page.dataset.page));
+for (const page of $$('#spread .page')) trackPage(page, Number(page.dataset.page), scale);
 
 export {};

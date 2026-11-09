@@ -152,24 +152,7 @@ export interface BookGuide {
   axis: 'v' | 'h';
   position: number;
 }
-// Guías propias del libro, sobre la grilla.
-extend.result(
-  'gridSvg',
-  (svg: string, i: number, px: number) => {
-    const lines = (book.guides || [])
-      .map((g: BookGuide) =>
-        g.axis === 'v'
-          ? `<line x1="${g.position}" x2="${g.position}" y1="0" y2="${book.height}"/>`
-          : `<line y1="${g.position}" y2="${g.position}" x1="0" x2="${book.width}"/>`,
-      )
-      .join('');
-    return svg.replace(
-      '</svg>',
-      `<g stroke="#b7a2ff" fill="none" stroke-width="${0.8 / px}" stroke-dasharray="1 1">${lines}</g></svg>`,
-    );
-  },
-  'editorial',
-);
+// Guías propias del libro, sobre la grilla: las dibuja el lienzo (components/canvas/CanvasGuides.tsx).
 registerTool({
   id: 'indexTool',
   icon: 'index',

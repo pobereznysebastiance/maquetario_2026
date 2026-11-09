@@ -426,18 +426,6 @@ function calculateScale(): void {
       ),
     ) * zoom;
 }
-function gridSvg(i: number, px: number): string {
-  const m = M.margins(book, i),
-    g = book.grid,
-    r = M.gridRect(book, i),
-    cw = (r.w - g.gapX * (g.cols - 1)) / g.cols,
-    rh = (r.h - g.gapY * (g.rows - 1)) / g.rows;
-  let rects = '';
-  for (let c = 0; c < g.cols; c++)
-    for (let row = 0; row < g.rows; row++)
-      rects += `<rect x="${r.x + c * (cw + g.gapX)}" y="${r.y + row * (rh + g.gapY)}" width="${cw}" height="${rh}"/>`;
-  return `<svg class="grid-svg" viewBox="0 0 ${book.width} ${book.height}"><g fill="none" stroke="#65cee3" stroke-width="${0.65 / px}" opacity=".58">${g.enabled ? rects : ''}</g><rect x="${m.left}" y="${book.margins.top}" width="${book.width - m.left - m.right}" height="${book.height - book.margins.top - book.margins.bottom}" fill="none" stroke="#e282d6" stroke-width="${0.7 / px}" opacity=".7"/></svg>`;
-}
 const autoElement = extensible(
   'autoElement',
   function (
@@ -559,19 +547,15 @@ const paper = extensible('paper', function (i: number, px: number, print = false
   return page;
 });
 /**
- * Lo que la página dibujada por paper() lleva sólo en el lienzo. La base pone la grilla y las guías;
- * la capa de selección (components/canvas/SelectionLayer.tsx, enganchada en canvas-layer.ts) dibuja
- * encima, con React, la etiqueta y los controladores del objeto elegido, la selección múltiple, la
- * página activa y la marca de texto sobrante. Nunca sale impreso. No pone oyentes: los eventos del
+ * Lo que la página dibujada por paper() lleva sólo en el lienzo: lo dibuja, con React, la capa de
+ * selección (components/canvas/SelectionLayer.tsx, enganchada acá en canvas-layer.ts): la grilla y
+ * las guías, la etiqueta y los controladores del objeto elegido, la selección múltiple, la página
+ * activa, el imán y la marca de texto sobrante. Nunca sale impreso. No pone oyentes: los eventos del
  * lienzo los atiende #spread (ver "Eventos del lienzo", más abajo).
  */
 const screenPage = extensible(
   'screenPage',
   function (page: HTMLElement, i: number, px: number): HTMLElement {
-    const guides = document.createElement('div');
-    guides.className = 'guides';
-    guides.innerHTML = gridSvg(i, px);
-    page.append(guides);
     return page;
   },
 );
@@ -587,16 +571,7 @@ const renderPages = extensible('renderPages', function (): void {
     height = book.height * (vertical ? count : 1);
   host.style.width = width * scale + (!vertical && count === 2 ? 2 : 0) + 'px';
   host.style.height = height * scale + (vertical && count === 2 ? 2 : 0) + 'px';
-  $('#rulerX').innerHTML = Array.from(
-    { length: 10 },
-    (_, i) =>
-      `<span>${Number(((i * width) / 10 / (book.measurementUnit === 'cm' ? 10 : 1)).toFixed(1))}</span>`,
-  ).join('');
-  $('#rulerY').innerHTML = Array.from(
-    { length: 8 },
-    (_, i) =>
-      `<span>${Number(((i * height) / 8 / (book.measurementUnit === 'cm' ? 10 : 1)).toFixed(1))}</span>`,
-  ).join('');
+  // Las marcas de las reglas las pone la capa de selección (components/canvas/CanvasGuides.tsx).
   requestAnimationFrame(checkOverflow);
 });
 /** Redibuja la pantalla. Nombre y formato del libro: barra del documento (React), vía updateStatus. */

@@ -15,6 +15,7 @@ import { registerRailView } from './components/rail/rail-views.ts';
 import { layersViewFor } from './components/rail/LayersView.tsx';
 import { i18n } from './i18n/language.ts';
 import { M } from './core-api.ts';
+import { setSnapMarks } from './components/canvas/SelectionLayer.tsx';
 
 /** Posiciones (mm) a las que se ajusta el imán, por eje. */
 export interface SnapLines {
@@ -229,10 +230,11 @@ globalThis.updateSnapButton = updateSnapButton;
 extend.after(
   'moveObject',
   function (e: PointerEvent) {
-    $$('.snap-indicator').forEach((n) => n.remove());
-    if (!drag) return;
+    if (!drag || book.snap?.enabled === false || e.altKey) {
+      setSnapMarks(null, []);
+      return;
+    }
     const d = drag;
-    if (book.snap?.enabled === false || e.altKey) return;
     const out = snappedFrame(
       d.o,
       d.resize,
@@ -247,13 +249,11 @@ extend.after(
       width: d.o.w * scale + 'px',
       height: d.o.h * scale + 'px',
     });
-    const page = d.el.closest('.page')!;
-    for (const hit of out.hits) {
-      let line = document.createElement('div');
-      line.className = 'snap-indicator ' + hit.axis;
-      line.style[hit.axis === 'x' ? 'left' : 'top'] = hit.value * scale + 'px';
-      page.append(line);
-    }
+    // Las líneas del imán las dibuja la capa del lienzo (sólo cuando cambian).
+    setSnapMarks(
+      d.el.closest<HTMLElement>('.page'),
+      out.hits.map((hit) => ({ axis: hit.axis, offset: hit.value * scale })),
+    );
     updateStatus();
   },
   'layout-tools',
@@ -261,7 +261,7 @@ extend.after(
 extend.after(
   'upObject',
   function (e: PointerEvent) {
-    $$('.snap-indicator').forEach((n) => n.remove());
+    setSnapMarks(null, []);
   },
   'layout-tools',
 );

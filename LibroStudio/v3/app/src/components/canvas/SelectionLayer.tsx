@@ -4,7 +4,9 @@
 //   en el objeto elegido   la etiqueta (.object-badge) y los 8 controladores (.frame-handle);
 //                          bloqueado, sólo la etiqueta
 //   en cada caja de texto  la marca + de texto sobrante (.overflow-mark)
-//   en cada página         el rótulo de página activa (.page-active-badge)
+//   en cada página         la grilla y las guías (.guides), el rótulo de página activa
+//                          (.page-active-badge) y, durante un arrastre, el imán (.snap-indicator)
+//   en las reglas          sus marcas (#rulerX, #rulerY)
 //   clases                 selected, multi-selected y locked en los objetos; active-page e
 //                          is-page-active en las páginas
 //
@@ -22,6 +24,7 @@ import { editor } from '../../core-api.ts';
 import { bw, i18n } from '../../i18n/language.ts';
 import { useEditorState } from '../../react/editor-state.ts';
 import { mount, useLanguage } from '../../react/mount.tsx';
+import { PageGrid, Rulers, SnapMarks, type SnapMark } from './CanvasGuides.tsx';
 
 /** Direcciones de los controladores: esquinas y bordes. */
 export const frameDirections = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
@@ -67,12 +70,16 @@ const handleLabel = (direction: string): string => HANDLE_NAMES[i18n.language ||
 interface TrackedPage {
   page: HTMLElement;
   index: number;
+  /** Píxeles por mm con que se dibujó. */
+  px: number;
 }
 let pages: TrackedPage[] = [];
 /** La página que se está armando (todavía fuera del documento). */
 let pending: TrackedPage | null = null;
 /** Cajas de texto con texto sobrante (las mide checkOverflow, en canvas-layer.ts). */
 let overflowing = new Set<string>();
+/** Indicadores del imán: la página del arrastre y sus líneas. */
+let snap: { page: HTMLElement | null; marks: SnapMark[] } = { page: null, marks: [] };
 
 let version = 0;
 const listeners = new Set<() => void>();
@@ -102,9 +109,9 @@ export function refreshSelection(): void {
 }
 
 /** Una página nueva del lienzo (screenPage): la capa se dibuja sobre ella en el acto. */
-export function trackPage(page: HTMLElement, index: number): void {
+export function trackPage(page: HTMLElement, index: number, px: number): void {
   pages = pages.filter((p) => p.page.isConnected && p.page !== page);
-  pending = { page, index };
+  pending = { page, index, px };
   pages.push(pending);
   try {
     refreshSelection();
@@ -118,6 +125,17 @@ export function setOverflowing(ids: string[]): void {
   const next = new Set(ids);
   if (next.size === overflowing.size && ids.every((id) => overflowing.has(id))) return;
   overflowing = next;
+  refreshSelection();
+}
+
+/** Indicadores del imán (layout-tools): redibuja sólo si cambiaron. */
+export function setSnapMarks(page: HTMLElement | null, marks: SnapMark[]): void {
+  const same =
+    page === snap.page &&
+    marks.length === snap.marks.length &&
+    marks.every((m, i) => m.axis === snap.marks[i].axis && m.offset === snap.marks[i].offset);
+  if (same) return;
+  snap = { page, marks };
   refreshSelection();
 }
 
@@ -171,13 +189,17 @@ const ObjectMarks = ({ el, o }: { el: HTMLElement; o: Record<string, any> }) => 
   );
 };
 
-/** Una página: su rótulo de página activa y las marcas de sus objetos. */
-const PageMarks = ({ page, index }: { page: HTMLElement; index: number }) => {
+/** Una página: grilla y guías, rótulo de página activa, imán y las marcas de sus objetos. */
+const PageMarks = ({ page, index, px }: { page: HTMLElement; index: number; px: number }) => {
   const objects = editor.book.pages[index]?.objects ?? [];
   return (
     <>
       {createPortal(
-        <span className="page-active-badge">{`${globalThis.rw().active} ${index + 1}`}</span>,
+        <>
+          <PageGrid index={index} px={px} />
+          <span className="page-active-badge">{`${globalThis.rw().active} ${index + 1}`}</span>
+          {snap.page === page ? <SnapMarks marks={snap.marks} /> : null}
+        </>,
         page,
         String(keyOf(page)),
       )}
@@ -213,9 +235,10 @@ const SelectionLayer = () => {
   useLayoutEffect(() => applyClasses(list));
   return (
     <>
-      {list.map(({ page, index }) => (
-        <PageMarks key={keyOf(page)} page={page} index={index} />
+      {list.map(({ page, index, px }) => (
+        <PageMarks key={keyOf(page)} page={page} index={index} px={px} />
       ))}
+      <Rulers />
     </>
   );
 };

@@ -310,7 +310,7 @@ Tiempos (Chrome sin ventana, libro de muestra, 50 llamadas seguidas a `inspector
 
 ## El lienzo (etapa 3, D2): plan
 
-Es lo último del orden D2. Plan escrito el 09-nov. Hechos: pasos 1 a 3.
+Es lo último del orden D2. Plan escrito el 09-nov. Hechos: pasos 1 a 4.
 
 ### Qué es hoy
 
@@ -406,10 +406,21 @@ Cada paso es una entrega con la autoprueba en verde, PDF idénticos (`compare-ou
        - `#spread` sale igual en los recorridos, y con eventos de puntero reales dan lo mismo antes y después.
        - El arrastre cuesta lo mismo: ~0,9 ms por movimiento y ~1 ms por cuadro, antes y después.
        - Única diferencia: si la selección cambia sólo con el aviso del estado, sin redibujar el pliego, la capa la sigue; antes quedaban los controladores viejos.
-4. **Grilla, guías, imán y reglas.**
+4. ✓ **Grilla, guías, imán y reglas.**
    - `<PageGuides/>` por página, en lugar de `gridSvg` + la extensión de `editorial`.
    - `<SnapIndicators/>` con un estado propio que escribe `moveObject`.
    - `<Rulers/>` con las marcas de `#rulerX`/`#rulerY` y la preferencia de `rulers.ts`.
+   - **Hecho (09-nov), en `components/canvas/CanvasGuides.tsx`, dibujado por la capa de selección:**
+     - `PageGrid` dibuja la grilla, la caja de márgenes y las guías propias de cada página, con el mismo SVG de antes. Salieron `gridSvg` de `studio.ts` y su extensión de `editorial`; `screenPage` ya no dibuja nada.
+     - `SnapMarks` dibuja las líneas del imán: `layout-tools` las pasa con `setSnapMarks()` y la capa se redibuja sólo cuando cambian.
+     - `Rulers` pone las marcas de `#rulerX`/`#rulerY` con las mismas cuentas del pliego y de la vista continua (mm o cm). Salieron las escrituras de `renderPages` y de `continuous-canvas`. La preferencia de mostrar u ocultar sigue en `rulers.ts`.
+     - La grilla, las guías y los márgenes del PDF siguen en `output.ts` (`overlaySvg`), sin cambios.
+     - **Pruebas:**
+       - La autoprueba da PDF y JSON idénticos, salvo `verificacion-extensiones.json` (se va `gridSvg`).
+       - Salen iguales `#spread` y las reglas: con y sin grilla, con guías, en cm, con zoom, con la última página sola y en la vista continua.
+       - La salida con y sin "Grilla de filas y columnas" da el mismo marcado.
+       - Con eventos de puntero reales, el imán muestra las mismas líneas a mitad del arrastre y ninguna al soltar.
+       - El arrastre cuesta lo mismo: ~0,8 ms por movimiento y ~1 ms por cuadro.
 5. **El contenedor del pliego (`<Spread/>`).**
    - React decide qué páginas o filas existen: un pliego, o las filas virtualizadas de la vista continua.
    - Cada lugar se llena con `paper(i, scale)` en un `useLayoutEffect`: el papel sigue siendo una isla imperativa.
