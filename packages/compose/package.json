@@ -5,7 +5,8 @@
   "description": "Prototipo del motor de composición (etapa 4): conformado con HarfBuzz (WASM) y cortes de línea Knuth-Plass. Todavía no lo usa la app.",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./browser": "./src/browser.ts"
   },
   "scripts": {
     "test": "node --test \"test/*.test.ts\"",

@@ -7,6 +7,8 @@ const [root, port] = [path.resolve(process.argv[2]), Number(process.argv[3] || 5
 const types = {
   '.html': 'text/html',
   '.js': 'text/javascript',
+  '.mjs': 'text/javascript',
+  '.wasm': 'application/wasm',
   '.css': 'text/css',
   '.png': 'image/png',
   '.svg': 'image/svg+xml',

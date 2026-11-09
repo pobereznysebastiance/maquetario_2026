@@ -9,6 +9,7 @@ import {
   loadFont,
   paragraphDemerits,
   shape,
+  SOFT_HYPHEN,
 } from '../src/index.ts';
 
 // Fuente real del repo: la DM Sans que trae la app (OFL).
@@ -159,4 +160,22 @@ test('una palabra que no entra no rompe el corte', () => {
   assert.equal(result.fallback, true, 'sin solución, se usa el corte voraz');
   assert.ok(result.lines.length >= 2);
   assert.equal(result.lines.map((l) => l.text).join(' '), long.text);
+});
+
+test('sangría de primera línea y separador propio (el de la página)', () => {
+  const indent = 20;
+  for (const algorithm of ['knuth-plass', 'greedy'] as const) {
+    const { lines } = breakLines(paragraph, 300, { algorithm, indent });
+    assert.equal(lines[0]!.glyphs[0]!.x, indent, 'la primera línea empieza en la sangría');
+    assert.equal(lines[0]!.width, 300 - indent);
+    const right = lines[0]!.glyphs.at(-1)!.x + lines[0]!.glyphs.at(-1)!.advance;
+    assert.ok(Math.abs(right - 300) < 1e-6, `${algorithm}: la primera línea llega al borde`);
+    assert.equal(lines[1]!.glyphs[0]!.x, 0);
+  }
+  // Un separador que sólo deja cortar "caballero" como "caba-llero".
+  const own = createParagraph(font, 'caballero', {
+    size,
+    hyphenator: (word) => (word === 'caballero' ? 'caba' + SOFT_HYPHEN + 'llero' : word),
+  });
+  assert.equal(own.items.filter((item) => item.type === 'penalty' && item.flagged).length, 1);
 });

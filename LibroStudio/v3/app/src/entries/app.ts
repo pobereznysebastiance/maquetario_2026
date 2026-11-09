@@ -62,3 +62,4 @@ import '../workspace.ts';
 import '../rulers.ts';
 import '../inspector-sections.ts';
 import '../inspector-views.ts';
+import '../compose-loader.ts';

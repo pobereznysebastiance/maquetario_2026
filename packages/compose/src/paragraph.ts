@@ -64,7 +64,9 @@ export function createParagraph(
   };
 
   let word = 0;
-  for (const match of text.matchAll(/\S+/g)) {
+  // Las palabras se separan sólo en blancos comunes: el espacio duro (U+00A0) no corta, como en
+  // el navegador.
+  for (const match of text.matchAll(/[^ \t\n\r\f\v]+/g)) {
     const start = match.index;
     const token = match[0];
     if (word > 0) push({ type: 'glue', width: spaceWidth, stretch, shrink });
@@ -127,6 +129,8 @@ export interface LayoutOptions extends Omit<BreakOptions, 'lineWidth'> {
   algorithm?: 'knuth-plass' | 'greedy';
   /** Justificar (por defecto true); sin justificar, los espacios quedan con su ancho natural. */
   justify?: boolean;
+  /** Sangría de la primera línea, en puntos: esa línea es más corta y sus glifos empiezan ahí. */
+  indent?: number;
 }
 
 export interface ComposedParagraph {
@@ -137,8 +141,10 @@ export interface ComposedParagraph {
 }
 
 /** Corte voraz: cada línea toma todo lo que entra con los espacios a su ancho natural. */
-export function greedyBreaks(items: Item[], width: number): number[] {
+export function greedyBreaks(items: Item[], widths: number | ((line: number) => number)): number[] {
+  const widthAt = (line: number) => (typeof widths === 'function' ? widths(line) : widths);
   const breaks: number[] = [];
+  let width = widthAt(0);
   let lineStart = 0;
   let lineWidth = 0;
   let lastFit = -1;
@@ -158,6 +164,7 @@ export function greedyBreaks(items: Item[], width: number): number[] {
     if (item.type !== 'penalty') lineWidth += item.width;
     if (item.type === 'box' && lineWidth > width && lastFit >= 0) {
       breaks.push(lastFit);
+      width = widthAt(breaks.length);
       lineStart = lastFit + 1;
       // La línea nueva empieza después del corte, salteando espacios y penalizaciones.
       while (lineStart < items.length && items[lineStart]!.type !== 'box') lineStart++;
@@ -178,6 +185,8 @@ export function breakLines(
   options: LayoutOptions = {},
 ): ComposedParagraph {
   const algorithm = options.algorithm ?? 'knuth-plass';
+  const indent = options.indent ?? 0;
+  const widthAt = (line: number) => (line === 0 ? width - indent : width);
   let positions: number[] | null = null;
   if (algorithm === 'knuth-plass') {
     const tolerances = options.tolerance ? [options.tolerance, ...TOLERANCES] : TOLERANCES;
@@ -185,7 +194,7 @@ export function breakLines(
       const breaks: Break[] | null = knuthPlass(paragraph.items, {
         ...options,
         tolerance,
-        lineWidth: width,
+        lineWidth: widthAt,
       });
       if (breaks) {
         positions = breaks.map((b) => b.position);
@@ -194,9 +203,9 @@ export function breakLines(
     }
   }
   const fallback = algorithm === 'knuth-plass' && !positions;
-  positions ??= greedyBreaks(paragraph.items, width);
+  positions ??= greedyBreaks(paragraph.items, widthAt);
   return {
-    lines: buildLines(paragraph, positions, width, options.justify ?? true),
+    lines: buildLines(paragraph, positions, widthAt, indent, options.justify ?? true),
     algorithm,
     fallback,
   };
@@ -205,7 +214,8 @@ export function breakLines(
 function buildLines(
   paragraph: Paragraph,
   positions: number[],
-  width: number,
+  widthAt: (line: number) => number,
+  indent: number,
   justify: boolean,
 ): Line[] {
   const { items, segments, font, options, text } = paragraph;
@@ -216,6 +226,7 @@ function buildLines(
   let from = 0;
   positions.forEach((position, lineIndex) => {
     const last = lineIndex === positions.length - 1;
+    const width = widthAt(lineIndex);
     const breakItem = items[position];
     const hyphenated = breakItem?.type === 'penalty' && breakItem.flagged;
     // Trozos de palabra de la línea, unidos por palabra.
@@ -243,7 +254,7 @@ function buildLines(
     const spaceWidth = paragraph.spaceWidth + (ratio >= 0 ? ratio * stretch : ratio * shrink);
 
     const glyphs: LineGlyph[] = [];
-    let x = 0;
+    let x = lineIndex === 0 ? indent : 0;
     pieces.forEach((piece, i) => {
       if (i > 0) x += spaceWidth;
       const wordLength = piece.end - piece.start;

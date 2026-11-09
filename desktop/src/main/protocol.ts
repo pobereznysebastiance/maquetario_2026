@@ -22,6 +22,7 @@ const MIME: Record<string, string> = {
   '.ttf': 'font/ttf',
   '.otf': 'font/otf',
   '.woff2': 'font/woff2',
+  '.wasm': 'application/wasm',
   '.txt': 'text/plain; charset=utf-8',
 };
 
@@ -50,14 +51,20 @@ async function serveFont(pathname: string): Promise<Response> {
   }
 }
 
-/** Política de contenido también como cabecera (además del meta del HTML): defensa en profundidad. */
+/**
+ * Política de contenido también como cabecera (además del meta del HTML): defensa en profundidad.
+ * Valen las dos a la vez, así que manda la más estricta. Sin red: la página sólo puede pedir
+ * (fetch) dos cosas del propio programa, las que necesita el motor de composición cuando se
+ * prende su llave (src/compose-loader.ts): el WASM de HarfBuzz y los archivos de fuente.
+ * 'wasm-unsafe-eval' permite compilar WebAssembly, no eval de JavaScript.
+ */
 const APP_CSP = [
   "default-src 'self' data: blob:",
-  "script-src 'self'",
+  "script-src 'self' 'wasm-unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  "connect-src 'none'",
+  `connect-src ${APP_SCHEME}://app/build/harfbuzz.wasm ${APP_SCHEME}://app${FONT_ROUTE}`,
   "object-src 'none'",
   "frame-src 'none'",
   "base-uri 'self'",

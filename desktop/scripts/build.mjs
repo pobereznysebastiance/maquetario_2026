@@ -89,6 +89,22 @@ await build({
   format: 'iife',
 });
 await build({ ...uiOptions, entryPoints: tsIn(join(ui, 'src/global')), bundle: false });
+// - src/modules/*.ts son módulos ES que la app carga a pedido con import() (build/<nombre>.mjs).
+//   Hoy, el motor de composición (etapa 4, detrás de una llave: src/compose-loader.ts), con
+//   HarfBuzz en WASM: harfbuzz.wasm va al lado, donde lo busca (new URL(…, import.meta.url)).
+await build({
+  ...uiOptions,
+  entryPoints: tsIn(join(ui, 'src/modules')),
+  bundle: true,
+  format: 'esm',
+  outExtension: { '.js': '.mjs' },
+  // harfbuzz.js importa "module" sólo cuando corre en Node; en la página ese camino no se usa.
+  external: ['module'],
+});
+cpSync(
+  join(dirname(fileURLToPath(import.meta.resolve('harfbuzzjs'))), 'harfbuzz.wasm'),
+  join(ui, 'build', 'harfbuzz.wasm'),
+);
 
 // Perfiles ICC de la salida PDF/X-4 (src/main/pdfx.ts; licencias en assets/icc/LICENCIAS.md).
 cpSync(join(root, 'assets/icc'), join(root, 'dist/icc'), { recursive: true });
