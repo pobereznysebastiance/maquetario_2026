@@ -4,7 +4,7 @@
 //   import { editor } from '../core-api.ts';       // desde app (otro bundle: no se duplica)
 //   editor.book.pages[editor.active]
 //
-// Antes, cada pieza de estado era un `let` del núcleo (studio.ts) o un global que publicaba un
+// Antes, cada pieza de estado era un `let` del núcleo (el viejo studio.ts) o un global que publicaba un
 // módulo, y otros archivos, las pruebas y las cadenas de la autoprueba lo leían y lo asignaban por
 // su nombre (`book = …`, `({ book, active } = previous)`). Mientras se migra, cada nombre sigue
 // existiendo como global: es un accesor sobre este objeto (Object.defineProperty en globalThis),
@@ -12,11 +12,11 @@
 // usa. Los módulos nuevos importan `editor`; el inventario (scripts/globals-report.mjs --state)
 // muestra quién sigue usando el nombre suelto.
 //
-// Carga en core, después del modelo y antes de studio.ts (src/entries/core.ts): los accesores
-// tienen que existir antes de que el núcleo o un módulo asigne el valor inicial.
+// Carga en core, después del modelo y antes del resto del núcleo (src/entries/core.ts): los
+// accesores tienen que existir antes de que el núcleo o un módulo asigne el valor inicial.
 //
 // Fuente TypeScript: viaja dentro de build/core.js (src/entries/core.ts).
-import type { Book } from '../model.ts';
+import type { Book, BookObject } from '../model.ts';
 import type { CoverDesign } from '../publications.ts';
 
 export interface EditorState {
@@ -52,6 +52,8 @@ export interface EditorState {
   editing: HTMLElement | null;
   /** Arrastre en curso de una caja. */
   drag: ObjectDrag | null;
+  /** Cajas de texto con texto sobrante en el pliego visible (la cuenta checkOverflow: canvas-layer.ts). */
+  overflowCount: number;
   // Estado que publicaban los módulos (cada uno sigue asignando su valor inicial al cargar).
   /** Hay un libro abierto (review-workspace.ts). */
   hasDocument: boolean;
@@ -92,6 +94,7 @@ export const editor: EditorState = {
   redoStack: [],
   editing: null,
   drag: null,
+  overflowCount: 0,
   // Los módulos los inicializan al cargar (por el accesor).
   hasDocument: false,
   multiSelection: new Set(),
@@ -102,6 +105,20 @@ export const editor: EditorState = {
 
 // El estado del núcleo, como globales (los del módulo los declara cada módulo).
 declare global {
+  /** Arrastre en curso de una caja (frame-handles lo arma con resize = dirección). */
+  interface ObjectDrag {
+    o: BookObject;
+    el: HTMLElement;
+    startX: number;
+    startY: number;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    /** false: mover; una dirección (nw, n, ne…): redimensionar (objectDown de frame-handles convierte true en "se"). */
+    resize: string | false;
+    moved: boolean;
+  }
   var book: Book;
   var active: number;
   var spread: number;
@@ -119,6 +136,7 @@ declare global {
   var redoStack: string[];
   var editing: HTMLElement | null;
   var drag: ObjectDrag | null;
+  var overflowCount: number;
   /** El estado del editor (para pruebas y depuración; los módulos lo importan). */
   var maquetarioEditor: EditorState;
 }

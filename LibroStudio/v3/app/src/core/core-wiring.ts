@@ -1,13 +1,12 @@
-// Cableado de lo que salió de studio.ts (grupo 5): publica los nombres que todavía leen studio.ts
-// (un script, no puede importar), los módulos de app, las pruebas y scripts/style-snapshot.js;
+// Cableado del núcleo (lo que era studio.ts, grupo 5): publica los nombres que todavía leen por
+// global los módulos de app, el lienzo, las pruebas y scripts/style-snapshot.js;
 // registra como extensibles las funciones que otros extienden por nombre (toast: Toast.tsx;
 // syncNative: react/editor-state-wiring.ts; commit: paragraphs.ts; inspector: inspector-registry,
 // tutorial, review-workspace, inspector-views; applyBookSettings, saveProject, loadProject y
 // preparePrint), y escucha las respuestas del anfitrión.
 //
-// Lo importa src/entries/core.ts al final: core corre antes que build/studio.js, así studio.ts
-// encuentra todo publicado y registrado. Cada corte del grupo 5 suma acá lo suyo, y cuando un
-// nombre deja de leerse por global, se saca.
+// Lo importa src/entries/core.ts antes que studio-wiring.ts (el arranque), que ya encuentra todo
+// publicado y registrado. Cuando un nombre deja de leerse por global, se saca de acá.
 //
 // Fuente TypeScript: viaja dentro de build/core.js (src/entries/core.ts).
 import type { LibroModelApi } from '../model.ts';
@@ -43,6 +42,28 @@ import {
   type UnsavedIntent as Intent,
 } from './project-file.ts';
 import { clearPrint, preparePrintBase } from './print.ts';
+import { renderTemplatesBase, thumbsBase } from './templates.ts';
+import {
+  autoElementBase,
+  calculateScale,
+  checkOverflowBase,
+  paperBase,
+  renderBase,
+  renderPagesBase,
+  screenPageBase,
+  updateStatusBase,
+  verticalSpread,
+} from './canvas.ts';
+import {
+  chooseImage,
+  finishEditingBase,
+  moveObjectBase,
+  objectDownBase,
+  pageDownBase,
+  startEditingBase,
+  upObjectBase,
+} from './editing.ts';
+import { commandBase, setToolBase, setZoomBase, showTabBase, togglePreview } from './tools.ts';
 import type { BookObject } from '../model.ts';
 
 declare global {
@@ -103,6 +124,34 @@ declare global {
   /** Salida de lectura en #printRoot (src/core/print.ts); preparePrint es extensible. */
   var preparePrint: () => boolean;
   var clearPrint: () => void;
+  /** Plantillas y miniaturas (src/core/templates.ts), extensibles. */
+  var renderTemplates: () => void;
+  var thumbs: () => void;
+  /** El dibujo (src/core/canvas.ts); autoElement, paper, screenPage, renderPages, render,
+   * updateStatus y checkOverflow son extensibles. */
+  var verticalSpread: () => boolean;
+  var calculateScale: () => void;
+  var autoElement: typeof autoElementBase;
+  var paper: (i: number, px: number, print?: boolean) => HTMLElement;
+  var screenPage: (page: HTMLElement, i: number, px: number) => HTMLElement;
+  var renderPages: () => void;
+  var render: (full?: boolean) => void;
+  var updateStatus: () => void;
+  var checkOverflow: () => void;
+  /** Edición y arrastre (src/core/editing.ts), extensibles salvo chooseImage. */
+  var startEditing: (el: HTMLElement) => void;
+  var finishEditing: () => void;
+  var objectDown: typeof objectDownBase;
+  var moveObject: (e: PointerEvent) => void;
+  var upObject: (e: PointerEvent) => void;
+  var pageDown: (e: PointerEvent, i: number, el: HTMLElement) => void;
+  var chooseImage: (target: Record<string, unknown>) => void;
+  /** Pestañas, herramientas, vista previa, zoom y comandos (src/core/tools.ts). */
+  var showTab: (name: string) => void;
+  var setTool: (name: string) => void;
+  var togglePreview: () => void;
+  var setZoom: (z: number) => void;
+  var command: (name: string) => void;
 }
 
 globalThis.$ = $;
@@ -142,5 +191,28 @@ globalThis.openBook = openBook;
 globalThis.loadProject = extensible('loadProject', loadProjectBase);
 globalThis.preparePrint = extensible('preparePrint', preparePrintBase);
 globalThis.clearPrint = clearPrint;
+globalThis.renderTemplates = extensible('renderTemplates', renderTemplatesBase);
+globalThis.thumbs = extensible('thumbs', thumbsBase);
+globalThis.verticalSpread = verticalSpread;
+globalThis.calculateScale = calculateScale;
+globalThis.autoElement = extensible('autoElement', autoElementBase);
+globalThis.paper = extensible('paper', paperBase);
+globalThis.screenPage = extensible('screenPage', screenPageBase);
+globalThis.renderPages = extensible('renderPages', renderPagesBase);
+globalThis.render = extensible('render', renderBase);
+globalThis.updateStatus = extensible('updateStatus', updateStatusBase);
+globalThis.checkOverflow = extensible('checkOverflow', checkOverflowBase);
+globalThis.startEditing = extensible('startEditing', startEditingBase);
+globalThis.finishEditing = extensible('finishEditing', finishEditingBase);
+globalThis.objectDown = extensible('objectDown', objectDownBase);
+globalThis.moveObject = extensible('moveObject', moveObjectBase);
+globalThis.upObject = extensible('upObject', upObjectBase);
+globalThis.pageDown = extensible('pageDown', pageDownBase);
+globalThis.chooseImage = chooseImage;
+globalThis.showTab = extensible('showTab', showTabBase);
+globalThis.setTool = extensible('setTool', setToolBase);
+globalThis.togglePreview = togglePreview;
+globalThis.setZoom = extensible('setZoom', setZoomBase);
+globalThis.command = extensible('command', commandBase);
 
 MaquetarioHost.onMessage(nativeReply);

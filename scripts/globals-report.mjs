@@ -5,8 +5,8 @@
 //   node scripts/globals-report.mjs --json     todo en JSON (para comparar entre entregas)
 //
 // Qué cuenta como global:
-// - lo que declara el núcleo, src/global/studio.ts (es un script: sus let/const/function de nivel
-//   superior son globales);
+// - lo que publica el núcleo, src/core/core-wiring.ts (hasta el 09-nov el núcleo era el script
+//   global src/global/studio.ts; si existiera, sus let/const/function de nivel superior cuentan);
 // - lo que un módulo publica con declare global { var x } y asigna con globalThis.x = …,
 //   window.x = … u Object.defineProperties(globalThis, …);
 // - lo que todavía declara LibroStudio/v3/app/globals.d.ts.
@@ -195,7 +195,7 @@ const DATA_TYPES = new Set([
   'TSTupleType',
 ]);
 
-// ── Declaraciones: núcleo (nivel superior de studio.ts), declare global y globals.d.ts ──
+// ── Declaraciones: declare global, globals.d.ts (y el viejo studio.ts, si existiera) ──
 const trees = new Map();
 for (const file of [...srcFiles, LEGACY, ...testFiles, SNAPSHOT])
   trees.set(file, await parse(file));
@@ -523,11 +523,12 @@ const extendedOnly = [...globals.values()]
   .filter((g) => g.extensions.length && !g.declaredIn.size && !g.definedIn.size)
   .map((g) => g.name);
 const files = (o) => Object.keys(o).length;
-const core = (r) => r.definedIn.includes('src/global/studio.ts');
+const CORE = ['src/global/studio.ts', 'src/core/core-wiring.ts'];
+const core = (r) => r.definedIn.some((f) => CORE.includes(f));
 
 const summary = {
   globales: rows.length,
-  'del núcleo (studio.ts)': rows.filter(core).length,
+  'del núcleo (src/core/, los publica core-wiring.ts)': rows.filter(core).length,
   'publicados por módulos': rows.filter((r) => !core(r)).length,
   funciones: rows.filter((r) => r.kind === 'función').length,
   'objetos de servicio (M, UI, LibroI18n…)': rows.filter((r) => r.kind === 'objeto').length,

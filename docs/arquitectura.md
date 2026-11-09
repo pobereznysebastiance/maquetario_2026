@@ -645,7 +645,7 @@ Cada grupo es una entrega con la autoprueba en verde, los PDF idénticos y el in
    - `src/core-api.ts` da `M`, `UI` y `editor` a los módulos de app: core es otro bundle y un `import` directo duplicaría el modelo y el estado. Los componentes (`components/` y los `.tsx` de `src/`) leen y asignan `editor.x`.
 
    Lista de extensiones y recorridos de las Hojas idénticos. Inventario: lecturas y asignaciones de globales desde módulos 2575 → 1703 (en `components/` 956 → 391; de estado 761 → 516). Quedan publicados `bw`, `LibroI18n`, `M`/`UI`, los diálogos y `notifyEditorState` para `studio.ts`, las pruebas y la autoprueba.
-5. **El núcleo en piezas.** De `studio.ts` salen módulos sin efectos en `core` y lo que corre al cargar queda como cableado, hasta que `studio.ts` deja de ser un script. Plan detallado (09-nov) en «Grupo 5: `studio.ts` en módulos», más abajo. **Sin empezar:** el lienzo sigue con el paso 6 (edición y arrastre) sobre `studio.ts`, así que los primeros cortes son los bloques que no toca.
+5. **El núcleo en piezas.** De `studio.ts` salen módulos sin efectos en `core` y lo que corre al cargar queda como cableado, hasta que `studio.ts` deja de ser un script. Plan y resultados en «Grupo 5: `studio.ts` en módulos», más abajo. **Hecho el 09-nov:** `studio.ts` ya no existe; el núcleo es `src/core/`.
 6. **Módulos y pantallas.** Por inventario, de menos a más lectores. Primero los 25 sin usos externos, que pasan a privados; después cada módulo con su `import`. **Primera tanda el 09-nov** (sin tocar el lienzo: `studio.ts`, `frame-handles`, `review-workspace`, `layout-tools`, `shapes`, `canvas-navigation`, `continuous-canvas` y `editorial` quedan para su tanda):
    - Sin usos externos, dejan de ser globales: `askChoice`, `openSheetContent`, `browserCurrentVariant`, `currentInspectorView`, `fontLibraryReady`, `hideToast`, `novelProofReport`, `renderBookRoute` y `setLanguage`; `hyphenationFields` y `bindParagraphHyphenation` se borran (nadie los llamaba). `composeReady` y `composeAlgorithm` siguen: son la consola de desarrollo del motor.
    - Partes sin efectos que se importan (el módulo con efectos las usa y publica sólo lo que piden pruebas, proceso principal o `studio.ts`): `inspector-registry.ts` (la pausa sobre `inspector()` pasó a `inspector-registry-wiring.ts`), `hyphenation.ts`, `paragraph-format.ts`, `font-catalog.ts` (`nativeFaces` es un accesor sobre su estado), `output-words.ts`, `length-fields.ts` (las Hojas ya no necesitan el global `adaptLengthControls`), `inspector-tabs.ts`, `book-navigation.ts`, `save-as.ts` y `text-fold.ts`.
@@ -763,13 +763,49 @@ Cada grupo es una entrega con la autoprueba en verde, los PDF idénticos y el in
      - el orden de los módulos con efectos en `app.js` y `core.js` no cambia;
      - la autoprueba completa, corrida en el worktree con Electron contra la base, da PDF y JSON idénticos (sólo cambia la carpeta en `resumen.json`);
      - los recorridos, las suites y la copia de recuperación salen idénticos.
-6. **Comandos:** `src/core/commands.ts` (`command`), coordinado con el lienzo, porque agrega, borra y ordena objetos y páginas.
+6. **Comandos:** `command`, coordinado con el lienzo, porque agrega, borra y ordena objetos y páginas. Quedó en `src/core/tools.ts`.
 7. **Lo del lienzo, después de su paso 6:** plantillas y miniaturas (las miniaturas dibujan el libro: los PDF tienen que salir idénticos), dibujo del pliego, edición y arrastre, eventos, imágenes, pestañas y herramientas, `setZoom` y los atajos.
 8. **Fin del script:**
    - Lo que queda de `studio.ts` es el arranque. Pasa a `src/core/studio-wiring.ts`, importado al final de `entries/core.ts`.
    - Se borran `src/global/`, `build/studio.js`, su `<script>` en `index.html` y su entrada en `desktop/scripts/build.mjs`.
    - Los efectos corren en el mismo lugar que hoy: después de `core` y antes de `app`.
    - Con un solo punto de entrada para la interfaz, `core-api.ts` pasa a ser un re-export.
+
+   **Pasos 6, 7 y 8 hechos (09-nov): `studio.ts` ya no existe.** Con el lienzo terminado, lo que quedaba salió a módulos sin efectos de `src/core/`:
+   - `templates.ts`: plantillas y miniaturas.
+   - `canvas.ts`: `verticalSpread`, `calculateScale`, `autoElement`, `paper`, `screenPage`, `renderPages`, `render`, `updateStatus` y `checkOverflow`.
+   - `editing.ts`: edición, arrastre, `pageDown`, `canvasHit` y las imágenes.
+   - `tools.ts`: `showTab`, `setTool`, `togglePreview`, `setZoom` y `command`. `command` va acá y no en un `commands.ts` aparte.
+
+   Cómo quedó armado:
+   - **Publicación.** `core-wiring.ts` publica todo. Registra con `extensible` las que se extienden por nombre, también las que antes se extendían por la vuelta de `window`: `renderTemplates`, `thumbs`, `updateStatus`, `checkOverflow`, `finishEditing`, `moveObject`, `upObject`, `showTab`, `setZoom` y `command`.
+   - **Llamadas internas.** Entre estas funciones van por el nombre global, así pasan por sus extensiones. `upObject` saca el oyente de `pointermove` con el mismo `moveObject` que puso `frame-handles`.
+   - **Estado.** `overflowCount` pasó al estado del editor y `ObjectDrag` a `state/editor.ts`.
+   - **Arranque.** Es `src/core/studio-wiring.ts`, al final de `entries/core.ts`, con los efectos en el mismo orden. En orden:
+     1. los oyentes de `#spread`;
+     2. `#imageInput` y `#openInput`;
+     3. los íconos;
+     4. las pestañas y `#addPage`;
+     5. los atajos de teclado;
+     6. el `ResizeObserver`;
+     7. `beforeunload`;
+     8. `render(true)`;
+     9. el aviso de listo.
+   - **Lo que se borró:** `src/global/`, `build/studio.js` (de `index.html` y de `desktop/scripts/build.mjs`). `globals-report` cuenta el núcleo por `core-wiring.ts`.
+
+   Resultados:
+   - Los globales bajan de 276 a 271: `buildToolbar`, `canvasHit`, `imageTarget`, `templateMini` y `templates` quedan privados.
+   - Orden de carga:
+     - los módulos con efectos de `app.js` no cambian;
+     - en `core.js` se suman los cinco nuevos al final;
+     - los oyentes de `document` (45), `window` (9) y `#spread` (4) quedan en el mismo orden, con el mismo texto y la misma fase;
+     - los hijos de `body` quedan en el mismo orden, salvo el `<script>` que ya no está.
+   - La autoprueba con Electron, en un perfil propio (`--user-data-dir`), contra la base: PDF y JSON idénticos.
+   - Los recorridos, las suites, la copia de recuperación y el recorrido de archivo dan lo mismo.
+
+   `check-design-tokens` recorre ahora `src/core/` en lugar de `src/global/`, que ya no existe. La deuda «globales publicados por módulos» sube de 219 a 242 sólo porque ahora cuenta las publicaciones de `core-wiring.ts`, que antes no recorría.
+
+   Quedan comentarios en otros archivos que nombran `studio.ts` como origen de algo (por ejemplo «`section()` de `studio.ts`»). Se corrigen cuando se toquen esos archivos.
 
 **Riesgos**
 - **Orden de carga.** `core.js` → `studio.js` → `app.js`. Un módulo de `core` corre antes que `studio.js`: al cargar no puede usar nada de `studio.ts`, sólo cuando lo llaman. Lo que `studio.ts` usa al cargar (`buildToolbar()`, `render(true)`) tiene que estar publicado antes, y `core` lo cumple. En cada corte se compara el orden de los módulos con efectos en `core.js` y en `app.js`, como en el grupo 6.

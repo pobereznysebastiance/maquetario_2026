@@ -51,14 +51,12 @@ await Promise.all([
 ]);
 
 // Interfaz: las fuentes TypeScript (LibroStudio/v3/app/src) se compilan a app/build, que carga
-// index.html en este orden: terceros → build/core.js → build/studio.js → build/app.js.
+// index.html en este orden: terceros → build/core.js → build/app.js.
 // - src/entries/*.ts son los puntos de entrada (core y app): importan los módulos de src/ en el
 //   orden de carga. Cada módulo corre al importarse y mantiene privado lo suyo; lo que comparte
 //   con los demás lo publica en globalThis (declare global).
-// - src/global/*.ts son scripts globales (sin import/export) y se compilan sin envoltorio:
-//   esbuild sólo les saca los tipos, así sus let/const/function de nivel superior siguen siendo
-//   globales como en un .js clásico (studio.ts: book, render, $…, que otros archivos asignan y
-//   extienden por nombre). Van al mismo build/: no repetir nombres con las entradas.
+// - El núcleo (lo que era el script global src/global/studio.ts) son módulos de src/core/ dentro
+//   de build/core.js: lo que otros leen por nombre lo publica src/core/core-wiring.ts.
 // - React y Radix (etapa 3) se empaquetan dentro de build/app.js: JSX automático (archivos .tsx
 //   en src/components/ y src/react/) y React en modo producción. Con MAQUETARIO_REACT_DEV=1 se
 //   arma con el React de desarrollo (avisos y comprobaciones en la consola, más pesado).
@@ -88,7 +86,6 @@ await build({
   bundle: true,
   format: 'iife',
 });
-await build({ ...uiOptions, entryPoints: tsIn(join(ui, 'src/global')), bundle: false });
 // - src/modules/*.ts son módulos ES que la app carga a pedido con import() (build/<nombre>.mjs).
 //   Hoy, el motor de composición (etapa 4, detrás de una llave: src/compose-loader.ts), con
 //   HarfBuzz en WASM: harfbuzz.wasm va al lado, donde lo busca (new URL(…, import.meta.url)).
