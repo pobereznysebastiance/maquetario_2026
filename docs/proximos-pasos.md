@@ -121,9 +121,10 @@ En React (`src/components/`):
   - pauta tipográfica, armador "Dale estructura a tu libro", empaquetar y el aviso al cerrar. `modal()` es una fachada de los componentes de React y `#modal` ya no se abre.
 - **Inspector**, pestaña Libro: entera (Estructura, Grilla, Misceláneas y líneas, Foliado, Cornisa, Titulillo, Fuentes de tu equipo).
 - **Inspector**, pestaña Página: entera. Selección: el objeto (posición, medidas, alinear, distribuir, orden y bloqueo) y el estado vacío.
+- **Inspector:** Selección de texto y párrafo, las vistas Índice y Capas del riel, y la cadena: `<Inspector/>` arma las tres pestañas e `inspector()` es una fachada (pasos 8 a 10).
 
 Falta:
-- **Inspector:** Selección de texto y párrafo (lo más acoplado, en curso), las vistas Índice y Capas del riel, y después la cadena (pasos 8 a 10 en `docs/arquitectura.md` → "Paneles de React en el inspector").
+- **Lienzo:** lo que se dibuja alrededor del libro (selección, controladores, guías, reglas, el pliego y la vista continua), en seis pasos. El papel (`paper()` con `print`) no cambia. Plan en `docs/arquitectura.md` → "El lienzo".
 - **Retirar `#modal`:** ya nadie lo abre (`exportDialog` y `offerRecovery` se borraron); quedan el `<dialog>` de `index.html`, chequeos `$('#modal').open`, reglas de CSS con `#modalBody` y pruebas que lo cierran.
 - **Al final:**
   - retirar `#modal` y la API de cadenas de `src/ui/components.ts` cuando no quede HTML;

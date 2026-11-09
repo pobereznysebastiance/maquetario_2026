@@ -308,6 +308,125 @@ Tiempos (Chrome sin ventana, libro de muestra, 50 llamadas seguidas a `inspector
 - **El traductor del DOM:** no traduce `data-react`.
 - **`flushSync` desde un efecto de React:** si `inspector()` se llama dentro de un efecto, el dibujo sincrónico no se cumple (React avisa y dibuja después).
 
+## El lienzo (etapa 3, D2): plan
+
+Es lo último del orden D2. Plan escrito el 09-nov; todavía no hay código.
+
+### Qué es hoy
+
+El lienzo es lo que `studio.ts` y una decena de módulos dibujan alrededor del libro, en `#spreadStage` → `#spread`:
+
+- **El papel.** `paper(i, px, print)` arma cada página: objetos, texto, imágenes y elementos automáticos.
+  - La misma función sirve para la pantalla (`print` falso) y para lo que sale impreso: `#printRoot` (PDF), las pruebas de imprenta (`book-workflow.ts`), el asistente editorial y la medición del motor (`modules/compose.ts`).
+  - La extienden 9 módulos con `extend.result`: `editorial` (Índice, tracking, sangrías), `fonts` (caras), `paragraphs` (párrafos `.mqt-paragraph`), `book-workflow` (líneas), `shapes` (figuras SVG), `layout-tools` (ocultos y bloqueados), `frame-handles` (controladores), `review-workspace` (página activa y selección múltiple) y `compose-loader` (el motor: `.mqt-line`).
+- **Lo que es sólo de pantalla está mezclado adentro de `paper()`**, en ramas `if (!print)`:
+  - la clase `selected`, la etiqueta del objeto y la manija de tamaño;
+  - los oyentes de `pointerdown` por objeto, `dblclick` para editar y `input`/`blur` del texto;
+  - la grilla y las guías (`gridSvg`, que extiende `editorial`) y el `pointerdown` de la página.
+  - Los módulos de afuera le suman lo suyo: los 8 controladores (`frame-handles`), la marca de página activa y de selección múltiple (`review-workspace`) y el nombre de la figura en la etiqueta (`shapes`).
+- **El dibujo:** `renderPages()` vacía `#spread` y lo vuelve a llenar con `paper()` en cada `render()`, y escribe las marcas de las reglas (`#rulerX`, `#rulerY`).
+  - `continuous-canvas` lo cambia por filas virtualizadas (sólo las cercanas a la vista).
+  - `canvas-navigation` guarda y restaura el punto bajo el cursor al hacer zoom (`canvasAnchor`).
+  - Las dos extienden `renderPages`.
+- **La interacción:**
+  - `objectDown` lo reemplaza `frame-handles` y lo extienden `layout-tools`, `review-workspace` (×3) e `inspector-organization`.
+  - `moveObject` lo reemplaza `frame-handles` y le suma el imán `layout-tools` (`.snap-indicator`). `upObject` y `pageDown` también se extienden.
+  - El arrastre escribe `left/top/width/height` del nodo en cada `pointermove` y llama a `updateStatus()`, que avisa a React (hoy redibuja también el inspector, ~1 ms).
+- **El texto en edición:** `startEditing` pone `contentEditable` en `.text-content` del mismo nodo del papel.
+  - El motor (`compose-loader`, `restoreForEditing`) le devuelve el texto de CSS a ese cuadro mientras se edita.
+  - `finishEditing` lo cierra, y `hyphenation-controls` y `paragraphs` lo extienden.
+- **Ya está en React:** la barra del lienzo (`components/canvas-bar/`), el riel y las barras.
+
+### Qué pasa a React y qué no
+
+**No cambia (capa `book`): `paper()` con `print` verdadero y todo lo que dibuja el libro.**
+- Los PDF tienen que salir idénticos.
+- El motor reemplaza nodos adentro del texto.
+- `paper` lo nombran el proceso principal y 5 pruebas (`paper(0, …, true)`; `layout-tools-tests` también con `false`).
+- Siguen igual `autoElement`, las miniaturas, `#printRoot` y `ui/book/`.
+- `paper()` sigue siendo una función que arma DOM. React no la reconcilia: sus extensiones la modifican después de armarla.
+
+**Pasa a React lo que es sólo de pantalla, encima del papel:**
+- selección, etiqueta y controladores;
+- selección múltiple, página activa y desborde (`+`);
+- grilla y guías, indicadores del imán, reglas;
+- el contenedor que decide qué páginas o filas se ven.
+
+**No pasa a React:**
+- el contenido editable: React nunca dibuja adentro de `.text-content`;
+- el arrastre en sí (captura del puntero y estilo del nodo);
+- el cálculo de zoom y desplazamiento, que es aritmética sobre `#spreadStage` y sigue en `canvas-navigation`, pasado a un estado con aviso propio.
+
+### Orden
+
+Cada paso es una entrega con la autoprueba en verde, PDF idénticos (`compare-outputs`) y el marcado de `#spread` comparado en Chrome sin ventana, como en el inspector.
+
+1. **Separar el papel de la pantalla, sin React.**
+   - `paper(i, px, print)` queda con la rama del libro.
+   - Lo de pantalla (clase `selected`, etiqueta, manija, grilla y guías, `pointerdown` de la página) pasa a una función extensible aparte, `screenPage(page, i)`, que llaman `renderPages` y la vista continua después de `paper()`.
+   - Las extensiones de pantalla (`frame-handles`, `review-workspace`, el nombre de `shapes`, la parte de bloqueados de `layout-tools`) se mudan de `paper` a `screenPage`.
+   - Prueba: `paper(i, px, true)` y los PDF idénticos; `#spread` igual.
+2. **Eventos delegados.**
+   - Un solo oyente en `#spread` (`pointerdown`, `dblclick`, `input`, `blur`) que busca el `[data-id]` y la página, y llama a `objectDown`/`pageDown`/`startEditing` con los mismos argumentos.
+   - Las 13 extensiones de esas funciones no cambian.
+   - Ningún nodo del papel lleva oyentes: React puede dibujar al lado sin perderlos.
+3. **Capa de selección en React (`components/canvas/SelectionLayer.tsx`).**
+   - Dibuja con `createPortal` dentro del `.paper-object` elegido: etiqueta, 8 controladores y manija.
+   - También la marca de selección múltiple, la de página activa y el `+` de desborde.
+   - El marcado es el mismo: `frame-handles-tests` sigue contando `.paper-object.selected > .frame-handle`.
+   - Se redibuja con un aviso propio, `pagesDrawn`, que da `renderPages` con `flushSync` (los nodos del papel son nuevos en cada dibujo), y con la selección.
+   - Salen las ramas de pantalla de `frame-handles`, `review-workspace` y `shapes`, y `checkOverflow` deja de escribir el DOM.
+4. **Grilla, guías, imán y reglas.**
+   - `<PageGuides/>` por página, en lugar de `gridSvg` + la extensión de `editorial`.
+   - `<SnapIndicators/>` con un estado propio que escribe `moveObject`.
+   - `<Rulers/>` con las marcas de `#rulerX`/`#rulerY` y la preferencia de `rulers.ts`.
+5. **El contenedor del pliego (`<Spread/>`).**
+   - React decide qué páginas o filas existen: un pliego, o las filas virtualizadas de la vista continua.
+   - Cada lugar se llena con `paper(i, scale)` en un `useLayoutEffect`: el papel sigue siendo una isla imperativa.
+   - `renderPages()` queda como fachada, como `inspector()`: avisa y dibuja en el acto.
+   - El ancla del zoom (`canvasAnchor`/`restoreCanvasAnchor`) se restaura en el mismo efecto, cuando los tamaños ya están puestos.
+   - Las dos extensiones de `continuous-canvas` y las de `canvas-navigation` sobre `renderPages` pasan adentro del componente.
+6. **Edición y arrastre: se ordenan, no se pasan.**
+   - `editing` y `drag` ya viven en `editor`. La capa de selección dibuja el anillo de edición.
+   - Durante el arrastre, el aviso a React se junta en un `requestAnimationFrame` (hoy, uno por `pointermove`), y el inspector sólo se entera de la geometría (`GeometryPanel`).
+
+### Convivencia con el motor de composición
+
+- El motor trabaja sobre el DOM que arma `paper()` (`.mqt-paragraph` → `.mqt-composed` con `.mqt-line`) y no se toca.
+- Las capas de React se dibujan al lado de `.text-content`, nunca adentro, y no dependen de su estructura.
+- Al editar, `restoreForEditing` sigue devolviendo el cuadro a CSS. React no reconcilia ese nodo, así que no hay choque.
+- El desborde sigue midiendo `.text-content` (con el motor, alto fijo por líneas); sólo cambia quién dibuja el `+`.
+
+### Riesgos
+
+- **Rendimiento del arrastre.** Cada `pointermove` escribe el estilo del nodo y avisa a React: hoy cuesta ~1 ms, con el inspector incluido. Si la capa de selección también se redibuja, puede pasar los 4 ms por cuadro.
+  - Medir antes de cada paso: tiempo por `pointermove` y `render(true)`.
+  - Los controladores van adentro del nodo que se mueve, así siguen al CSS sin redibujar.
+  - El aviso se junta por cuadro.
+- **Eventos de puntero.**
+  - La captura (`setPointerCapture`) está en el `.paper-object`. Si React vuelve a crear el controlador desde el que empezó el arrastre, la captura no se pierde, porque no está en él.
+  - El `stopPropagation` de `objectDown` hoy evita el `pageDown` del papel; con oyentes delegados, el orden lo decide el oyente único.
+  - Los eventos sintéticos de React se registran en su raíz, no en `#spread`.
+- **`contenteditable`.**
+  - React no puede tener hijos dentro del nodo editable: el método de entrada (IME), la selección y el `innerText` dependen de que nadie reescriba ese DOM.
+  - El portal de la capa de selección va en el `.paper-object`, al lado de `.text-content`.
+- **Pruebas que tocan el DOM del pliego.**
+  - `frame-handles-tests`: 8 controladores en `#spread .paper-object.selected`.
+  - `feedback-tests`: `#spread .page` y eventos sobre `#spread`.
+  - `document-view-tests`: `continuousRows` y `#spread .page[data-page]`.
+  - `layout-tools-tests`: `paper(0, 1, false)` sin controladores en un objeto bloqueado.
+  - Todas leen el DOM en el acto después de `render()`/`renderPages()`: cada fachada dibuja con `flushSync`. Desde el paso 3, `paper(…, false)` ya no trae controladores; esa prueba sigue valiendo, porque busca que no estén.
+- **Globales que asignan las pruebas** (`scripts/globals-report.mjs`):
+  - `selected` (13 archivos), `active` (12), `spread` (9), `zoom` (3), `tool`, `canvasSpreadKey` (2 cada uno), `continuousKey`, `spaceHand` y `multiSelection` (1 cada uno).
+  - Siguen funcionando porque cada prueba llama a `render()` después de asignar, y el lienzo se dibuja desde el estado.
+  - Leen además `render` (21), `paper` (5), `renderPages` (3), `continuousRows`, `canvasStage`, `canvasAnchor`, `frameGeometry` y `snappedFrame`.
+  - La autoprueba nombra `render`, `tool` y `showHandlePreview`, y el proceso principal nombra `paper`: no cambian de nombre ni de firma.
+- **Extensiones por nombre.** `paper` (9), `objectDown` (6), `startEditing` (4), `renderPages` (4), `pageDown` (3), `moveObject` y `upObject` (2).
+  - Los pasos 1 y 2 sólo mudan extensiones de pantalla a `screenPage`. `MaquetarioExtensions.list()` cambia en esas entradas, y hay que avisarlo en cada entrega.
+- **Nodos que se rehacen.** `renderPages` crea páginas nuevas en cada dibujo, y un portal cuyo contenedor salió de la página se pierde.
+  - Hasta el paso 5, la capa de selección se vuelve a dibujar en el acto después de cada `renderPages`.
+  - Con `<Spread/>`, los lugares de página duran y sólo se rehace el papel de adentro.
+
 ## Pasar una pantalla a React (etapa 3)
 
 Convención única: la resume el comentario de `src/react/mount.tsx`. Cada regla salió de algo que falló al integrar.
