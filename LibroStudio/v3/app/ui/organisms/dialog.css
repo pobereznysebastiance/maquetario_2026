@@ -100,7 +100,7 @@ dialog[data-kind='confirm'] .modal-header {
 dialog[data-kind='confirm'] .modal-header h1 {
   font-size: var(--type-title3);
 }
-dialog[data-kind='confirm'] #modalBody {
+dialog[data-kind='confirm'] :is(#modalBody, .dialog-body) {
   padding: var(--space-sm) var(--space-xl) 0;
 }
 dialog[data-kind='confirm'] .modal-actions {

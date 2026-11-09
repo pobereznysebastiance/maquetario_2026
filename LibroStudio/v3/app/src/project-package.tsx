@@ -5,7 +5,10 @@
 //
 // loadOpenedProject es global: lo llaman studio.js (Abrir) y welcome.js (recientes).
 //
-// Fuente TypeScript: se compila a build/project-package.js (desktop/scripts/build.mjs).
+// La Hoja es React (modal.sheet): mientras se arma el paquete, sus botones quedan
+// deshabilitados y no se cierra (lo hace la Hoja con una acción en curso, Sheet.tsx).
+//
+// Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 /** Lo que devuelve el anfitrión al abrir un proyecto (desktop/src/main/handlers/project.ts). */
 interface OpenedProject {
@@ -55,37 +58,45 @@ function packageFontUsage(): Record<string, string> {
   return Object.fromEntries(usage);
 }
 
+/** Contenido de la Hoja: qué lleva el paquete y la opción de copiar fuentes. */
+const PackageSheet = () => (
+  <>
+    <p className="builder-intro">
+      {bw(
+        'Creá una carpeta con el proyecto editable, copias de las imágenes y un PDF del interior. Si diseñaste una cubierta, se agrega su PDF por separado.',
+        'Create a folder with the editable project, copies of its images and an interior PDF. If there is a cover, its PDF is included separately.',
+        'Crie uma pasta com o projeto editável, cópias das imagens e um PDF do miolo. Se houver capa, seu PDF será incluído separadamente.',
+      )}
+    </p>
+    <label className="check-line">
+      <input type="checkbox" id="packageFonts" />
+      {bw(
+        'Copiar las fuentes que tengo permiso de compartir',
+        'Copy fonts I am allowed to share',
+        'Copiar as fontes que tenho permissão para compartilhar',
+      )}
+    </label>
+    <p className="help">
+      {bw(
+        'Abrí el .mqt desde la carpeta del paquete en la otra computadora. Las fuentes que queden afuera se anotan en el LEEME.',
+        'Open the .mqt from inside the package folder on the other computer. Fonts left out are listed in the README.',
+        'Abra o .mqt dentro da pasta do pacote no outro computador. As fontes omitidas são listadas no LEEME.',
+      )}
+    </p>
+  </>
+);
+
 function packageDialog(): void {
   if (!hasDocument || busy) return;
   const title = bw('Empaquetar proyecto', 'Package project', 'Empacotar projeto');
   modal.sheet(
     title,
-    `<p class="builder-intro">${bw(
-      'Creá una carpeta con el proyecto editable, copias de las imágenes y un PDF del interior. Si diseñaste una cubierta, se agrega su PDF por separado.',
-      'Create a folder with the editable project, copies of its images and an interior PDF. If there is a cover, its PDF is included separately.',
-      'Crie uma pasta com o projeto editável, cópias das imagens e um PDF do miolo. Se houver capa, seu PDF será incluído separadamente.',
-    )}</p>
-    <label class="check-line"><input type="checkbox" id="packageFonts">${bw(
-      'Copiar las fuentes que tengo permiso de compartir',
-      'Copy fonts I am allowed to share',
-      'Copiar as fontes que tenho permissão para compartilhar',
-    )}</label>
-    <p class="help">${bw(
-      'Abrí el .mqt desde la carpeta del paquete en la otra computadora. Las fuentes que queden afuera se anotan en el LEEME.',
-      'Open the .mqt from inside the package folder on the other computer. Fonts left out are listed in the README.',
-      'Abra o .mqt dentro da pasta do pacote no outro computador. As fontes omitidas são listadas no LEEME.',
-    )}</p>
-    <p class="inline-error"></p>`,
+    <PackageSheet />,
     async () => {
       if (busy) return false;
       M.validate(book);
       if (book.cover) validateCover(book.cover);
       const copyFonts = $('#packageFonts').checked;
-      const dialog = $('#modal');
-      const buttons = [...dialog.querySelectorAll('button')].filter((button) => !button.disabled);
-      const preventCancel = (event: Event) => event.preventDefault();
-      for (const button of buttons) button.disabled = true;
-      dialog.addEventListener('cancel', preventCancel);
       busy = true;
       try {
         await fontCatalogPromise;
@@ -110,8 +121,6 @@ function packageDialog(): void {
         return true;
       } finally {
         busy = false;
-        dialog.removeEventListener('cancel', preventCancel);
-        for (const button of buttons) button.disabled = false;
       }
     },
     bw('Elegir carpeta…', 'Choose folder…', 'Escolher pasta…'),

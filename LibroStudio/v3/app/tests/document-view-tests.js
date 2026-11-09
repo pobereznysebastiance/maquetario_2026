@@ -100,14 +100,15 @@ registerNavigationTest(async function (report) {
     showTab('structure');
     $('#editorialRules').click();
     $('[data-editorial-role="titulo"]').value = 'Título principal';
-    await $('#modalApply').onclick();
+    $('#sheetApply').click();
+    await new Promise((r) => setTimeout(r, 30));
     check(
       book.editorialRoles.titulo === 'Título principal',
       'La función editorial se guarda en el proyecto',
     );
     return report;
   } finally {
-    if ($('#modal').open) $('#modal').close();
+    closeSheet();
     ({ book, active, spread, selected, zoom, tab, dirty, continuousCanvas } = previous);
     continuousKey = canvasSpreadKey = '';
     render(true);

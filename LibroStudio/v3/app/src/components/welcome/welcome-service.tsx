@@ -239,25 +239,22 @@ flushSync(() => {
   mount(welcome, <WelcomeRoot />);
 });
 
-// La copia de la última sesión se ofrece como fila de Recientes, no como diálogo.
-extend.replace(
-  'offerRecovery',
-  async function () {
-    try {
-      const db = await recoveryDb(),
-        request = db.transaction('books', 'readonly').objectStore('books').get('last');
-      request.onsuccess = () => {
-        db.close();
-        if (request.result)
-          try {
-            recoveryCopy = M.validate(JSON.parse(request.result));
-            if (welcomeVisible) globalThis.showWelcome();
-          } catch {}
-      };
-    } catch {}
-  },
-  'welcome',
-);
+// La copia de la última sesión se ofrece como fila de Recientes, no como diálogo. La busca
+// initializeWelcome al arrancar (antes lo hacía offerRecovery de studio.ts, que ya no está).
+async function loadRecoveryCopy(): Promise<void> {
+  try {
+    const db = await recoveryDb(),
+      request = db.transaction('books', 'readonly').objectStore('books').get('last');
+    request.onsuccess = () => {
+      db.close();
+      if (request.result)
+        try {
+          recoveryCopy = M.validate(JSON.parse(request.result));
+          if (welcomeVisible) globalThis.showWelcome();
+        } catch {}
+    };
+  } catch {}
+}
 // La marca de la barra superior vuelve al Inicio (components/topbar/Topbar.tsx).
 // La ayuda tiene una sola puerta: "Ayuda" en la barra superior (help-center.ts). El botón
 // "Tutorial" de la barra del documento ya no existe; el tutorial se empieza desde la Ayuda.
@@ -292,7 +289,10 @@ async function initializeWelcome(): Promise<void> {
     welcomeInfo = await nativeCall('appInfo');
     // Versión del panel izquierdo, en el mismo formato que la bienvenida (v3.24.0).
     $('.version').textContent = 'v' + welcomeInfo.version;
-    if (!welcomeInfo.selftest) await globalThis.showWelcome();
+    if (!welcomeInfo.selftest) {
+      void loadRecoveryCopy();
+      await globalThis.showWelcome();
+    }
   } catch (error) {
     toast((error as Error).message, 'error');
   }

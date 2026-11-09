@@ -12,6 +12,7 @@
 // Fuente TypeScript: se compila a build/book-workflow.js (desktop/scripts/build.mjs).
 import type { Book, BookObject, Page } from './model.ts';
 import type { NovelSample } from './novel-sample.ts';
+import { bookBuilderForm } from './components/book-builder/BookBuilder.tsx';
 import { routeHelpSection } from './components/help/sections.tsx';
 import { openPreflight } from './components/preflight/PreflightSheet.tsx';
 
@@ -472,71 +473,50 @@ function bookBuilder(sample = false): void {
   const run = () => {
     hideWelcome();
     const d: NovelData = sample ? novelSample() : { title: '', author: '', source: '' };
-    modal.sheet(
+    modal.workspace(
       bw('Dale estructura a tu libro', 'Give your book a structure', 'Dê estrutura ao seu livro'),
-      `<div class="builder-steps"><span>1 · ${bw('Datos', 'Details', 'Dados')}</span><span>2 · ${bw('Partes y manuscrito', 'Parts and manuscript', 'Partes e manuscrito')}</span><span>3 · ${bw('Crear y revisar', 'Create and review', 'Criar e revisar')}</span></div><p class="builder-intro">${bw('Prepará todas las partes en un solo lugar. El manuscrito se distribuye según el espacio real de las páginas A5 y queda editable, con estilos vinculados.', 'Prepare every part in one place. The manuscript is distributed using real A5 page space and remains editable with linked styles.', 'Prepare todas as partes em um lugar. O manuscrito é distribuído pelo espaço real das páginas A5 e fica editável, com estilos vinculados.')}</p><div class="modal-grid">${control(bw('Título', 'Title', 'Título'), 'novelTitle', d.title, 'text', '', '')}${control(bw('Autor/a', 'Author', 'Autor/a'), 'novelAuthor', d.author, 'text', '', '')}</div><div class="builder-parts"><label class="check-line"><input id="novelToc" type="checkbox" checked>${bw('Índice automático', 'Automatic contents', 'Sumário automático')}</label><label class="check-line"><input id="novelBlanks" type="checkbox" checked>${bw('Blancos de cortesía', 'Blank versos', 'Versos em branco')}</label><label class="check-line"><input id="novelRule" type="checkbox">${bw('Línea en cornisas', 'Header rules', 'Linhas nos cabeçalhos')}</label></div><details><summary>${bw('Dedicatoria, epígrafe, legales y cierre', 'Dedication, epigraph, copyright and closing', 'Dedicatória, epígrafe, créditos e encerramento')}</summary>${(
-        [
-          ['dedication', bw('Dedicatoria', 'Dedication', 'Dedicatória')],
-          ['epigraph', bw('Epígrafe', 'Epigraph', 'Epígrafe')],
-          ['legal', bw('Legales', 'Copyright', 'Créditos')],
-          ['thanks', bw('Agradecimientos', 'Acknowledgements', 'Agradecimentos')],
-          ['colophon', bw('Colofón', 'Colophon', 'Colofão')],
-        ] as const
-      )
-        .map(
-          ([key, label]) =>
-            `<label class="builder-label" for="novel-${key}">${label}</label><textarea id="novel-${key}" class="builder-short">${esc(d[key] || '')}</textarea>`,
-        )
-        .join(
-          '',
-        )}</details><label class="builder-label" for="novelSource">${bw('Manuscrito · empezá cada capítulo con # Título', 'Manuscript · begin each chapter with # Title', 'Manuscrito · inicie cada capítulo com # Título')}</label><textarea id="novelSource" class="builder-source" placeholder="# Capítulo 1&#10;Primer párrafo…&#10;&#10;# Capítulo 2&#10;…">${esc(d.source)}</textarea><button type="button" id="novelSample" class="quiet">${bw('Cargar novela de prueba', 'Load test novel', 'Carregar romance de teste')} ↗</button><p class="help">${bw('Crea un libro nuevo; el proyecto actual se conserva hasta confirmar. No hay reflujo automático entre cajas después de editar. Revisar libro detecta texto sobrante en todas las páginas.', 'Creates a new book; the current project stays until you confirm. Frames do not automatically reflow after editing. Check book finds overset text on all pages.', 'Cria um livro novo; o projeto atual fica até confirmar. As caixas não redistribuem texto após editar. Revisar livro detecta texto excedente em todas as páginas.')}</p>`,
-      async () => {
-        const data: NovelData = {
-          title: $('#novelTitle').value.trim(),
-          author: $('#novelAuthor').value.trim(),
-          source: $('#novelSource').value,
-          toc: $('#novelToc').checked,
-          blanks: $('#novelBlanks').checked,
-          rule: $('#novelRule').checked,
-        };
-        for (const key of ['dedication', 'epigraph', 'legal', 'thanks', 'colophon'] as const)
-          data[key] = $('#novel-' + key).value.trim();
-        if (!data.title || data.title.length > 250 || data.author.length > 250)
-          throw Error(
-            bw(
-              'Completá un título de hasta 250 caracteres.',
-              'Enter a title up to 250 characters.',
-              'Informe um título de até 250 caracteres.',
-            ),
-          );
-        $('#modalApply').disabled = true;
-        $('#modalApply').textContent = bw('Componiendo…', 'Composing…', 'Compondo…');
-        await new Promise((r) => setTimeout(r, 30));
-        try {
-          const b = composeNovel(data);
-          installNovel(b);
-          toast(
-            bw(
-              'Libro creado. Revisá cada parte desde Libro.',
-              'Book created. Review every part in Book.',
-              'Livro criado. Revise cada parte em Livro.',
-            ),
-          );
-        } finally {
-          $('#modalApply').disabled = false;
-          $('#modalApply').textContent = bw('Crear libro', 'Create book', 'Criar livro');
-        }
+      bookBuilderForm(d),
+      {
+        id: 'bookBuilder',
+        action: {
+          id: 'createNovel',
+          label: bw('Crear libro', 'Create book', 'Criar livro'),
+          // Mientras compone, el botón lo dice y la Ventana no se cierra (Sheet.tsx).
+          busyLabel: bw('Componiendo…', 'Composing…', 'Compondo…'),
+          run: async () => {
+            const data: NovelData = {
+              title: $('#novelTitle').value.trim(),
+              author: $('#novelAuthor').value.trim(),
+              source: $('#novelSource').value,
+              toc: $('#novelToc').checked,
+              blanks: $('#novelBlanks').checked,
+              rule: $('#novelRule').checked,
+            };
+            for (const key of ['dedication', 'epigraph', 'legal', 'thanks', 'colophon'] as const)
+              data[key] = $('#novel-' + key).value.trim();
+            if (!data.title || data.title.length > 250 || data.author.length > 250)
+              throw Error(
+                bw(
+                  'Completá un título de hasta 250 caracteres.',
+                  'Enter a title up to 250 characters.',
+                  'Informe um título de até 250 caracteres.',
+                ),
+              );
+            // Un respiro para que se vea "Componiendo…" antes de que la composición ocupe el hilo.
+            await new Promise((r) => setTimeout(r, 30));
+            const b = composeNovel(data);
+            installNovel(b);
+            toast(
+              bw(
+                'Libro creado. Revisá cada parte desde Libro.',
+                'Book created. Review every part in Book.',
+                'Livro criado. Revise cada parte em Livro.',
+              ),
+            );
+          },
+        },
       },
-      bw('Crear libro', 'Create book', 'Criar livro'),
     );
-    $('#novelSample').onclick = () => {
-      const s = novelSample();
-      $('#novelTitle').value = s.title;
-      $('#novelAuthor').value = s.author;
-      $('#novelSource').value = s.source;
-      for (const key of ['dedication', 'epigraph', 'legal', 'thanks', 'colophon'] as const)
-        $('#novel-' + key).value = s[key] || '';
-    };
   };
   if (dirty) {
     confirmChanges(run);

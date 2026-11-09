@@ -17,20 +17,24 @@ window.runNoticeTests = async function () {
     discard: () => discarded++,
     cancel: () => cancelled++,
   };
+  const notice = () => document.querySelector('dialog.close-publication-modal');
   hideWelcome();
-  if ($('#modal').open) $('#modal').close();
+  closeSheet();
   showClosePublicationDialog(actions);
   check(
-    $('#modal').classList.contains('close-publication-modal'),
+    !!notice()?.open && notice().dataset.kind === 'confirm',
     'Aviso de cierre usa ventana glass',
   );
   check(
-    !!$('#discardPublication') && $('#modalApply').textContent.includes('Guardar'),
+    !!$('#discardPublication') &&
+      !!$('#sheetCancel') &&
+      $('#savePublication').textContent.includes('Guardar'),
     'Tres decisiones de cierre disponibles',
   );
-  await $('#modalApply').onclick();
-  check($('#modal').open && saved === 1, 'Cancelar el guardado conserva el aviso y el libro');
-  $('#modal').close();
+  $('#savePublication').click();
+  await new Promise((r) => setTimeout(r, 30));
+  check(!!notice()?.open && saved === 1, 'Cancelar el guardado conserva el aviso y el libro');
+  closeSheet();
   await new Promise((r) => setTimeout(r, 30));
   check(cancelled === 1 && !discarded, 'Cancelar aviso no descarta cambios');
   showClosePublicationDialog(actions);

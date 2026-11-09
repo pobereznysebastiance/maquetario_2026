@@ -4,6 +4,7 @@
 //   const choice = await askChoice({ title, message, actions: [{ id, label, variant }] });
 //   await openSheet(<Contenido />, { title, action: { label: 'Guardar', run }, size: 'sm' });
 //   await openWorkWindow(<Contenido />, { title, action: { label: 'Guardar PDF', run } });
+//   await openConfirmSheet(<Contenido />, { title, action, extra }); // confirmación con contenido
 //
 // confirmAction y askChoice conservan la firma global de confirm.ts y su comportamiento: se
 // abren al instante (el diálogo ya está en la página cuando vuelven), la respuesta llega al
@@ -15,9 +16,9 @@
 // (nada de diálogo sobre diálogo); sólo una confirmación puede quedar por encima. La excepción es
 // keepModal (el explorador de fuentes abierto desde el estilo de párrafo): la Ventana queda
 // "alojada" encima de la Hoja, sea #modal o una Hoja de React, que sigue montada debajo con lo que
-// se escribió; al cerrar la Ventana vuelve la Hoja, y si se cierra la Hoja se va la Ventana. Las pantallas
-// que todavía arman HTML siguen con modal() (#modal); cuando una pase a React, modal.sheet,
-// modal.info y modal.workspace aceptan un elemento de React en lugar del HTML y vienen acá.
+// se escribió; al cerrar la Ventana vuelve la Hoja, y si se cierra la Hoja se va la Ventana.
+// modal(), modal.sheet, modal.info, modal.workspace y modal.confirm (studio.ts) son la fachada de
+// estas funciones: ya no queda ninguna pantalla en HTML dentro de #modal.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
@@ -25,7 +26,14 @@ import { useSyncExternalStore, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { mount, useLanguage } from '../../react/mount.tsx';
 import { ConfirmDialog, type ChoiceOptions, type ConfirmOptions } from './ConfirmDialog.tsx';
-import { Sheet, WorkWindow, type SheetOptions, type WorkWindowOptions } from './Sheet.tsx';
+import {
+  ConfirmSheet,
+  Sheet,
+  WorkWindow,
+  type ConfirmSheetOptions,
+  type SheetOptions,
+  type WorkWindowOptions,
+} from './Sheet.tsx';
 
 declare global {
   var askChoice: (options: ChoiceOptions) => Promise<string | null>;
@@ -34,6 +42,8 @@ declare global {
   var openSheet: (content: ReactNode, options: SheetOptions) => Promise<void>;
   /** Ventana de trabajo con contenido de React. Se resuelve al cerrarse. */
   var openWorkWindow: (content: ReactNode, options: WorkWindowOptions) => Promise<void>;
+  /** Confirmación con contenido propio (el aviso de cierre). Se resuelve al cerrarse. */
+  var openConfirmSheet: (content: ReactNode, options: ConfirmSheetOptions) => Promise<void>;
   /** Cierra la Hoja o Ventana de React abierta (si hay una). */
   var closeSheet: () => void;
   /** Contenido de la Hoja o Ventana de React abierta, o null (al instante, aunque React no haya redibujado). */
@@ -47,9 +57,9 @@ interface ConfirmRequest {
 }
 interface SheetRequest {
   id: number;
-  kind: 'sheet' | 'workspace';
+  kind: 'sheet' | 'workspace' | 'confirm';
   content: ReactNode;
-  options: SheetOptions | WorkWindowOptions;
+  options: SheetOptions | WorkWindowOptions | ConfirmSheetOptions;
   done: () => void;
 }
 
@@ -91,12 +101,29 @@ const DialogHost = () => {
         </Sheet>
       ) : null}
       {sheet?.kind === 'workspace' ? (
-        <WorkWindow key={sheet.id} options={sheet.options} onClose={sheet.done}>
+        <WorkWindow
+          key={sheet.id}
+          options={sheet.options as WorkWindowOptions}
+          onClose={sheet.done}
+        >
           {sheet.content}
         </WorkWindow>
       ) : null}
+      {sheet?.kind === 'confirm' ? (
+        <ConfirmSheet
+          key={sheet.id}
+          options={sheet.options as ConfirmSheetOptions}
+          onClose={sheet.done}
+        >
+          {sheet.content}
+        </ConfirmSheet>
+      ) : null}
       {hosted ? (
-        <WorkWindow key={hosted.id} options={hosted.options} onClose={hosted.done}>
+        <WorkWindow
+          key={hosted.id}
+          options={hosted.options as WorkWindowOptions}
+          onClose={hosted.done}
+        >
           {hosted.content}
         </WorkWindow>
       ) : null}
@@ -206,6 +233,8 @@ export const openSheet = (content: ReactNode, options: SheetOptions) =>
   openDialog('sheet', content, options);
 export const openWorkWindow = (content: ReactNode, options: WorkWindowOptions) =>
   openDialog('workspace', content, options);
+export const openConfirmSheet = (content: ReactNode, options: ConfirmSheetOptions) =>
+  openDialog('confirm', content, options);
 /** Cierra la Hoja o Ventana abierta (y la alojada encima) en el acto: el DOM queda al día al volver. */
 export function closeSheet(): void {
   const request = sheetRequest,
@@ -241,6 +270,7 @@ globalThis.askChoice = askChoice;
 globalThis.confirmAction = confirmAction;
 globalThis.openSheet = openSheet;
 globalThis.openWorkWindow = openWorkWindow;
+globalThis.openConfirmSheet = openConfirmSheet;
 globalThis.closeSheet = closeSheet;
 // El centro de Ayuda (components/help/) lo usa para saber si su Ventana sigue abierta.
 globalThis.openSheetContent = () => sheetRequest?.content ?? null;
