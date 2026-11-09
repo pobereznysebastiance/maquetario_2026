@@ -1,0 +1,67 @@
+/* Notas al pie (src/footnotes.ts y src/footnote-model.ts): la llamada en el texto y el bloque de
+   notas al pie de la caja tipográfica. Las medidas salen del formato del libro y de la escala de la
+   página: el bloque las recibe en variables (--footnote-*). */
+
+/* ── Llamada en el texto: se ve el número; la marca sólo al leer el texto (.note-source) ── */
+.note-ref {
+  white-space: nowrap;
+  text-indent: 0;
+  cursor: default;
+}
+.note-mark {
+  display: none;
+}
+.note-number {
+  position: relative;
+  top: -0.55em;
+  font-size: 0.62em;
+  line-height: 0;
+  font-variant-numeric: lining-nums;
+}
+.note-source .note-mark {
+  display: inline;
+}
+.note-source .note-number {
+  display: none;
+}
+
+/* ── Bloque de notas ── */
+.footnotes {
+  position: absolute;
+  left: var(--footnote-left);
+  bottom: var(--footnote-bottom);
+  width: var(--footnote-width);
+  box-sizing: border-box;
+  padding-top: var(--footnote-space);
+  color: var(--book-ink-text);
+  font-family: var(--footnote-font), var(--book-font-serif);
+  font-size: var(--footnote-size);
+  line-height: var(--footnote-leading);
+  text-align: left;
+  pointer-events: none;
+}
+/* Un elemento y no un ::before: el PDF del motor de composición lee los bordes de los elementos. */
+.footnote-rule {
+  width: 25%;
+  margin-bottom: calc(var(--footnote-leading) * 0.4);
+  border-top: var(--footnote-rule) solid currentColor;
+}
+.footnote {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+.footnote-number {
+  margin-right: 0.4em;
+}
+
+/* Donde se mide el bloque antes de ponerlo en la página (fuera de la vista). */
+.footnote-measure {
+  position: fixed;
+  top: 0;
+  left: -200vw;
+  visibility: hidden;
+  pointer-events: none;
+}
+.footnote-measure .footnotes {
+  position: static;
+}

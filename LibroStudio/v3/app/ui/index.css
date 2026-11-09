@@ -11,6 +11,7 @@
 @import url('book/thumbs.css') layer(book);
 @import url('book/canvas.css') layer(book);
 @import url('book/print.css') layer(book);
+@import url('book/footnotes.css') layer(book);
 
 /* Sistema de diseño */
 @import url('tokens/fonts.css') layer(tokens);

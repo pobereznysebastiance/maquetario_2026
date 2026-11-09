@@ -1,6 +1,6 @@
 # Próximos pasos (rama version-juan)
 
-Hoja de ruta para retomar. Estado al cierre (09-nov, tarde): todo subido, `npm test`, `npm run typecheck` y `npm run self-test` en verde. Versión **BETA 0.1** (`0.1.0-beta`), instalador y PDF de presentación entregados a Seba.
+Hoja de ruta para retomar. Estado al cierre (09-nov, noche): todo subido, `npm test`, `npm run typecheck` y `npm run self-test` en verde. Versión **BETA 0.1** (`0.1.0-beta`), instalador y PDF de presentación entregados a Seba.
 
 ## Estado (09-nov)
 
@@ -39,7 +39,7 @@ Hoja de ruta para retomar. Estado al cierre (09-nov, tarde): todo subido, `npm t
   - 4 envolturas `extend()` escritas a mano;
   - 61 estilos en línea desde JS, la mayoría posiciones del libro;
   - 1 botón creado a mano;
-  - 242 globales publicados con `globalThis.x =`. La mayoría los publica `src/core/core-wiring.ts` para los módulos, las pruebas y el lienzo, que todavía los leen por nombre; `node scripts/globals-report.mjs` dice quién usa cada uno.
+  - 244 globales publicados con `globalThis.x =`. La mayoría los publica `src/core/core-wiring.ts` para los módulos, las pruebas y el lienzo, que todavía los leen por nombre; `node scripts/globals-report.mjs` dice quién usa cada uno.
 
 ## BETA 0.1 (09-nov, tarde)
 
@@ -51,12 +51,13 @@ Hoja de ruta para retomar. Estado al cierre (09-nov, tarde): todo subido, `npm t
   - Vistas del riel: Páginas · Estructura · Índice · Capas (Estructura del libro salió de la pestaña Libro).
   - Pestaña Libro: "Formato y márgenes" primero (los márgenes estaban dentro de Grilla); el ajuste fino del foliado es un desplegable común.
   - Guías desde las reglas (`src/ruler-guides.ts`): arrastrar para sacar, mover o quitar.
-  - Doble clic en el tirador inferior de una caja de texto la ajusta a su texto (`fitTextFrame`, `frame-handles.ts`).
+  - Doble clic en el tirador inferior de una caja de texto la ajusta a su texto (`fitTextFrame`, `frame-handles.ts`). Arreglado el 09-nov a la noche: con el mouse no andaba, porque el arrastre del tirador captura el puntero y el doble clic le llega a la caja (ahora se mira el último `pointerdown`; la prueba reproduce esa secuencia).
 - **Informes:** `docs/informe/beta-0.1.html` (para Seba: novedades respecto de la 3.24, qué probar, qué devolución sirve) y `docs/informe/beta-0.1-presentacion.html` (para quienes prueban, a partir del texto de la 3.20). Cómo regenerarlos, en "Informes" al final.
 - **Pendiente:**
   - Juntar la devolución de Seba y de quienes prueben, y ordenarla antes de seguir.
   - Probar con un proyecto real hecho en la 3.20/3.24 (se abre por las migraciones de `model-migrations.ts`, pero no se probó con un archivo de esa versión).
   - En Tipografía (Selección), el cuarto botón de Alineación queda cortado contra el borde del panel.
+  - En Libro, los botones de tipo de letra (cornisa, titulillo, folio y notas al pie) se ven grises y angostos ("Georg…"), distintos de los otros selectores.
   - El `git stash` local "tanda workspace/page-priority/…" es obsoleto (la capa legacy ya se vació): se puede borrar.
 
 ## Antes de cada commit
@@ -210,24 +211,23 @@ Observaciones en `docs/evaluacion-uso.md` (13 puntos). Resueltas: las siete pest
 
 Llegó el 09-nov por Seba (pedido de Tomás), con la planilla "Pauta de uso tipográfico" de la clase 3. En orden:
 
-1. **Notas al pie** (urgente: los alumnos están maquetando novelas). Ver el estado abajo.
+1. **Notas al pie: hechas (09-nov, noche).** Cómo funcionan, en `docs/arquitectura.md` → "Notas al pie".
 2. **Roles en vez de estilos globales.** Cada texto tiene un rol con los nombres exactos de la planilla: Título, Subtítulo (con variables), Texto principal, Texto secundario A/B, Frases destacadas A/B/C, Listados A/B/C, Otros. Se arma sobre lo que ya hay (`book.paragraphStyles` + `paragraphMap[].styleId` con retoques), no un sistema nuevo. Tocar una caja con rol pregunta "¿sólo acá o en todo el rol?". El ancho de caja en columnas es del rol.
 3. **La tabla es donde se decide.** Se ve, se edita (cambia el libro entero), marca las excepciones y se descarga. Columnas como la planilla: Tipografía y cuerpo; Variable (Escritura, Peso, Rendimiento, Inclinación); Alineación (izquierda, derecha, centrado, justificado); Ancho de caja; Interlineado (amplio, normal, ajustado, con el valor); Operación tipográfica; Zonas activas de la grilla en tres dobles páginas representativas. Folio y cornisa se llenan solos en Otros. Leyenda obligatoria, en la vista y en el descargable: "Pautas tipográficas Material adaptado y desarrollado por la Cátedra de Tipografía I de la UNNE (Universidad Nacional del Nordeste) para fines académicos y editoriales."
 4. **Cubierta, Aprendizaje y partes del libro.** Conmutador visible Interior/Cubierta; acceso a bibliografía y tutoriales siempre a la vista; Estructura del libro como lista de partes de Lupton para tildar (portadilla, portada, créditos, dedicatoria, índice, prólogo, cuerpo, colofón…).
 
-**Notas al pie: diseño previsto (todavía sin código).** Lo que se averiguó del programa:
-- El texto de una caja es texto plano (`o.text`, párrafos separados por `\n`); el formato va aparte en `o.paragraphMap`. `paragraphs.ts` dibuja cada párrafo (`extend.result('paper')`) y, al editar, relee `content.innerText` en el `input`.
-- No hay reflujo entre cajas (el manuscrito se reparte al importar). El texto sobrante se mide en el DOM (`checkOverflow` en `canvas-layer.ts`: `scrollHeight > clientHeight`).
-- No existe nada de notas en el código.
+**Notas al pie: qué hay.**
+- Selección → Notas al pie: "Insertar nota al pie" (donde está el cursor si se está escribiendo; si no, al final del párrafo elegido) y la lista de notas de la caja para escribirlas o quitarlas. Atajo mientras se escribe: Ctrl+Alt+F (⌘⌥F).
+- Libro → Notas al pie (aparece cuando hay alguna): tipo de letra, cuerpo, interlineado, espacio sobre las notas, filete y numeración (continua, por sección o por página).
+- En la página: número volado en el texto y, al pie de la caja tipográfica, filete corto y "N  texto". La caja que baja hasta las notas se achica en el dibujo; lo que no entra queda como texto sobrante.
+- Copiar y pegar duplica la nota; cortar y pegar la mueve. Un libro sin notas sale idéntico (los PDF de la autoprueba no cambian).
 
-Propuesta:
-- **Marca en el texto:** un carácter de uso privado por nota (U+E000…U+F8FF, 6400 por libro) dentro de `o.text`; sobrevive a `innerText` sin tocar el modelo de texto. Al dibujar, se envuelve en un `span.note-ref` con `contenteditable=false` (el cursor no entra) que muestra el número por CSS (`::after { content: attr(data-n) }`), así `innerText` sigue devolviendo sólo la marca.
-- **Contenido:** `book.footnotes = { size, leading, font, rule, restart: 'book' | 'section', notes: { 'E003': 'texto' } }`, validado en `model.ts`. Numeración en el orden de lectura (páginas, objetos, texto), con caché.
-- **Dibujo:** módulo nuevo `src/footnotes.ts` (import en `entries/app.ts` después de `paragraphs.ts`), `extend.result('paper')`: junta las marcas de la página, dibuja `div.footnotes` al pie de la caja tipográfica (filete corto + "N  texto") y achica en el dibujo la altura de la caja que se superpone, sin tocar `o.h`; lo que no entra queda como texto sobrante y lo marca la revisión de siempre. Un libro sin notas se dibuja idéntico (comprobar con `scripts/compare-outputs.mjs`).
-- **Insertar:** botón "Nota al pie" en Selección (sección nueva `text:notes`, con la lista de notas de la caja para escribirlas) y atajo mientras se edita (Ctrl+S, Z, Y, P y Ctrl+Mayús+S están tomados). Guardar el rango de la selección para no perderlo al tocar el inspector.
-- **Libro → Notas al pie:** cuerpo, interlineado, fuente, filete, numeración continua o por capítulo. `set()` de `book-paths.ts` necesita que exista `book.footnotes`: crearlo con valores por defecto antes de dibujar el panel.
-- **Limpieza:** las notas sin marca se borran al terminar de editar (deshacer usa instantáneas del libro entero). Pegar texto quita las marcas (`paragraphs.ts`, `paste`): cortar y pegar una nota la pierde, por ahora.
-- **Pendiente de revisar:** otros que leen `o.text` (conteo de palabras, índice, asistente, legibilidad, motor de composición) van a ver el carácter de uso privado: filtrarlo donde moleste.
+**Notas al pie: pendiente.**
+- No hay reflujo entre cajas: si la llamada queda en el texto sobrante, la nota igual sale en esa página. Una nota que no entra en su página no pasa a la siguiente.
+- Probarlo con la cátedra: estilo de la llamada (volada o entre paréntesis), número de la nota volado o no, largo del filete (hoy 25 % de la caja), y si quieren notas al final del capítulo.
+- Las notas son texto plano (sin cursiva ni estilos de carácter: dependen de la decisión de estilos de carácter de la etapa 4).
+- El motor de composición deja con el dibujo de Chromium los párrafos con llamadas.
+- El tirador inferior de una caja achicada por las notas se dibuja donde termina la caja en el dibujo, no en `o.h`.
 
 **Preguntas para la cátedra:** dónde cortan Amplio/Normal/Ajustado (propuesta: interlineado / cuerpo < 1,2 ajustado, hasta 1,4 normal, más amplio); qué esperan en "Operación tipográfica" (color, filete, texto libre); si se puede usar el logo de Tipografía I y si el texto dice "folleto" o "libro"; Escritura (versalitas, mayúsculas sostenidas) y Rendimiento todavía no son propiedades del texto.
 

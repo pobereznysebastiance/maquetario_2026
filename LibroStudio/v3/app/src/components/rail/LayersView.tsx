@@ -13,7 +13,7 @@ import type { DragEvent } from 'react';
 import type { BookObject } from '../../model.ts';
 import { Icon } from '../Icon.tsx';
 import { bw } from '../../i18n/language.ts';
-import { editor } from '../../core-api.ts';
+import { editor, M } from '../../core-api.ts';
 
 /** Lo que la vista necesita de layout-tools.ts. */
 export interface LayersSource {
@@ -37,7 +37,7 @@ const nameField = (el: HTMLInputElement | null): void => {
 
 const layerName = (o: BookObject): string =>
   o.name ||
-  o.text?.trim().split('\n')[0]?.slice(0, 36) ||
+  (o.text && M.withoutNoteMarks(editor.book, o.text).trim().split('\n')[0]?.slice(0, 36)) ||
   (o.type === 'frame' ? 'Marco' : 'Objeto');
 
 const LayerRow = ({ o, objects }: { o: BookObject; objects: BookObject[] }) => {

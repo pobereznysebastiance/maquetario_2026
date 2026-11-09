@@ -69,6 +69,26 @@ export interface TocEntry {
   source: 'section' | 'heading' | 'manual';
 }
 
+/**
+ * Notas al pie del libro: formato y contenido. La llamada en el texto es un carácter de uso privado
+ * (U+E000…U+F8FF) dentro de o.text; su clave es el código en hexadecimal ('e000'). Ver
+ * src/footnote-model.ts.
+ */
+export interface FootnoteSettings {
+  font: string;
+  /** Cuerpo, en pt. */
+  size: number;
+  /** Interlineado, en pt. */
+  leading: number;
+  /** Espacio entre el texto y las notas, en mm. */
+  space: number;
+  /** Filete corto sobre las notas. */
+  rule: boolean;
+  /** Dónde vuelve a empezar la numeración. */
+  restart: 'book' | 'section' | 'page';
+  notes: Record<string, string>;
+}
+
 export interface Book {
   version: number;
   title: string;
@@ -91,6 +111,7 @@ export interface Book {
   chapter: string;
   pages: Page[];
   toc?: TocConfig;
+  footnotes?: FootnoteSettings;
   [extra: string]: any;
 }
 
@@ -224,6 +245,15 @@ function validateGrid(b: Book): boolean {
     g = b.grid;
   return r.w - g.gapX * (g.cols - 1) >= g.cols * 1 && r.h - g.gapY * (g.rows - 1) >= g.rows * 1;
 }
+/** El texto sin las llamadas de nota al pie (los caracteres de uso privado que son notas). */
+function withoutNoteMarks(b: Book, text: string): string {
+  const notes = b.footnotes?.notes;
+  return notes
+    ? text.replace(/[\uE000-\uF8FF]/g, (mark) =>
+        notes[mark.charCodeAt(0).toString(16)] === undefined ? mark : '',
+      )
+    : text;
+}
 function sectionAt(b: Book, index: number): string {
   for (let i = index; i >= 0; i--) if (b.pages[i].section) return b.pages[i].section;
   return b.chapter;
@@ -322,7 +352,7 @@ function tocEntries(b: Book): TocEntry[] {
         if (o.type === 'text' && o.heading && !o.toc && o.text.trim())
           out.push({
             id: o.id,
-            label: o.text.trim().split('\n')[0],
+            label: withoutNoteMarks(b, o.text).trim().split('\n')[0],
             pageId: p.id,
             page: i,
             folio: folio(b, i),
@@ -524,6 +554,26 @@ function validate(input: any): Book {
       b.toc.entries.some((e: any) => !str(e.id, 60) || !str(e.label, 500) || !str(e.pageId, 60)))
   )
     throw Error('Índice inválido.');
+  const notes = b.footnotes;
+  if (
+    notes !== undefined &&
+    (!notes ||
+      typeof notes !== 'object' ||
+      !str(notes.font, 100) ||
+      !number(notes.size, 4, 72) ||
+      !number(notes.leading, 4, 100) ||
+      !number(notes.space, 0, 50) ||
+      typeof notes.rule !== 'boolean' ||
+      !['book', 'section', 'page'].includes(notes.restart) ||
+      !notes.notes ||
+      typeof notes.notes !== 'object' ||
+      Array.isArray(notes.notes) ||
+      Object.keys(notes.notes).length > 6400 ||
+      Object.entries(notes.notes).some(
+        ([key, text]) => !/^(e[\da-f]{3}|f[0-8][\da-f]{2})$/.test(key) || !str(text, 20000),
+      ))
+  )
+    throw Error('Notas al pie inválidas.');
   if (b.measurementUnit !== undefined && !['mm', 'cm'].includes(b.measurementUnit))
     throw Error('Unidad de medida inválida.');
   if (b.spreadDirection !== undefined && !['horizontal', 'vertical'].includes(b.spreadDirection))
@@ -620,6 +670,7 @@ const LibroModel = {
   tocConfig,
   tocEntries,
   tocText,
+  withoutNoteMarks,
   validate,
 };
 export type LibroModelApi = typeof LibroModel;

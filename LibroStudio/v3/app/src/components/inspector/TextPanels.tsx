@@ -182,7 +182,7 @@ export const ParagraphPanel = () => {
           <option value="-1">{w.all}</option>
           {o.text.split('\n').map((text: string, i: number) => (
             <option key={i} value={String(i)}>
-              {`${w.paragraph} ${i + 1} · ${text.slice(0, 25) || '—'}`}
+              {`${w.paragraph} ${i + 1} · ${M.withoutNoteMarks(editor.book, text).slice(0, 25) || '—'}`}
             </option>
           ))}
         </select>

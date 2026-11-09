@@ -45,6 +45,7 @@
     'package-proof-tests.js',
     'document-view-tests.js',
     'category-tests.js',
+    'footnotes-tests.js',
   ].map((name) => 'tests/' + name);
   // Lo que llama la autoprueba (desktop/src/main/selftest.ts). Tiene que coincidir con
   // MaquetarioTestsApi (src/contract/page-contract.ts): lo controla scripts/globals-report.mjs.

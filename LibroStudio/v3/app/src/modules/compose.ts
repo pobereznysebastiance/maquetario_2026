@@ -247,6 +247,15 @@ function tally(
 function unsupported(text: string): string | null {
   if (/[\t]|\s{2}|^\s|\s$/.test(text))
     return 'espacios múltiples, tabulaciones o blancos en los bordes';
+  // Las llamadas de nota al pie (src/footnote-model.ts) las dibuja la página.
+  const notes = book.footnotes?.notes;
+  if (
+    notes &&
+    [...text.matchAll(/[\uE000-\uF8FF]/g)].some(
+      ([m]) => notes[m.charCodeAt(0).toString(16)] !== undefined,
+    )
+  )
+    return 'llamadas de nota al pie';
   return null;
 }
 

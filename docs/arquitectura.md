@@ -506,6 +506,7 @@ Cada paso es una entrega con la autoprueba en verde, PDF idénticos (`compare-ou
   - El aviso se junta por cuadro.
 - **Eventos de puntero.**
   - La captura (`setPointerCapture`) está en el `.paper-object`. Si React vuelve a crear el controlador desde el que empezó el arrastre, la captura no se pierde, porque no está en él.
+  - Por la captura, Chromium manda el `click` y el `dblclick` al `.paper-object`, no al controlador donde cayó el `pointerdown`. Quien quiera saber sobre qué controlador fue el doble clic mira el último `pointerdown` (así lo hace el ajuste al texto de `frame-handles.ts`).
   - El `stopPropagation` de `objectDown` hoy evita el `pageDown` del papel; con oyentes delegados, el orden lo decide el oyente único.
   - Los eventos sintéticos de React se registran en su raíz, no en `#spread`.
 - **`contenteditable`.**
@@ -527,6 +528,26 @@ Cada paso es una entrega con la autoprueba en verde, PDF idénticos (`compare-ou
 - **Nodos que se rehacen.** `renderPages` crea páginas nuevas en cada dibujo, y un portal cuyo contenedor salió de la página se pierde.
   - Hasta el paso 5, la capa de selección se vuelve a dibujar en el acto después de cada `renderPages`.
   - Con `<Spread/>`, los lugares de página duran y sólo se rehace el papel de adentro.
+
+## Notas al pie (hecho el 09-nov)
+
+Pedido de la cátedra de Tipografía I (ver `docs/proximos-pasos.md`, sección 5). Tres archivos:
+
+| Archivo | Qué hace |
+|---|---|
+| `src/footnote-model.ts` | Sin efectos al cargar: marcas, numeración, formato, insertar, escribir y quitar, pegar, y el dibujo de las llamadas. |
+| `src/footnotes.ts` | El bloque de notas en la página (`extend.result('paper')`, después de `paragraphs.ts`), el atajo Ctrl+Alt+F, copiar y cortar, y la limpieza al terminar de editar. |
+| `components/inspector/FootnotePanels.tsx` | Selección → Notas al pie (`text:notes`) y Libro → Notas al pie (`design:footnotes`, sólo si el libro tiene notas). |
+
+- **La llamada** es un carácter de uso privado (U+E000…U+F8FF) dentro de `o.text`, uno por nota, y el contenido va en `book.footnotes.notes` con la clave del código (`'e000'`). Así el modelo del texto no cambia: `paragraphMap`, la separación silábica, deshacer y guardar siguen igual. Un carácter de uso privado que no está en `notes` es un glifo (los ornamentos de algunas fuentes) y no se toca.
+- **En la página** la llamada es `span.note-ref` (`contenteditable=false`) con la marca oculta y el número como texto real, para que salga en los dos PDF. Para leer el texto de la caja (`editableText`, en el `input` de `paragraphs.ts`) se invierte por un momento (`.note-source`): `innerText` devuelve la marca y no el número. Al empezar a editar se vuelven a dibujar las llamadas, porque `hyphenation-controls` rehace el texto de los párrafos.
+- **El bloque** (`.footnotes`) se apoya en el margen inferior con el ancho de la caja tipográfica. Se mide fuera de la vista (`.footnote-measure`) y las cajas de texto que bajan hasta él se achican sólo en el dibujo (no cambia `o.h`). Lo que deja de entrar queda como texto sobrante. Las notas de una página son las que llaman sus cajas, aunque la llamada quede en el texto sobrante.
+- **Numeración:** orden de lectura (páginas; cajas de arriba abajo y de izquierda a derecha; texto), continua, por sección o por página. Se calcula una vez por página dibujada.
+- **Copiar, cortar y pegar:** al portapapeles van las marcas. Al pegar, una nota que sigue en el libro se duplica (nota nueva, mismo texto) y una que se cortó vuelve a ser la misma. Las notas sin llamada se quitan al terminar de editar, y se recuerdan en la sesión por si vuelven con un pegado.
+- **Motor de composición:** un párrafo con llamadas queda con el dibujo de Chromium (`unsupported` en `modules/compose.ts`).
+- **Otros que leen `o.text`:** el índice, las capas, el selector de párrafo y el asistente usan `M.withoutNoteMarks`.
+- **Validación:** `model.ts` valida `book.footnotes` al abrir (claves, cuerpo, interlineado, espacio, numeración, hasta 6400 notas de 20 000 caracteres).
+- Un libro sin notas se dibuja idéntico (comprobado con `scripts/compare-outputs.mjs`). Pruebas: `tests/footnotes-tests.js`.
 
 ## Pasar una pantalla a React (etapa 3)
 

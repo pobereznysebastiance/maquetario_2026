@@ -38,6 +38,7 @@ export { paragraphIndices } from './paragraph-format.ts';
 import { readHyphenationFields, setHyphenatedText } from './hyphenation.ts';
 import { variations, chooseDefaultFace, selectedFace } from './font-catalog.ts';
 import { modal } from './components/dialog/modal.ts';
+import { adoptPastedNotes, decorateKeepingCaret, editableText } from './footnote-model.ts';
 
 globalThis.paragraphFormat = paragraphFormat;
 
@@ -367,7 +368,9 @@ extend.result(
           'input',
           (e) => {
             e.stopImmediatePropagation();
-            const next = content.innerText.replace(/\r/g, '').replace(/\u00a0/g, '');
+            const next = editableText(content)
+              .replace(/\r/g, '')
+              .replace(/\u00a0/g, '');
             o.paragraphMap = syncParagraphMap(o.text, next, o.paragraphMap);
             o.text = next;
             changed();
@@ -376,7 +379,11 @@ extend.result(
         );
         content.addEventListener('paste', (e) => {
           e.preventDefault();
-          document.execCommand('insertText', false, e.clipboardData!.getData('text/plain'));
+          // Las llamadas de nota del texto pegado: copiar duplica la nota, cortar la mueve
+          // (footnote-model.ts). Después se dibujan sin mover el cursor.
+          const text = adoptPastedNotes(e.clipboardData!.getData('text/plain'));
+          document.execCommand('insertText', false, text);
+          if (/[\uE000-\uF8FF]/.test(text)) decorateKeepingCaret(content);
         });
       }
     }

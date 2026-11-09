@@ -31,6 +31,7 @@ import { useLanguage } from '../../react/mount.tsx';
 import { SectionContext, type SectionChrome } from './fields.tsx';
 import { bw, i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
+import { hasFootnotes } from '../../footnote-model.ts';
 
 /** Pestaña visible del inspector. */
 export type InspectorView = 'book' | 'page' | 'selection';
@@ -61,6 +62,17 @@ function sectionsOf(pass: string): Slot[] {
         { name: 'folio', title: 'Foliado', key: 'folio' },
         { name: 'header', title: 'Cornisa', key: 'header' },
         { name: 'titulillo', title: 'Titulillo', key: 'text' },
+        // Formato de las notas al pie: sólo si el libro tiene alguna (FootnotePanels.tsx).
+        ...(hasFootnotes()
+          ? [
+              {
+                name: 'footnotes',
+                title: 'Notas al pie',
+                key: 'text',
+                className: 'footnote-format',
+              },
+            ]
+          : []),
         // Las fuentes del equipo son del documento, no de la caja: van en Libro, al final.
         { name: 'fonts', className: 'font-library' },
       ];
@@ -104,6 +116,7 @@ function sectionsOf(pass: string): Slot[] {
         // Lo más usado con una caja de texto va primero: la letra, después el párrafo.
         { name: 'typography', title: 'Tipografía', key: 'text' },
         { name: 'paragraph', className: 'paragraph-panel' },
+        { name: 'notes', title: 'Notas al pie', key: 'text', className: 'footnote-panel' },
         // "Carácter y párrafo" va al final, dentro de un <div> (no se reordena ni se pliega).
         { name: 'character', tag: 'div' },
       ];

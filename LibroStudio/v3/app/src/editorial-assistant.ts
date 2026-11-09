@@ -386,7 +386,7 @@ function classroomPayload(scope: string) {
               .filter((o) => !o.hidden)
               .map((o) => {
                 const f = o.type === 'text' ? paragraphFormat(book, o, 0) : null;
-                let text = o.type === 'text' ? o.text : '';
+                let text = o.type === 'text' ? M.withoutNoteMarks(book, o.text) : '';
                 if (text.length > remaining) {
                   text = text.slice(0, remaining);
                   truncated = true;
