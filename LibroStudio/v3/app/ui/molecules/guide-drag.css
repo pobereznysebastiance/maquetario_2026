@@ -1,0 +1,59 @@
+/* Molécula: la guía que se arrastra desde una regla (src/ruler-guides.ts). Una línea del color de
+   las guías del libro sobre el área de trabajo, con su medida al lado. Fuera de una página se ve
+   más tenue y punteada: soltarla ahí no deja guía (o quita la que se movía). */
+.guide-drag {
+  position: fixed;
+  z-index: var(--layer-popover);
+  pointer-events: none;
+}
+.guide-drag.h {
+  top: var(--guide-at);
+  left: var(--guide-start);
+  width: var(--guide-length);
+  border-top: var(--border-width) solid var(--book-guide);
+}
+.guide-drag.v {
+  top: var(--guide-start);
+  left: var(--guide-at);
+  height: var(--guide-length);
+  border-left: var(--border-width) solid var(--book-guide);
+}
+.guide-drag.is-outside {
+  border-style: dashed;
+  opacity: var(--opacity-disabled);
+}
+.guide-drag span {
+  position: absolute;
+  padding: var(--space-3xs) var(--space-2xs);
+  border-radius: var(--radius-sm);
+  background: var(--book-guide);
+  color: var(--text-on-accent);
+  font-size: var(--type-caption2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.guide-drag.h span {
+  top: var(--space-2xs);
+  left: var(--space-sm);
+}
+.guide-drag.v span {
+  top: var(--space-sm);
+  left: var(--space-2xs);
+}
+
+/* Reglas: se puede tirar de ellas para sacar una guía. */
+#rulerX {
+  cursor: row-resize;
+}
+#rulerY {
+  cursor: col-resize;
+}
+/* Sobre una guía que se puede agarrar, y mientras se arrastra. */
+#spread.guide-hover-h .page,
+.guide-dragging:has(.guide-drag.h) {
+  cursor: row-resize;
+}
+#spread.guide-hover-v .page,
+.guide-dragging:has(.guide-drag.v) {
+  cursor: col-resize;
+}

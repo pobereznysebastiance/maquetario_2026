@@ -28,6 +28,7 @@
   --book-editing-wash: #fff9;
   --book-text-selection: #2eb9ac59; /* selección de texto sobre el papel: sólo fondo, la tinta no cambia */
   --book-overflow-line: #e36f6f;
+  --book-guide: #b7a2ff; /* guías propias del libro (sólo pantalla) */
   --book-overflow-text: #c54848;
   --book-overflow-fill: white;
 

@@ -55,6 +55,7 @@ import '../project-package-wiring.ts';
 import '../document-units.ts';
 import '../continuous-canvas.ts';
 import '../canvas-layer.ts';
+import '../ruler-guides.ts';
 import '../editorial-rules.tsx';
 import '../folio-position.ts';
 import '../components/inspector/FolioPanel.tsx';

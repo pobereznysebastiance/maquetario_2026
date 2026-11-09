@@ -38,3 +38,56 @@ registerIntegrationTest(function (result) {
   render(true);
   return result;
 }, 'editorial');
+
+// Guías desde las reglas (src/ruler-guides.ts): sacar una de la regla, moverla y quitarla
+// soltándola fuera de las páginas.
+registerIntegrationTest(function (result) {
+  const assert = (v, m) => {
+    if (!v) throw Error(m);
+    result.checks.push(m);
+  };
+  const editor = maquetarioEditor,
+    before = M.clone(editor.book.guides || []),
+    priorTool = editor.tool;
+  editor.tool = 'select';
+  editor.book.guides = [];
+  render(true);
+  const page = $('#spread .page'),
+    rect = page.getBoundingClientRect(),
+    px = rect.width / editor.book.width,
+    at = (mm) => rect.top + mm * px,
+    x = rect.left + rect.width / 2,
+    pointer = (type, target, clientY) =>
+      target.dispatchEvent(
+        new PointerEvent(type, { bubbles: true, button: 0, pointerId: 1, clientX: x, clientY }),
+      );
+  try {
+    pointer('pointerdown', $('#rulerX'), at(40));
+    pointer('pointermove', window, at(50));
+    pointer('pointerup', window, at(50));
+    const made = editor.book.guides[0];
+    assert(
+      editor.book.guides.length === 1 && made.axis === 'h' && Math.abs(made.position - 50) < 0.6,
+      'Arrastrar desde la regla de arriba deja una guía horizontal donde se suelta',
+    );
+    render(true);
+    pointer('pointerdown', $('#spread .page'), at(50));
+    pointer('pointermove', window, at(80));
+    pointer('pointerup', window, at(80));
+    assert(
+      editor.book.guides.length === 1 && Math.abs(editor.book.guides[0].position - 80) < 0.6,
+      'Una guía se agarra y se mueve con Seleccionar',
+    );
+    render(true);
+    pointer('pointerdown', $('#spread .page'), at(80));
+    pointer('pointermove', window, rect.top - 30);
+    pointer('pointerup', window, rect.top - 30);
+    assert(editor.book.guides.length === 0, 'Soltar la guía fuera de la página la quita');
+    assert(!$('.guide-drag'), 'La línea del arrastre no queda en pantalla');
+  } finally {
+    editor.book.guides = before;
+    editor.tool = priorTool;
+    render(true);
+  }
+  return result;
+}, 'ruler-guides');
