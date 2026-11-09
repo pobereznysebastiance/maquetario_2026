@@ -310,7 +310,7 @@ Tiempos (Chrome sin ventana, libro de muestra, 50 llamadas seguidas a `inspector
 
 ## El lienzo (etapa 3, D2): plan
 
-Es lo último del orden D2. Plan escrito el 09-nov. Hechos: pasos 1 a 4.
+Es lo último del orden D2. Plan escrito el 09-nov. Hechos: pasos 1 a 5.
 
 ### Qué es hoy
 
@@ -421,12 +421,35 @@ Cada paso es una entrega con la autoprueba en verde, PDF idénticos (`compare-ou
        - La salida con y sin "Grilla de filas y columnas" da el mismo marcado.
        - Con eventos de puntero reales, el imán muestra las mismas líneas a mitad del arrastre y ninguna al soltar.
        - El arrastre cuesta lo mismo: ~0,8 ms por movimiento y ~1 ms por cuadro.
-5. **El contenedor del pliego (`<Spread/>`).**
+5. ✓ **El contenedor del pliego (`<Spread/>`).**
    - React decide qué páginas o filas existen: un pliego, o las filas virtualizadas de la vista continua.
    - Cada lugar se llena con `paper(i, scale)` en un `useLayoutEffect`: el papel sigue siendo una isla imperativa.
    - `renderPages()` queda como fachada, como `inspector()`: avisa y dibuja en el acto.
    - El ancla del zoom (`canvasAnchor`/`restoreCanvasAnchor`) se restaura en el mismo efecto, cuando los tamaños ya están puestos.
    - Las dos extensiones de `continuous-canvas` y las de `canvas-navigation` sobre `renderPages` pasan adentro del componente.
+   - **Hecho (09-nov), en `components/canvas/Spread.tsx`:**
+     - `renderPages()` de `studio.ts` quedó vacía, como fachada. `canvas-layer.ts` le engancha `drawSpread()`, que:
+       - antes de dibujar calcula el plan: la escala, el ancla y la clave del pliego, o las filas de la vista continua;
+       - dibuja en el acto con `flushSync`.
+     - **Pliego:** el lugar es `#spread`. Las páginas van directo ahí, como siempre.
+     - **Vista continua:** React dibuja una `<section class="continuous-row">` por pliego. Cada fila se llena con `paper()` y `screenPage()` en un `useLayoutEffect` cuando está cerca de la vista, y se vacía lejos.
+     - **Después del dibujo:** tamaño de la superficie, posición del pliego y desplazamiento o ancla.
+     - **Al desplazarse:** la página visible y las filas cercanas; `canvas-layer.ts` escucha el `scroll`.
+     - **Lo que se absorbió:**
+       - las extensiones de `renderPages` de `canvas-navigation` (antes y después) y de `continuous-canvas` (`instead` y antes);
+       - las de `canvasAnchor`/`restoreCanvasAnchor` de `continuous-canvas` (ahora esas funciones conocen la fila);
+       - `paintContinuousRows`, `markVisiblePage` y el oyente de `scroll`.
+       - En `continuous-canvas` quedan el estado, el botón y lo que elige el pliego.
+     - **La capa de selección:** mientras se llenan los lugares (`drawingPages`), sólo anota las páginas y se redibuja una vez, al final del mismo dibujo.
+     - **Orden de carga:** `canvas-layer.ts` va después de `continuous-canvas.ts` en `src/entries/app.ts`. Hasta ahí, `renderPages()` no dibuja nada.
+     - **Pruebas:**
+       - La autoprueba da PDF y JSON idénticos, salvo `verificacion-extensiones.json`: `renderPages` queda sólo con `canvas-layer`, se van `canvasAnchor` y `restoreCanvasAnchor`, y `screenPage` cambia de lugar en la lista.
+       - Dan igual `#spread`, la escala, la superficie y el desplazamiento: pliego, zoom con ancla ida y vuelta, ajustar, redibujo, vista continua de punta a punta, zoom en la vista continua y vuelta al pliego.
+       - Con eventos de puntero reales, el mismo resultado.
+     - **Tiempos** (50 `renderPages`):
+       - pliego, de 116 a 152 ms (de ~2,3 a ~3 ms cada una);
+       - vista continua, de 133 a 121 ms.
+       - El cuadro de desplazamiento y el arrastre cuestan lo mismo (~0,9 ms por movimiento).
 6. **Edición y arrastre: se ordenan, no se pasan.**
    - `editing` y `drag` ya viven en `editor`. La capa de selección dibuja el anillo de edición.
    - Durante el arrastre, el aviso a React se junta en un `requestAnimationFrame` (hoy, uno por `pointermove`), y el inspector sólo se entera de la geometría (`GeometryPanel`).

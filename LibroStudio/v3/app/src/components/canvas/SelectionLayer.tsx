@@ -91,21 +91,50 @@ const subscribe = (listener: () => void) => {
 };
 let mounted = false;
 
+/** Monta la raíz de la capa si todavía no está (devuelve si la montó recién). */
+export function ensureSelectionLayer(): boolean {
+  if (mounted) return false;
+  mounted = true;
+  const host = document.createElement('div');
+  host.hidden = true;
+  host.className = 'selection-layer-root';
+  document.body.append(host);
+  mount(host, <SelectionLayer />, { sync: true });
+  return true;
+}
+
+/** Dentro de un dibujo del pliego (Spread.tsx): la capa se redibuja al terminarlo. */
+let drawing = 0;
+
 /** Redibuja la capa en el acto (al volver, el DOM ya está al día). */
 export function refreshSelection(): void {
-  if (!mounted) {
-    mounted = true;
-    const host = document.createElement('div');
-    host.hidden = true;
-    host.className = 'selection-layer-root';
-    document.body.append(host);
-    mount(host, <SelectionLayer />, { sync: true });
-    return;
-  }
+  if (ensureSelectionLayer()) return;
   version += 1;
-  flushSync(() => {
+  const notify = () => {
     for (const listener of listeners) listener();
-  });
+  };
+  // Dentro de un dibujo de React (los lugares del pliego se llenan en un efecto) no se puede
+  // forzar: React redibuja la capa al terminar ese dibujo, antes de volver.
+  if (drawing) notify();
+  else flushSync(notify);
+}
+
+/**
+ * Llena lugares del pliego (Spread.tsx, dentro de un useLayoutEffect): las páginas que arma fn se
+ * anotan y la capa se redibuja una vez, al final.
+ */
+export function drawingPages(fn: () => void): void {
+  drawing += 1;
+  try {
+    fn();
+  } finally {
+    drawing -= 1;
+  }
+  // Se llama desde un efecto de React: el redibujo queda para el final de ese dibujo.
+  if (!drawing && !ensureSelectionLayer()) {
+    version += 1;
+    for (const listener of listeners) listener();
+  }
 }
 
 /** Una página nueva del lienzo (screenPage): la capa se dibuja sobre ella en el acto. */
@@ -113,6 +142,11 @@ export function trackPage(page: HTMLElement, index: number, px: number): void {
   pages = pages.filter((p) => p.page.isConnected && p.page !== page);
   pending = { page, index, px };
   pages.push(pending);
+  if (drawing) {
+    // Se dibuja al terminar el llenado, cuando la página ya está en el documento.
+    pending = null;
+    return;
+  }
   try {
     refreshSelection();
   } finally {

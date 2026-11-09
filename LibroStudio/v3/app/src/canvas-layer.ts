@@ -4,10 +4,17 @@
 // - checkOverflow mide las cajas con texto sobrante; la marca + la dibuja la capa (sólo se
 //   redibuja si cambió qué cajas desbordan: durante un arrastre se mide en cada movimiento).
 //
-// Carga después de review-workspace.ts y shapes.ts: la capa usa sus textos (rw, shapeNames).
+// Carga después de review-workspace.ts y shapes.ts (la capa usa sus textos: rw, shapeNames) y de
+// canvas-navigation.ts y continuous-canvas.ts (la mesa, la superficie y la vista continua).
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 import { setOverflowing, trackPage } from './components/canvas/SelectionLayer.tsx';
+import { drawSpread, onCanvasScroll } from './components/canvas/Spread.tsx';
+
+// El pliego (components/canvas/Spread.tsx): renderPages() lo dibuja, y en la vista continua el
+// desplazamiento llena las filas cercanas.
+extend.after('renderPages', () => drawSpread(), 'canvas-layer');
+canvasStage.addEventListener('scroll', onCanvasScroll, { passive: true });
 
 extend.result(
   'screenPage',
@@ -34,7 +41,7 @@ extend.replace(
   'canvas-layer',
 );
 
-// Lo que ya estaba dibujado al cargar este módulo.
-for (const page of $$('#spread .page')) trackPage(page, Number(page.dataset.page), scale);
+// El primer dibujo (hasta acá, renderPages no dibujaba nada).
+renderPages();
 
 export {};

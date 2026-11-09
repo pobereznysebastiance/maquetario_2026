@@ -559,21 +559,13 @@ const screenPage = extensible(
     return page;
   },
 );
-const renderPages = extensible('renderPages', function (): void {
-  calculateScale();
-  const host = $('#spread'),
-    vertical = verticalSpread();
-  const count = Math.min(book.pages.length - spread, book.facing ? 2 : 1);
-  host.classList.toggle('spread-vertical', vertical);
-  host.replaceChildren();
-  for (let i = spread; i < spread + count; i++) host.append(screenPage(paper(i, scale), i, scale));
-  const width = book.width * (vertical ? 1 : count),
-    height = book.height * (vertical ? count : 1);
-  host.style.width = width * scale + (!vertical && count === 2 ? 2 : 0) + 'px';
-  host.style.height = height * scale + (vertical && count === 2 ? 2 : 0) + 'px';
-  // Las marcas de las reglas las pone la capa de selección (components/canvas/CanvasGuides.tsx).
-  requestAnimationFrame(checkOverflow);
-});
+/**
+ * Dibuja el lienzo: el pliego, o las filas de la vista continua. Es una fachada: lo dibuja el
+ * componente <Spread/> (components/canvas/Spread.tsx), que canvas-layer.ts engancha acá; React
+ * decide qué páginas o filas se ven y las llena con paper() y screenPage(). Al volver, el DOM ya
+ * está al día.
+ */
+const renderPages = extensible('renderPages', function (): void {});
 /** Redibuja la pantalla. Nombre y formato del libro: barra del documento (React), vía updateStatus. */
 const render = extensible('render', function (full = true): void {
   renderPages();
