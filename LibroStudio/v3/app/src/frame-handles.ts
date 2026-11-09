@@ -96,15 +96,14 @@ function frameGeometry(
   return { x: left, y: top, w: right - left, h: bottom - top };
 }
 globalThis.frameGeometry = frameGeometry;
+// Sólo en el lienzo: lo impreso no lleva controladores.
 extend.result(
-  'paper',
-  function (page: HTMLElement, index: number, px: number, print = false) {
-    if (!print) {
-      for (const o of book.pages[index].objects) {
-        if (o.id !== selected) continue;
-        const el = page.querySelector<HTMLElement>(`[data-id="${o.id}"]`);
-        if (el) addFrameHandles(el, o, index);
-      }
+  'screenPage',
+  function (page: HTMLElement, _drawn: HTMLElement, index: number) {
+    for (const o of book.pages[index].objects) {
+      if (o.id !== selected) continue;
+      const el = page.querySelector<HTMLElement>(`[data-id="${o.id}"]`);
+      if (el) addFrameHandles(el, o, index);
     }
     return page;
   },

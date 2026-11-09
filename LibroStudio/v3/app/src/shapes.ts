@@ -84,7 +84,18 @@ extend.result(
       el.querySelector<SVGElement>('.editorial-shape-svg')!.style.opacity = String(
         (o.opacity ?? 100) / 100,
       );
-      const badge = el.querySelector('.object-badge');
+    }
+    return page;
+  },
+  'shapes',
+);
+// En el lienzo, la etiqueta del objeto elegido dice qué figura es.
+extend.result(
+  'screenPage',
+  function (page: HTMLElement, _drawn: HTMLElement, index: number): HTMLElement {
+    for (const o of book.pages[index].objects) {
+      if (!o.shape) continue;
+      const badge = page.querySelector(`[data-id="${o.id}"] > .object-badge`);
       if (badge) badge.textContent = bw(...shapeNames[o.shape]);
     }
     return page;

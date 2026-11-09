@@ -310,7 +310,7 @@ Tiempos (Chrome sin ventana, libro de muestra, 50 llamadas seguidas a `inspector
 
 ## El lienzo (etapa 3, D2): plan
 
-Es lo último del orden D2. Plan escrito el 09-nov; todavía no hay código.
+Es lo último del orden D2. Plan escrito el 09-nov. Hecho: paso 1.
 
 ### Qué es hoy
 
@@ -361,11 +361,19 @@ El lienzo es lo que `studio.ts` y una decena de módulos dibujan alrededor del l
 
 Cada paso es una entrega con la autoprueba en verde, PDF idénticos (`compare-outputs`) y el marcado de `#spread` comparado en Chrome sin ventana, como en el inspector.
 
-1. **Separar el papel de la pantalla, sin React.**
+1. ✓ **Separar el papel de la pantalla, sin React.**
    - `paper(i, px, print)` queda con la rama del libro.
    - Lo de pantalla (clase `selected`, etiqueta, manija, grilla y guías, `pointerdown` de la página) pasa a una función extensible aparte, `screenPage(page, i)`, que llaman `renderPages` y la vista continua después de `paper()`.
    - Las extensiones de pantalla (`frame-handles`, `review-workspace`, el nombre de `shapes`, la parte de bloqueados de `layout-tools`) se mudan de `paper` a `screenPage`.
    - Prueba: `paper(i, px, true)` y los PDF idénticos; `#spread` igual.
+   - **Hecho (09-nov).**
+     - `screenPage(page, i, px)` es extensible en `studio.ts`. La llaman `renderPages` y la vista continua (`screenPage(paper(i, scale), i, scale)`).
+     - Se mudaron a `screenPage` los controladores (`frame-handles`), la página activa y la selección múltiple (`review-workspace`), los bloqueados (`layout-tools`; los ocultos siguen en `paper`, porque tampoco se imprimen), el nombre de la figura en la etiqueta (`shapes`) y el doble clic del Índice (`editorial`).
+     - `paper()` ya no lleva `selected`, `active-page`, etiqueta, manija, guías ni oyentes, tampoco con `print` falso.
+     - Autoprueba completa: los 7 PDF y los JSON salen idénticos. Sólo cambia `verificacion-extensiones.json`: `paper` pierde `frame-handles` y `review-workspace`, y aparece `screenPage` con `editorial`, `frame-handles`, `layout-tools`, `review-workspace` y `shapes`.
+     - `#spread` comparado en Chrome sin ventana: igual en texto, marco, figura, bloqueado, varios, edición, clic, inglés y vista continua. Hay dos diferencias, ninguna visible:
+       - en una línea decorativa elegida, la línea va antes que la etiqueta (antes, después de los controladores);
+       - lo impreso ya no lleva la clase `locked`, que sólo cambia el cursor.
 2. **Eventos delegados.**
    - Un solo oyente en `#spread` (`pointerdown`, `dblclick`, `input`, `blur`) que busca el `[data-id]` y la página, y llama a `objectDown`/`pageDown`/`startEditing` con los mismos argumentos.
    - Las 13 extensiones de esas funciones no cambian.

@@ -321,21 +321,20 @@ extend.before(
   },
   'review-workspace',
 );
+// Página activa y selección múltiple: sólo en el lienzo.
 extend.result(
-  'paper',
-  function (page: HTMLElement, index: number, px: number, print = false) {
-    if (!print) {
-      page.classList.toggle('is-page-active', index === active);
-      const badge = document.createElement('span');
-      badge.className = 'page-active-badge';
-      badge.textContent = `${rw().active} ${index + 1}`;
-      page.append(badge);
-      for (const o of book.pages[index].objects)
-        if (multiSelection.has(o.id)) {
-          const el = page.querySelector(`[data-id="${o.id}"]`);
-          if (el) el.classList.add('multi-selected');
-        }
-    }
+  'screenPage',
+  function (page: HTMLElement, _drawn: HTMLElement, index: number) {
+    page.classList.toggle('is-page-active', index === active);
+    const badge = document.createElement('span');
+    badge.className = 'page-active-badge';
+    badge.textContent = `${rw().active} ${index + 1}`;
+    page.append(badge);
+    for (const o of book.pages[index].objects)
+      if (multiSelection.has(o.id)) {
+        const el = page.querySelector(`[data-id="${o.id}"]`);
+        if (el) el.classList.add('multi-selected');
+      }
     return page;
   },
   'review-workspace',

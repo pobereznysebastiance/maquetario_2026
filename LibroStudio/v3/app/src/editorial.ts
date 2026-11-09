@@ -89,10 +89,6 @@ function renderToc(el: HTMLElement, o: BookObject, px: number): void {
     row.append(label, dots, folio);
     content.append(row);
   }
-  el.ondblclick = (e) => {
-    e.stopPropagation();
-    showTab('index');
-  };
 }
 // Índice dibujado en el papel; tracking, sangría y espacio entre párrafos de los textos.
 extend.result(
@@ -116,6 +112,23 @@ extend.result(
           }
         } else content.style.textIndent = (o.indent || 0) * px + 'px';
       }
+    }
+    return page;
+  },
+  'editorial',
+);
+// En el lienzo, doble clic en el índice abre su vista (no se edita en el papel).
+extend.result(
+  'screenPage',
+  (page: HTMLElement, _drawn: HTMLElement, i: number) => {
+    for (const o of book.pages[i].objects) {
+      if (!o.toc) continue;
+      const el = page.querySelector<HTMLElement>(`[data-id="${o.id}"]`);
+      if (el)
+        el.ondblclick = (e) => {
+          e.stopPropagation();
+          showTab('index');
+        };
     }
     return page;
   },

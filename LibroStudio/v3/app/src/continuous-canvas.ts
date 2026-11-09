@@ -95,7 +95,8 @@ function paintContinuousRows(): void {
     const keep =
       y < bottom + canvasStage.clientHeight && y + row.height > top - canvasStage.clientHeight;
     if (keep && !row.element.children.length) {
-      for (let i = row.start; i < row.start + row.count; i++) row.element.append(paper(i, scale));
+      for (let i = row.start; i < row.start + row.count; i++)
+        row.element.append(screenPage(paper(i, scale), i, scale));
     } else if (!keep && !drag && !row.element.contains(editing)) row.element.replaceChildren();
   }
   requestAnimationFrame(checkOverflow);

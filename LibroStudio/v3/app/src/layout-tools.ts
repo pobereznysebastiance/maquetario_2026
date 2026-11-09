@@ -282,16 +282,23 @@ extend.instead(
   () => {},
   'layout-tools',
 );
+// Los objetos ocultos no se dibujan (tampoco en lo impreso).
 extend.result(
   'paper',
-  function (page: HTMLElement, index: number, px: number, print = false) {
+  function (page: HTMLElement, index: number) {
+    for (const o of book.pages[index].objects)
+      if (o.hidden) page.querySelector(`[data-id="${o.id}"]`)?.remove();
+    return page;
+  },
+  'layout-tools',
+);
+// En el lienzo, los bloqueados se marcan y no llevan controladores.
+extend.result(
+  'screenPage',
+  function (page: HTMLElement, _drawn: HTMLElement, index: number) {
     for (const o of book.pages[index].objects) {
       const node = page.querySelector(`[data-id="${o.id}"]`);
       if (!node) continue;
-      if (o.hidden) {
-        node.remove();
-        continue;
-      }
       node.classList.toggle('locked', !!o.locked);
       if (o.locked) node.querySelectorAll('.frame-handle').forEach((n) => n.remove());
     }

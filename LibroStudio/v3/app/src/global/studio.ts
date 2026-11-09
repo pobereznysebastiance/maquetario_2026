@@ -506,10 +506,14 @@ const autoElement = extensible(
     return el;
   },
 );
-/** Dibuja la página i a px píxeles por milímetro. */
+/**
+ * Dibuja la página i a px píxeles por milímetro: sólo lo del libro (lo mismo en pantalla y en lo que
+ * sale impreso). Lo que es sólo de la pantalla (selección, controladores, guías, oyentes) lo suma
+ * screenPage() después, en el lienzo. print: página de impresión (.print-page).
+ */
 const paper = extensible('paper', function (i: number, px: number, print = false): HTMLElement {
   const page = document.createElement('div');
-  page.className = print ? 'print-page' : 'page' + (active === i ? ' active-page' : '');
+  page.className = print ? 'print-page' : 'page';
   page.dataset.page = String(i);
   page.style.width = book.width * px + 'px';
   page.style.height = book.height * px + 'px';
@@ -518,7 +522,7 @@ const paper = extensible('paper', function (i: number, px: number, print = false
   page.append(objects);
   for (const o of book.pages[i].objects) {
     let el = document.createElement('div');
-    el.className = 'paper-object ' + o.type + (!print && selected === o.id ? ' selected' : '');
+    el.className = 'paper-object ' + o.type;
     el.dataset.id = o.id;
     Object.assign(el.style, {
       left: o.x * px + 'px',
@@ -540,7 +544,37 @@ const paper = extensible('paper', function (i: number, px: number, print = false
       t.className = 'text-content';
       t.textContent = o.text;
       el.append(t);
-      if (!print) {
+    } else if (o.type === 'image') {
+      let img = new Image();
+      img.src = o.src;
+      img.alt = o.name || 'Imagen';
+      el.append(img);
+    } else el.innerHTML = icon('frame');
+    objects.append(el);
+  }
+  for (const type of ['header', 'titulillo', 'folio'] as const) {
+    const auto = autoElement(i, type, px, print);
+    if (auto) page.append(auto);
+  }
+  return page;
+});
+/**
+ * Lo que la página dibujada por paper() lleva sólo en el lienzo: página activa, objeto elegido (su
+ * etiqueta y su manija), oyentes de puntero y de edición, y la grilla con las guías. Nunca sale
+ * impreso. Los módulos suman lo suyo con extend.result('screenPage', …) (controladores, selección
+ * múltiple, bloqueados…).
+ */
+const screenPage = extensible(
+  'screenPage',
+  function (page: HTMLElement, i: number, px: number): HTMLElement {
+    if (active === i) page.classList.add('active-page');
+    for (const o of book.pages[i].objects) {
+      // Los objetos ocultos no están en el papel (layout-tools).
+      const el = page.querySelector<HTMLElement>(`:scope > .objects > [data-id="${o.id}"]`);
+      if (!el) continue;
+      if (selected === o.id) el.classList.add('selected');
+      const t = o.type === 'text' ? el.querySelector<HTMLElement>(':scope > .text-content') : null;
+      if (t) {
         t.addEventListener('blur', () => finishEditing());
         t.addEventListener('input', () => {
           o.text = t.innerText.replace(/\r/g, '');
@@ -553,13 +587,6 @@ const paper = extensible('paper', function (i: number, px: number, print = false
           startEditing(el);
         };
       }
-    } else if (o.type === 'image') {
-      let img = new Image();
-      img.src = o.src;
-      img.alt = o.name || 'Imagen';
-      el.append(img);
-    } else el.innerHTML = icon('frame');
-    if (!print) {
       el.addEventListener('pointerdown', (e) => objectDown(e, o, i, el));
       if (selected === o.id) {
         const badge = document.createElement('span');
@@ -573,21 +600,14 @@ const paper = extensible('paper', function (i: number, px: number, print = false
         el.append(handle);
       }
     }
-    objects.append(el);
-  }
-  for (const type of ['header', 'titulillo', 'folio'] as const) {
-    const auto = autoElement(i, type, px, print);
-    if (auto) page.append(auto);
-  }
-  if (!print) {
     const guides = document.createElement('div');
     guides.className = 'guides';
     guides.innerHTML = gridSvg(i, px);
     page.append(guides);
     page.addEventListener('pointerdown', (e) => pageDown(e, i, page));
-  }
-  return page;
-});
+    return page;
+  },
+);
 const renderPages = extensible('renderPages', function (): void {
   calculateScale();
   const host = $('#spread'),
@@ -595,7 +615,7 @@ const renderPages = extensible('renderPages', function (): void {
   const count = Math.min(book.pages.length - spread, book.facing ? 2 : 1);
   host.classList.toggle('spread-vertical', vertical);
   host.replaceChildren();
-  for (let i = spread; i < spread + count; i++) host.append(paper(i, scale));
+  for (let i = spread; i < spread + count; i++) host.append(screenPage(paper(i, scale), i, scale));
   const width = book.width * (vertical ? 1 : count),
     height = book.height * (vertical ? count : 1);
   host.style.width = width * scale + (!vertical && count === 2 ? 2 : 0) + 'px';
