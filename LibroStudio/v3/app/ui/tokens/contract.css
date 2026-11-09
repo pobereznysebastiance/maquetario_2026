@@ -1,0 +1,41 @@
+/* Contrato de tokens compartido con Motiova (D5).
+   GENERADO desde packages/tokens/tokens.json con `npm run build --workspace @maquetario/tokens`:
+   no se edita a mano. Los nombres comunes apuntan a los tokens de Maquetario (semantic.css);
+   los valores siguen viviendo allí.
+   Los nombres del contrato que ya son de Maquetario (material-*, elevation-*, type-*, status-*,
+   radius-*) no se repiten acá.
+   Sin emitir por choque de nombres: --accent (en Maquetario --accent es la acción principal; hay que renombrarlo antes). */
+:root {
+  --background: var(--surface-window);
+  --foreground: var(--text-primary);
+  --card: var(--material-sheet);
+  --card-foreground: var(--text-primary);
+  --popover: var(--material-popover);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--accent);
+  --primary-foreground: var(--text-on-accent);
+  --secondary: var(--surface-control);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--surface-field);
+  --muted-foreground: var(--text-secondary);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--danger);
+  --border: var(--line-default);
+  --input: var(--line-default);
+  --ring: var(--focus-ring);
+  --highlight: var(--text-mark);
+  --highlight-foreground: var(--text-on-accent);
+  --sidebar: var(--material-sidebar);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--accent);
+  --sidebar-primary-foreground: var(--text-on-accent);
+  --sidebar-accent: var(--surface-selected);
+  --sidebar-accent-foreground: var(--text-primary);
+  --sidebar-border: var(--line-subtle);
+  --sidebar-ring: var(--focus-ring);
+  --radius: var(--radius-lg);
+}
+body {
+  --font-sans: var(--font-ui);
+  --font-heading: var(--font-ui);
+}

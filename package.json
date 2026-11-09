@@ -15,9 +15,9 @@
     "test": "npm run test --workspaces --if-present && npm run lint:design && npm run format:check",
     "license:dev-keys": "npm run dev-keys --workspace @maquetario/license",
     "license:dev-issue": "npm run dev-issue --workspace @maquetario/license --",
-    "lint:design": "node scripts/check-design-tokens.mjs",
-    "format": "prettier --write \"LibroStudio/v3/app/**/*.js\" \"LibroStudio/v3/app/src/**/*.ts\" \"desktop/src/**/*.ts\" \"desktop/scripts/**/*.mjs\" \"desktop/test/**/*.ts\" \"packages/*/src/**/*.ts\" \"packages/*/test/**/*.ts\" \"scripts/**/*.{js,mjs,cjs}\"",
-    "format:check": "prettier --check \"LibroStudio/v3/app/**/*.js\" \"LibroStudio/v3/app/src/**/*.ts\" \"desktop/src/**/*.ts\" \"desktop/scripts/**/*.mjs\" \"desktop/test/**/*.ts\" \"packages/*/src/**/*.ts\" \"packages/*/test/**/*.ts\" \"scripts/**/*.{js,mjs,cjs}\"",
+    "lint:design": "node scripts/check-design-tokens.mjs && node packages/tokens/scripts/build.mjs --check",
+    "format": "prettier --write \"LibroStudio/v3/app/**/*.js\" \"LibroStudio/v3/app/src/**/*.ts\" \"desktop/src/**/*.ts\" \"desktop/scripts/**/*.mjs\" \"desktop/test/**/*.ts\" \"packages/*/src/**/*.ts\" \"packages/*/test/**/*.ts\" \"scripts/**/*.{js,mjs,cjs}\" \"packages/tokens/**/*.{mjs,json}\"",
+    "format:check": "prettier --check \"LibroStudio/v3/app/**/*.js\" \"LibroStudio/v3/app/src/**/*.ts\" \"desktop/src/**/*.ts\" \"desktop/scripts/**/*.mjs\" \"desktop/test/**/*.ts\" \"packages/*/src/**/*.ts\" \"packages/*/test/**/*.ts\" \"scripts/**/*.{js,mjs,cjs}\" \"packages/tokens/**/*.{mjs,json}\"",
     "typecheck:app": "tsc -p LibroStudio/v3/app/tsconfig.json --pretty false"
   },
   "engines": {

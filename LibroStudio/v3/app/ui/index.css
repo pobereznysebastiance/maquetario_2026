@@ -16,6 +16,8 @@
 @import url('tokens/fonts.css') layer(tokens);
 @import url('tokens/primitives.css') layer(tokens);
 @import url('tokens/semantic.css') layer(tokens);
+/* Contrato común con Motiova: alias de nombres (--background, --primary…), generado por packages/tokens. */
+@import url('tokens/contract.css') layer(tokens);
 @import url('tokens/book.css') layer(tokens);
 @import url('base.css') layer(base);
 @import url('atoms/icon.css') layer(atoms);

@@ -9,6 +9,7 @@
 //      node scripts/app-cdp.mjs shot salida.png [x y ancho alto]
 //      node scripts/app-cdp.mjs click x y
 //      node scripts/app-cdp.mjs key Escape
+//      node scripts/app-cdp.mjs reload          (recarga sin caché)
 //
 // Mientras dura cada llamada la vista se fija en 1536 × 1024 a escala 1 (como pide el método de
 // docs/proximos-pasos.md), sin importar el tamaño de la ventana ni la escala de la pantalla.
@@ -96,7 +97,11 @@ else if (cmd === 'shot') {
       windowsVirtualKeyCode: args[0] === 'Escape' ? 27 : 0,
     });
   console.log('tecla', args[0]);
+} else if (cmd === 'reload') {
+  // Recarga sin caché: toma los CSS e index.html recién cambiados (location.reload() puede no hacerlo).
+  await send('Page.reload', { ignoreCache: true });
+  console.log('recargada sin caché');
 } else {
-  console.log('Comandos: eval, evalfile, shot, click, key');
+  console.log('Comandos: eval, evalfile, shot, click, key, reload');
 }
 ws.close();
