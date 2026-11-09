@@ -560,9 +560,9 @@ const paper = extensible('paper', function (i: number, px: number, print = false
 });
 /**
  * Lo que la página dibujada por paper() lleva sólo en el lienzo: página activa, objeto elegido (su
- * etiqueta y su manija), oyentes de puntero y de edición, y la grilla con las guías. Nunca sale
- * impreso. Los módulos suman lo suyo con extend.result('screenPage', …) (controladores, selección
- * múltiple, bloqueados…).
+ * etiqueta y su manija) y la grilla con las guías. Nunca sale impreso. Los módulos suman lo suyo con
+ * extend.result('screenPage', …) (controladores, selección múltiple, bloqueados…). No pone
+ * oyentes: los eventos del lienzo los atiende #spread (ver "Eventos del lienzo", más abajo).
  */
 const screenPage = extensible(
   'screenPage',
@@ -573,21 +573,6 @@ const screenPage = extensible(
       const el = page.querySelector<HTMLElement>(`:scope > .objects > [data-id="${o.id}"]`);
       if (!el) continue;
       if (selected === o.id) el.classList.add('selected');
-      const t = o.type === 'text' ? el.querySelector<HTMLElement>(':scope > .text-content') : null;
-      if (t) {
-        t.addEventListener('blur', () => finishEditing());
-        t.addEventListener('input', () => {
-          o.text = t.innerText.replace(/\r/g, '');
-          changed();
-        });
-        el.ondblclick = (e) => {
-          e.stopPropagation();
-          active = i;
-          selected = o.id;
-          startEditing(el);
-        };
-      }
-      el.addEventListener('pointerdown', (e) => objectDown(e, o, i, el));
       if (selected === o.id) {
         const badge = document.createElement('span');
         badge.className = 'object-badge';
@@ -596,7 +581,6 @@ const screenPage = extensible(
         el.append(badge);
         const handle = document.createElement('span');
         handle.className = 'resize-handle';
-        handle.addEventListener('pointerdown', (e) => objectDown(e, o, i, el, true));
         el.append(handle);
       }
     }
@@ -604,7 +588,6 @@ const screenPage = extensible(
     guides.className = 'guides';
     guides.innerHTML = gridSvg(i, px);
     page.append(guides);
-    page.addEventListener('pointerdown', (e) => pageDown(e, i, page));
     return page;
   },
 );
@@ -729,7 +712,6 @@ const objectDown = extensible(
     if (!el.querySelector('.resize-handle')) {
       const handle = document.createElement('span');
       handle.className = 'resize-handle';
-      handle.onpointerdown = (ev) => objectDown(ev, o, i, el, true);
       el.append(handle);
     }
     $$('.page').forEach((n) =>
@@ -821,6 +803,65 @@ const pageDown = extensible(
     else render(false);
   },
 );
+// ── Eventos del lienzo, delegados en #spread ──
+// El papel no lleva oyentes propios: un solo oyente por evento en #spread busca la página y el
+// objeto, y llama a objectDown, pageDown o startEditing con los mismos argumentos de antes (sus
+// extensiones no cambian). Los nodos del papel se rehacen en cada dibujo; #spread queda.
+/** La página del lienzo (con su índice) y el objeto del libro bajo un evento, si lo hay. */
+function canvasHit(target: EventTarget | null): {
+  page: HTMLElement;
+  i: number;
+  el: HTMLElement | null;
+  o: import('../model.ts').BookObject | null;
+} | null {
+  const node = target instanceof Element ? target : null,
+    page = node?.closest<HTMLElement>('#spread .page');
+  if (!page) return null;
+  const i = Number(page.dataset.page),
+    el = node!.closest<HTMLElement>('.paper-object'),
+    o =
+      (el && page.contains(el) && book.pages[i]?.objects.find((x) => x.id === el.dataset.id)) ||
+      null;
+  return { page, i, el: o ? el : null, o };
+}
+{
+  const host = $('#spread');
+  host.addEventListener('pointerdown', (e) => {
+    const hit = canvasHit(e.target);
+    if (!hit) return;
+    const { page, i, el, o } = hit;
+    if (el && o) {
+      // Desde una manija: la de tamaño (true) o un controlador con su dirección (frame-handles).
+      const handle = (e.target as Element).closest<HTMLElement>('.resize-handle');
+      objectDown(e, o, i, el, handle ? handle.dataset.handle || true : false);
+      // Como cuando el objeto tenía su oyente: si objectDown no detuvo el evento, sigue a la página.
+      if (e.cancelBubble) return;
+    }
+    pageDown(e, i, page);
+  });
+  // Doble clic en una caja de texto: editarla (el Índice abre su vista: editorial.ts).
+  host.addEventListener('dblclick', (e) => {
+    const hit = canvasHit(e.target);
+    if (!hit?.el || hit.o?.type !== 'text') return;
+    e.stopPropagation();
+    active = hit.i;
+    selected = hit.o.id;
+    startEditing(hit.el);
+  });
+  // El texto que se escribe en la caja en edición.
+  host.addEventListener('input', (e) => {
+    const t = e.target instanceof Element ? e.target.closest<HTMLElement>('.text-content') : null,
+      hit = canvasHit(t);
+    if (!t || !hit?.o || hit.o.type !== 'text') return;
+    hit.o.text = t.innerText.replace(/\r/g, '');
+    changed();
+  });
+  // La caja en edición pierde el foco ("blur" no sube: focusout sí).
+  host.addEventListener('focusout', (e) => {
+    if (e.target instanceof Element && e.target.matches('.paper-object > .text-content'))
+      finishEditing();
+  });
+}
 let imageTarget: Record<string, any> | null = null;
 function chooseImage(target: Record<string, unknown>): void {
   imageTarget = target;

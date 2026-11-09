@@ -72,7 +72,7 @@ function addFrameHandles(el: HTMLElement, o: BookObject, index: number): void {
     handle.title = frameHandleLabel(direction);
     handle.setAttribute('aria-label', handle.title);
     handle.setAttribute('role', 'button');
-    handle.addEventListener('pointerdown', (e) => objectDown(e, o, index, el, direction));
+    // El pointerdown lo atiende #spread (studio.ts): llama a objectDown con data-handle.
     el.append(handle);
   }
 }

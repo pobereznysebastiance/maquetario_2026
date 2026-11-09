@@ -119,24 +119,7 @@ extend.result(
   },
   'editorial',
 );
-// En el lienzo, doble clic en el índice abre su vista (no se edita en el papel).
-extend.result(
-  'screenPage',
-  (page: HTMLElement, _drawn: HTMLElement, i: number) => {
-    for (const o of book.pages[i].objects) {
-      if (!o.toc) continue;
-      const el = page.querySelector<HTMLElement>(`[data-id="${o.id}"]`);
-      if (el)
-        el.ondblclick = (e) => {
-          e.stopPropagation();
-          showTab('index');
-        };
-    }
-    return page;
-  },
-  'editorial',
-);
-// El índice no se edita en el papel: abre su pestaña.
+// El índice no se edita en el papel: abre su pestaña (también con doble clic en el lienzo).
 extend.instead(
   'startEditing',
   () => !!selectObject()?.toc,

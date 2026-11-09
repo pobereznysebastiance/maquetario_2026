@@ -310,7 +310,7 @@ Tiempos (Chrome sin ventana, libro de muestra, 50 llamadas seguidas a `inspector
 
 ## El lienzo (etapa 3, D2): plan
 
-Es lo último del orden D2. Plan escrito el 09-nov. Hecho: paso 1.
+Es lo último del orden D2. Plan escrito el 09-nov. Hechos: pasos 1 y 2.
 
 ### Qué es hoy
 
@@ -374,10 +374,18 @@ Cada paso es una entrega con la autoprueba en verde, PDF idénticos (`compare-ou
      - `#spread` comparado en Chrome sin ventana: igual en texto, marco, figura, bloqueado, varios, edición, clic, inglés y vista continua. Hay dos diferencias, ninguna visible:
        - en una línea decorativa elegida, la línea va antes que la etiqueta (antes, después de los controladores);
        - lo impreso ya no lleva la clase `locked`, que sólo cambia el cursor.
-2. **Eventos delegados.**
+2. ✓ **Eventos delegados.**
    - Un solo oyente en `#spread` (`pointerdown`, `dblclick`, `input`, `blur`) que busca el `[data-id]` y la página, y llama a `objectDown`/`pageDown`/`startEditing` con los mismos argumentos.
    - Las 13 extensiones de esas funciones no cambian.
    - Ningún nodo del papel lleva oyentes: React puede dibujar al lado sin perderlos.
+   - **Hecho (09-nov).**
+     - En `studio.ts` ("Eventos del lienzo"), `#spread` atiende `pointerdown`, `dblclick`, `input` y `focusout` (`blur` no sube).
+     - `canvasHit()` busca la página y el objeto del libro por `data-id` en el momento del evento.
+     - Un `pointerdown` sobre un objeto llama a `objectDown`. Desde una manija lleva `true`, y desde un controlador su `data-handle`. Si `objectDown` no detuvo el evento (`cancelBubble`), sigue a `pageDown`, como cuando cada nodo tenía su oyente.
+     - La captura del puntero y el arrastre (`moveObject`/`upObject` sobre el nodo) no cambian.
+     - Se fueron los oyentes de `screenPage`, de los controladores (`frame-handles`) y la extensión de `screenPage` de `editorial`. El doble clic en el Índice pasa por `startEditing`, que `editorial` ya desvía a la vista del Índice.
+     - Autoprueba completa: PDF y JSON idénticos, salvo `verificacion-extensiones.json` (`screenPage` pierde `editorial`).
+     - `#spread` igual en los recorridos. Con eventos de puntero reales (CDP) dan lo mismo antes y después: elegir, arrastrar, controladores, Mayús + clic, clic en la página vacía, doble clic, escribir y salir, mano con Espacio, botón del medio, vista continua y Escape.
 3. **Capa de selección en React (`components/canvas/SelectionLayer.tsx`).**
    - Dibuja con `createPortal` dentro del `.paper-object` elegido: etiqueta, 8 controladores y manija.
    - También la marca de selección múltiple, la de página activa y el `+` de desborde.
