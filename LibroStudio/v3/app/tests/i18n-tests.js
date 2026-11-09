@@ -6,7 +6,8 @@ registerIntegrationTest(function (result) {
     LibroI18n.set(lang);
     showTab('index');
     LibroI18n.translate();
-    const label = $('[data-tab="index"]').textContent,
+    // La vista Índice del riel es un botón de ícono: se verifica su nombre accesible traducido.
+    const label = $('#railTab-index').getAttribute('aria-label'),
       expected = { es: 'Índice', en: 'Contents', pt: 'Sumário' }[lang];
     if (label !== expected) throw Error('Idioma ' + lang + ': ' + label);
     if (JSON.stringify(book) !== originalBook) throw Error('El cambio de idioma modificó el libro');
