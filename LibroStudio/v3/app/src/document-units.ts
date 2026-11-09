@@ -77,7 +77,9 @@ extend.after(
 extend.after(
   'coverEditor',
   function () {
-    if ($('#coverPreview')) adaptLengthControls($('#modalBody'));
+    // La cubierta es una Ventana de React: sus medidas están en su .dialog-body.
+    const body = $('#coverPreview')?.closest('.dialog-body');
+    if (body) adaptLengthControls(body);
   },
   'document-units',
 );

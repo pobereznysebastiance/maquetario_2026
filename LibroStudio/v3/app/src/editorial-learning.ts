@@ -571,21 +571,4 @@ extend.result(
   },
   'editorial-learning',
 );
-extend.after(
-  'coverEditor',
-  function () {
-    if (!$('#coverPreview')) return;
-    const box = document.createElement('label');
-    box.className = 'spine-direction';
-    box.innerHTML = `<strong>${bw('Lectura del lomo', 'Spine reading direction', 'Leitura da lombada')}</strong><select id="spineDirection"><option value="down">↓ ${bw('De arriba hacia abajo', 'Top to bottom', 'De cima para baixo')}</option><option value="up">↑ ${bw('De abajo hacia arriba', 'Bottom to top', 'De baixo para cima')}</option></select>`;
-    $('.cover-tabs').before(box);
-    $('#spineDirection').value = coverDraft!.parts.spine.direction || 'down';
-    $('#spineDirection').onchange = (e) => {
-      coverDraft!.parts.spine.direction = (e.target as HTMLSelectElement).value;
-      coverPart = 'spine';
-      updateCoverPreview();
-    };
-  },
-  'editorial-learning',
-);
 decorateGlossaryHints();

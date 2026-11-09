@@ -54,6 +54,8 @@ export interface WorkWindowOptions {
   keepModal?: boolean;
   /** Acción principal, en la barra del título (Guardar PDF…). Sin ella, sólo la cruz. */
   action?: DialogAction;
+  /** Otros botones de la barra del título, antes de la acción principal (cubierta: exportar, imprimir). */
+  extraActions?: ReactNode;
   variant?: string;
 }
 
@@ -196,7 +198,7 @@ export const WorkWindow = ({
   children: ReactNode;
   onClose: () => void;
 }) => {
-  const { id, title, action, variant } = options;
+  const { id, title, action, extraActions, variant } = options;
   return (
     <DialogFrame
       kind="workspace"
@@ -204,13 +206,21 @@ export const WorkWindow = ({
       title={title}
       variant={variant}
       onClose={onClose}
-      actions={(run) =>
-        action ? (
-          <button type="button" id={action.id} className="btn primary" onClick={() => run(action)}>
-            {LibroI18n.tr(action.label)}
-          </button>
-        ) : null
-      }
+      actions={(run) => (
+        <>
+          {extraActions}
+          {action ? (
+            <button
+              type="button"
+              id={action.id}
+              className="btn primary"
+              onClick={() => run(action)}
+            >
+              {LibroI18n.tr(action.label)}
+            </button>
+          ) : null}
+        </>
+      )}
     >
       {children}
     </DialogFrame>

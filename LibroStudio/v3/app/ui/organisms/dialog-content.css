@@ -170,13 +170,13 @@
 }
 /* Cubierta apaisada: la explicación arriba a todo el ancho y debajo dos columnas. A la izquierda
    la zona (vista previa, imagen, pestañas y su texto); a la derecha medidas, solapas y lomo. */
-.cover-modal #modalBody {
+.cover-modal :is(#modalBody, .dialog-body) {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   align-items: start;
   column-gap: var(--space-2xl);
 }
-.cover-modal #modalBody > :not(.cover-stage, .cover-controls) {
+.cover-modal :is(#modalBody, .dialog-body) > :not(.cover-stage, .cover-controls) {
   grid-column: 1 / -1;
 }
 .cover-stage,
@@ -191,7 +191,7 @@
   margin-block: 0;
 }
 @media (max-width: 1100px) {
-  .cover-modal #modalBody {
+  .cover-modal :is(#modalBody, .dialog-body) {
     grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -19,7 +19,15 @@
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
-import { useEffect, useRef, type FormEvent, type ReactNode, type Ref, type RefObject } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  type FormEvent,
+  type ReactNode,
+  type Ref,
+  type RefObject,
+} from 'react';
 
 /**
  * Escucha el "change" nativo en el propio elemento, como hacía la interfaz en HTML. El onChange de
@@ -207,3 +215,47 @@ export const CheckItem = ({
     <span>{label ? tr(label) : ''}</span>
   </label>
 );
+
+/**
+ * Campo con la etiqueta alrededor (<label>Texto<input/></label>), como las grillas de campos de
+ * la cubierta (.cover-fields): el texto y el campo van juntos, sin id de por medio.
+ */
+export const LabeledInput = ({
+  label,
+  className,
+  children,
+}: {
+  label: string;
+  className?: string;
+  children: ReactNode;
+}) => (
+  <label className={className}>
+    {tr(label)}
+    {children}
+  </label>
+);
+
+/**
+ * Atiende "change" e "input" nativos de todo lo que hay dentro de root, en captura: llegan también
+ * los new Event('change') que disparan las pruebas y otros módulos (no suben, pero la fase de
+ * captura pasa igual por los antecesores). handler recibe el campo y el tipo de evento.
+ */
+export function useFieldEvents(
+  root: RefObject<HTMLElement | null>,
+  handler: (target: HTMLElement, type: 'change' | 'input') => void,
+): void {
+  const latest = useRef(handler);
+  latest.current = handler;
+  useLayoutEffect(() => {
+    const node = root.current;
+    if (!node) return;
+    const listener = (event: Event) =>
+      latest.current(event.target as HTMLElement, event.type as 'change' | 'input');
+    node.addEventListener('change', listener, true);
+    node.addEventListener('input', listener, true);
+    return () => {
+      node.removeEventListener('change', listener, true);
+      node.removeEventListener('input', listener, true);
+    };
+  }, [root]);
+}

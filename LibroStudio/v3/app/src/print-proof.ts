@@ -24,51 +24,6 @@ function coverFontFamily(): string {
 }
 globalThis.coverFontFamily = coverFontFamily;
 
-extend.after(
-  'coverEditor',
-  function () {
-    const fields = $('[data-cover-size="spine"]')?.closest('.cover-fields');
-    if (!fields) return;
-    const controls = document.createElement('section');
-    controls.className = 'cover-measures';
-    controls.innerHTML = `<h3>${bw('Solapas y forrado', 'Flaps and wrap', 'Orelhas e revestimento')}</h3>
-    <div class="page-action">
-      <label class="check-line"><input type="checkbox" data-flap="leftFlap">${bw('Solapa trasera', 'Back flap', 'Orelha traseira')}</label>
-      <label class="check-line"><input type="checkbox" data-flap="rightFlap">${bw('Solapa delantera', 'Front flap', 'Orelha dianteira')}</label>
-    </div>
-    <label class="field-row">${bw('Demasía para doblar · mm por lado', 'Wrap allowance · mm per edge', 'Margem de dobra · mm por lado')}
-      <input id="coverWrap" type="number" min="0" max="50" step=".5" value="${coverDraft!.wrap || 0}"></label>
-    <p class="help">${bw(
-      'La demasía se dobla hacia adentro del cartón. El sangrado va por fuera de esa demasía. Las marcas indican el corte del material, incluido lo que se dobla.',
-      'The wrap folds over the board edges. Bleed extends beyond it. Crop marks indicate where to cut the material, including the wrap.',
-      'A sobra dobra para dentro do cartão. A sangria fica além dela. As marcas indicam o corte do material, incluindo a sobra.',
-    )}</p>`;
-    $('#coverDimensions').after(controls);
-    for (const toggle of controls.querySelectorAll<HTMLInputElement>('[data-flap]')) {
-      const key = toggle.dataset.flap!,
-        field = $(`[data-cover-size="${key}"]`);
-      let previousWidth = coverDraft![key] || 70;
-      toggle.checked = coverDraft![key] > 0;
-      toggle.onchange = () => {
-        if (!toggle.checked && coverDraft![key] > 0) previousWidth = coverDraft![key];
-        field.value = toggle.checked ? previousWidth : 0;
-        field.dispatchEvent(new Event('change', { bubbles: true }));
-      };
-    }
-    $('#coverWrap').onchange = (event: Event) => {
-      const field = event.target as HTMLInputElement;
-      if (field.value === '' || !field.validity.valid) {
-        field.value = String(coverDraft!.wrap || 0);
-        return;
-      }
-      coverDraft!.wrap = Number(field.value);
-      updateCoverPreview();
-    };
-    updateCoverPreview();
-  },
-  'print-proof',
-);
-
 extend.before(
   'updateCoverPreview',
   function () {

@@ -27,7 +27,7 @@ registerIntegrationTest(function (r) {
       $('#coverImageTarget').textContent === coverNames().back,
       'Imagen identifica zona elegida',
     );
-    $('#modal').close();
+    closeSheet();
   } finally {
     panelSizes = old;
     if (!old.templates) $('.template-panel').style.height = '';

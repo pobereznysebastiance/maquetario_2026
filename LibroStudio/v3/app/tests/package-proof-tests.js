@@ -51,7 +51,7 @@ registerNavigationTest(async function (report) {
     $('#coverWrap').value = '15';
     $('#coverWrap').dispatchEvent(new Event('change'));
     book.cover = M.clone(coverDraft);
-    $('#modal').close();
+    closeSheet();
     await new Promise((resolve) => setTimeout(resolve, 20));
     coverOutputDialog();
     $('#coverSheetPaper').value = 'A3';

@@ -153,22 +153,6 @@ for (const [kind, parent, label] of [
 window.addEventListener('resize', applyPanelSizes);
 applyPanelSizes();
 extend.after(
-  'coverEditor',
-  function () {
-    if (!$('#coverPreview')) return;
-    const bar = document.createElement('div');
-    bar.className = 'cover-image-actions';
-    bar.innerHTML = `<strong id="coverImageTarget"></strong><p>${bw('Seleccioná una zona del desplegado y cargá su imagen. Se adapta para cubrir esa zona.', 'Select an area in the spread and load its image. It scales to cover that area.', 'Selecione uma área e carregue a imagem. Ela se adapta para cobrir essa área.')}</p>`;
-    $('#coverPreview').after(bar);
-    /* Un solo par de botones de imagen: los de la zona pasan a la barra de la vista. */ const add =
-      $('#coverImage');
-    add.innerHTML = `${icon('image')}${bw('Agregar / cambiar imagen', 'Add / replace image', 'Adicionar / trocar imagem')}`;
-    bar.querySelector('strong')!.after(add, $('#coverRemoveImage'));
-    updateCoverPreview();
-  },
-  'panel-resize',
-);
-extend.after(
   'updateCoverPreview',
   function () {
     if ($('#coverImageTarget')) $('#coverImageTarget').textContent = coverNames()[coverPart];

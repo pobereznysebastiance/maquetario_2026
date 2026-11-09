@@ -57,7 +57,7 @@ registerIntegrationTest(function (r) {
       coverDraft.parts.spine.direction === 'up' && coverPart === 'spine',
       'Selector aplica dirección al lomo elegido',
     );
-    $('#modal').close();
+    closeSheet();
     showTab('design');
     check(!!$('.term-help'), 'Ayuda contextual en categorías');
     openHelp('route');

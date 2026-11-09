@@ -49,7 +49,7 @@ registerNavigationTest(async function (report) {
       nativeValue.get.call($('[data-cover-size="spine"]')) === '1.2',
       'El lomo de 12 mm se muestra como 1,2 cm',
     );
-    $('#modal').close();
+    closeSheet();
     await new Promise((resolve) => setTimeout(resolve, 20));
     selected = null;
     continuousCanvas = true;

@@ -339,7 +339,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
       page,
       await printTrim(session, { kind: 'cover', crop: true }, page.scale),
     );
-    await exec(session, "window.clearPrint();document.querySelector('#modal').close()");
+    await exec(session, 'window.clearPrint(); closeSheet()');
     await writeFile(join(out, 'prueba-cubierta.pdf'), bytes);
     return { page };
   });
@@ -371,11 +371,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
         'window.prepareFontBrowserPreview()',
         "document.querySelector('#fontBrowser')?.close()",
       ],
-      [
-        'panel-cubierta.png',
-        'window.prepareCoverProof()',
-        "document.querySelector('#modal').close()",
-      ],
+      ['panel-cubierta.png', 'window.prepareCoverProof()', 'closeSheet()'],
       [
         'panel-asistente.png',
         'window.prepareAssistantPreview()',

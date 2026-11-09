@@ -79,33 +79,6 @@ extend.after(
   },
   'cover-measurements',
 );
-extend.after(
-  'coverEditor',
-  function () {
-    if (!$('#coverPreview')) return;
-    const panel = document.createElement('section');
-    panel.className = 'cover-measures';
-    panel.innerHTML = `<h3>${bw('Medidas para diseñar cada parte', 'Dimensions for designing each part', 'Medidas para criar cada parte')}</h3><table id="coverMeasureTable"></table><p id="coverMeasureSummary"></p><p class="help">${bw('Ancho × alto. Prepará cada imagen con la proporción de su zona. El sangrado corresponde al contorno exterior del desplegado; los pliegues no llevan sangrado adicional. Píxeles de referencia a 300 ppp.', 'Width × height. Prepare each image in the aspect ratio of its area. Bleed applies to the outer spread; folds need no extra bleed. Pixel reference at 300 ppi.', 'Largura × altura. Prepare cada imagem na proporção da área. Sangria no contorno externo; dobras não precisam de sangria extra. Referência em pixels a 300 ppp.')}</p><button type="button" class="btn" id="downloadCoverSpecs">${bw('Descargar ficha de medidas', 'Download dimension sheet', 'Baixar ficha de medidas')}</button>`;
-    $('#coverDimensions').after(panel);
-    $('#downloadCoverSpecs').onclick = () =>
-      download(
-        new Blob(['﻿' + coverMeasurementText(coverDraft!)], {
-          type: 'text/plain;charset=utf-8',
-        }),
-        book.title + ' - medidas cubierta.txt',
-      );
-    const fit = document.createElement('label');
-    fit.className = 'cover-image-fit';
-    fit.innerHTML = `${bw('Ajuste de imagen', 'Image fit', 'Ajuste de imagem')} <select id="coverImageFit"><option value="cover">${bw('Cubrir zona · recorta excedente', 'Cover area · crop excess', 'Cobrir área · cortar excesso')}</option><option value="contain">${bw('Mostrar imagen completa', 'Show entire image', 'Mostrar imagem inteira')}</option></select>`;
-    $('.cover-image-actions').append(fit);
-    $('#coverImageFit').onchange = (e: Event) => {
-      coverDraft!.parts[coverPart].imageFit = (e.target as HTMLSelectElement).value;
-      updateCoverPreview();
-    };
-    refreshCoverMeasurements();
-  },
-  'cover-measurements',
-);
 extend.result(
   'coverArtwork',
   function (art: HTMLElement, c: CoverDesign, px: number, guides = false, crop = false) {

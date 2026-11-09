@@ -115,7 +115,7 @@ registerNavigationTest(async function (result) {
       coverDraft.spine === 2,
       'El lomo plano aplica la medida estimada al borrador de cubierta',
     );
-    $('#modal').close();
+    closeSheet();
 
     setReadability('standard');
     const label = $('.tools .tool');

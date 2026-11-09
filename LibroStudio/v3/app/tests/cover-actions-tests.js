@@ -27,8 +27,9 @@ registerIntegrationTest(function (r) {
       !!$('#exportCoverVisible') && !!$('#printCoverVisible'),
       'Exportar e imprimir cubierta visibles en pie fijo',
     );
-    $('#modal').close();
-    check(!$('#modal').open, 'Ventana de cubierta cerrada');
+    // La cubierta es una Ventana de React (CoverEditor.tsx).
+    closeSheet();
+    check(!document.querySelector('#dialogLayer dialog'), 'Ventana de cubierta cerrada');
     let out = prepareOutput({ kind: 'cover', crop: true, paper: 'A3', fit: true });
     check(
       out.width === 420 && out.height === 297 && out.scale < 1,

@@ -79,8 +79,6 @@ declare global {
   var coverArtwork: (c: CoverDesign, px: number, guides?: boolean, crop?: boolean) => HTMLElement;
   /** Redibuja la vista previa y los campos del editor de cubierta. */
   var updateCoverPreview: () => void;
-  /** Abre el editor de la cubierta desplegada. */
-  var coverEditor: () => void;
   var coverOutputDialog: () => void;
   /** Si algún texto de la cubierta no entra en su zona. */
   var coverOverflow: (c: CoverDesign) => boolean;
@@ -439,142 +437,8 @@ globalThis.updateCoverPreview = function (): void {
     b.classList.toggle('primary', b.dataset.coverEdit === coverPart),
   );
 };
-globalThis.coverEditor = function (): void {
-  if (!hasDocument) {
-    settings(true);
-    return;
-  }
-  finishEditing();
-  coverDraft = M.clone(book.cover || defaultCover());
-  coverPart = 'front';
-  modal.workspace(
-    bw('Cubierta desplegada', 'Full cover spread', 'Capa aberta'),
-    `<p class="builder-intro">${bw('Diseñá la pieza exterior en el mismo proyecto. El ancho de tapa y contratapa y el alto siguen al interior. El lomo se ingresa según la medida final de la imprenta. Poné 0 para quitar lomo o solapas.', 'Design the exterior in the same project. Front/back width and height follow the interior. Enter the final printer-supplied spine width. Set 0 to remove spine or flaps.', 'Crie o exterior no mesmo projeto. Largura e altura seguem o miolo. Informe a lombada final fornecida pela gráfica. Use 0 para remover lombada ou orelhas.')}</p><div class="cover-stage"><div id="coverPreview"></div><div class="cover-tabs">${Object.entries(
-      coverNames(),
-    )
-      .map(
-        ([key, label]) =>
-          `<button type="button" class="btn" data-cover-edit="${key}">${label}</button>`,
-      )
-      .join(
-        '',
-      )}</div><h3 id="coverRegion"></h3><textarea id="coverText" aria-labelledby="coverRegion" class="builder-source" maxlength="3000"></textarea><div class="cover-fields"><label>${bw('Tamaño · pt', 'Size · pt', 'Tamanho · pt')}<input id="coverSize" type="number" min="4" max="100"></label><label>${bw('Texto', 'Text', 'Texto')}<input id="coverTextColor" type="color"></label><label>${bw('Distancia superior · mm', 'Top distance · mm', 'Distância superior · mm')}<input id="coverY" type="number" min="0" max="${book.height}"></label><label>${bw('Alineación', 'Alignment', 'Alinhamento')}<select id="coverAlign"><option value="left">${bw('Izquierda', 'Left', 'Esquerda')}</option><option value="center">${bw('Centro', 'Center', 'Centro')}</option><option value="right">${bw('Derecha', 'Right', 'Direita')}</option></select></label></div><div class="page-action"><button type="button" class="btn" id="coverImage">${bw('Imagen de esta zona', 'Image for this area', 'Imagem desta área')}</button><button type="button" class="btn" id="coverRemoveImage">${bw('Quitar imagen', 'Remove image', 'Remover imagem')}</button><button type="button" class="btn" id="coverExport">${bw('Guardar y exportar PDF', 'Save and export PDF', 'Salvar e exportar PDF')}</button></div></div><div class="cover-controls"><p id="coverDimensions" class="help"></p><div class="cover-fields">${(
-      [
-        ['spine', bw('Lomo · mm', 'Spine · mm', 'Lombada · mm'), 0, 100],
-        ['leftFlap', bw('Solapa trasera · mm', 'Back flap · mm', 'Orelha traseira · mm'), 0, 150],
-        [
-          'rightFlap',
-          bw('Solapa delantera · mm', 'Front flap · mm', 'Orelha dianteira · mm'),
-          0,
-          150,
-        ],
-        ['bleed', bw('Sangrado · mm', 'Bleed · mm', 'Sangria · mm'), 0, 10],
-        ['safe', bw('Seguridad · mm', 'Safe area · mm', 'Segurança · mm'), 3, 20],
-      ] as [string, string, number, number][]
-    )
-      .map(
-        ([key, label, min, max]) =>
-          `<label>${label}<input data-cover-size="${key}" type="number" min="${min}" max="${max}" step="0.5" value="${coverDraft![key]}"></label>`,
-      )
-      .join(
-        '',
-      )}<label>${bw('Fondo', 'Background', 'Fundo')}<input id="coverBackground" type="color" value="${coverDraft!.background}"></label></div><p class="help">${bw('Las guías no se exportan. El sangrado extiende el fondo; las imágenes deben cubrirlo si llegan al corte. La cubierta se exporta aparte del interior, en una sola pieza.', 'Guides are not exported. Bleed extends the background; images must cover it if they reach the trim. Export the cover separately as one spread.', 'Guias não são exportadas. A sangria estende o fundo; imagens devem cobri-la se chegam ao corte. A capa é exportada separada do miolo, em uma peça.')}</p></div>`,
-    {
-      variant: 'cover-modal',
-      action: {
-        label: bw('Guardar cubierta', 'Save cover', 'Salvar capa'),
-        run: () => {
-          validateCover(coverDraft!);
-          commit(() => (book.cover = M.clone(coverDraft)), false);
-        },
-      },
-    },
-  );
-  $$('[data-cover-size]').forEach(
-    (el) =>
-      (el.onchange = () => {
-        const n = Number(el.value);
-        if (!Number.isFinite(n) || n < Number(el.min) || n > Number(el.max)) {
-          el.value = coverDraft![el.dataset.coverSize!];
-          return;
-        }
-        coverDraft![el.dataset.coverSize!] = n;
-        updateCoverPreview();
-      }),
-  );
-  $('#coverBackground').oninput = (e: Event) => {
-    coverDraft!.background = (e.target as HTMLInputElement).value;
-    updateCoverPreview();
-  };
-  $$('[data-cover-edit]').forEach(
-    (b) =>
-      (b.onclick = () => {
-        coverPart = b.dataset.coverEdit!;
-        updateCoverPreview();
-      }),
-  );
-  for (const [id, key] of [
-    ['coverText', 'text'],
-    ['coverSize', 'size'],
-    ['coverTextColor', 'color'],
-    ['coverY', 'y'],
-    ['coverAlign', 'align'],
-  ])
-    // Campos de texto, número, color y selector: se leen como un <input>.
-    $('#' + id).onchange = (e: Event) => {
-      const v =
-        (e.target as HTMLInputElement).type === 'number'
-          ? Number((e.target as HTMLInputElement).value)
-          : (e.target as HTMLInputElement).value;
-      if (
-        (e.target as HTMLInputElement).type === 'number' &&
-        (!Number.isFinite(v) ||
-          (v as number) < Number((e.target as HTMLInputElement).min) ||
-          (v as number) > Number((e.target as HTMLInputElement).max))
-      )
-        return;
-      coverDraft!.parts[coverPart][key] = v;
-      updateCoverPreview();
-    };
-  $('#coverImage').onclick = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/png,image/jpeg,image/webp';
-    input.onchange = () => {
-      const file = input.files![0];
-      if (!file) return;
-      if (file.size > 12000000) {
-        toast(
-          bw('La imagen supera 12 MB.', 'Image exceeds 12 MB.', 'A imagem supera 12 MB.'),
-          'warning',
-        );
-        return;
-      }
-      const r = new FileReader();
-      r.onload = () => {
-        coverDraft!.parts[coverPart].image = r.result as string;
-        updateCoverPreview();
-      };
-      r.readAsDataURL(file);
-    };
-    input.click();
-  };
-  $('#coverRemoveImage').onclick = () => {
-    delete coverDraft!.parts[coverPart].image;
-    updateCoverPreview();
-  };
-  $('#coverExport').onclick = () => {
-    try {
-      validateCover(coverDraft!);
-      commit(() => (book.cover = M.clone(coverDraft)), false);
-      $('#modal').close();
-      setTimeout(coverOutputDialog, 30);
-    } catch (e) {
-      toast((e as Error).message, 'error');
-    }
-  };
-  requestAnimationFrame(updateCoverPreview);
-};
+// El editor de la cubierta (coverEditor) es una Ventana de trabajo en React:
+// src/components/cover/CoverEditor.tsx.
 globalThis.coverOutputDialog = function (): void {
   return coverSheetDialog('pdf');
 };
@@ -607,7 +471,8 @@ const coverButton = document.createElement('button');
 coverButton.className = 'tool';
 coverButton.id = 'coverTool';
 coverButton.innerHTML = icon('pages') + '<span>' + bw('Cubierta', 'Cover', 'Capa') + '</span>';
-coverButton.onclick = coverEditor;
+// Por el global: el editor es de src/components/cover/ y carga después que este módulo.
+coverButton.onclick = () => coverEditor();
 $('#tools').append(coverButton);
 // La cubierta es un paso del recorrido del libro (book-workflow.ts); acá sólo se traduce su botón.
 document.addEventListener('maquetario:language', () => {

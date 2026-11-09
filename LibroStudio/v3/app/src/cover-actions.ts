@@ -1,6 +1,5 @@
-// Acciones de la cubierta: en el editor de cubierta, botones fijos para exportar o imprimir la
-// cubierta (guardan el borrador antes) y una nota que distingue Interior PDF de Cubierta PDF.
-// Al imprimir la cubierta en un papel estándar (A3, A4, A5, Carta), la centra en la hoja y, si
+// Acciones de la cubierta. Los botones fijos para exportar o imprimir la cubierta y la nota de
+// los dos archivos están en el editor (src/components/cover/CoverEditor.tsx). Al imprimir la cubierta en un papel estándar (A3, A4, A5, Carta), la centra en la hoja y, si
 // se permite, la reduce para una prueba.
 //
 // No publica globales: todo se engancha con extend.
@@ -22,59 +21,6 @@ interface OutputRequest {
   fit: boolean;
 }
 
-extend.after(
-  'coverEditor',
-  function () {
-    if (!$('#coverPreview')) return;
-    const footer = $('#modal .modal-actions'),
-      actions = document.createElement('div');
-    actions.id = 'coverPersistentActions';
-    actions.className = 'cover-persistent-actions';
-    for (const [id, label, destination] of [
-      [
-        'exportCoverVisible',
-        bw('Exportar cubierta PDF', 'Export cover PDF', 'Exportar capa PDF'),
-        'pdf',
-      ],
-      ['printCoverVisible', bw('Imprimir cubierta', 'Print cover', 'Imprimir capa'), 'print'],
-    ]) {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'btn';
-      b.id = id;
-      b.textContent = label;
-      b.onclick = () => {
-        try {
-          // Con el editor de cubierta abierto, el borrador siempre existe.
-          validateCover(coverDraft!);
-          commit(() => (book.cover = M.clone(coverDraft)), false);
-          $('#modal').close();
-          setTimeout(
-            () => (destination === 'print' ? coverPrintDialog() : coverOutputDialog()),
-            30,
-          );
-        } catch (e) {
-          toast((e as Error).message, 'error');
-        }
-      };
-      actions.append(b);
-    }
-    footer.prepend(actions);
-    onDialogClose(() => actions.remove());
-    const note = document.createElement('p');
-    note.className = 'notice';
-    note.textContent = bw(
-      'Dos archivos: Interior PDF (páginas del libro) y Cubierta PDF (una pieza desplegada). Guardar cubierta conserva el diseño dentro del proyecto; Exportar genera el PDF.',
-      'Two files: Interior PDF (book pages) and Cover PDF (one spread). Save cover keeps the design inside the project; Export creates the PDF.',
-      'Dois arquivos: Miolo PDF (páginas) e Capa PDF (uma peça aberta). Salvar capa mantém o desenho no projeto; Exportar gera o PDF.',
-    );
-    $('#coverPreview').before(note);
-  },
-  'cover-actions',
-);
-async function coverPrintDialog(): Promise<void> {
-  return coverSheetDialog('print');
-}
 extend.result(
   'prepareOutput',
   function (info: OutputInfo, config: OutputRequest): OutputInfo {
