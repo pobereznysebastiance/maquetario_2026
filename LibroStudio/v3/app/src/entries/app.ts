@@ -56,6 +56,7 @@ import '../continuous-canvas.ts';
 import '../editorial-rules.tsx';
 import '../folio-position.ts';
 import '../components/inspector/FolioPanel.tsx';
+import '../components/inspector/ObjectPanel.tsx';
 import '../components/inspector/RulesPanel.tsx';
 import '../components/inspector/FontLibraryPanel.tsx';
 import '../components/inspector/PagePanel.tsx';

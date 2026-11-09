@@ -360,10 +360,7 @@ function shapeAppearance(): void {
     }
     chooseImage({ frame: o, page: active });
   };
-  if (o.shape) {
-    const label = host.querySelector('.selection-chip');
-    if (label) label.innerHTML = icon('frame') + esc(bw(...shapeNames[o.shape]));
-  }
+  // El nombre de la figura en la etiqueta del objeto lo pone ObjectPanel.tsx.
 }
 decorateInspector(() => {
   shapeAppearance();

@@ -231,7 +231,13 @@ export async function runSelfTest(session: Session): Promise<boolean> {
       session,
       "window.maquetarioSelfTest = false; void confirmAction({ title: '¿Eliminar la página 3?', message: 'La página y sus objetos se quitan del libro. Podés recuperarlos con Deshacer.', confirmLabel: 'Eliminar página', danger: true })",
     );
-    await delay(300);
+    // Espera a que la confirmación esté dibujada (con un tiempo fijo, a veces se capturaba antes
+    // y el cierre de abajo encontraba null).
+    await exec(
+      session,
+      "new Promise((r)=>{const t=Date.now();(function w(){if(document.querySelector('#confirmDialog[open]')||Date.now()-t>3000)r(true);else setTimeout(w,50)})()})",
+    );
+    await delay(150);
     await capture('confirmacion.png');
     await exec(
       session,

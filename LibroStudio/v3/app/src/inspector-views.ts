@@ -159,8 +159,10 @@ function unitsInsideFields(root: ParentNode): void {
   }
 }
 
+/** Nada seleccionado: el lugar del panel de React (EmptySelection, ObjectPanel.tsx), montado en el acto. */
 function emptySelection(host: HTMLElement): void {
-  host.innerHTML = `<div class="inspector-empty" data-pass="selection"><p class="inspector-empty-title">Nada seleccionado</p><p class="help">Hacé clic en una caja, una imagen o un marco de la página para ver sus propiedades. Con doble clic en una caja de texto, escribís.</p></div>`;
+  host.innerHTML = `<div class="inspector-empty" data-pass="selection" data-inspector-slot="empty"></div>`;
+  mountInspectorSlot(host.firstElementChild as HTMLElement);
 }
 
 // ── Pestaña visible: varias pasadas de la cadena del inspector, una debajo de la otra ──
