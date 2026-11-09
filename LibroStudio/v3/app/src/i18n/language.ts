@@ -378,6 +378,7 @@ const labels: TranslationRow[] = [
   // Centro de Ayuda (help-center.ts) y sus secciones.
   ['Secciones de la ayuda', 'Help sections', 'Seções da ajuda'],
   ['Glosario', 'Glossary', 'Glossário'],
+  ['Bibliografía', 'Bibliography', 'Bibliografia'],
   ['Atajos', 'Shortcuts', 'Atalhos'],
   ['Recorrido del libro', 'Book workflow', 'Percurso do livro'],
   [

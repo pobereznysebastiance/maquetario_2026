@@ -560,6 +560,19 @@ Pedido de la cátedra de Tipografía I: cada texto tiene un rol con los nombres 
 - La lista de estilos de Párrafo y estilos muestra el rol de cada estilo. Pruebas: `tests/roles-tests.js`.
 - Para la tabla de pautas (lo próximo): por rol, el estilo da tipografía, cuerpo, interlineado, alineación y ancho de caja; las excepciones son los textos con `roleDeviation`.
 
+## Partes del libro, Interior | Cubierta y Aprender (hecho el 09-nov)
+
+Punto 4 del pedido de la cátedra.
+
+- **Partes del libro** (`src/book-parts.ts`, sin efectos al cargar; la lista va en la vista Estructura, `StructurePanel.tsx`):
+  - Trece partes en orden: Portadilla, Portada, Créditos, Dedicatoria, Epígrafe, Índice, Prólogo, Introducción, Cuerpo, Apéndice, Bibliografía, Agradecimientos y Colofón.
+  - La página que empieza una parte guarda `page.part`. Los libros que no lo tienen (los armados desde manuscrito, los de la 3.24) se reconocen por el nombre (`partName` o `section`, en los tres idiomas, con alias como "Legales"); las páginas con sección que no son preliminares ni finales son el cuerpo, y un libro sin partes marcadas es todo cuerpo.
+  - Tildar agrega la parte antes de la primera parte presente que va después, con un texto de partida dentro de los márgenes (los preliminares sin cornisa ni folio; el Índice, con la caja del índice). A doble página entra con un blanco detrás, así lo que sigue no cambia de lado.
+  - Destildar quita sus páginas (con su blanco) después de confirmar. El cuerpo no se quita. Todo se deshace.
+- **Interior | Cubierta** (`components/documentbar/PieceSwitch.tsx`): en la barra del documento (Cubierta abre la cubierta desplegada; conserva el id `#coverTool`) y en la cabecera de la cubierta (Interior la cierra, como la X).
+- **Aprender** (`#helpCenter`, barra superior): el centro de Ayuda con nombre a la vista también en ancho chico, y la ventana se llama igual. Sección nueva **Bibliografía** (`components/help/Bibliography.tsx`) con libros de referencia en castellano.
+- Pruebas: `tests/book-parts-tests.js` (asíncrona: apaga `maquetarioSelfTest` para contestar la confirmación con los botones).
+
 ## Pasar una pantalla a React (etapa 3)
 
 Convención única: la resume el comentario de `src/react/mount.tsx`. Cada regla salió de algo que falló al integrar.

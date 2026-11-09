@@ -23,11 +23,11 @@
 import { useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { useLanguage } from '../../react/mount.tsx';
-import { i18n } from '../../i18n/language.ts';
+import { bw, i18n } from '../../i18n/language.ts';
 import { openSheetContent, openWorkWindow } from '../dialog/dialogs.tsx';
 import { editor } from '../../core-api.ts';
 
-export type HelpSectionId = 'tutorial' | 'glossary' | 'shortcuts' | 'route';
+export type HelpSectionId = 'tutorial' | 'glossary' | 'bibliography' | 'shortcuts' | 'route';
 
 /** Una sección del centro de Ayuda. */
 export interface HelpSection {
@@ -56,6 +56,7 @@ const aliases: Record<string, HelpSectionId> = {
   glosario: 'glossary',
   atajos: 'shortcuts',
   recorrido: 'route',
+  bibliografia: 'bibliography',
 };
 const ordered = (): HelpSection[] => [...sections.values()].sort((a, b) => a.order - b.order);
 
@@ -150,7 +151,7 @@ export function openHelp(section?: HelpSectionId | string, arg?: string): void {
   if (editor.busy) return;
   finishEditing();
   helpElement = <HelpCenter />;
-  void openWorkWindow(helpElement, { title: 'Ayuda' });
+  void openWorkWindow(helpElement, { title: bw('Aprender', 'Learn', 'Aprender') });
 }
 
 /** Suma una sección al centro de Ayuda. */

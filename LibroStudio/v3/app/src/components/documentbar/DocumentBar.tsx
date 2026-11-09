@@ -23,6 +23,7 @@ import { snapButtonState, toggleSnap } from '../../layout-tools.ts';
 import { bookTitle } from '../../react/no-book.ts';
 import { bw, i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
+import { PieceSwitch } from './PieceSwitch.tsx';
 
 const tr = (text: string) => i18n.tr(text);
 
@@ -59,25 +60,9 @@ export const DocumentBar = () => {
           {editor.book.format + ' · ' + displayDimensions(editor.book.width, editor.book.height)}
         </span>
       </div>
+      {/* Interior | Cubierta: las dos piezas del libro, siempre a la vista (PieceSwitch.tsx). */}
+      <PieceSwitch piece="interior" />
       <SnapButton />
-      {/* La cubierta es otra pieza del libro, no una herramienta del lienzo: va con el libro. */}
-      <button
-        type="button"
-        className="quiet"
-        id="coverTool"
-        title={bookTitle(
-          bw(
-            'Tapa, lomo, contratapa y solapas.',
-            'Front, spine, back and flaps.',
-            'Capa, lombada, contracapa e orelhas.',
-          ),
-        )}
-        disabled={!editor.hasDocument}
-        onClick={() => coverEditor()}
-      >
-        <Icon name="book" />
-        <span>{tr('Cubierta')}</span>
-      </button>
       {/* "Revisar libro": también es el paso 4 del recorrido (centro de Ayuda). */}
       <button
         type="button"

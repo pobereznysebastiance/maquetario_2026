@@ -644,6 +644,7 @@ function validate(input: any): Book {
       !str(p.id, 60) ||
       ids.has(p.id) ||
       !str(p.section, 250) ||
+      (p.part !== undefined && !str(p.part, 40)) ||
       !Array.isArray(p.objects) ||
       p.objects.length > 300
     )

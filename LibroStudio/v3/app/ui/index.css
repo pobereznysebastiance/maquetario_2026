@@ -37,6 +37,7 @@
 @import url('molecules/status.css') layer(molecules);
 @import url('molecules/guide-drag.css') layer(molecules);
 @import url('molecules/panel-resizer.css') layer(molecules);
+@import url('molecules/piece-switch.css') layer(molecules);
 @import url('organisms/topbar.css') layer(organisms);
 @import url('organisms/settings.css') layer(organisms);
 @import url('organisms/sidebar.css') layer(organisms);

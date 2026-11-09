@@ -25,6 +25,7 @@ import { LabeledInput, useFieldEvents } from '../form/Form.tsx';
 import { bw, i18n } from '../../i18n/language.ts';
 import { editor, M } from '../../core-api.ts';
 import { closeSheet, openWorkWindow } from '../dialog/dialogs.tsx';
+import { PieceSwitch } from '../documentbar/PieceSwitch.tsx';
 
 declare global {
   /** Abre el editor de la cubierta desplegada. */
@@ -507,6 +508,7 @@ const CoverActions = () => {
   useLanguage();
   return (
     <div id="coverPersistentActions" className="cover-persistent-actions">
+      <PieceSwitch piece="cover" />
       <button
         type="button"
         className="btn"

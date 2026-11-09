@@ -233,3 +233,13 @@
     justify-content: flex-end;
   }
 }
+
+/* Aprender: tutoriales, glosario y bibliografía siempre a la vista (pedido de la cátedra); el
+   nombre no se oculta en ancho chico. */
+.topbar .learn-entry {
+  white-space: nowrap;
+}
+.topbar .learn-entry .icon {
+  width: var(--icon-md);
+  height: var(--icon-md);
+}

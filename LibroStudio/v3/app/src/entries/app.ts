@@ -14,6 +14,7 @@ import '../react/editor-state-wiring.ts';
 import '../layout-tools.ts';
 import '../components/welcome/welcome-service.tsx';
 import '../components/help/help-center-wiring.ts';
+import '../components/help/Bibliography.tsx';
 import '../tutorial.ts';
 import '../review-workspace.ts';
 import '../hyphenation-controls.ts';

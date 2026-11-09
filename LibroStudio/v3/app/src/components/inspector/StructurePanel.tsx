@@ -16,10 +16,74 @@
 import type { Page } from '../../model.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
-import { SectionHeading, SectionTitle } from './fields.tsx';
+import { fieldKey, onNativeChange, SectionHeading, SectionTitle } from './fields.tsx';
 import { bw, i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
 import { goToBookPage } from '../../book-navigation.ts';
+import { addPart, BOOK_PARTS, partName, presentParts, removePart } from '../../book-parts.ts';
+
+/**
+ * Partes del libro para tildar (pedido de la cátedra): tildar agrega la parte en su lugar,
+ * destildar la quita (con confirmación); el número lleva a su primera página.
+ */
+const PartsChecklist = () => {
+  const present = presentParts();
+  return (
+    <div
+      className="book-parts"
+      role="group"
+      aria-label={bw('Partes del libro', 'Book parts', 'Partes do livro')}
+    >
+      <h3 className="book-parts-title">
+        {bw('Partes del libro', 'Book parts', 'Partes do livro')}
+      </h3>
+      {BOOK_PARTS.map(({ id }) => {
+        const range = present.get(id);
+        return (
+          <div className="book-part" key={id}>
+            <label className="check-line">
+              <input
+                key={fieldKey('part-' + id, !!range)}
+                type="checkbox"
+                data-book-part={id}
+                defaultChecked={!!range}
+                disabled={!editor.hasDocument || (id === 'body' && !!range)}
+                ref={onNativeChange<HTMLInputElement>((input) => {
+                  if (input.checked) addPart(id);
+                  else {
+                    input.checked = true;
+                    void removePart(id);
+                  }
+                })}
+              />
+              {partName(id)}
+            </label>
+            {range ? (
+              <button
+                type="button"
+                className="quiet book-part-go"
+                data-go-book-part={id}
+                title={
+                  bw('Ir a la página ', 'Go to page ', 'Ir para a página ') + (range.start + 1)
+                }
+                onClick={() => goToBookPage(range.start)}
+              >
+                {bw('p. ', 'p. ', 'p. ') + (range.start + 1)}
+              </button>
+            ) : null}
+          </div>
+        );
+      })}
+      <p className="help">
+        {bw(
+          'Tildá una parte para agregarla en su lugar; destildala para quitar sus páginas.',
+          'Check a part to add it in place; uncheck it to remove its pages.',
+          'Marque uma parte para adicioná-la no lugar; desmarque para remover suas páginas.',
+        )}
+      </p>
+    </div>
+  );
+};
 
 const StructurePanel = ({
   titleOf,
@@ -65,6 +129,7 @@ const StructurePanel = ({
           {bw('Reglas internas', 'Editorial rules', 'Regras internas')}
         </button>
       ) : null}
+      <PartsChecklist />
       {parts.map(({ p, i }, n) => {
         const end = parts[n + 1]?.i ?? editor.book.pages.length;
         return (

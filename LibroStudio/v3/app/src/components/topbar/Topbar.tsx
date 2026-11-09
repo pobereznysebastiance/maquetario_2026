@@ -165,13 +165,22 @@ export const Topbar = () => {
         </button>
       </div>
       <div className="topright">
-        <ToolAction
+        {/* Aprender (pedido de la cátedra): tutoriales, glosario y bibliografía siempre a la vista,
+            con su nombre también en ancho chico. Es el centro de Ayuda (F1). */}
+        <button
+          type="button"
           id="helpCenter"
-          icon="help"
-          label={tr('Ayuda')}
-          title={tr('Ayuda') + ' · F1'}
-          run={() => openHelp()}
-        />
+          className="btn learn-entry"
+          title={bw(
+            'Tutorial, glosario, bibliografía y atajos · F1',
+            'Tutorial, glossary, bibliography and shortcuts · F1',
+            'Tutorial, glossário, bibliografia e atalhos · F1',
+          )}
+          ref={action(() => openHelp())}
+        >
+          <Icon name="help" />
+          <span>{bw('Aprender', 'Learn', 'Aprender')}</span>
+        </button>
         {/* En ancho chico el nombre se oculta y queda un botón de ícono: va también en aria-label. */}
         <button
           type="button"

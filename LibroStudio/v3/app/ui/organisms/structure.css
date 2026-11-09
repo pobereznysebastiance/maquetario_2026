@@ -69,3 +69,37 @@
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
+
+/* Partes del libro para tildar (pedido de la cátedra): una fila por parte, con su página a la
+   derecha si está en el libro. */
+.book-parts {
+  margin: var(--space-lg) 0;
+}
+.book-parts-title {
+  margin: 0 0 var(--space-xs);
+  color: var(--text-primary);
+  font-size: var(--type-callout);
+  font-weight: var(--weight-semibold);
+}
+.book-part {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: var(--control-sm);
+}
+.book-part .check-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-primary);
+  font-size: var(--type-callout);
+}
+.book-part-go {
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  font-variant-numeric: tabular-nums;
+}
+.book-part-go:hover {
+  color: var(--text-primary);
+}

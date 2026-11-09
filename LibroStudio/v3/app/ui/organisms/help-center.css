@@ -107,3 +107,34 @@
     columns: 1;
   }
 }
+
+/* Bibliografía (components/help/Bibliography.tsx): título, autoría y editorial, y para qué sirve. */
+.help-bibliography {
+  display: grid;
+  gap: var(--space-md);
+  max-width: var(--help-text-max);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.help-bibliography li {
+  display: grid;
+  gap: var(--space-3xs);
+  padding-bottom: var(--space-md);
+  border-bottom: var(--border-width) solid var(--line-subtle);
+}
+.help-bibliography-title {
+  color: var(--text-primary);
+  font-size: var(--type-body);
+  font-style: italic;
+  font-weight: var(--weight-medium);
+}
+.help-bibliography-source {
+  color: var(--text-secondary);
+  font-size: var(--type-callout);
+}
+.help-bibliography-use {
+  color: var(--text-tertiary);
+  font-size: var(--type-callout);
+  line-height: var(--leading-text);
+}
