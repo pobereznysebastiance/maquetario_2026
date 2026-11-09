@@ -37,6 +37,7 @@ export type {
 export { paragraphIndices } from './paragraph-format.ts';
 import { readHyphenationFields, setHyphenatedText } from './hyphenation.ts';
 import { variations, chooseDefaultFace, selectedFace } from './font-catalog.ts';
+import { modal } from './components/dialog/modal.ts';
 
 globalThis.paragraphFormat = paragraphFormat;
 

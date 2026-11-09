@@ -20,6 +20,7 @@
 
 import { bw, i18n } from './i18n/language.ts';
 import { editor } from './core-api.ts';
+import { modal } from './components/dialog/modal.ts';
 
 /** Qué hacer con cada salida del aviso. save devuelve si se guardó (si no, el aviso sigue abierto). */
 export interface CloseActions {

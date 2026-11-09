@@ -709,6 +709,23 @@ Cada grupo es una entrega con la autoprueba en verde, los PDF idénticos y el in
    - `modal()` va a `app` (`components/dialog/modal.ts`), porque lo que llama (`openSheet`, `openWorkWindow`, `openConfirmSheet`) está en `app`. Se publica para `studio.ts`, que lo usa sólo al llamarse.
    - En `core`: `src/core/project-file.ts` (`confirmChanges`, `saveProject`, `download`, `openBook`, `loadProject`), `src/core/book-settings.ts` (`settings`, `applyBookSettings`) y `src/core/print.ts` (`preparePrint`, `clearPrint`).
    - `confirmChanges`, `preparePrint` y `clearPrint` están en el contrato: `main-contract.ts` los sigue llamando por el nombre global hasta que los tome de `core-api.ts`.
+   **Paso 5 hecho (09-nov).**
+   - `modal()` pasó a `src/components/dialog/modal.ts`, en `app`, con `modal.sheet`, `.info`, `.workspace` y `.confirm`.
+     - Los módulos lo importan.
+     - `dialog-host.tsx` lo sigue publicando, porque `editorial.ts` y `shapes.ts` (del lienzo) lo llaman por el nombre global.
+     - `output.ts` también lo usa por el global: carga antes que la capa de diálogos, e importarlo adelantaría `components/dialog/native.ts`, que agrega `#dialogLayer` al `body` al cargar.
+   - En `src/core/` quedan tres módulos sin efectos:
+     - `book-settings.ts`: `settings` y `applyBookSettings`;
+     - `project-file.ts`: `confirmChanges`, `saveProject`, `download`, `openBook` y `loadProject`;
+     - `print.ts`: `preparePrint` y `clearPrint`.
+   - `saveProject`, `loadProject`, `preparePrint` y `applyBookSettings` pasan a `extensible`.
+   - El oyente de `#openInput` queda en `studio.ts` como cableado.
+   - Resultados:
+     - globales del núcleo 39 → 29;
+     - `modal` pasa de 11 lectores por el global a 3;
+     - el orden de los módulos con efectos en `app.js` y `core.js` no cambia;
+     - la autoprueba completa, corrida en el worktree con Electron contra la base, da PDF y JSON idénticos (sólo cambia la carpeta en `resumen.json`);
+     - los recorridos, las suites y la copia de recuperación salen idénticos.
 6. **Comandos:** `src/core/commands.ts` (`command`), coordinado con el lienzo, porque agrega, borra y ordena objetos y páginas.
 7. **Lo del lienzo, después de su paso 6:** plantillas y miniaturas (las miniaturas dibujan el libro: los PDF tienen que salir idénticos), dibujo del pliego, edición y arrastre, eventos, imágenes, pestañas y herramientas, `setZoom` y los atajos.
 8. **Fin del script:**

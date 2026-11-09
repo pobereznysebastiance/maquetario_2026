@@ -6,6 +6,7 @@
 // dialogs.tsx).
 
 import { mount } from '../../react/mount.tsx';
+import { modal } from './modal.ts';
 import {
   DialogHost,
   closeSheet,
@@ -40,3 +41,8 @@ globalThis.openSheet = openSheet;
 globalThis.openWorkWindow = openWorkWindow;
 globalThis.openConfirmSheet = openConfirmSheet;
 globalThis.closeSheet = closeSheet;
+// modal() (modal.ts): lo siguen llamando por el nombre global editorial.ts y shapes.ts (lienzo).
+declare global {
+  var modal: typeof import('./modal.ts').modal;
+}
+globalThis.modal = modal;

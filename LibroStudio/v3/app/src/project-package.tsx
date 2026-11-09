@@ -15,6 +15,7 @@ import { bw } from './i18n/language.ts';
 import { editor, M } from './core-api.ts';
 import { selectedFace, updatePortableFontCatalog } from './font-catalog.ts';
 import { paragraphFormat } from './paragraph-format.ts';
+import { modal } from './components/dialog/modal.ts';
 
 /** Lo que devuelve el anfitrión al abrir un proyecto (desktop/src/main/handlers/project.ts). */
 interface OpenedProject {

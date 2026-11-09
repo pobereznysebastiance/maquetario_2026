@@ -26,6 +26,7 @@ import { bw } from '../../i18n/language.ts';
 import { editor, M } from '../../core-api.ts';
 import { closeSheet } from '../dialog/dialogs.tsx';
 import { goToBookPage } from '../../book-navigation.ts';
+import { modal } from '../dialog/modal.ts';
 
 declare global {
   /** Abre la Ventana del asistente (avisa si no hay un libro abierto). */

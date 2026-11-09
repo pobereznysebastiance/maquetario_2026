@@ -9,6 +9,7 @@ import { bw } from './i18n/language.ts';
 import { editor, M } from './core-api.ts';
 import { paragraphFormat, paragraphKeys, pw } from './paragraph-format.ts';
 import { selectedFace } from './font-catalog.ts';
+import { modal } from './components/dialog/modal.ts';
 
 interface ParagraphStyle {
   id: string;

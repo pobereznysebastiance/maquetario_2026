@@ -2,7 +2,8 @@
 // (un script, no puede importar), los módulos de app, las pruebas y scripts/style-snapshot.js;
 // registra como extensibles las funciones que otros extienden por nombre (toast: Toast.tsx;
 // syncNative: react/editor-state-wiring.ts; commit: paragraphs.ts; inspector: inspector-registry,
-// tutorial, review-workspace, inspector-views), y escucha las respuestas del anfitrión.
+// tutorial, review-workspace, inspector-views; applyBookSettings, saveProject, loadProject y
+// preparePrint), y escucha las respuestas del anfitrión.
 //
 // Lo importa src/entries/core.ts al final: core corre antes que build/studio.js, así studio.ts
 // encuentra todo publicado y registrado. Cada corte del grupo 5 suma acá lo suyo, y cuando un
@@ -32,6 +33,16 @@ import {
   set,
 } from './book-paths.ts';
 import { commitBinding, commitObjectField, inspectorFacade } from './inspector.ts';
+import { applyBookSettingsBase, settings, type BookSettingsValues } from './book-settings.ts';
+import {
+  confirmChanges,
+  download,
+  loadProjectBase,
+  openBook,
+  saveProjectBase,
+  type UnsavedIntent as Intent,
+} from './project-file.ts';
+import { clearPrint, preparePrintBase } from './print.ts';
 import type { BookObject } from '../model.ts';
 
 declare global {
@@ -77,6 +88,21 @@ declare global {
   var inspector: () => void;
   var commitBinding: (el: UIElement) => void;
   var commitObjectField: (el: UIElement) => void;
+  /** Formato del libro (src/core/book-settings.ts); applyBookSettings es extensible. */
+  var settings: (isNew?: boolean) => Promise<void> | undefined;
+  var applyBookSettings: (isNew: boolean, values: BookSettingsValues) => boolean;
+  /** Para qué se pregunta por los cambios sin guardar (src/core/project-file.ts). */
+  type UnsavedIntent = Intent;
+  var confirmChanges: (proceed: () => unknown, intent?: UnsavedIntent) => void;
+  /** Guardar (extensible). */
+  var saveProject: () => Promise<boolean>;
+  var download: (blob: Blob, name: string) => void;
+  var openBook: () => void;
+  /** Carga un proyecto (extensible). */
+  var loadProject: (content: string) => void;
+  /** Salida de lectura en #printRoot (src/core/print.ts); preparePrint es extensible. */
+  var preparePrint: () => boolean;
+  var clearPrint: () => void;
 }
 
 globalThis.$ = $;
@@ -107,5 +133,14 @@ globalThis.folioPositions = folioPositions;
 globalThis.inspector = extensible('inspector', inspectorFacade);
 globalThis.commitBinding = commitBinding;
 globalThis.commitObjectField = commitObjectField;
+globalThis.settings = settings;
+globalThis.applyBookSettings = extensible('applyBookSettings', applyBookSettingsBase);
+globalThis.confirmChanges = confirmChanges;
+globalThis.saveProject = extensible('saveProject', saveProjectBase);
+globalThis.download = download;
+globalThis.openBook = openBook;
+globalThis.loadProject = extensible('loadProject', loadProjectBase);
+globalThis.preparePrint = extensible('preparePrint', preparePrintBase);
+globalThis.clearPrint = clearPrint;
 
 MaquetarioHost.onMessage(nativeReply);

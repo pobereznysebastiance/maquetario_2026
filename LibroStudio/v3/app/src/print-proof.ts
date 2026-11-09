@@ -14,6 +14,7 @@ import { bw } from './i18n/language.ts';
 import { chooseDefaultFace } from './font-catalog.ts';
 import { ow } from './output-words.ts';
 import { readPrinters, sendOutput } from './output-send.ts';
+import { modal } from './components/dialog/modal.ts';
 
 declare global {
   /** Diálogo para imprimir o exportar la cubierta sobre una hoja. */

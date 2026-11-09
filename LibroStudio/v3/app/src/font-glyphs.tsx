@@ -28,6 +28,7 @@ import {
   asParagraphOperation,
 } from './paragraph-format.ts';
 import { chooseDefaultFace, selectedFace, variations } from './font-catalog.ts';
+import { modal } from './components/dialog/modal.ts';
 
 declare global {
   /** Códigos Unicode que tiene la fuente elegida en la paleta. */

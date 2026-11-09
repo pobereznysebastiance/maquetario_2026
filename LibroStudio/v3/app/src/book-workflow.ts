@@ -18,6 +18,7 @@ import { closeSheet } from './components/dialog/dialogs.tsx';
 import { bw } from './i18n/language.ts';
 import { registerInspectorPanel } from './inspector-registry.ts';
 import { refreshHelp, registerHelpSection } from './components/help/help-center.tsx';
+import { modal } from './components/dialog/modal.ts';
 
 /** Datos del armador de novelas: título, autoría y manuscrito; lo demás es opcional. */
 export type NovelData = Pick<NovelSample, 'title' | 'author' | 'source'> & Partial<NovelSample>;

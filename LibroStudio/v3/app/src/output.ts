@@ -23,6 +23,8 @@ import { notifyEditorState } from './react/editor-state.ts';
 import { cropSvg, outputPaperDimensions, ow } from './output-words.ts';
 import { setOutputReviewScale } from './output-review-scale.ts';
 import { installedPrinters, readPrinters, sendOutput } from './output-send.ts';
+// modal: por el nombre global. Importar modal.ts desde acá adelantaría la capa de diálogos
+// (components/dialog/native.ts agrega #dialogLayer al cargar), porque output.ts carga antes.
 
 /** Opciones de una salida. El diálogo las trae todas; la autoprueba y la cubierta (kind = 'cover') piden sólo algunas. */
 export interface OutputConfig {
