@@ -11,9 +11,11 @@
 // confirmación está abierta, ni el teclado ni los clics llegan a los atajos de la app. Durante la
 // autoprueba (maquetarioSelfTest) no esperan: eligen la primera acción.
 //
-// Hojas y Ventanas: una sola a la vez. Abrir una cierra #modal (salvo keepModal: el explorador de
-// fuentes ocupa el lugar de una Hoja HTML) y reemplaza la que esté abierta
-// (nada de diálogo sobre diálogo); sólo una confirmación puede quedar por encima. Las pantallas
+// Hojas y Ventanas: una sola a la vez. Abrir una cierra #modal y reemplaza la que esté abierta
+// (nada de diálogo sobre diálogo); sólo una confirmación puede quedar por encima. La excepción es
+// keepModal (el explorador de fuentes abierto desde el estilo de párrafo): la Ventana queda
+// "alojada" encima de la Hoja, sea #modal o una Hoja de React, que sigue montada debajo con lo que
+// se escribió; al cerrar la Ventana vuelve la Hoja, y si se cierra la Hoja se va la Ventana. Las pantallas
 // que todavía arman HTML siguen con modal() (#modal); cuando una pase a React, modal.sheet,
 // modal.info y modal.workspace aceptan un elemento de React en lugar del HTML y vienen acá.
 //
@@ -51,12 +53,18 @@ interface SheetRequest {
   done: () => void;
 }
 
-// Estado: la confirmación y la Hoja/Ventana abiertas (a lo sumo una de cada una).
+// Estado: la confirmación, la Hoja/Ventana abierta y la Ventana alojada sobre ella (keepModal).
 let confirmRequest: ConfirmRequest | null = null;
 let sheetRequest: SheetRequest | null = null;
-let snapshot: { confirm: ConfirmRequest | null; sheet: SheetRequest | null } = {
+let hostedRequest: SheetRequest | null = null;
+let snapshot: {
+  confirm: ConfirmRequest | null;
+  sheet: SheetRequest | null;
+  hosted: SheetRequest | null;
+} = {
   confirm: null,
   sheet: null,
+  hosted: null,
 };
 let nextId = 0;
 const listeners = new Set<() => void>();
@@ -66,14 +74,14 @@ const subscribe = (listener: () => void) => {
 };
 /** Avisa del cambio; al abrir, dibuja antes de volver (el diálogo queda en la página al instante). */
 const update = (sync: boolean) => {
-  snapshot = { confirm: confirmRequest, sheet: sheetRequest };
+  snapshot = { confirm: confirmRequest, sheet: sheetRequest, hosted: hostedRequest };
   const notify = () => listeners.forEach((listener) => listener());
   if (sync) flushSync(notify);
   else notify();
 };
 
 const DialogHost = () => {
-  const { confirm, sheet } = useSyncExternalStore(subscribe, () => snapshot);
+  const { confirm, sheet, hosted } = useSyncExternalStore(subscribe, () => snapshot);
   useLanguage();
   return (
     <>
@@ -85,6 +93,11 @@ const DialogHost = () => {
       {sheet?.kind === 'workspace' ? (
         <WorkWindow key={sheet.id} options={sheet.options} onClose={sheet.done}>
           {sheet.content}
+        </WorkWindow>
+      ) : null}
+      {hosted ? (
+        <WorkWindow key={hosted.id} options={hosted.options} onClose={hosted.done}>
+          {hosted.content}
         </WorkWindow>
       ) : null}
       {confirm ? (
@@ -143,7 +156,30 @@ function openDialog(
   options: SheetRequest['options'],
 ): Promise<void> {
   const modal = document.getElementById('modal') as HTMLDialogElement | null;
-  if (modal?.open && !(options as WorkWindowOptions).keepModal) modal.close();
+  const keep = kind === 'workspace' && !!(options as WorkWindowOptions).keepModal;
+  if (modal?.open && !keep) modal.close();
+  // Alojada sobre una Hoja de React: la Hoja sigue abierta debajo.
+  if (keep && sheetRequest?.kind === 'sheet') {
+    if (hostedRequest) hostedRequest.done();
+    return new Promise((resolve) => {
+      const id = ++nextId;
+      hostedRequest = {
+        id,
+        kind,
+        content,
+        options,
+        done: () => {
+          if (hostedRequest?.id === id) {
+            hostedRequest = null;
+            update(false);
+          }
+          resolve();
+        },
+      };
+      update(true);
+    });
+  }
+  if (hostedRequest) hostedRequest.done();
   if (sheetRequest) sheetRequest.done();
   return new Promise((resolve) => {
     const id = ++nextId;
@@ -153,6 +189,8 @@ function openDialog(
       content,
       options,
       done: () => {
+        // Si se cierra la Hoja, la Ventana alojada encima se va con ella.
+        if (hostedRequest) hostedRequest.done();
         if (sheetRequest?.id === id) {
           sheetRequest = null;
           update(false);
@@ -168,13 +206,15 @@ export const openSheet = (content: ReactNode, options: SheetOptions) =>
   openDialog('sheet', content, options);
 export const openWorkWindow = (content: ReactNode, options: WorkWindowOptions) =>
   openDialog('workspace', content, options);
-/** Cierra la Hoja o Ventana abierta en el acto (el DOM queda al día al volver). */
+/** Cierra la Hoja o Ventana abierta (y la alojada encima) en el acto: el DOM queda al día al volver. */
 export function closeSheet(): void {
-  const request = sheetRequest;
-  if (!request) return;
-  sheetRequest = null;
+  const request = sheetRequest,
+    hosted = hostedRequest;
+  if (!request && !hosted) return;
+  sheetRequest = hostedRequest = null;
   update(true);
-  request.done();
+  hosted?.done();
+  request?.done();
 }
 
 // La raíz no dibuja nada propio: los diálogos van por portales a la capa (native.ts).

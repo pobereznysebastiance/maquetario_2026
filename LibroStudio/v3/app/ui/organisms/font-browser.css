@@ -2,16 +2,17 @@
    dialog.css): la lista de familias ocupa el alto disponible. La fuente elegida se marca con fondo
    de selección (antes, una franja dorada a la izquierda). */
 
-/* Abierto desde una Hoja: ocupa su lugar en vez de apilarse (font-browser.tsx → openFontBrowser).
-   La Hoja toma el tamaño de la Ventana y esconde su contenido; el explorador va encima, sin velo. */
-#modal[data-hosting='font-browser'] {
+/* Abierto desde una Hoja (#modal o una Hoja de React): ocupa su lugar en vez de apilarse
+   (font-browser.tsx → openFontBrowser). La Hoja toma el tamaño de la Ventana y esconde su
+   contenido; el explorador va encima, sin velo. :is(#modal, dialog) pesa como un id. */
+:is(#modal, dialog)[data-hosting='font-browser'] {
   width: min(var(--dialog-workspace-max-width), calc(100vw - 2 * var(--dialog-workspace-inset)));
   max-width: none;
   height: calc(100vh - 2 * var(--dialog-workspace-inset));
   max-height: none;
   overflow: hidden;
 }
-#modal[data-hosting='font-browser'] .dialog-frame {
+:is(#modal, dialog)[data-hosting='font-browser'] .dialog-frame {
   visibility: hidden;
 }
 #fontBrowser[data-hosted] {

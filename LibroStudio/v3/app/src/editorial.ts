@@ -11,6 +11,8 @@
 // Fuente TypeScript: se compila a build/editorial.js (desktop/scripts/build.mjs).
 'use strict';
 import type { BookObject, TocConfig } from './model.ts';
+import { guideForm } from './components/guide/GuideForm.tsx';
+import { tocEntryForm } from './components/toc-entry/TocEntryForm.tsx';
 
 declare global {
   /** Configuración del índice del libro; la crea con los valores por defecto si no existe. */
@@ -88,11 +90,11 @@ extend.around(
       $('#addTocEntry').onclick = () => {
         modal.sheet(
           'Nueva entrada del índice',
-          `<div class="modal-grid">${control('Texto de la entrada', 'entryLabel', '', 'text', '', '', true)}<div class="control full"><label>Página de referencia</label><select id="entryPage">${book.pages.map((p, i) => `<option value="${p.id}" ${i === active ? 'selected' : ''}>${i + 1} · ${esc(M.sectionAt(book, i))}</option>`).join('')}</select></div></div>`,
+          tocEntryForm(),
           () => {
             const label = $('#entryLabel').value.trim().slice(0, 500),
               pageId = $('#entryPage').value;
-            if (!label) throw Error('Escribí el texto de la entrada.');
+            if (!label) throw Error(LibroI18n.tr('Escribí el texto de la entrada.'));
             commit(() => ensureToc().entries.push({ id: M.uid(), label, pageId }), false);
           },
           'Agregar entrada',
@@ -204,23 +206,7 @@ function extraTextControls(): void {
       }),
   );
   $('#openIndexFromText').onclick = () => showTab('index');
-  $('#glyphPanel').onclick = () => {
-    const target = selectObject()!;
-    modal.info(
-      'Glifos y caracteres especiales',
-      `<p class="help">Elegí un carácter para agregarlo al final del cuadro seleccionado. Su disponibilidad depende de la tipografía.</p><div class="glyph-grid">${[...'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŒÙÚÛÜÝŸàáâãäåæçèéêëìíîïðñòóôõöøœùúûüýÿß¿¡«»“”‘’—–…•·©®™€£¥¢§¶†‡±×÷¼½¾¹²³←↑→↓'].map((c) => `<button type="button" data-glyph="${esc(c)}" style="font-family:${esc(target.font)}">${esc(c)}</button>`).join('')}</div>`,
-      'Cerrar',
-    );
-    $$('[data-glyph]').forEach(
-      (el) =>
-        (el.onclick = () => {
-          snapshot();
-          target.text += el.dataset.glyph;
-          changed();
-          renderPages();
-        }),
-    );
-  };
+  // #glyphPanel lo abre font-glyphs.tsx (showFontGlyphs), que le pone su acción al decorar.
 }
 function extraGuideControls(): void {
   // En Libro, la estructura va primero: las guías acompañan a la grilla.
@@ -233,12 +219,12 @@ function extraGuideControls(): void {
   $('#addGuide').onclick = () => {
     modal.sheet(
       'Nueva guía',
-      `<div class="modal-grid"><div class="control"><label>Orientación</label><select id="guideAxis"><option value="v">Vertical</option><option value="h">Horizontal</option></select></div>${control('Posición desde el borde · mm', 'guidePosition', 20, 'number', 0, Math.max(book.width, book.height))}</div>`,
+      guideForm(),
       () => {
         const axis = $('#guideAxis').value,
           n = Number($('#guidePosition').value);
         if (!Number.isFinite(n) || n < 0 || n > (axis === 'v' ? book.width : book.height))
-          throw Error('La guía debe estar dentro de la página.');
+          throw Error(LibroI18n.tr('La guía debe estar dentro de la página.'));
         commit(() => {
           if (!book.guides) book.guides = [];
           book.guides.push({ axis, position: n });

@@ -17,6 +17,7 @@ const measureSelector = [
   '#paragraphStyleFirst',
   '#paragraphStyleBefore',
   '#paragraphStyleAfter',
+  '#guidePosition',
 ].join(',');
 
 function isLengthField(field: HTMLInputElement): boolean {
@@ -87,5 +88,13 @@ extend.after(
 // La unidad, las medidas de la selección y el formato en la unidad del documento los muestran las
 // barras de estado y del documento (src/components/statusbar y documentbar), con documentUnit()
 // y displayDimensions().
+
+// Global (no export): las Hojas de React lo llaman al montarse. Importar este módulo desde ellas
+// adelantaría su carga, y sus extensiones (coverEditor…) necesitan que ya existan esas funciones.
+declare global {
+  /** Campos de longitud de root en la unidad del documento (también los de Hojas de React). */
+  var adaptLengthControls: (root: ParentNode) => void;
+}
+globalThis.adaptLengthControls = adaptLengthControls;
 
 export {};

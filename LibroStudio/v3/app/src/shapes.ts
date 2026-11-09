@@ -13,6 +13,7 @@
 // Fuente TypeScript: se compila a build/shapes.js (desktop/scripts/build.mjs).
 import type { Book, BookObject, LibroModelApi } from './model.ts';
 import type { OutputConfig, OutputInfo } from './output.ts';
+import { shapeGallery } from './components/shape-gallery/ShapeGallery.tsx';
 
 /** Nombre de cada figura: castellano, inglés y portugués. */
 type ShapeLabels = [string, string, string];
@@ -128,21 +129,23 @@ function shapeChooser(): void {
   }
   modal.info(
     bw('Figuras y contenedores', 'Shapes and containers', 'Figuras e contêineres'),
-    `<p class="builder-intro">${bw('Elegí una figura y arrastrá sobre la página para dibujarla. Con Shift conserva proporciones iguales. Después ajustá relleno y trazo en Objeto.', 'Choose a shape and drag on the page to draw it. Hold Shift for equal proportions. Then set fill and stroke in Object.', 'Escolha uma figura e arraste na página para desenhar. Com Shift mantém proporções iguais. Depois ajuste preenchimento e traço em Objeto.')}</p><div class="shape-choices">${Object.entries(
-      shapeNames,
-    )
-      .map(
-        ([key, labels]) =>
-          `<button type="button" data-shape-kind="${key}" class="shape-choice"><div>${shapeSvg({ id: 'pick-' + key, shape: key, type: 'frame', w: 50, h: 35, fill: '#3CD1BB', stroke: '#E4B16C', strokeWidth: 1.2 })}</div><strong>${bw(...labels)}</strong></button>`,
-      )
-      .join('')}</div>`,
-    bw('Cerrar', 'Close', 'Fechar'),
-  );
-  $$('[data-shape-kind]').forEach(
-    (b) =>
-      (b.onclick = () => {
-        shapeKind = b.dataset.shapeKind!;
-        $('#modal').close();
+    shapeGallery({
+      kinds: Object.keys(shapeNames),
+      label: (kind) => bw(...shapeNames[kind]),
+      preview: (kind) =>
+        shapeSvg({
+          id: 'pick-' + kind,
+          shape: kind,
+          type: 'frame',
+          w: 50,
+          h: 35,
+          fill: '#3CD1BB',
+          stroke: '#E4B16C',
+          strokeWidth: 1.2,
+        }),
+      pick: (kind) => {
+        shapeKind = kind;
+        closeSheet();
         finishEditing();
         selected = null;
         tool = 'shape';
@@ -156,7 +159,9 @@ function shapeChooser(): void {
           ),
           'info',
         );
-      }),
+      },
+    }),
+    bw('Cerrar', 'Close', 'Fechar'),
   );
 }
 registerTool({

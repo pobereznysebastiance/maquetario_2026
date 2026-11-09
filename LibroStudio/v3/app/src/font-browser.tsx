@@ -406,8 +406,12 @@ function openFontBrowser(select: HTMLSelectElement): void {
   // Nada de diálogo sobre diálogo: abierto desde una Hoja (por ejemplo, el estilo de párrafo),
   // ocupa su lugar en vez de apilarse. #modal toma el tamaño de una Ventana y esconde su contenido;
   // el explorador queda encima, sin velo propio. Al cerrarlo vuelve el contenido de la Hoja.
-  const host = document.getElementById('modal') as HTMLDialogElement;
-  const hosted = host.open;
+  // La Hoja que lo aloja: #modal (HTML) o una Hoja de React (dialogs.tsx la deja montada debajo).
+  const modalHost = document.getElementById('modal') as HTMLDialogElement;
+  const host = modalHost.open
+    ? modalHost
+    : document.querySelector<HTMLDialogElement>('#dialogLayer dialog[data-kind="sheet"][open]');
+  const hosted = !!host;
   void openWorkWindow(<FontBrowser hosted={hosted} />, {
     id: 'fontBrowser',
     title: bw('Elegí una tipografía', 'Choose a typeface', 'Escolha uma tipografia'),
@@ -419,14 +423,14 @@ function openFontBrowser(select: HTMLSelectElement): void {
     },
   });
   const dialog = dialogElement();
-  if (!hosted || !dialog) return;
+  if (!host || !dialog) return;
   host.dataset.hosting = 'font-browser';
   dialog.dataset.hosted = '';
   dialog.addEventListener('beforetoggle', (event) => {
     if ((event as ToggleEvent).newState === 'closed') delete host.dataset.hosting;
   });
-  // Si la Hoja se cierra por su cuenta, el explorador se va con ella.
-  onDialogClose(() => fontBrowser.close());
+  // Si la Hoja se cierra por su cuenta, el explorador se va con ella (la de React: dialogs.tsx).
+  if (host === modalHost) onDialogClose(() => fontBrowser.close());
 }
 globalThis.openFontBrowser = openFontBrowser;
 

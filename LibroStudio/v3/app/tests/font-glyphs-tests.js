@@ -14,6 +14,6 @@ registerFontTest(async function (r) {
   }
   if (!$('#fontGlyphGrid [data-real-glyph="65"]')) throw Error('Glifo A no visible');
   r.checks.push('Paleta muestra glifo real y búsqueda Unicode');
-  $('#modal').close();
+  closeSheet();
   return r;
 }, 'font-glyphs');

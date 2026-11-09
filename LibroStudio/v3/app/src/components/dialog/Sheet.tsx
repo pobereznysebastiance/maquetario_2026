@@ -47,9 +47,9 @@ export interface WorkWindowOptions {
   /** id del <dialog> (para las pruebas y la autoprueba). */
   id?: string;
   /**
-   * No cerrar #modal al abrir: la Ventana queda encima de una Hoja que todavía es HTML y ocupa su
-   * lugar (el explorador de fuentes abierto desde el estilo de párrafo). Quien abre se ocupa de
-   * esconder el contenido de la Hoja mientras tanto.
+   * No cerrar la Hoja abierta (#modal o una Hoja de React): la Ventana queda alojada encima y ocupa
+   * su lugar (el explorador de fuentes abierto desde el estilo de párrafo). Quien abre se ocupa de
+   * esconder el contenido de la Hoja mientras tanto (data-hosting en su <dialog>).
    */
   keepModal?: boolean;
   /** Acción principal, en la barra del título (Guardar PDF…). Sin ella, sólo la cruz. */

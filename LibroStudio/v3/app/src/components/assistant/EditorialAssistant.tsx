@@ -17,7 +17,11 @@
 import { useState } from 'react';
 import { useLanguage } from '../../react/mount.tsx';
 import { notifyEditorState, useEditorState } from '../../react/editor-state.ts';
-import { assistant, type EditorialFinding } from '../../editorial-assistant.ts';
+import {
+  assistant,
+  type ClassServiceInfo,
+  type EditorialFinding,
+} from '../../editorial-assistant.ts';
 
 declare global {
   /** Abre la Ventana del asistente (avisa si no hay un libro abierto). */
@@ -320,12 +324,66 @@ async function runAutomaticReview(): Promise<void> {
   }
 }
 
+/** Contenido de la Hoja "Conectar el aula": código del aula y, para el docente, la dirección. */
+const ClassroomForm = ({ service }: { service: ClassServiceInfo }) => {
+  useLanguage();
+  return (
+    <>
+      <p className="builder-intro">
+        {bw(
+          'Tu docente te entrega un código. La clave del proveedor de IA nunca se instala en los equipos de estudiantes.',
+          'Your teacher provides a code. The AI provider key is never installed on student computers.',
+          'Seu docente fornece um código. A chave do provedor de IA nunca é instalada nos computadores dos alunos.',
+        )}
+      </p>
+      <label className="builder-label" htmlFor="classCode">
+        {bw('Código de aula', 'Classroom code', 'Código da turma')}
+      </label>
+      <input
+        id="classCode"
+        type="password"
+        autoComplete="off"
+        maxLength={200}
+        placeholder={
+          service.configured
+            ? bw('Dejar vacío para conservar', 'Leave blank to keep', 'Deixar vazio para manter')
+            : ''
+        }
+      />
+      <details open={!service.serviceUrl}>
+        <summary>
+          {bw('Configuración del docente', 'Teacher setup', 'Configuração do docente')}
+        </summary>
+        <label className="builder-label" htmlFor="classUrl">
+          {bw(
+            'Dirección del servicio del aula',
+            'Classroom service address',
+            'Endereço do serviço da turma',
+          )}
+        </label>
+        <input
+          id="classUrl"
+          type="url"
+          defaultValue={service.serviceUrl || ''}
+          placeholder="https://…"
+        />
+        <p className="help">
+          {bw(
+            'Podés distribuir maquetario-aula.json junto al ejecutable con esta dirección. Los estudiantes solo ingresan el código. El servicio central se publica por separado.',
+            'Distribute maquetario-aula.json next to the executable with this address. Students only enter the code. Publish the central service separately.',
+            'Distribua maquetario-aula.json junto ao executável com este endereço. Alunos só informam o código. O serviço central é publicado separadamente.',
+          )}
+        </p>
+      </details>
+    </>
+  );
+};
+
 /** Conexión con el servicio del aula (Hoja; al guardar vuelve a abrir el asistente). */
 function configureClassroom(): void {
-  const service = assistant.service;
   modal.sheet(
     bw('Conectar el aula', 'Connect classroom', 'Conectar turma'),
-    `<p class="builder-intro">${bw('Tu docente te entrega un código. La clave del proveedor de IA nunca se instala en los equipos de estudiantes.', 'Your teacher provides a code. The AI provider key is never installed on student computers.', 'Seu docente fornece um código. A chave do provedor de IA nunca é instalada nos computadores dos alunos.')}</p><label class="builder-label" for="classCode">${bw('Código de aula', 'Classroom code', 'Código da turma')}</label><input id="classCode" type="password" autocomplete="off" maxlength="200" placeholder="${service.configured ? bw('Dejar vacío para conservar', 'Leave blank to keep', 'Deixar vazio para manter') : ''}"><details ${service.serviceUrl ? '' : 'open'}><summary>${bw('Configuración del docente', 'Teacher setup', 'Configuração do docente')}</summary><label class="builder-label" for="classUrl">${bw('Dirección del servicio del aula', 'Classroom service address', 'Endereço do serviço da turma')}</label><input id="classUrl" type="url" value="${esc(service.serviceUrl || '')}" placeholder="https://…"><p class="help">${bw('Podés distribuir maquetario-aula.json junto al ejecutable con esta dirección. Los estudiantes solo ingresan el código. El servicio central se publica por separado.', 'Distribute maquetario-aula.json next to the executable with this address. Students only enter the code. Publish the central service separately.', 'Distribua maquetario-aula.json junto ao executável com este endereço. Alunos só informam o código. O serviço central é publicado separadamente.')}</p></details>`,
+    <ClassroomForm service={assistant.service} />,
     async () => {
       await nativeCall('assistantConfigure', {
         url: $('#classUrl').value.trim(),

@@ -37,7 +37,7 @@ import '../font-browser.tsx';
 import '../output-review.ts';
 import '../focus-layout.ts';
 import '../master-refinement.ts';
-import '../font-glyphs.ts';
+import '../font-glyphs.tsx';
 import '../page-priority.ts';
 import '../inspector-organization.ts';
 import '../shapes.ts';

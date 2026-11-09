@@ -10,6 +10,7 @@
 // Fuente TypeScript: se compila a build/paragraphs.js (desktop/scripts/build.mjs).
 'use strict';
 import type { Book, BookObject } from './model.ts';
+import { paragraphStyleForm } from './components/paragraph-style/ParagraphStyleForm.tsx';
 
 /** Formato de un párrafo: font, size, leading, align, sangrías, espacios… (ver paragraphKeys). */
 export type ParagraphFormat = Record<string, any>;
@@ -370,19 +371,7 @@ function styleDialog(existing: ParagraphStyle | null | undefined): void {
       : paragraphFormat(book, o, currentParagraph(o));
   modal.sheet(
     existing ? w.editTitle : w.createTitle,
-    `<div class="modal-grid">${control(w.name, 'paragraphStyleName', existing?.name || '', 'text', '', '', true)}<div class="control full"><label>${w.font}</label><select id="paragraphStyleFont">${fontList.map((f) => `<option value="${esc(f)}" ${f === properties.font ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select></div>${control(w.size, 'paragraphStyleSize', properties.size, 'number', 4, 150)}${control(w.leading, 'paragraphStyleLeading', properties.leading, 'number', 4, 220)}<div class="control full"><label>${pw().panel}</label><select id="paragraphStyleAlign">${[
-      ['left', w.l],
-      ['center', w.c],
-      ['right', w.r],
-      ['justify', w.j],
-    ]
-      .map(
-        ([key, label]) =>
-          `<option value="${key}" ${properties.align === key ? 'selected' : ''}>${label}</option>`,
-      )
-      .join(
-        '',
-      )}</select></div>${hyphenationFields(properties, 'styleHyphen')}</div><div class="modal-grid">${control(w.left + ' · mm', 'paragraphStyleLeft', properties.indentLeft || 0, 'number', 0, 80)}${control(w.right + ' · mm', 'paragraphStyleRight', properties.indentRight || 0, 'number', 0, 80)}${control(w.first + ' · mm', 'paragraphStyleFirst', properties.firstIndent || 0, 'number', -30, 50)}${control(w.before + ' · mm', 'paragraphStyleBefore', properties.spaceBefore || 0, 'number', 0, 50)}${control(w.after + ' · mm', 'paragraphStyleAfter', properties.spaceAfter || 0, 'number', 0, 50)}</div>`,
+    paragraphStyleForm({ existing, properties, words: w }),
     async () => {
       const name = $('#paragraphStyleName').value.trim().slice(0, 100);
       if (!name) throw Error(w.styleRequired);
@@ -393,7 +382,7 @@ function styleDialog(existing: ParagraphStyle | null | undefined): void {
         )
       )
         throw Error(w.styleExists);
-      for (const input of $$('#modalBody input[type=number]'))
+      for (const input of $$('#paragraphStyleForm input[type=number]'))
         if (
           !Number.isFinite(Number(input.value)) ||
           Number(input.value) < Number(input.min) ||
