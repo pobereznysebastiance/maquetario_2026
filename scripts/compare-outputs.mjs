@@ -13,6 +13,9 @@ const huella = (file) => {
       .replace(/\/ID\s*\[\s*<[0-9A-Fa-f]*>\s*<[0-9A-Fa-f]*>\s*\]/g, '/ID[]')
       .replace(/<xmp:(CreateDate|ModifyDate|MetadataDate)>[^<]*</g, '<xmp:$1><')
       .replace(/xmpMM:(DocumentID|InstanceID)[^<]*</g, 'xmpMM:$1<');
+  } else {
+    // verificacion-pdfx.json copia las fechas del Info del PDF/X (D:AAAAMMDDhhmmssZ).
+    text = text.replace(/"D:d{14}Z?"/g, '"D:"');
   }
   return createHash('sha256').update(text, 'latin1').digest('hex').slice(0, 16);
 };
