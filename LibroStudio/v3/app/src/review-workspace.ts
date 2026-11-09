@@ -9,6 +9,7 @@
 //
 // Fuente TypeScript: se compila a build/review-workspace.js (desktop/scripts/build.mjs).
 
+import { noBookReason } from './react/no-book.ts';
 import type { Book, BookObject } from './model.ts';
 
 const reviewText = {
@@ -144,13 +145,23 @@ function refreshEmptyCanvas(): void {
   const w = rw();
   document.body.classList.toggle('no-document', !hasDocument);
   emptyCanvas.hidden = hasDocument;
-  // Imprimir, Vista previa y Exportar: los habilita la barra superior (React) según hasDocument.
+  // Sin libro, el riel vuelve a Páginas (Índice y Capas mostrarían el libro en blanco de atrás) y
+  // "Agregar página" no aplica. Las barras (React) se arreglan solas con el aviso de abajo.
+  if (!hasDocument && globalThis.currentRailView && currentRailView() !== 'pages')
+    showRailView('pages');
+  const addPage = $('#addPage');
+  if (addPage) {
+    addPage.disabled = !hasDocument;
+    addPage.title = hasDocument ? LibroI18n.tr('Agregar página') : noBookReason();
+  }
   globalThis.notifyEditorState?.();
   emptyCanvas.innerHTML = `<div>${icon('pages')}<h2>${w.emptyTitle}</h2><p>${w.emptyBody}</p>${UI.button({ id: 'emptyNew', variant: 'primary', label: w.create })}${UI.button({ id: 'emptyOpen', label: w.open })}</div>`;
   $('#emptyNew').onclick = () => settings(true);
   $('#emptyOpen').onclick = openBook;
 }
 globalThis.refreshEmptyCanvas = refreshEmptyCanvas;
+// Al cambiar de idioma, la mesa vacía y el motivo de "Agregar página" van en el idioma nuevo.
+document.addEventListener('maquetario:language', refreshEmptyCanvas);
 extend.after(
   'hideWelcome',
   function () {

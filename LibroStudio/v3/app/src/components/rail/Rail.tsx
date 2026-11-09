@@ -21,6 +21,7 @@ import { Icon } from '../Icon.tsx';
 import { mount, useLanguage } from '../../react/mount.tsx';
 import { notifyEditorState, useEditorState } from '../../react/editor-state.ts';
 import { railMounted, railToolsSnapshot, subscribeRailTools } from './rail-tools.ts';
+import { noBookReason } from '../../react/no-book.ts';
 
 type RailView = 'pages' | 'index' | 'layers';
 
@@ -89,6 +90,8 @@ export const RailSwitch = () => {
       {VIEWS.map(({ view, label, icon, panel }) => {
         const on = view === current;
         const name = LibroI18n.tr(label);
+        // Sin libro, Índice y Capas no tienen qué mostrar (review-workspace vuelve a Páginas).
+        const off = !hasDocument && view !== 'pages';
         return (
           <button
             key={view}
@@ -102,7 +105,8 @@ export const RailSwitch = () => {
             aria-controls={panel}
             tabIndex={on ? 0 : -1}
             aria-label={name}
-            title={name}
+            title={off ? noBookReason() : name}
+            disabled={off}
             onClick={() => {
               finishEditing();
               showRailView(view);

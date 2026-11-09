@@ -228,6 +228,10 @@ body[data-rulers='hidden'] #spreadStage {
   ) {
   visibility: hidden;
 }
+/* Sin libro, la barra del documento no muestra el punto de guardado ni el imán (no hay libro). */
+.no-document :is(.document-dot, #snapButton) {
+  display: none;
+}
 
 /* ── Migrado de readability.css ── */
 .ui-large .inspector {

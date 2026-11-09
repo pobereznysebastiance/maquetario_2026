@@ -7,6 +7,10 @@
 // agregan a .documentbar (la página activa de review-workspace, al principio; los botones de
 // ayuda, al final) queda afuera del árbol de React, que nunca lo toca.
 //
+// Sin libro (hasDocument en falso) el CSS de .no-document esconde el punto, el nombre, el
+// formato y el imán (ui/templates/workspace.css), y Revisar libro y Configurar libro quedan deshabilitados con el
+// motivo en su title (src/react/no-book.ts).
+//
 // "Configurar libro" recibe su acción por la propiedad onclick del botón, no por onClick de React:
 // las pruebas la reemplazan (tests/review-tests.js) y así el reemplazo sigue mandando, como antes.
 //
@@ -16,6 +20,7 @@ import { Icon } from '../Icon.tsx';
 import { mount, useLanguage } from '../../react/mount.tsx';
 import { useEditorState } from '../../react/editor-state.ts';
 import { snapButtonState, toggleSnap } from '../../layout-tools.ts';
+import { bookTitle } from '../../react/no-book.ts';
 
 const tr = (text: string) => LibroI18n.tr(text);
 
@@ -58,13 +63,21 @@ export const DocumentBar = () => {
         type="button"
         className="quiet"
         id="reviewBook"
-        title={tr('Texto que no entra y objetos fuera de página.')}
+        title={bookTitle(tr('Texto que no entra y objetos fuera de página.'))}
+        disabled={!hasDocument}
         onClick={() => preflightDialog()}
       >
         <Icon name="check" />
         <span>{tr('Revisar libro')}</span>
       </button>
-      <button type="button" className="quiet" id="documentSettings" ref={bindSettings}>
+      <button
+        type="button"
+        className="quiet"
+        id="documentSettings"
+        title={bookTitle(undefined)}
+        disabled={!hasDocument}
+        ref={bindSettings}
+      >
         <Icon name="settings" />
         <span>{tr('Configurar libro')}</span>
       </button>

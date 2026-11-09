@@ -8,6 +8,8 @@
 // Lee los globales del núcleo y se redibuja con cada aviso (useEditorState) y con el idioma:
 // - Deshacer / Rehacer, según las pilas de cambios.
 // - Imprimir, Vista previa y Exportar PDF, sin libro o con una salida en curso (busy).
+// - Sin libro (hasDocument en falso), también Guardar, Guardar como…, Empaquetar y el Asistente
+//   editorial, con el motivo en su title (src/react/no-book.ts).
 // - Vista previa, resaltada mientras está activa.
 //
 // Las acciones van por la propiedad onclick del botón (no por onClick de React), una sola vez: las
@@ -21,6 +23,7 @@
 import { Icon } from '../Icon.tsx';
 import { mount, useLanguage } from '../../react/mount.tsx';
 import { notifyEditorState, useEditorState } from '../../react/editor-state.ts';
+import { bookTitle } from '../../react/no-book.ts';
 
 const tr = (text: string) => LibroI18n.tr(text);
 
@@ -96,25 +99,30 @@ export const Topbar = () => {
           id="save"
           icon="save"
           label={tr('Guardar')}
-          title={bw('Guardar · Ctrl+S', 'Save · Ctrl+S', 'Salvar · Ctrl+S')}
+          title={bookTitle(bw('Guardar · Ctrl+S', 'Save · Ctrl+S', 'Salvar · Ctrl+S'))}
+          disabled={!hasDocument}
           run={() => saveProject()}
         />
         <ToolAction
           id="saveAs"
           icon="save"
           label={bw('Guardar como…', 'Save as…', 'Salvar como…')}
-          title={bw(
-            'Guardar como… · Ctrl+Mayús+S',
-            'Save as… · Ctrl+Shift+S',
-            'Salvar como… · Ctrl+Shift+S',
+          title={bookTitle(
+            bw(
+              'Guardar como… · Ctrl+Mayús+S',
+              'Save as… · Ctrl+Shift+S',
+              'Salvar como… · Ctrl+Shift+S',
+            ),
           )}
+          disabled={!hasDocument}
           run={() => saveProjectAs()}
         />
         <ToolAction
           id="packageProject"
           icon="folder"
           label={bw('Empaquetar', 'Package', 'Empacotar')}
-          title={bw('Empaquetar proyecto', 'Package project', 'Empacotar projeto')}
+          title={bookTitle(bw('Empaquetar proyecto', 'Package project', 'Empacotar projeto'))}
+          disabled={!hasDocument}
           run={() => packageDialog()}
         />
         <span className="divider"></span>
@@ -164,8 +172,11 @@ export const Topbar = () => {
           type="button"
           id="editorialAssistant"
           className="btn assistant-entry"
-          title={assistant + ' · ' + bw('Revisar mi libro', 'Review my book', 'Revisar meu livro')}
+          title={bookTitle(
+            assistant + ' · ' + bw('Revisar mi libro', 'Review my book', 'Revisar meu livro'),
+          )}
           aria-label={assistant}
+          disabled={!hasDocument}
           ref={action(() => globalThis.openEditorialAssistant())}
         >
           <AssistantSpark />
@@ -175,7 +186,7 @@ export const Topbar = () => {
           type="button"
           id="printButton"
           className="btn"
-          title={print}
+          title={bookTitle(print)}
           aria-label={print}
           disabled={noOutput}
           ref={action(() => outputDialog('print'))}
@@ -187,7 +198,7 @@ export const Topbar = () => {
           type="button"
           id="preview"
           className={preview ? 'btn primary' : 'btn'}
-          title={tr('Vista previa')}
+          title={bookTitle(tr('Vista previa'))}
           aria-label={tr('Vista previa')}
           aria-pressed={preview}
           disabled={noOutput}
@@ -203,6 +214,7 @@ export const Topbar = () => {
           type="button"
           id="export"
           className="btn primary"
+          title={bookTitle(undefined)}
           disabled={noOutput}
           ref={action(() => outputDialog('pdf'))}
         >

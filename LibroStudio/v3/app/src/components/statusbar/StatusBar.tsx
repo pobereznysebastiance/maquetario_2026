@@ -7,6 +7,9 @@
 // Los textos en castellano tienen su fila (o su patrón) en src/i18n.ts y se traducen con
 // LibroI18n.tr(); la unidad usa bw(), como antes en document-units.ts.
 //
+// Sin libro (hasDocument en falso) dice "Sin libro abierto" y no muestra página, selección,
+// sobrantes ni unidad (el guardado lo esconde el CSS de .no-document): no hay datos que mostrar.
+//
 // Mismo marcado que tenía index.html: lo leen las pruebas (tests/document-view-tests.js busca la
 // unidad en el elemento que sigue a .status-spacer) y el CSS de ui/organisms/statusbar.css.
 //
@@ -22,8 +25,23 @@ const OBJECT_NAMES: Record<string, string> = { text: 'Texto', image: 'Imagen' };
 export const StatusBar = () => {
   useEditorState();
   useLanguage();
-  const object = selectObject();
+  const object = hasDocument ? selectObject() : undefined;
   const name = object ? OBJECT_NAMES[object.type] || 'Marco' : '';
+  if (!hasDocument)
+    return (
+      <>
+        <span id="statusText">
+          {bw('Sin libro abierto', 'No book open', 'Nenhum livro aberto')}
+        </span>
+        <span id="selectionText"></span>
+        <span id="overflowStatus"></span>
+        <span className="status-spacer"></span>
+        <span hidden></span>
+        <span className="saved" id="savedState">
+          <i></i> {dirty ? tr('Cambios sin guardar') : tr('Guardado en tu equipo')}
+        </span>
+      </>
+    );
   return (
     <>
       <span id="statusText">{tr(`Página ${active + 1} de ${book.pages.length}`)}</span>
