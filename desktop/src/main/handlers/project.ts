@@ -16,8 +16,8 @@ import { getPackageFaces, setPackageFonts } from '../fonts/catalog.ts';
 import { licenseSummary } from '../license.ts';
 import { takeRequestedProject } from '../open-file.ts';
 import type { Session } from '../session.ts';
-
-export const PROJECT_VERSION = 3;
+// Las reglas de versión del .mqt son las mismas que en la interfaz (una sola fuente).
+import { checkProjectVersion } from '../../../../LibroStudio/v3/app/src/model-migrations.ts';
 
 interface RecentProject {
   path: string;
@@ -70,7 +70,23 @@ const PROJECT_FILTERS = [
   { name: 'Proyecto Maquetario (*.mqt)', extensions: ['mqt'] },
 ];
 
+/**
+ * Antes de tomar el archivo como proyecto actual: si no es un proyecto o es de una versión más
+ * nueva de Maquetario, se rechaza acá. Si llegara a la interfaz, quedaría como destino de Guardar y
+ * se podría pisar con el libro que estaba abierto.
+ */
+function checkOpened(content: string): void {
+  let root: unknown;
+  try {
+    root = JSON.parse(content.replace(/^\uFEFF/, ''));
+  } catch {
+    throw new Error('El archivo no es un proyecto de Maquetario.');
+  }
+  checkProjectVersion(root);
+}
+
 async function loaded(session: Session, path: string, content: string) {
+  checkOpened(content);
   session.projectPath = path;
   await setPackageFonts(path);
   await recordRecent(path, content);
@@ -100,10 +116,7 @@ export async function openRecent(session: Session, path: string) {
   if (!record) throw new Error('El archivo no está en la lista de recientes.');
   if (!(await exists(record.path)))
     throw new Error('El archivo se movió o ya no está disponible. Usá Abrir para buscarlo.');
-  const content = await readProject(record.path);
-  const root = JSON.parse(content) as { version?: unknown };
-  if (Number(root.version) !== PROJECT_VERSION) throw new Error('Proyecto incompatible.');
-  return loaded(session, record.path, content);
+  return loaded(session, record.path, await readProject(record.path));
 }
 
 export async function saveProject(

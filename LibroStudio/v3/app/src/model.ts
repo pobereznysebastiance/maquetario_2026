@@ -2,6 +2,8 @@
 // de proyectos. No toca la pantalla. Se publica como window.LibroModel (en la app, M).
 // Fuente TypeScript: se compila a build/model.js (desktop/scripts/build.mjs).
 
+import { CURRENT_VERSION, migrateProject } from './model-migrations.ts';
+
 export type AutoType = 'header' | 'titulillo' | 'folio';
 const AUTO_TYPES: AutoType[] = ['header', 'titulillo', 'folio'];
 
@@ -152,7 +154,7 @@ function text(content: string, x = 20, y = 35, w = 108, h = 55, size = 12): Book
 }
 function create(): Book {
   let b: Book = {
-    version: 3,
+    version: CURRENT_VERSION,
     title: 'La caída',
     width: 148,
     height: 210,
@@ -395,9 +397,10 @@ function validParagraphProperties(p: any): boolean {
   return true;
 }
 // Valida un proyecto que viene de afuera (archivo, portapapeles): no se confía en nada.
+// Primero lo lleva a la versión actual del formato (model-migrations.ts): un proyecto que no es de
+// Maquetario, o de una versión más nueva, se rechaza ahí con un error para mostrar.
 function validate(input: any): Book {
-  if (!input || input.version !== 3) throw Error('Abrí un proyecto de Maquetario o LibroStudio 3.');
-  const b: any = clone(input);
+  const b: any = clone(migrateProject(input));
   const number = (v: unknown, min: number, max: number): boolean =>
     typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max;
   const str = (v: unknown, max: number): boolean => typeof v === 'string' && v.length <= max;

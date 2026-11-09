@@ -25,7 +25,7 @@ Maquetario/Servicio-aula/  Servicio opcional del asistente con IA (se reemplaza 
 ```bash
 npm install                 # una vez, en la raíz
 npm run dev                 # abre Maquetario en modo desarrollo (F12 = herramientas, Ctrl+R = recargar)
-npm test                    # pruebas unitarias (licencias, lector de fuentes)
+npm test                    # pruebas unitarias (licencias, lector de fuentes, formato del proyecto)
 npm run typecheck
 npm run self-test           # autoprueba completa: interfaz, PDF reales, guardado, paquete
 npm run dist                # instalador para el sistema actual (desktop/release/)
@@ -53,6 +53,15 @@ Acciones disponibles (todas en `bridge.ts`): `ready`, `appInfo`, `dirty`, `local
 ## Versión
 
 Fuente única: `desktop/package.json` → `version`. La app la informa con `appInfo`.
+
+## Formato del proyecto y migraciones
+
+Un proyecto (`.mqt`) es el JSON del libro con su `version`. La versión del formato vive en un solo lugar: `CURRENT_VERSION` en `LibroStudio/v3/app/src/model-migrations.ts` (hoy 3). El proceso principal la importa de ahí.
+
+- **Al abrir**, `M.validate` llama primero a `migrateProject`, que aplica en orden los pasos `{ from, to, migrate }` de `MIGRATIONS` hasta la versión actual, y recién después valida con las reglas de hoy. Como todo lo que viene de afuera pasa por `M.validate` (Abrir, recientes, doble clic en un `.mqt`, paquete, copia de recuperación), ningún camino se saltea la migración. Las validaciones que agregan `master-refinement` y `shapes` envuelven a `M.validate` y siguen corriendo después, sobre el proyecto ya migrado.
+- **Proyecto de una versión más nueva:** error para mostrar ("Este proyecto se hizo con una versión más nueva de Maquetario: actualizá el programa para abrirlo."). El proceso principal lo detecta antes de tomar el archivo como proyecto actual (`handlers/project.ts → checkOpened`): no se anota en recientes ni queda como destino de Guardar, así que el archivo no se puede pisar. Lo mismo para un archivo que no es JSON.
+- **Agregar un cambio de formato:** subir `CURRENT_VERSION`, sumar al final de `MIGRATIONS` el paso desde la versión anterior (puro: sin pantalla ni globales; recibe una copia) y una prueba con un proyecto real de la versión anterior en `desktop/test/project-format.test.ts`. Los pasos publicados no se borran ni se editan.
+- Hoy no hay pasos. Los campos opcionales de la versión 3 (`measurementUnit`, `paragraphStyles`, `cover`, `guides`, `toc`…) se completan donde se leen (`|| []`, "mm" por defecto) y no con una normalización al cargar: se decidió así para no cambiar lo que se guarda. Si un formato nuevo los vuelve obligatorios, su paso los completa.
 
 ## Licencias y conexión con Motiova
 
@@ -207,7 +216,7 @@ Criterio de aceptación: autoprueba completa en verde, contador de reemplazos de
 ## Etapas
 
 1. **Electron con la interfaz actual** (cerrada el 08-nov). Funciona en macOS y Linux además de Windows; la versión C#/WebView2 (`Host*.cs`, `Build*.ps1`, `Maquetario.iss`) y su rama en la interfaz se retiraron. Pendiente, porque depende de Motiova o de la venta: URLs y clave pública de producción, `licenseMode: "enforce"` y la firma de código (ver "Licencias y conexión con Motiova").
-2. **TypeScript + módulos**: sacar las pruebas del build de producción (hecho: `app/tests/`), formateador (hecho: prettier), terminar con los reemplazos de funciones globales (hecho: `extend`), tipos sobre el JS actual (`checkJs`) y después `.ts` con módulos; migraciones del `.mqt`. Avance en `docs/proximos-pasos.md` → "Etapa 2".
+2. **TypeScript + módulos** (cerrada el 08-nov, salvo la parte B): pruebas fuera del build de producción (`app/tests/`), prettier, reemplazos de funciones globales por `extend`, toda la interfaz en `.ts` estricto con dos puntos de entrada (`src/entries/`) y migraciones del `.mqt` (ver "Formato del proyecto y migraciones"). Queda la **parte B** (cambiar los globales por `import` reales: objeto de estado y un `extend` que no dependa de `window`), que va con la etapa 3. Detalle en `docs/proximos-pasos.md` → "Etapa 2".
 3. **Interfaz con componentes** (atomic design, React + Radix, tokens de diseño compartidos con Motiova), revisada con impeccable. Dirección visual: "glass" de macOS, sin que parezca un panel genérico de IA. Decisiones tomadas el 08-nov: `docs/INTERFAZ_08-nov_decisiones-etapa3.md` (Radix sin estilos + CSS propio; inspector en 3 pestañas; tres tipos de diálogo; tokens con los nombres de Motiova).
 4. **Motor de composición propio** (HarfBuzz/WASM, justificación Knuth-Plass) y PDF de imprenta (CMYK, PDF/X, TrimBox/BleedBox exactas).
 
