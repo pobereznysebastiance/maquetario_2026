@@ -424,7 +424,7 @@ Punto de partida (09-nov):
 Cada grupo es una entrega con la autoprueba en verde, los PDF idénticos y el inventario más bajo:
 
 1. **Herramientas.** El inventario en la deuda (hecho) y una regla: no sumar `globalThis.x` nuevos sin anotarlo.
-2. **`extend` con registro.** `extensible()` y la búsqueda en el registro, todavía sin cambiar quién define qué. Prueba: `MaquetarioExtensions.list()` idéntica.
+2. **`extend` con registro.** `extensible()` y la búsqueda en el registro, todavía sin cambiar quién define qué. Prueba: `MaquetarioExtensions.list()` idéntica. **Hecho el 09-nov** para el núcleo: `paper`, `render`, `autoElement`, `renderPages`, `objectDown`, `startEditing`, `setTool`, `applyBookSettings` y `pageDown` son `const x = extensible('x', function …)` en `studio.ts`; la lista salió idéntica (con el mismo orden) y la autoprueba la guarda en `verificacion-extensiones.json`. Falta `inspector` (lo está pasando a componente otra tanda) y las de los módulos (`prepareOutput`, `outputDialog`, `outputPreview`, `updateCoverPreview`…), que hoy se llaman a sí mismas por `globalThis`.
 3. **Objeto de estado con accesores.** `studio.ts` deja sus `let` de estado. Prueba: autoprueba y JSON idénticos, sin tocar pruebas. Además, medir rendimiento.
 4. **Servicios hoja.** `bw` y `LibroI18n` (`i18n.ts`, `book-workflow.ts`), `M` (`model.ts`), `UI`, los diálogos y `editor-state`. Exportan, y sus lectores importan. La publicación queda para pruebas y cadenas.
 5. **El núcleo en piezas.** De `studio.ts` salen módulos con `export`:

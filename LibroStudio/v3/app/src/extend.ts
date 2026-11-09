@@ -8,6 +8,13 @@
 // - la lista de extensiones de cada función se puede consultar (MaquetarioExtensions.list());
 // - es el paso previo para convertir las extensiones en paneles y decoradores con nombre.
 //
+// Funciones extensibles por nombre (etapa 2, parte B). El módulo dueño de una función la declara:
+//   const render = extensible('render', function (full = true) { … });
+// extensible la registra con ese nombre y devuelve una envoltura estable que siempre corre la cadena
+// compuesta: quien la llama directamente (el mismo módulo, un import, el global) pasa por las
+// extensiones, y extend('render', …) la encuentra en el registro, sin buscarla en window. Lo que
+// todavía no pasó por extensible se sigue buscando en window, como antes.
+//
 // extend.replace(name, fn, origin) reemplaza la función entera (lo anterior ya no corre).
 // extend.around(name, factory, origin) envuelve la cadena completa y queda siempre por fuera,
 // aunque se registren extensiones después. Sus fábricas se vuelven a llamar cada vez que la
@@ -44,7 +51,30 @@ export interface Extend {
 }
 
 const registry = new Map<string, Entry>();
+/** Orden en que cada función recibió su primera extensión (el de MaquetarioExtensions.list()). */
+const extendedOrder: string[] = [];
 const globals = window as unknown as Record<string, unknown>;
+
+/** Envoltura estable: corre la cadena compuesta de la entrada, la que esté en ese momento. */
+function wrap(entry: Entry): AnyFunction {
+  const wrapper = function (this: unknown, ...args: unknown[]) {
+    return entry.composed.apply(this, args);
+  };
+  // Lo que cuelga de la función (por ejemplo modal.sheet o modal.workspace) sigue a mano.
+  Object.assign(wrapper, entry.base);
+  return wrapper;
+}
+
+/**
+ * Registra fn como extensible con ese nombre y devuelve la envoltura que corre la cadena. El
+ * módulo dueño la usa en lugar de fn (también para llamarse a sí mismo).
+ */
+export function extensible<T extends AnyFunction>(name: string, fn: T): T {
+  if (registry.has(name)) throw new Error(`extensible: "${name}" ya está registrada`);
+  const entry: Entry = { base: fn, factories: [], arounds: [], inner: fn, composed: fn };
+  registry.set(name, entry);
+  return wrap(entry) as T;
+}
 
 function entryFor(name: string): Entry {
   let entry = registry.get(name);
@@ -60,12 +90,9 @@ function entryFor(name: string): Entry {
     };
     entry = created;
     registry.set(name, created);
-    globals[name] = function (this: unknown, ...args: unknown[]) {
-      return created.composed.apply(this, args);
-    };
-    // Lo que cuelga de la función (por ejemplo modal.sheet o modal.workspace) sigue a mano.
-    Object.assign(globals[name] as object, base);
+    globals[name] = wrap(created);
   }
+  if (!entry.factories.length && !entry.arounds.length) extendedOrder.push(name);
   return entry;
 }
 
@@ -133,15 +160,23 @@ extend.around = function (name, factory, origin = '') {
 
 declare global {
   var extend: Extend;
+  /** Registra una función como extensible por nombre (ver arriba). Global para studio.ts, que es un script. */
+  var extensible: <T extends AnyFunction>(name: string, fn: T) => T;
   var MaquetarioExtensions: Readonly<{ list(): Record<string, string[]> }>;
 }
 globalThis.extend = extend;
+globalThis.extensible = extensible;
 globalThis.MaquetarioExtensions = Object.freeze({
+  // En el orden en que cada función recibió su primera extensión, y sólo lo extendido: igual que
+  // antes de extensible(), cuando la entrada nacía con la primera extensión.
   list: () =>
     Object.fromEntries(
-      [...registry].map(([name, e]) => [
-        name,
-        [...e.factories.map((f) => f.origin), ...e.arounds.map((a) => `${a.origin} (envoltura)`)],
-      ]),
+      extendedOrder.map((name) => {
+        const e = registry.get(name)!;
+        return [
+          name,
+          [...e.factories.map((f) => f.origin), ...e.arounds.map((a) => `${a.origin} (envoltura)`)],
+        ];
+      }),
     ),
 });

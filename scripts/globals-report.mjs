@@ -173,7 +173,10 @@ const entry = (name) => {
 };
 const bump = (map, file) => map.set(file, (map.get(file) ?? 0) + 1);
 const isFunctionValue = (init) =>
-  !!init && ['ArrowFunctionExpression', 'FunctionExpression'].includes(init.type);
+  !!init &&
+  (['ArrowFunctionExpression', 'FunctionExpression'].includes(init.type) ||
+    // const render = extensible('render', function …)
+    (init.type === 'CallExpression' && init.callee.name === 'extensible'));
 const isFunctionType = (annotation) =>
   !!annotation && ['TSFunctionType', 'TSTypeQuery'].includes(annotation.typeAnnotation?.type);
 /** Tipos que son datos (número, texto, listas, uniones con null…), no un objeto de servicio. */

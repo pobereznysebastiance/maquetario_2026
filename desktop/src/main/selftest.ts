@@ -358,6 +358,14 @@ export async function runSelfTest(session: Session): Promise<boolean> {
       'window.runAssistantTests().catch(e=>({ok:false,error:e.stack}))',
     ),
   );
+  // Qué módulo extiende cada función y en qué orden: tiene que salir idéntico entre entregas
+  // (compare-outputs lo compara con la corrida anterior) al pasar funciones a extensible().
+  await testStep('extensiones', () =>
+    uiSuite(
+      'verificacion-extensiones.json',
+      'JSON.stringify({ extensions: MaquetarioExtensions.list() })',
+    ),
+  );
   await testStep('navegación', () =>
     uiSuite(
       'verificacion-navegacion.json',

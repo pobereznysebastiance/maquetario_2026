@@ -6,6 +6,9 @@
 // (book = …, active = …) y extienden sus funciones por nombre (extend('render', …)), así que
 // tienen que seguir siendo globales con el mismo orden de carga. En TypeScript, sus
 // declaraciones las ven todos los src/*.ts sin declare global.
+// Las funciones más extendidas se declaran con extensible('nombre', function …) (src/extend.ts):
+// quedan registradas por nombre sin pasar por window y cualquier llamada, también las de este
+// archivo, corre la cadena con sus extensiones. Son const: no se pueden usar antes de su línea.
 // Los tipos del modelo se toman con import('../model.ts').X (en un script no hay import).
 //
 // Fuente TypeScript: se compila sin envoltorio a build/studio.js (desktop/scripts/build.mjs,
@@ -527,73 +530,76 @@ function gridSvg(i: number, px: number): string {
       rects += `<rect x="${r.x + c * (cw + g.gapX)}" y="${r.y + row * (rh + g.gapY)}" width="${cw}" height="${rh}"/>`;
   return `<svg class="grid-svg" viewBox="0 0 ${book.width} ${book.height}"><g fill="none" stroke="#65cee3" stroke-width="${0.65 / px}" opacity=".58">${g.enabled ? rects : ''}</g><rect x="${m.left}" y="${book.margins.top}" width="${book.width - m.left - m.right}" height="${book.height - book.margins.top - book.margins.bottom}" fill="none" stroke="#e282d6" stroke-width="${0.7 / px}" opacity=".7"/></svg>`;
 }
-function autoElement(
-  i: number,
-  type: import('../model.ts').AutoType,
-  px: number,
-  print = false,
-): HTMLElement | null {
-  const cfg = M.auto(book, i, type);
-  if (!cfg) return null;
-  const el = document.createElement('div'),
-    m = M.margins(book, i),
-    font = ((cfg.size * 25.4) / 72) * px;
-  el.className = 'auto-element auto-' + type;
-  el.style.fontFamily = cfg.font;
-  el.style.fontSize = font + 'px';
-  let x = 0,
-    y = 0,
-    w = 0,
-    h = font * 1.3,
-    alignment = cfg.align,
-    side = cfg.pos;
-  const outer = i % 2 === 0 ? 'left' : 'right',
-    inner = i % 2 === 0 ? 'right' : 'left';
-  if (side === 'top' || side === 'bottom') {
-    x = m.left * px;
-    w = (book.width - m.left - m.right) * px;
-    y =
-      (side === 'top' ? cfg.distance : book.height - cfg.distance) * px -
-      (side === 'bottom' ? h : 0);
-  } else if (side.includes('-')) {
-    let [v, a] = side.split('-');
-    let horizontal = a === 'outer' ? outer : a === 'inner' ? inner : 'center';
-    w = 30 * px;
-    x =
-      (horizontal === 'left'
-        ? cfg.distance
-        : horizontal === 'right'
-          ? book.width - cfg.distance - 30
-          : book.width / 2 - 15) * px;
-    y = (v === 'top' ? cfg.distance : book.height - cfg.distance) * px - (v === 'bottom' ? h : 0);
-    alignment = horizontal === 'left' ? 'left' : horizontal === 'right' ? 'right' : 'center';
-  } else {
-    let s = side === 'outer' ? outer : side === 'inner' ? inner : side;
-    x = (s === 'left' ? cfg.distance : book.width - cfg.distance) * px;
-    y = (book.height / 2) * px;
-    w = 70 * px;
-    el.style.transform = `translate(${s === 'left' ? '0' : '-100%'},-50%)${cfg.vertical ? ' rotate(-90deg)' : ''}`;
-    el.style.transformOrigin = s === 'left' ? 'left center' : 'right center';
-  }
-  if (cfg.vertical && (side === 'top' || side === 'bottom' || side.includes('-')))
-    el.style.transform = 'rotate(-90deg)';
-  el.style.left = x + cfg.offsetX * px + 'px';
-  el.style.top = y + cfg.offsetY * px + 'px';
-  el.style.width = w + 'px';
-  el.style.textAlign = alignment;
-  if (cfg.text.includes('|')) {
-    el.classList.add('auto-header');
-    cfg.text.split('|').forEach((s) => {
-      const span = document.createElement('span');
-      span.textContent = s.trim();
-      el.append(span);
-    });
-  } else el.textContent = cfg.text;
-  if (type === 'header' && cfg.rule) el.classList.add('rule');
-  return el;
-}
+const autoElement = extensible(
+  'autoElement',
+  function (
+    i: number,
+    type: import('../model.ts').AutoType,
+    px: number,
+    print = false,
+  ): HTMLElement | null {
+    const cfg = M.auto(book, i, type);
+    if (!cfg) return null;
+    const el = document.createElement('div'),
+      m = M.margins(book, i),
+      font = ((cfg.size * 25.4) / 72) * px;
+    el.className = 'auto-element auto-' + type;
+    el.style.fontFamily = cfg.font;
+    el.style.fontSize = font + 'px';
+    let x = 0,
+      y = 0,
+      w = 0,
+      h = font * 1.3,
+      alignment = cfg.align,
+      side = cfg.pos;
+    const outer = i % 2 === 0 ? 'left' : 'right',
+      inner = i % 2 === 0 ? 'right' : 'left';
+    if (side === 'top' || side === 'bottom') {
+      x = m.left * px;
+      w = (book.width - m.left - m.right) * px;
+      y =
+        (side === 'top' ? cfg.distance : book.height - cfg.distance) * px -
+        (side === 'bottom' ? h : 0);
+    } else if (side.includes('-')) {
+      let [v, a] = side.split('-');
+      let horizontal = a === 'outer' ? outer : a === 'inner' ? inner : 'center';
+      w = 30 * px;
+      x =
+        (horizontal === 'left'
+          ? cfg.distance
+          : horizontal === 'right'
+            ? book.width - cfg.distance - 30
+            : book.width / 2 - 15) * px;
+      y = (v === 'top' ? cfg.distance : book.height - cfg.distance) * px - (v === 'bottom' ? h : 0);
+      alignment = horizontal === 'left' ? 'left' : horizontal === 'right' ? 'right' : 'center';
+    } else {
+      let s = side === 'outer' ? outer : side === 'inner' ? inner : side;
+      x = (s === 'left' ? cfg.distance : book.width - cfg.distance) * px;
+      y = (book.height / 2) * px;
+      w = 70 * px;
+      el.style.transform = `translate(${s === 'left' ? '0' : '-100%'},-50%)${cfg.vertical ? ' rotate(-90deg)' : ''}`;
+      el.style.transformOrigin = s === 'left' ? 'left center' : 'right center';
+    }
+    if (cfg.vertical && (side === 'top' || side === 'bottom' || side.includes('-')))
+      el.style.transform = 'rotate(-90deg)';
+    el.style.left = x + cfg.offsetX * px + 'px';
+    el.style.top = y + cfg.offsetY * px + 'px';
+    el.style.width = w + 'px';
+    el.style.textAlign = alignment;
+    if (cfg.text.includes('|')) {
+      el.classList.add('auto-header');
+      cfg.text.split('|').forEach((s) => {
+        const span = document.createElement('span');
+        span.textContent = s.trim();
+        el.append(span);
+      });
+    } else el.textContent = cfg.text;
+    if (type === 'header' && cfg.rule) el.classList.add('rule');
+    return el;
+  },
+);
 /** Dibuja la página i a px píxeles por milímetro. */
-function paper(i: number, px: number, print = false): HTMLElement {
+const paper = extensible('paper', function (i: number, px: number, print = false): HTMLElement {
   const page = document.createElement('div');
   page.className = print ? 'print-page' : 'page' + (active === i ? ' active-page' : '');
   page.dataset.page = String(i);
@@ -673,8 +679,8 @@ function paper(i: number, px: number, print = false): HTMLElement {
     page.addEventListener('pointerdown', (e) => pageDown(e, i, page));
   }
   return page;
-}
-function renderPages(): void {
+});
+const renderPages = extensible('renderPages', function (): void {
   calculateScale();
   const host = $('#spread'),
     vertical = verticalSpread();
@@ -697,9 +703,9 @@ function renderPages(): void {
       `<span>${Number(((i * height) / 8 / (book.measurementUnit === 'cm' ? 10 : 1)).toFixed(1))}</span>`,
   ).join('');
   requestAnimationFrame(checkOverflow);
-}
+});
 /** Redibuja la pantalla. Nombre y formato del libro: barra del documento (React), vía updateStatus. */
-function render(full = true): void {
+const render = extensible('render', function (full = true): void {
   renderPages();
   inspector();
   if (full) {
@@ -707,7 +713,7 @@ function render(full = true): void {
     renderTemplates();
   }
   updateStatus();
-}
+});
 /**
  * Estado de la pantalla después de un cambio. Las barras superior, de estado y del documento
  * (React) se redibujan después de esta función (src/react/editor-state.ts), que otros módulos
@@ -731,7 +737,7 @@ function checkOverflow(): void {
   // La barra de estado (React) muestra la cuenta: se redibuja después de esta función.
   overflowCount = count;
 }
-function startEditing(el: HTMLElement): void {
+const startEditing = extensible('startEditing', function (el: HTMLElement): void {
   if (preview || busy) return;
   finishEditing();
   snapshot();
@@ -740,7 +746,7 @@ function startEditing(el: HTMLElement): void {
   el.querySelector<HTMLElement>('.text-content')!.contentEditable = 'true';
   el.querySelector<HTMLElement>('.text-content')!.focus();
   inspector();
-}
+});
 function finishEditing(): void {
   if (!editing) return;
   const el = editing;
@@ -752,54 +758,59 @@ function finishEditing(): void {
   el.classList.remove('editing');
   checkOverflow();
 }
-function objectDown(
-  e: PointerEvent,
-  o: import('../model.ts').BookObject,
-  i: number,
-  el: HTMLElement,
-  resize: boolean | string = false,
-): void {
-  if (preview || busy || e.button !== 0) return;
-  if (editing === el && !resize) return;
-  e.stopPropagation();
-  finishEditing();
-  active = i;
-  selected = o.id;
-  if (tool === 'image' && o.type === 'frame') {
-    chooseImage({ frame: o, page: i });
-    return;
-  }
-  tool = 'select';
-  snapshot();
-  drag = {
-    o,
-    el,
-    startX: e.clientX,
-    startY: e.clientY,
-    x: o.x,
-    y: o.y,
-    w: o.w,
-    h: o.h,
-    // Esta versión base la reemplaza frame-handles, que guarda la dirección en lugar de true.
-    resize: resize as string | false,
-    moved: false,
-  };
-  el.setPointerCapture(e.pointerId);
-  el.addEventListener('pointermove', moveObject);
-  el.addEventListener('pointerup', upObject, { once: true });
-  el.addEventListener('pointercancel', upObject, { once: true });
-  $$('.paper-object.selected').forEach((n) => n.classList.remove('selected'));
-  el.classList.add('selected');
-  if (!el.querySelector('.resize-handle')) {
-    const handle = document.createElement('span');
-    handle.className = 'resize-handle';
-    handle.onpointerdown = (ev) => objectDown(ev, o, i, el, true);
-    el.append(handle);
-  }
-  $$('.page').forEach((n) => n.classList.toggle('active-page', Number(n.dataset.page) === active));
-  inspector();
-  updateStatus();
-}
+const objectDown = extensible(
+  'objectDown',
+  function (
+    e: PointerEvent,
+    o: import('../model.ts').BookObject,
+    i: number,
+    el: HTMLElement,
+    resize: boolean | string = false,
+  ): void {
+    if (preview || busy || e.button !== 0) return;
+    if (editing === el && !resize) return;
+    e.stopPropagation();
+    finishEditing();
+    active = i;
+    selected = o.id;
+    if (tool === 'image' && o.type === 'frame') {
+      chooseImage({ frame: o, page: i });
+      return;
+    }
+    tool = 'select';
+    snapshot();
+    drag = {
+      o,
+      el,
+      startX: e.clientX,
+      startY: e.clientY,
+      x: o.x,
+      y: o.y,
+      w: o.w,
+      h: o.h,
+      // Esta versión base la reemplaza frame-handles, que guarda la dirección en lugar de true.
+      resize: resize as string | false,
+      moved: false,
+    };
+    el.setPointerCapture(e.pointerId);
+    el.addEventListener('pointermove', moveObject);
+    el.addEventListener('pointerup', upObject, { once: true });
+    el.addEventListener('pointercancel', upObject, { once: true });
+    $$('.paper-object.selected').forEach((n) => n.classList.remove('selected'));
+    el.classList.add('selected');
+    if (!el.querySelector('.resize-handle')) {
+      const handle = document.createElement('span');
+      handle.className = 'resize-handle';
+      handle.onpointerdown = (ev) => objectDown(ev, o, i, el, true);
+      el.append(handle);
+    }
+    $$('.page').forEach((n) =>
+      n.classList.toggle('active-page', Number(n.dataset.page) === active),
+    );
+    inspector();
+    updateStatus();
+  },
+);
 function moveObject(e: PointerEvent): void {
   if (!drag) return;
   let d = drag,
@@ -837,48 +848,51 @@ function upObject(e: PointerEvent): void {
     checkOverflow();
   }
 }
-function pageDown(e: PointerEvent, i: number, el: HTMLElement): void {
-  if ((e.target as Element).closest('.paper-object') || preview || busy || e.button !== 0) return;
-  finishEditing();
-  active = i;
-  selected = null;
-  let r = el.getBoundingClientRect(),
-    pos = {
-      x: Math.max(0, (e.clientX - r.left) / scale),
-      y: Math.max(0, (e.clientY - r.top) / scale),
-    };
-  if (tool === 'text' || tool === 'box' || tool === 'frame') {
-    commit(() => {
-      const o =
-        tool === 'frame'
-          ? {
-              id: M.uid(),
-              type: 'frame',
-              ...pos,
-              w: Math.min(80, book.width - pos.x),
-              h: Math.min(50, book.height - pos.y),
-            }
-          : M.text(
-              'Escribí aquí tu texto',
-              pos.x,
-              pos.y,
-              Math.min(90, book.width - pos.x),
-              Math.min(50, book.height - pos.y),
-            );
-      o.w = Math.max(1, o.w);
-      o.h = Math.max(1, o.h);
-      book.pages[i].objects.push(o);
-      selected = o.id;
-      tool = 'select';
-    }, true);
-    if (selectObject()?.type === 'text')
-      requestAnimationFrame(() => {
-        const target = $(`#spread [data-id="${selected}"]`);
-        if (target) startEditing(target);
-      });
-  } else if (tool === 'image') chooseImage({ pos, page: i });
-  else render(false);
-}
+const pageDown = extensible(
+  'pageDown',
+  function (e: PointerEvent, i: number, el: HTMLElement): void {
+    if ((e.target as Element).closest('.paper-object') || preview || busy || e.button !== 0) return;
+    finishEditing();
+    active = i;
+    selected = null;
+    let r = el.getBoundingClientRect(),
+      pos = {
+        x: Math.max(0, (e.clientX - r.left) / scale),
+        y: Math.max(0, (e.clientY - r.top) / scale),
+      };
+    if (tool === 'text' || tool === 'box' || tool === 'frame') {
+      commit(() => {
+        const o =
+          tool === 'frame'
+            ? {
+                id: M.uid(),
+                type: 'frame',
+                ...pos,
+                w: Math.min(80, book.width - pos.x),
+                h: Math.min(50, book.height - pos.y),
+              }
+            : M.text(
+                'Escribí aquí tu texto',
+                pos.x,
+                pos.y,
+                Math.min(90, book.width - pos.x),
+                Math.min(50, book.height - pos.y),
+              );
+        o.w = Math.max(1, o.w);
+        o.h = Math.max(1, o.h);
+        book.pages[i].objects.push(o);
+        selected = o.id;
+        tool = 'select';
+      }, true);
+      if (selectObject()?.type === 'text')
+        requestAnimationFrame(() => {
+          const target = $(`#spread [data-id="${selected}"]`);
+          if (target) startEditing(target);
+        });
+    } else if (tool === 'image') chooseImage({ pos, page: i });
+    else render(false);
+  },
+);
 let imageTarget: Record<string, any> | null = null;
 function chooseImage(target: Record<string, unknown>): void {
   imageTarget = target;
@@ -942,7 +956,7 @@ function showTab(name: string): void {
   $('#inspectorContent').scrollTop = 0;
   inspector();
 }
-function setTool(name: string): void {
+const setTool = extensible('setTool', function (name: string): void {
   finishEditing();
   if (['grid', 'folio', 'header'].includes(name)) {
     showTab('design');
@@ -957,7 +971,7 @@ function setTool(name: string): void {
   }
   // La herramienta activa la marca el riel (src/components/rail/Rail.tsx) al terminar setTool.
   $('#spread').dataset.cursor = tool === 'select' ? 'default' : 'crosshair';
-}
+});
 // ── Diálogos: tres tipos (D4, docs/INTERFAZ_08-nov_decisiones-etapa3.md) ──
 //
 //   modal.sheet(título, <Contenido />, aplicar, 'Verbo', { size })  Hoja: formulario corto, Cancelar + verbo
@@ -1083,72 +1097,75 @@ interface BookSettingsValues {
  * (review-workspace: ya hay documento; publications: la grilla del producto editorial). La Hoja
  * la abre settingsNew (src/components/book-setup/BookSetup.tsx).
  */
-function applyBookSettings(isNew: boolean, values: BookSettingsValues): boolean {
-  const measureUnit = values.unit,
-    unit = measureUnit === 'cm' ? 10 : 1,
-    w = Number((Number(values.width) * unit).toFixed(8)),
-    h = Number((Number(values.height) * unit).toFixed(8)),
-    count = isNew ? Number(values.count) : book.pages.length;
-  if (
-    !Number.isFinite(w) ||
-    !Number.isFinite(h) ||
-    w < 60 ||
-    w > 420 ||
-    h < 60 ||
-    h > 594 ||
-    !Number.isInteger(count) ||
-    count < 1 ||
-    count > 200
-  )
-    throw Error('Ingresá medidas válidas y entre 1 y 200 páginas.');
-  const title = values.title.trim().slice(0, 250) || 'Mi libro',
-    arrangement = values.arrangement,
-    facing = arrangement !== 'single',
-    format = values.format;
-  commit(() => {
-    if (isNew) {
-      book = M.create();
-      book.pages = Array.from({ length: count }, M.page);
-      book.grid.cols = 1;
-      book.grid.rows = 1;
-      book.chapter = '';
-      selected = null;
-      active = spread = 0;
-    }
-    const resized = isNew || Math.abs(book.width - w) > 1e-7 || Math.abs(book.height - h) > 1e-7;
-    book.measurementUnit = measureUnit;
-    if (resized) {
-      book.width = w;
-      book.height = h;
-    }
-    if (resized && book.guides)
-      book.guides = book.guides.map((g: { axis: string; position: number }) => ({
-        ...g,
-        position: Math.min(g.position, g.axis === 'v' ? w : h),
-      }));
-    book.title = title;
-    book.facing = facing;
-    book.spreadDirection = arrangement === 'vertical' ? 'vertical' : 'horizontal';
-    book.format = format;
-    if (resized) {
-      const maxMargin = Math.min(w, h) / 4;
-      for (const k of Object.keys(book.margins) as (keyof typeof book.margins)[])
-        book.margins[k] = Math.min(book.margins[k], maxMargin);
-      if (!M.validateGrid(book)) {
-        book.grid.gapX = book.grid.gapY = 0;
+const applyBookSettings = extensible(
+  'applyBookSettings',
+  function (isNew: boolean, values: BookSettingsValues): boolean {
+    const measureUnit = values.unit,
+      unit = measureUnit === 'cm' ? 10 : 1,
+      w = Number((Number(values.width) * unit).toFixed(8)),
+      h = Number((Number(values.height) * unit).toFixed(8)),
+      count = isNew ? Number(values.count) : book.pages.length;
+    if (
+      !Number.isFinite(w) ||
+      !Number.isFinite(h) ||
+      w < 60 ||
+      w > 420 ||
+      h < 60 ||
+      h > 594 ||
+      !Number.isInteger(count) ||
+      count < 1 ||
+      count > 200
+    )
+      throw Error('Ingresá medidas válidas y entre 1 y 200 páginas.');
+    const title = values.title.trim().slice(0, 250) || 'Mi libro',
+      arrangement = values.arrangement,
+      facing = arrangement !== 'single',
+      format = values.format;
+    commit(() => {
+      if (isNew) {
+        book = M.create();
+        book.pages = Array.from({ length: count }, M.page);
+        book.grid.cols = 1;
+        book.grid.rows = 1;
+        book.chapter = '';
+        selected = null;
+        active = spread = 0;
       }
-      for (const p of book.pages)
-        for (const o of p.objects) {
-          o.w = Math.min(o.w, w);
-          o.h = Math.min(o.h, h);
-          o.x = Math.min(o.x, w - o.w);
-          o.y = Math.min(o.y, h - o.h);
+      const resized = isNew || Math.abs(book.width - w) > 1e-7 || Math.abs(book.height - h) > 1e-7;
+      book.measurementUnit = measureUnit;
+      if (resized) {
+        book.width = w;
+        book.height = h;
+      }
+      if (resized && book.guides)
+        book.guides = book.guides.map((g: { axis: string; position: number }) => ({
+          ...g,
+          position: Math.min(g.position, g.axis === 'v' ? w : h),
+        }));
+      book.title = title;
+      book.facing = facing;
+      book.spreadDirection = arrangement === 'vertical' ? 'vertical' : 'horizontal';
+      book.format = format;
+      if (resized) {
+        const maxMargin = Math.min(w, h) / 4;
+        for (const k of Object.keys(book.margins) as (keyof typeof book.margins)[])
+          book.margins[k] = Math.min(book.margins[k], maxMargin);
+        if (!M.validateGrid(book)) {
+          book.grid.gapX = book.grid.gapY = 0;
         }
-    }
-    spread = Math.floor(active / (facing ? 2 : 1)) * (facing ? 2 : 1);
-  }, true);
-  return true;
-}
+        for (const p of book.pages)
+          for (const o of p.objects) {
+            o.w = Math.min(o.w, w);
+            o.h = Math.min(o.h, h);
+            o.x = Math.min(o.x, w - o.w);
+            o.y = Math.min(o.y, h - o.h);
+          }
+      }
+      spread = Math.floor(active / (facing ? 2 : 1)) * (facing ? 2 : 1);
+    }, true);
+    return true;
+  },
+);
 /** Pregunta qué hacer con los cambios sin guardar y, si corresponde, sigue con proceed. */
 function confirmChanges(proceed: () => unknown): void {
   askChoice({
