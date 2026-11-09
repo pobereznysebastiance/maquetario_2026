@@ -20,6 +20,13 @@
 // llama desde el render de un componente ni desde sus efectos, sólo desde código imperativo o
 // manejadores de eventos.
 //
+// Excepción: durante un arrastre en la página (drag, de studio.ts y frame-handles.ts) cada
+// movimiento avisa dos veces (updateStatus y checkOverflow) y redibujar todo en el acto costaba
+// unos 3 ms por movimiento. Mientras dura, los avisos se juntan y se redibuja una vez por cuadro
+// (requestAnimationFrame): las barras y los campos que siguen al objeto se actualizan igual en
+// cada cuadro. Al soltar (drag vuelve a null) el siguiente aviso redibuja en el acto y descarta el
+// cuadro pendiente.
+//
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 import { useSyncExternalStore } from 'react';
@@ -35,13 +42,29 @@ const subscribe = (listener: () => void) => {
   };
 };
 
-/** Avisa a los componentes que el estado del editor cambió (y los redibuja ya). */
-export function notifyEditorState(): void {
-  version += 1;
-  if (!listeners.size) return;
+/** Cuadro pedido para redibujar los avisos juntados durante un arrastre (0: ninguno). */
+let pendingFrame = 0;
+
+function redraw(): void {
+  pendingFrame = 0;
   flushSync(() => {
     for (const listener of listeners) listener();
   });
+}
+
+/**
+ * Avisa a los componentes que el estado del editor cambió y los redibuja ya; durante un arrastre,
+ * en el próximo cuadro (una sola vez por cuadro).
+ */
+export function notifyEditorState(): void {
+  version += 1;
+  if (!listeners.size) return;
+  if (globalThis.drag) {
+    if (!pendingFrame) pendingFrame = requestAnimationFrame(redraw);
+    return;
+  }
+  if (pendingFrame) cancelAnimationFrame(pendingFrame);
+  redraw();
 }
 
 /** Suscribe el componente a los avisos del núcleo; devuelve la versión del estado. */
