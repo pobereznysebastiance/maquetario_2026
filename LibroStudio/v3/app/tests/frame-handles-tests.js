@@ -48,6 +48,38 @@ registerIntegrationTest(function (result) {
   assert(o.size === oldSize && o.text === oldText, 'Redimensionar conserva cuerpo y contenido');
   const printed = paper(0, 96 / 25.4, true);
   assert(!printed.querySelector('.frame-handle'), 'Los controladores no se imprimen');
+  // Escape a mitad de un redimensionado: vuelve al tamaño de antes, sigue elegida y sin arrastre.
+  // Parte de una caja chica conocida: otra prueba pudo dejarla pegada al borde de la página, y
+  // entonces no crecería al arrastrar.
+  const box = selectObject();
+  Object.assign(box, { x: 20, y: 20, w: 30, h: 30 });
+  renderPages();
+  const before = { x: box.x, y: box.y, w: box.w, h: box.h },
+    el = $(`#spread .paper-object[data-id="${box.id}"]`),
+    undoDepth = undoStack.length,
+    pointer = { button: 0, pointerId: 1, clientX: 100, clientY: 100 };
+  el.setPointerCapture = el.releasePointerCapture = () => {};
+  el.hasPointerCapture = () => false;
+  objectDown({ ...pointer, stopPropagation() {}, preventDefault() {} }, box, active, el, 'se');
+  try {
+    moveObject({ ...pointer, clientX: 160, clientY: 150 });
+    assert(box.w > before.w && !!drag, 'Redimensionar agranda la caja mientras se arrastra');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  } finally {
+    // Si algo falla, que el arrastre no quede abierto para las pruebas siguientes.
+    if (drag)
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  }
+  assert(
+    !drag &&
+      box.x === before.x &&
+      box.y === before.y &&
+      box.w === before.w &&
+      box.h === before.h &&
+      selected === box.id &&
+      undoStack.length === undoDepth,
+    'Escape cancela el redimensionado: tamaño de antes, caja elegida y sin paso de deshacer',
+  );
   book = original;
   active = previousActive;
   spread = previousSpread;

@@ -1,6 +1,6 @@
 // Ocho controladores (esquinas y bordes) para redimensionar la caja seleccionada. Reemplaza
 // objectDown y moveObject de studio.js para arrastrar desde cualquier controlador, y Escape o
-// pointercancel devuelven la caja a su lugar. Los controladores no se imprimen.
+// pointercancel devuelven la caja a su lugar (y la dejan elegida). Los controladores no se imprimen.
 //
 // frameDirections y frameGeometry son globales porque los usa tests/frame-handles-tests.js;
 // showHandlePreview lo llama la autoprueba (desktop/src/main/selftest.ts).
@@ -206,6 +206,20 @@ extend.before(
     }
   },
   'frame-handles',
+);
+// Escape a mitad de un arrastre (mover o redimensionar) lo cancela: la caja vuelve a su lugar y a
+// su tamaño, y sigue elegida. Va en captura y antes que el Escape general del editor (studio.ts),
+// que deselecciona: sin esto, aquel redibujaba la página a mitad del arrastre, la caja quedaba con
+// el tamaño nuevo y el arrastre seguía abierto (el pointerup llegaba a un nodo que ya no estaba).
+window.addEventListener(
+  'keydown',
+  (e) => {
+    if (e.key !== 'Escape' || !drag) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    cancelFrameDrag(e as unknown as PointerEvent);
+  },
+  true,
 );
 globalThis.showHandlePreview = function () {
   active = spread = 0;
