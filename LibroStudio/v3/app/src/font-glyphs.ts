@@ -176,18 +176,6 @@ decorateInspector(() => {
     b.onclick = () => showFontGlyphs();
   }
 }, 'font-glyphs');
-const glyphBrowserButton = UI.element(
-  UI.button({
-    id: 'openGlyphsFromBrowser',
-    label: bw('Ver glifos de esta fuente', 'View glyphs of this font', 'Ver glifos desta fonte'),
-    wide: true,
-  }),
-);
-glyphBrowserButton.onclick = () => {
-  const face = browserCurrentVariant()?.face;
-  fontBrowser.close();
-  setTimeout(() => showFontGlyphs(face), 30);
-};
-$('.font-browser-detail').append(glyphBrowserButton);
+// "Ver glifos de esta fuente" vive en el explorador de fuentes (font-browser.tsx).
 
 export {};

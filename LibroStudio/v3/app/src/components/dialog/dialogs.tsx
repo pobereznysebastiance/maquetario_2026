@@ -11,7 +11,8 @@
 // confirmación está abierta, ni el teclado ni los clics llegan a los atajos de la app. Durante la
 // autoprueba (maquetarioSelfTest) no esperan: eligen la primera acción.
 //
-// Hojas y Ventanas: una sola a la vez. Abrir una cierra #modal y reemplaza la que esté abierta
+// Hojas y Ventanas: una sola a la vez. Abrir una cierra #modal (salvo keepModal: el explorador de
+// fuentes ocupa el lugar de una Hoja HTML) y reemplaza la que esté abierta
 // (nada de diálogo sobre diálogo); sólo una confirmación puede quedar por encima. Las pantallas
 // que todavía arman HTML siguen con modal() (#modal); cuando una pase a React, modal.sheet,
 // modal.info y modal.workspace aceptan un elemento de React en lugar del HTML y vienen acá.
@@ -142,7 +143,7 @@ function openDialog(
   options: SheetRequest['options'],
 ): Promise<void> {
   const modal = document.getElementById('modal') as HTMLDialogElement | null;
-  if (modal?.open) modal.close();
+  if (modal?.open && !(options as WorkWindowOptions).keepModal) modal.close();
   if (sheetRequest) sheetRequest.done();
   return new Promise((resolve) => {
     const id = ++nextId;

@@ -2,7 +2,7 @@
    dialog.css): la lista de familias ocupa el alto disponible. La fuente elegida se marca con fondo
    de selección (antes, una franja dorada a la izquierda). */
 
-/* Abierto desde una Hoja: ocupa su lugar en vez de apilarse (font-browser.ts → hostFontBrowser).
+/* Abierto desde una Hoja: ocupa su lugar en vez de apilarse (font-browser.tsx → openFontBrowser).
    La Hoja toma el tamaño de la Ventana y esconde su contenido; el explorador va encima, sin velo. */
 #modal[data-hosting='font-browser'] {
   width: min(var(--dialog-workspace-max-width), calc(100vw - 2 * var(--dialog-workspace-inset)));
@@ -60,9 +60,17 @@
   width: 100%;
   max-width: 100%;
 }
-.font-browser-body {
+/* El cuerpo del explorador (font-browser.tsx) llena el .dialog-body de la Ventana. */
+#fontBrowser .dialog-body {
   display: flex;
   flex-direction: column;
+  padding: 0;
+}
+.font-browser-body {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
   padding: var(--space-lg) var(--space-xl);
 }
 #fontBrowserSearch {

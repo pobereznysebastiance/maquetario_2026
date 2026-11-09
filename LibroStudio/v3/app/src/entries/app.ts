@@ -29,7 +29,7 @@ import '../cover-actions.ts';
 import '../panel-resize.ts';
 import '../cover-measurements.ts';
 import '../editorial-learning.ts';
-import '../font-browser.ts';
+import '../font-browser.tsx';
 import '../output-review.ts';
 import '../focus-layout.ts';
 import '../master-refinement.ts';

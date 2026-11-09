@@ -32,7 +32,7 @@ registerFontTest(async function (r) {
       );
       fontBrowserFamily = 'Georgia';
       fontBrowserVariant = face.id;
-      await $('#fontBrowserApply').onclick();
+      await applyFontBrowser();
       check(book.header.fontFaceId === face.id, 'Cornisa conserva el estilo tipográfico elegido');
     } else fontBrowser.close();
     check(!fontBrowser.open, 'Aplicar cierra selector de fuentes');

@@ -29,6 +29,8 @@ export interface DialogAction {
 
 export interface SheetOptions {
   title: string;
+  /** id del <dialog> (para las pruebas y la autoprueba). */
+  id?: string;
   /** Verbo del botón principal (Aplicar, Guardar…). Sin action, la Hoja sólo informa. */
   action?: DialogAction;
   /** Hoja que sólo informa: un único botón (action.label, o "Listo"), sin Cancelar. */
@@ -42,6 +44,14 @@ export interface SheetOptions {
 
 export interface WorkWindowOptions {
   title: string;
+  /** id del <dialog> (para las pruebas y la autoprueba). */
+  id?: string;
+  /**
+   * No cerrar #modal al abrir: la Ventana queda encima de una Hoja que todavía es HTML y ocupa su
+   * lugar (el explorador de fuentes abierto desde el estilo de párrafo). Quien abre se ocupa de
+   * esconder el contenido de la Hoja mientras tanto.
+   */
+  keepModal?: boolean;
   /** Acción principal, en la barra del título (Guardar PDF…). Sin ella, sólo la cruz. */
   action?: DialogAction;
   variant?: string;
@@ -49,6 +59,7 @@ export interface WorkWindowOptions {
 
 interface FrameProps {
   kind: 'sheet' | 'workspace';
+  id?: string;
   title: string;
   size?: SheetSize;
   variant?: string;
@@ -59,7 +70,16 @@ interface FrameProps {
 }
 
 /** Marco común: <dialog> nativo + Radix Dialog, cabecera con cruz, cuerpo y barra de acciones. */
-const DialogFrame = ({ kind, title, size, variant, children, actions, onClose }: FrameProps) => {
+const DialogFrame = ({
+  kind,
+  id,
+  title,
+  size,
+  variant,
+  children,
+  actions,
+  onClose,
+}: FrameProps) => {
   // Los textos que pasa quien llama llegan en castellano: se traducen acá (el traductor del DOM no
   // entra en lo que dibuja React).
   useLanguage();
@@ -85,6 +105,7 @@ const DialogFrame = ({ kind, title, size, variant, children, actions, onClose }:
         <Dialog.Content asChild aria-describedby={undefined}>
           <dialog
             tabIndex={-1}
+            id={id}
             data-kind={kind}
             data-size={kind === 'sheet' ? size || 'md' : undefined}
             className={variant}
@@ -133,11 +154,12 @@ export const Sheet = ({
   children: ReactNode;
   onClose: () => void;
 }) => {
-  const { title, action, single, cancelLabel, size, variant } = options;
+  const { id, title, action, single, cancelLabel, size, variant } = options;
   const informs = single || !action;
   return (
     <DialogFrame
       kind="sheet"
+      id={id}
       title={title}
       size={size}
       variant={variant}
@@ -174,10 +196,11 @@ export const WorkWindow = ({
   children: ReactNode;
   onClose: () => void;
 }) => {
-  const { title, action, variant } = options;
+  const { id, title, action, variant } = options;
   return (
     <DialogFrame
       kind="workspace"
+      id={id}
       title={title}
       variant={variant}
       onClose={onClose}
