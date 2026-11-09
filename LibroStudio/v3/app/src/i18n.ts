@@ -130,6 +130,9 @@ const labels: TranslationRow[] = [
   ['Capas', 'Layers', 'Camadas'],
   ['Inspector', 'Inspector', 'Inspetor'],
   ['Vistas del panel', 'Panel views', 'Vistas do painel'],
+  ['Sección general', 'Default section', 'Seção padrão'],
+  ['Cuerpo del texto', 'Font size', 'Corpo do texto'],
+  ['Ej.: Capítulo 2', 'E.g. Chapter 2', 'Ex.: Capítulo 2'],
   ['Ocultar consejo', 'Hide tip', 'Ocultar dica'],
   ['Nada seleccionado', 'Nothing selected', 'Nada selecionado'],
   [

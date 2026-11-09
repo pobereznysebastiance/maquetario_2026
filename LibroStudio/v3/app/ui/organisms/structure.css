@@ -50,7 +50,16 @@
   color: var(--status-warning);
 }
 .preflight-item.ok {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
   color: var(--text-secondary);
+}
+.preflight-item.ok .icon {
+  flex: none;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  color: var(--status-success);
 }
 .preflight-link {
   margin-left: var(--space-sm);

@@ -194,9 +194,9 @@ lesson(
   '#spread',
   ['7. Cambiar ancho y alto', '7. Resize a frame', '7. Altere largura e altura'],
   [
-    'Una caja seleccionada muestra ocho cuadrados: cuatro en las esquinas y cuatro en los lados. Los laterales cambian una dimensión; las esquinas cambian ambas. La caja crece desde el punto que arrastrás y conserva el borde opuesto. El texto se redistribuye sin cambiar su cuerpo. También podés ingresar medidas en Transformar objeto.',
-    'A selected frame has eight squares: four corners and four edge centers. Edge handles change one dimension; corners change both. The opposite edge stays fixed. Text reflows without changing font size. You can also enter dimensions under Transform object.',
-    'A caixa selecionada tem oito quadrados: quatro cantos e quatro centros dos lados. Os laterais alteram uma dimensão; os cantos alteram ambas. A borda oposta fica fixa. O texto se redistribui sem alterar o corpo. Também é possível informar medidas em Transformar objeto.',
+    'Una caja seleccionada muestra ocho cuadrados: cuatro en las esquinas y cuatro en los lados. Los laterales cambian una dimensión; las esquinas cambian ambas. La caja crece desde el punto que arrastrás y conserva el borde opuesto. El texto se redistribuye sin cambiar su cuerpo. También podés ingresar medidas en Selección › Posición y tamaño.',
+    'A selected frame has eight squares: four corners and four edge centers. Edge handles change one dimension; corners change both. The opposite edge stays fixed. Text reflows without changing font size. You can also enter dimensions under Selection › Position and size.',
+    'A caixa selecionada tem oito quadrados: quatro cantos e quatro centros dos lados. Os laterais alteram uma dimensão; os cantos alteram ambas. A borda oposta fica fixa. O texto se redistribui sem alterar o corpo. Também é possível informar medidas em Seleção › Posição e tamanho.',
   ],
   [
     'Arrastrá el controlador derecho para cambiar el ancho. Después probá el superior izquierdo.',
@@ -242,9 +242,9 @@ lesson(
   '[data-object="font"]',
   ['10. Elegir familia y estilo', '10. Choose family and style', '10. Escolha família e estilo'],
   [
-    'Seleccioná una caja de texto y buscá una familia en Texto. Peso / estilo muestra las variantes reales detectadas, como Regular, Medium, Bold o Italic. En Fuentes de tu equipo podés agregar una carpeta TTF, OTF o TTC; también se leen subcarpetas. Volver a leer fuentes actualiza el catálogo.',
-    'Select a text frame and search for a family in Text. Weight / style shows actual detected variants such as Regular, Medium, Bold and Italic. Fonts on your computer lets you add a TTF, OTF or TTC folder, including subfolders. Rescan refreshes the catalog.',
-    'Selecione uma caixa e busque uma família em Texto. Peso / estilo mostra as variantes reais detectadas, como Regular, Medium, Bold e Italic. Em Fontes do seu computador, adicione uma pasta TTF, OTF ou TTC, incluindo subpastas. Reler atualiza o catálogo.',
+    'Seleccioná una caja de texto y buscá una familia en Selección › Tipografía. Peso / estilo muestra las variantes reales detectadas, como Regular, Medium, Bold o Italic. En Fuentes de tu equipo podés agregar una carpeta TTF, OTF o TTC; también se leen subcarpetas. Volver a leer fuentes actualiza el catálogo.',
+    'Select a text frame and search for a family in Selection › Typography. Weight / style shows actual detected variants such as Regular, Medium, Bold and Italic. Fonts on your computer lets you add a TTF, OTF or TTC folder, including subfolders. Rescan refreshes the catalog.',
+    'Selecione uma caixa e busque uma família em Seleção › Tipografia. Peso / estilo mostra as variantes reais detectadas, como Regular, Medium, Bold e Italic. Em Fontes do seu computador, adicione uma pasta TTF, OTF ou TTC, incluindo subpastas. Reler atualiza o catálogo.',
   ],
   [
     'Elegí una familia con varios pesos y compará el título en Regular y Bold.',
@@ -378,9 +378,9 @@ lesson(
   '[data-tool="folio"]',
   ['18. Automatizar el foliado', '18. Automate page numbers', '18. Automatize a numeração'],
   [
-    'En Foliado activá la numeración. Elegí formato arábigo o romano, número inicial y posición. Personalizar permite configurar pares e impares, tipografía, separación del borde y desplazamientos. La numeración cambia al agregar o mover páginas. Para ocultar el folio de una página especial, usá su excepción en Páginas.',
-    'Enable page numbering, choose Arabic or Roman numerals, starting number and position. Customize odd/even content, typeface, edge distance and offsets. Numbers update when pages are added or moved. Hide a number on a special page using its exception in Pages.',
-    'Ative a numeração e escolha formato arábico ou romano, início e posição. Personalize pares e ímpares, fonte, distância da borda e deslocamentos. A numeração muda ao adicionar ou mover páginas. Oculte em páginas especiais pela exceção em Páginas.',
+    'En Foliado activá la numeración. Elegí formato arábigo o romano, número inicial y posición. Personalizar permite configurar pares e impares, tipografía, separación del borde y desplazamientos. La numeración cambia al agregar o mover páginas. Para ocultar el folio de una página especial, usá su excepción en la pestaña Página.',
+    'Enable page numbering, choose Arabic or Roman numerals, starting number and position. Customize odd/even content, typeface, edge distance and offsets. Numbers update when pages are added or moved. Hide a number on a special page using its exception in the Page tab.',
+    'Ative a numeração e escolha formato arábico ou romano, início e posição. Personalize pares e ímpares, fonte, distância da borda e deslocamentos. A numeração muda ao adicionar ou mover páginas. Oculte em páginas especiais pela exceção na aba Página.',
   ],
   [
     'Aplicá el folio inferior exterior y comprobá su posición en una doble página.',

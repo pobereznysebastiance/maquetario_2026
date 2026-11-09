@@ -82,41 +82,48 @@ function beginPanelResize(event: PointerEvent, kind: string, handle: HTMLElement
   handle.onpointercancel = end;
 }
 globalThis.beginPanelResize = beginPanelResize;
-for (const [kind, parent, label] of [
+// Nombre y ayuda de cada borde en el idioma actual. Se vuelven a poner al cambiar de idioma: el
+// traductor del DOM no conoce el título compuesto ("nombre · Arrastrá…").
+const resizerLabels: [HTMLElement, [string, string, string]][] = [];
+function labelResizers(): void {
+  const hint = bw(
+    'Arrastrá para ajustar; doble clic para restablecer',
+    'Drag to resize; double-click to reset',
+    'Arraste para ajustar; clique duplo para redefinir',
+  );
+  for (const [handle, names] of resizerLabels) {
+    const label = bw(...names);
+    handle.setAttribute('aria-label', label);
+    handle.title = label + ' · ' + hint;
+  }
+}
+for (const [kind, parent, names] of [
   [
     'left',
     '.leftpanel',
-    bw('Ancho del panel de herramientas', 'Tools panel width', 'Largura do painel de ferramentas'),
+    ['Ancho del panel de herramientas', 'Tools panel width', 'Largura do painel de ferramentas'],
   ],
   [
     'right',
     '.inspector',
-    bw(
+    [
       'Ancho del panel de propiedades',
       'Properties panel width',
       'Largura do painel de propriedades',
-    ),
+    ],
   ],
   [
     'templates',
     '.template-panel',
-    bw('Altura de las plantillas', 'Template area height', 'Altura das grades'),
+    ['Altura de las plantillas', 'Template area height', 'Altura das grades'],
   ],
-]) {
+] as [string, string, [string, string, string]][]) {
   const handle = document.createElement('div');
   handle.className = 'panel-resizer resize-' + kind;
   handle.tabIndex = 0;
   handle.setAttribute('role', 'separator');
-  handle.setAttribute('aria-label', label);
   handle.setAttribute('aria-orientation', kind === 'templates' ? 'horizontal' : 'vertical');
-  handle.title =
-    label +
-    ' · ' +
-    bw(
-      'Arrastrá para ajustar; doble clic para restablecer',
-      'Drag to resize; double-click to reset',
-      'Arraste para ajustar; clique duplo para redefinir',
-    );
+  resizerLabels.push([handle, names]);
   handle.onpointerdown = (e) => globalThis.beginPanelResize(e, kind, handle);
   handle.ondblclick = () => {
     if (kind === 'templates') {
@@ -148,6 +155,8 @@ for (const [kind, parent, label] of [
   };
   $(parent).append(handle);
 }
+labelResizers();
+document.addEventListener('maquetario:language', labelResizers);
 // Como antes: el oyente se queda con la función tal como está al cargar (sin las extensiones
 // que se registren después).
 window.addEventListener('resize', applyPanelSizes);

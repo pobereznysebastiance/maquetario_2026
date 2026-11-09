@@ -22,9 +22,9 @@ const ShapeGallery = ({ kinds, label, preview, pick }: GalleryProps) => {
     <>
       <p className="builder-intro">
         {bw(
-          'Elegí una figura y arrastrá sobre la página para dibujarla. Con Shift conserva proporciones iguales. Después ajustá relleno y trazo en Objeto.',
-          'Choose a shape and drag on the page to draw it. Hold Shift for equal proportions. Then set fill and stroke in Object.',
-          'Escolha uma figura e arraste na página para desenhar. Com Shift mantém proporções iguais. Depois ajuste preenchimento e traço em Objeto.',
+          'Elegí una figura y arrastrá sobre la página para dibujarla. Con Shift conserva proporciones iguales. Después ajustá relleno y trazo en Selección.',
+          'Choose a shape and drag on the page to draw it. Hold Shift for equal proportions. Then set fill and stroke in Selection.',
+          'Escolha uma figura e arraste na página para desenhar. Com Shift mantém proporções iguais. Depois ajuste preenchimento e traço em Seleção.',
         )}
       </p>
       <div className="shape-choices">

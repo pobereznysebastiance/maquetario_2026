@@ -142,8 +142,7 @@ const GlossarySection = ({ source }: { source: GlossarySource }) => {
                   'Encontrarlo en Maquetario',
                   'Find it in Maquetario',
                   'Encontrar no Maquetario',
-                )}{' '}
-                →
+                )}
               </button>
             </>
           ) : null}

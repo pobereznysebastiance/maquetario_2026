@@ -85,7 +85,7 @@ const TutorialCard = ({ onAction }: { onAction: (step: GuideLesson) => void }) =
     const listener = () => showTutorialStep(Number(select.value));
     select.addEventListener('change', listener);
     return () => select.removeEventListener('change', listener);
-  }, []);
+  }, [language]);
   if (!step) return null;
   return (
     <>
@@ -124,7 +124,10 @@ const TutorialCard = ({ onAction }: { onAction: (step: GuideLesson) => void }) =
           {w.action}
         </button>
       </div>
+      {/* key: al cambiar de idioma se vuelve a montar; el select personalizable no actualiza el texto
+          elegido (<selectedcontent>) cuando cambia el de la opción. */}
       <select
+        key={language}
         id="tutorialJump"
         className="tutorial-jump"
         aria-label={w.contents}
@@ -148,7 +151,7 @@ const TutorialCard = ({ onAction }: { onAction: (step: GuideLesson) => void }) =
           disabled={index === 0}
           onClick={() => showTutorialStep(tutorialIndex - 1)}
         >
-          ← {w.previous}
+          {w.previous}
         </button>
         <button
           type="button"
@@ -162,7 +165,7 @@ const TutorialCard = ({ onAction }: { onAction: (step: GuideLesson) => void }) =
             } else showTutorialStep(tutorialIndex + 1);
           }}
         >
-          {last ? w.finish : w.next} →
+          {last ? w.finish : w.next}
         </button>
       </div>
       <div className="tutorial-note">{w.note}</div>

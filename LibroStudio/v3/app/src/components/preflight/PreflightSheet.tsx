@@ -9,6 +9,7 @@
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 import type { PreflightIssue } from '../../book-workflow.ts';
+import { Icon } from '../Icon.tsx';
 
 const PreflightReport = ({ issues, pages }: { issues: PreflightIssue[]; pages: number }) => (
   <>
@@ -43,7 +44,7 @@ const PreflightReport = ({ issues, pages }: { issues: PreflightIssue[]; pages: n
       ))
     ) : (
       <div className="preflight-item ok">
-        ✓{' '}
+        <Icon name="check" />
         {bw(
           'Sin desbordamientos ni objetos fuera de página.',
           'No overset text or objects outside the page.',

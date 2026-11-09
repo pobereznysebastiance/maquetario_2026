@@ -139,6 +139,8 @@ textarea {
   position: absolute;
   inset: 0;
   border-radius: var(--radius-pill);
+  /* Apagado: la pista se ve (sin fondo, el interruptor parecía un punto suelto). */
+  background: var(--line-strong);
   cursor: pointer;
   transition: background-color var(--duration-base) var(--ease-out);
 }

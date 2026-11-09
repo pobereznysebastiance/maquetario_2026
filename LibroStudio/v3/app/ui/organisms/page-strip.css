@@ -156,6 +156,13 @@
   color: var(--text-secondary);
   font-size: var(--type-callout);
 }
+/* La ayuda de la sección no va pegada a la etiqueta del primer campo. */
+.rail-view .help + .sub-label {
+  margin-top: var(--space-md);
+}
+.rail-view .sub-label {
+  margin-bottom: var(--space-xs);
+}
 .rail-view .pair label {
   display: block;
   margin-bottom: var(--space-xs);

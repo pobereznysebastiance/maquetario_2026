@@ -150,7 +150,8 @@ export const CanvasBar = () => {
           aria-expanded={open}
           onClick={() => toggleGridStrip()}
         >
-          {(open ? '▾ ' : '▸ ') + bw('Plantillas', 'Templates', 'Grades')}
+          <Icon name="chevron" />
+          {bw('Plantillas', 'Templates', 'Grades')}
         </button>
         <button
           type="button"

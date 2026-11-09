@@ -35,9 +35,9 @@ const GridGallery = () => {
     <>
       <p className="builder-intro">
         {bw(
-          'Elegí una base y personalizá sus medianiles desde Diseño. Cada miniatura muestra columnas y filas reales.',
-          'Choose a starting point and customize gutters in Design. Each thumbnail shows actual rows and columns.',
-          'Escolha uma base e personalize os espaços em Design. Cada miniatura mostra linhas e colunas reais.',
+          'Elegí una base y ajustá sus medianiles en Libro › Grilla. Cada miniatura muestra columnas y filas reales.',
+          'Choose a starting point and adjust its gutters in Book › Grid. Each thumbnail shows actual rows and columns.',
+          'Escolha uma base e ajuste os espaços em Livro › Grade. Cada miniatura mostra linhas e colunas reais.',
         )}
       </p>
       <div className="grid-gallery-list">

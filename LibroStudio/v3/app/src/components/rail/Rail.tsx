@@ -16,7 +16,7 @@
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
-import { useSyncExternalStore, type KeyboardEvent } from 'react';
+import { useLayoutEffect, useSyncExternalStore, type KeyboardEvent } from 'react';
 import { Icon } from '../Icon.tsx';
 import { mount, useLanguage } from '../../react/mount.tsx';
 import { notifyEditorState, useEditorState } from '../../react/editor-state.ts';
@@ -82,7 +82,12 @@ function onArrows(event: KeyboardEvent<HTMLButtonElement>): void {
 /** Selector de vistas del riel: Páginas · Índice · Capas. */
 export const RailSwitch = () => {
   useEditorState();
-  useLanguage();
+  const language = useLanguage();
+  // El nombre del tablist va en el contenedor (.rail-switch, index.html), donde el traductor del DOM
+  // no entra porque es data-react: se pone desde acá con cada cambio de idioma.
+  useLayoutEffect(() => {
+    $('.rail-switch').setAttribute('aria-label', LibroI18n.tr('Vistas del panel'));
+  }, [language]);
   // inspector-views.ts (la vista) carga al final: hasta entonces, Páginas.
   const current: RailView = typeof currentRailView === 'function' ? currentRailView() : 'pages';
   return (

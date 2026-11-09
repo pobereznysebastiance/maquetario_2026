@@ -245,7 +245,6 @@ export const WelcomeScreen = (p: WelcomeScreenProps) => {
             <option value="en">EN · English</option>
             <option value="pt">PT · Português</option>
           </select>
-          <span>Maquetario v{p.version}</span>
         </span>
       </footer>
     </>

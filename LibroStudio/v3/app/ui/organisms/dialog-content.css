@@ -679,6 +679,17 @@ dialog.output-modal .dialog-frame .dialog-body {
   margin-top: var(--space-md);
   font-size: var(--type-body);
 }
+/* Anterior y siguiente: la flecha del set de íconos, girada (antes, los caracteres ‹ y ›). */
+.glyph-pages .icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+#glyphPrev .icon {
+  transform: rotate(90deg);
+}
+#glyphNext .icon {
+  transform: rotate(-90deg);
+}
 #glyphSelectedLarge {
   --glyph-large-size: 105px;
   --glyph-large-min: 160px;

@@ -18,6 +18,7 @@ import { useSyncExternalStore } from 'react';
 import { flushSync } from 'react-dom';
 import { useLanguage } from './react/mount.tsx';
 import { Select } from './components/form/Form.tsx';
+import { Icon } from './components/Icon.tsx';
 
 declare global {
   /** Códigos Unicode que tiene la fuente elegida en la paleta. */
@@ -266,13 +267,14 @@ const GlyphWindow = () => {
               type="button"
               className="btn"
               id="glyphPrev"
+              aria-label={bw('Página anterior', 'Previous page', 'Página anterior')}
               disabled={glyphPage === 0}
               onClick={() => {
                 glyphPage--;
                 refresh();
               }}
             >
-              ‹
+              <Icon name="chevron" />
             </button>
             <span id="glyphPageInfo">
               {glyphStatus ||
@@ -282,13 +284,14 @@ const GlyphWindow = () => {
               type="button"
               className="btn"
               id="glyphNext"
+              aria-label={bw('Página siguiente', 'Next page', 'Próxima página')}
               disabled={glyphPage >= pages - 1}
               onClick={() => {
                 glyphPage++;
                 refresh();
               }}
             >
-              ›
+              <Icon name="chevron" />
             </button>
           </div>
         </div>

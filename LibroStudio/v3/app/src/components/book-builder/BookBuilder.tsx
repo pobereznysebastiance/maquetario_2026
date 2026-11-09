@@ -107,11 +107,15 @@ const BookBuilder = ({ data }: { data: NovelData }) => {
       <textarea
         id="novelSource"
         className="builder-source"
-        placeholder={'# Capítulo 1\nPrimer párrafo…\n\n# Capítulo 2\n…'}
+        placeholder={bw(
+          '# Capítulo 1\nPrimer párrafo…\n\n# Capítulo 2\n…',
+          '# Chapter 1\nFirst paragraph…\n\n# Chapter 2\n…',
+          '# Capítulo 1\nPrimeiro parágrafo…\n\n# Capítulo 2\n…',
+        )}
         defaultValue={data.source}
       />
       <button type="button" id="novelSample" className="quiet" onClick={loadSample}>
-        {bw('Cargar novela de prueba', 'Load test novel', 'Carregar romance de teste')} ↗
+        {bw('Cargar novela de prueba', 'Load test novel', 'Carregar romance de teste')}
       </button>
       <p className="help">
         {bw(

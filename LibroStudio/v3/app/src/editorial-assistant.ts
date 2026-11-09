@@ -155,9 +155,9 @@ async function automaticEditorialReview(): Promise<EditorialFinding[]> {
                 'Parte do elemento fica fora do formato.',
               ),
               bw(
-                'Revisá posición y tamaño en Objeto.',
-                'Review position and size in Object.',
-                'Revise posição e tamanho em Objeto.',
+                'Revisá Posición y tamaño en Selección.',
+                'Review Position and size in Selection.',
+                'Revise Posição e tamanho em Seleção.',
               ),
             ),
           );

@@ -15,9 +15,9 @@ lesson(
     'Estilos de parágrafo reutilizáveis',
   ],
   [
-    'En Texto, Párrafo y estilos permite elegir toda la caja o un párrafo individual. Ajustá su formato y elegí Nuevo desde selección para guardarlo con un nombre. Aplicalo a otros párrafos desde el selector. Editar estilo actualiza todos los párrafos vinculados; Redefinir adopta los ajustes del párrafo actual. Quitar ajustes locales vuelve al estilo guardado.',
-    'In Text, Paragraphs and styles targets the whole frame or an individual paragraph. Adjust formatting and save it with New from selection. Apply it elsewhere from the style selector. Edit style updates every linked paragraph; Redefine adopts the current paragraph settings. Clear local overrides returns to the stored style.',
-    'Em Texto, Parágrafos e estilos permite escolher a caixa inteira ou um parágrafo. Ajuste o formato e salve com Novo a partir da seleção. Aplique pelo seletor. Editar estilo atualiza todos os parágrafos vinculados; Redefinir adota os ajustes do parágrafo atual. Limpar ajustes locais retorna ao estilo salvo.',
+    'En Selección, Párrafo y estilos permite elegir toda la caja o un párrafo individual. Ajustá su formato y elegí Nuevo desde selección para guardarlo con un nombre. Aplicalo a otros párrafos desde el selector. Editar estilo actualiza todos los párrafos vinculados; Redefinir adopta los ajustes del párrafo actual. Quitar ajustes locales vuelve al estilo guardado.',
+    'In Selection, Paragraphs and styles targets the whole frame or an individual paragraph. Adjust formatting and save it with New from selection. Apply it elsewhere from the style selector. Edit style updates every linked paragraph; Redefine adopts the current paragraph settings. Clear local overrides returns to the stored style.',
+    'Em Seleção, Parágrafos e estilos permite escolher a caixa inteira ou um parágrafo. Ajuste o formato e salve com Novo a partir da seleção. Aplique pelo seletor. Editar estilo atualiza todos os parágrafos vinculados; Redefinir adota os ajustes do parágrafo atual. Limpar ajustes locais retorna ao estilo salvo.',
   ],
   [
     'Creá un estilo “Cuerpo” y aplicalo a dos párrafos. Editá su interlineado y comprobá que ambos se actualicen.',
@@ -31,9 +31,9 @@ lesson(
   '#inspectorContent',
   ['Alinear elementos en la página', 'Align page elements', 'Alinhar elementos na página'],
   [
-    'Alinear objetos está en Texto y Capas. Elegí un objeto o seleccioná varios con Shift + clic. Podés alinear a los márgenes, a toda la página o al conjunto seleccionado. Izquierda, centro, derecha, arriba, centro vertical y abajo cambian la posición de los objetos sin cambiar su tamaño. Los bloqueados quedan fuera de la operación.',
-    'Align objects is in Text and Layers. Select one object or Shift-click several. Align to page margins, the full page or the selection bounds. Left, center, right, top, vertical center and bottom reposition objects without resizing. Locked objects are excluded.',
-    'Alinhar objetos fica em Texto e Camadas. Selecione um objeto ou use Shift + clique para vários. Alinhe às margens, à página inteira ou aos limites da seleção. Esquerda, centro, direita, acima, centro vertical e abaixo reposicionam sem redimensionar. Objetos bloqueados não são alterados.',
+    'Alinear objetos está en Selección. Elegí un objeto o seleccioná varios con Shift + clic. Podés alinear a los márgenes, a toda la página o al conjunto seleccionado. Izquierda, centro, derecha, arriba, centro vertical y abajo cambian la posición de los objetos sin cambiar su tamaño. Los bloqueados quedan fuera de la operación.',
+    'Align objects is in Selection. Select one object or Shift-click several. Align to page margins, the full page or the selection bounds. Left, center, right, top, vertical center and bottom reposition objects without resizing. Locked objects are excluded.',
+    'Alinhar objetos fica em Seleção. Selecione um objeto ou use Shift + clique para vários. Alinhe às margens, à página inteira ou aos limites da seleção. Esquerda, centro, direita, acima, centro vertical e abaixo reposicionam sem redimensionar. Objetos bloqueados não são alterados.',
   ],
   [
     'Seleccioná dos cajas y alinealas a la izquierda de sus márgenes. Revisá que sus dimensiones no cambien.',
