@@ -467,16 +467,13 @@ extend.instead(
   },
   'publications',
 );
-const coverButton = document.createElement('button');
-coverButton.className = 'tool';
-coverButton.id = 'coverTool';
-coverButton.innerHTML = icon('pages') + '<span>' + bw('Cubierta', 'Cover', 'Capa') + '</span>';
-// Por el global: el editor es de src/components/cover/ y carga después que este módulo.
-coverButton.onclick = () => coverEditor();
-$('#tools').append(coverButton);
-// La cubierta es un paso del recorrido del libro (book-workflow.ts); acá sólo se traduce su botón.
-document.addEventListener('maquetario:language', () => {
-  coverButton.querySelector('span')!.textContent = bw('Cubierta', 'Cover', 'Capa');
+// La cubierta en el riel: abre el editor completo (con sus extensiones: medidas, solapas…).
+registerTool({
+  id: 'coverTool',
+  icon: 'book',
+  label: () => bw('Cubierta', 'Cover', 'Capa'),
+  shortcut: null,
+  onSelect: () => coverEditor(),
 });
 
 globalThis.coverOverflow = function (c: CoverDesign): boolean {

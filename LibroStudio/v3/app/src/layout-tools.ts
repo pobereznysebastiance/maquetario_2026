@@ -398,16 +398,17 @@ function moveLayer(direction: number): void {
     [list[index], list[next]] = [list[next], list[index]];
   }, false);
 }
-const layerButton = UI.element(
-  UI.tool({ id: 'layersTool', icon: 'layers', label: lw().layers, shortcut: null }),
-);
-layerButton.onclick = () => {
-  finishEditing();
-  showTab('layers');
-};
-$('#tools').append(layerButton);
+registerTool({
+  id: 'layersTool',
+  icon: 'layers',
+  label: () => lw().layers,
+  shortcut: null,
+  onSelect: () => {
+    finishEditing();
+    showTab('layers');
+  },
+});
 document.addEventListener('maquetario:language', () => {
-  layerButton.querySelector('span')!.textContent = lw().layers;
   updateSnapButton();
 });
 updateSnapButton();

@@ -159,18 +159,16 @@ function shapeChooser(): void {
       }),
   );
 }
-const shapeTool = UI.element(
-  UI.tool({
-    id: 'shapeTool',
-    tool: 'shape',
-    icon: 'frame',
-    label: bw('Figuras', 'Shapes', 'Figuras'),
-    title: bw('Figuras y contenedores', 'Shapes and containers', 'Figuras e contêineres'),
-    shortcut: null,
-  }),
-);
-shapeTool.onclick = shapeChooser;
-$('[data-tool="frame"]').after(shapeTool);
+registerTool({
+  tool: 'shape',
+  id: 'shapeTool',
+  icon: 'frame',
+  label: () => bw('Figuras', 'Shapes', 'Figuras'),
+  title: () => bw('Figuras y contenedores', 'Shapes and containers', 'Figuras e contêineres'),
+  shortcut: null,
+  after: 'frame',
+  onSelect: shapeChooser,
+});
 function newShape(x: number, y: number, w: number, h: number): BookObject {
   return {
     id: M.uid(),
@@ -364,7 +362,6 @@ function shapeAppearance(): void {
 }
 decorateInspector(() => {
   shapeAppearance();
-  shapeTool.querySelector('span')!.textContent = bw('Figuras', 'Shapes', 'Figuras');
 }, 'shapes');
 
 extend.result(

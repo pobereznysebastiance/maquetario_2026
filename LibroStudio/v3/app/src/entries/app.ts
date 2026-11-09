@@ -3,6 +3,7 @@
 // import es el orden de carga: cada módulo corre al importarse, como corría su <script> en index.html.
 
 import '../inspector-registry.ts';
+import '../components/rail/rail-tools.ts';
 import '../editorial.ts';
 import '../i18n.ts';
 import '../components/toast/Toast.tsx';
@@ -21,6 +22,7 @@ import '../novel-sample.ts';
 import '../book-workflow.ts';
 import '../components/statusbar/StatusBar.tsx';
 import '../components/documentbar/DocumentBar.tsx';
+import '../components/rail/Rail.tsx';
 import '../book-proof.ts';
 import '../publications.ts';
 import '../components/cover/CoverEditor.tsx';

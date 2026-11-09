@@ -157,7 +157,6 @@ extend.replace(
     );
     inspector();
     updateStatus();
-    $$('.tool').forEach((n) => n.classList.toggle('active', n.dataset.tool === tool));
   },
   'frame-handles',
 );

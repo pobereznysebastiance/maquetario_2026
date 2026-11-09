@@ -1,0 +1,105 @@
+// Registro de las herramientas del riel izquierdo (#tools). El riel lo dibuja React (Rail.tsx);
+// los módulos no agregan botones al DOM: registran su herramienta con registerTool().
+//
+//   registerTool({ tool: 'hand', id: 'handTool', icon: 'hand', label: () => bw('Mano', …),
+//                  shortcut: 'H', after: 'select', onSelect: () => … });
+//
+// - tool: el nombre de la herramienta (data-tool, el global tool, setTool). Sin tool es una vista
+//   o una acción del riel (Índice, Capas, Cubierta): nunca queda marcada como activa.
+// - id: el id del botón (#handTool, #shapeTool, #indexTool…), si otros lo buscan.
+// - label y title son funciones: se evalúan al dibujar, en el idioma actual. title, si falta,
+//   es el nombre.
+// - shortcut: la tecla que se muestra; '' deja el lugar vacío y null no lo dibuja. Los atajos en
+//   sí los atiende cada módulo (studio.ts: V T I F; canvas-navigation.ts: H).
+// - after: la clave (tool o id) de la herramienta tras la cual va; sin after, al final.
+// - onSelect: qué hace el clic; si falta, setTool(tool).
+//
+// Este módulo carga primero (src/entries/app.ts), antes que los módulos que registran; las
+// herramientas del núcleo (Seleccionar, Crear texto, Imagen…) se registran acá mismo.
+//
+// Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
+
+import { flushSync } from 'react-dom';
+
+export interface RailTool {
+  tool?: string;
+  id?: string;
+  icon: string;
+  label: () => string;
+  title?: () => string;
+  shortcut?: string | null;
+  after?: string;
+  onSelect?: () => void;
+}
+
+declare global {
+  /** Suma una herramienta al riel izquierdo (ver src/components/rail/rail-tools.ts). */
+  var registerTool: (spec: RailTool) => void;
+  /** Vuelve a dibujar el riel (por ejemplo, cuando cambia el set de íconos). */
+  var refreshRail: () => void;
+}
+
+const keyOf = (spec: RailTool): string => spec.tool ?? spec.id ?? '';
+
+let tools: readonly RailTool[] = [];
+let mounted = false;
+const listeners = new Set<() => void>();
+
+export const railToolsSnapshot = (): readonly RailTool[] => tools;
+export const subscribeRailTools = (listener: () => void): (() => void) => {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+};
+/** Lo llama Rail.tsx al montarse: desde ahí, cada cambio se dibuja en el acto. */
+export function railMounted(): void {
+  mounted = true;
+}
+const emit = (): void => {
+  const notify = () => listeners.forEach((listener) => listener());
+  // Como un módulo que agregaba su botón: al volver, el botón ya está en la página.
+  if (mounted) flushSync(notify);
+  else notify();
+};
+
+export function registerTool(spec: RailTool): void {
+  const list = tools.filter((t) => keyOf(t) !== keyOf(spec));
+  const index = spec.after ? list.findIndex((t) => keyOf(t) === spec.after) : -1;
+  if (index >= 0) list.splice(index + 1, 0, spec);
+  else list.push(spec);
+  tools = list;
+  emit();
+}
+export function refreshRail(): void {
+  tools = [...tools];
+  emit();
+}
+globalThis.registerTool = registerTool;
+globalThis.refreshRail = refreshRail;
+
+// Herramientas del núcleo (studio.ts: setTool). Los nombres van en castellano y se traducen al
+// dibujar (src/i18n.ts); "Crear texto" y "Caja de texto" tienen su texto propio.
+const tr = (text: string) => (globalThis.LibroI18n ? LibroI18n.tr(text) : text);
+const textTitle = () => bw('Crear caja de texto', 'Create a text frame', 'Criar caixa de texto');
+for (const spec of [
+  { tool: 'select', icon: 'select', label: () => tr('Seleccionar'), shortcut: 'V' },
+  {
+    tool: 'text',
+    icon: 'text',
+    label: () => bw('Crear texto', 'Create text', 'Criar texto'),
+    title: textTitle,
+    shortcut: 'T',
+  },
+  { tool: 'image', icon: 'image', label: () => tr('Imagen'), shortcut: 'I' },
+  { tool: 'frame', icon: 'frame', label: () => tr('Marco'), shortcut: 'F' },
+  { tool: 'grid', icon: 'grid', label: () => tr('Grilla'), shortcut: '' },
+  { tool: 'folio', icon: 'folio', label: () => tr('Foliado'), shortcut: '' },
+  { tool: 'header', icon: 'header', label: () => tr('Cornisa'), shortcut: '' },
+  {
+    tool: 'box',
+    icon: 'box',
+    label: () => bw('Caja de texto', 'Text frame', 'Caixa de texto'),
+    title: textTitle,
+    shortcut: '',
+  },
+] satisfies RailTool[])
+  registerTool(spec);

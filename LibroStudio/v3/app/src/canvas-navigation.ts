@@ -84,7 +84,6 @@ globalThis.handEnabled = handEnabled;
 function updateCanvasCursor(): void {
   document.body.classList.toggle('canvas-hand', handEnabled());
   document.body.classList.toggle('canvas-panning', !!canvasPan);
-  $('#handTool')?.classList.toggle('active', tool === 'hand');
 }
 globalThis.updateCanvasCursor = updateCanvasCursor;
 globalThis.canvasAnchor = function (clientX: number, clientY: number): CanvasAnchor {
@@ -209,26 +208,21 @@ extend.replace(
   },
   'canvas-navigation',
 );
-const handTool = UI.element(
-  UI.tool({
-    id: 'handTool',
-    tool: 'hand',
-    icon: 'hand',
-    label: bw('Mano', 'Hand', 'Mão'),
-    shortcut: 'H',
-  }),
-);
-handTool.title = bw(
-  'Mano · H / Espacio + arrastrar',
-  'Hand · H / Space + drag',
-  'Mão · H / Espaço + arrastar',
-);
-handTool.onclick = () => {
-  finishEditing();
-  setTool('hand');
-  updateCanvasCursor();
-};
-$('[data-tool="select"]').after(handTool);
+registerTool({
+  tool: 'hand',
+  id: 'handTool',
+  icon: 'hand',
+  label: () => bw('Mano', 'Hand', 'Mão'),
+  title: () =>
+    bw('Mano · H / Espacio + arrastrar', 'Hand · H / Space + drag', 'Mão · H / Espaço + arrastar'),
+  shortcut: 'H',
+  after: 'select',
+  onSelect: () => {
+    finishEditing();
+    setTool('hand');
+    updateCanvasCursor();
+  },
+});
 extend.after(
   'setTool',
   function (name: string) {

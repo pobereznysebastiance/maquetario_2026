@@ -774,7 +774,6 @@ function renderPages(): void {
 }
 /** Redibuja la pantalla. Nombre y formato del libro: barra del documento (React), vía updateStatus. */
 function render(full = true): void {
-  $$('.tool').forEach((e) => e.classList.toggle('active', e.dataset.tool === tool));
   $('#undo').disabled = !undoStack.length;
   $('#redo').disabled = !redoStack.length;
   renderPages();
@@ -878,7 +877,6 @@ function objectDown(
   $$('.page').forEach((n) => n.classList.toggle('active-page', Number(n.dataset.page) === active));
   inspector();
   updateStatus();
-  $$('.tool').forEach((n) => n.classList.toggle('active', n.dataset.tool === tool));
 }
 function moveObject(e: PointerEvent): void {
   if (!drag) return;
@@ -1035,7 +1033,7 @@ function setTool(name: string): void {
     tool = name;
     if (name === 'text' || name === 'box') showTab('text');
   }
-  $$('.tool').forEach((e) => e.classList.toggle('active', e.dataset.tool === tool));
+  // La herramienta activa la marca el riel (src/components/rail/Rail.tsx) al terminar setTool.
   $('#spread').style.cursor = tool === 'select' ? 'default' : 'crosshair';
 }
 // ── Diálogos: tres tipos (D4, docs/INTERFAZ_08-nov_decisiones-etapa3.md) ──
@@ -1653,22 +1651,7 @@ function buildToolbar(): void {
     )
     .join('');
   for (const [id, , , fn] of actions) $('#' + id).onclick = fn;
-  const tools = [
-    ['select', 'Seleccionar', 'select', 'V'],
-    ['text', 'Texto', 'text', 'T'],
-    ['image', 'Imagen', 'image', 'I'],
-    ['frame', 'Marco', 'frame', 'F'],
-    ['grid', 'Grilla', 'grid', ''],
-    ['folio', 'Foliado', 'folio', ''],
-    ['header', 'Cornisa', 'header', ''],
-    ['box', 'Cuadro de texto', 'box', ''],
-  ];
-  $('#tools').innerHTML = tools
-    .map(([id, label, key, k]) =>
-      UI.tool({ tool: id, label, icon: key, shortcut: k, active: id === 'select' }),
-    )
-    .join('');
-  $$('[data-tool]').forEach((el) => (el.onclick = () => setTool(el.dataset.tool!)));
+  // Las herramientas del riel las dibuja React (src/components/rail/): registerTool.
   icons();
 }
 buildToolbar();

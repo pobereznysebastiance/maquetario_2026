@@ -25,10 +25,6 @@ function applyPagePriority(): void {
   templateToggle.textContent =
     (showGridStrip ? '▾ ' : '▸ ') + bw('Plantillas', 'Templates', 'Grades');
   templateToggle.setAttribute('aria-expanded', String(showGridStrip));
-  for (const b of $$('#tools .tool')) {
-    const label = b.querySelector('span')?.textContent;
-    if (label && !b.title) b.title = label;
-  }
   requestAnimationFrame(renderPages);
 }
 globalThis.applyPagePriority = applyPagePriority;

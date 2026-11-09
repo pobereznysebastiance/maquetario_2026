@@ -172,22 +172,7 @@ decorateInspector(() => {
     host.querySelector('#alignReference')?.closest('.section')?.remove();
     host.querySelector('#layerWidth')?.closest('.pair')?.remove();
   }
-  organizationLabels();
 }, 'inspector-organization');
-function organizationLabels(): void {
-  for (const name of ['text', 'box']) {
-    const b = $(`[data-tool="${name}"]`);
-    if (b) {
-      const label = b.querySelector('span');
-      if (label)
-        label.textContent =
-          name === 'text'
-            ? bw('Crear texto', 'Create text', 'Criar texto')
-            : bw('Caja de texto', 'Text frame', 'Caixa de texto');
-      b.title = bw('Crear caja de texto', 'Create a text frame', 'Criar caixa de texto');
-    }
-  }
-}
 // Los atajos de herramientas buscan su sección por nombre, no por una posición numérica frágil.
 extend.instead(
   'setTool',
@@ -219,7 +204,6 @@ extend.before(
   'inspector-organization',
 );
 document.addEventListener('maquetario:language', () => {
-  organizationLabels();
   inspector();
 });
 const alignLesson = guideLessons.find((l) => l.id === 'align-objects');
@@ -232,5 +216,4 @@ if (alignLesson) {
     ),
   );
 }
-organizationLabels();
 inspector();

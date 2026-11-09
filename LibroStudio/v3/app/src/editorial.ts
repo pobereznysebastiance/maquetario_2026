@@ -277,14 +277,16 @@ extend.result(
   },
   'editorial',
 );
-const indexButton = UI.element(
-  UI.tool({ id: 'indexTool', icon: 'toc', label: 'Índice', shortcut: null }),
-);
-indexButton.onclick = () => {
-  finishEditing();
-  showTab('index');
-};
-$('#tools').append(indexButton);
+registerTool({
+  id: 'indexTool',
+  icon: 'index',
+  label: () => LibroI18n.tr('Índice'),
+  shortcut: null,
+  onSelect: () => {
+    finishEditing();
+    showTab('index');
+  },
+});
 globalThis.prepareIndexPrint = function () {
   const original = M.clone(book),
     o = M.text('', 20, 20, book.width - 40, book.height - 40);

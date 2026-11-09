@@ -19,6 +19,7 @@
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 import type { AnyFunction } from './extend.ts';
+import { notifyEditorState } from './react/editor-state.ts';
 
 /** Pestaña visible del inspector. */
 type InspectorView = 'book' | 'page' | 'selection';
@@ -312,17 +313,12 @@ tabs.addEventListener('keydown', (event: KeyboardEvent) => {
 });
 
 // ── Riel izquierdo ──
-const railSwitch = $('.rail-switch'),
-  thumbnails = $('#thumbnails');
+const thumbnails = $('#thumbnails');
 
 function showRailView(name: RailView): void {
   rail = name;
-  for (const button of railSwitch.querySelectorAll<HTMLElement>('[data-rail-view]')) {
-    const on = button.dataset.railView === name;
-    button.classList.toggle('active', on);
-    button.setAttribute('aria-selected', String(on));
-    button.tabIndex = on ? 0 : -1;
-  }
+  // Las pestañas del riel (src/components/rail/Rail.tsx) se redibujan con la vista nueva.
+  notifyEditorState();
   thumbnails.hidden = name !== 'pages';
   // Índice y Capas necesitan más ancho que las miniaturas (nombres de capas y entradas).
   const wide = name !== 'pages';
@@ -342,24 +338,6 @@ globalThis.showRailView = showRailView;
 globalThis.currentRailView = () => rail;
 globalThis.currentInspectorView = () => view;
 globalThis.inspectorTabFor = (name) => (isRailTab(name) ? name : VIEWS[name] || 'book');
-
-for (const button of railSwitch.querySelectorAll<HTMLElement>('[data-rail-view]'))
-  button.addEventListener('click', () => {
-    finishEditing();
-    showRailView(button.dataset.railView as RailView);
-  });
-railSwitch.addEventListener('keydown', (event: KeyboardEvent) => {
-  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-  const list = [
-    ...railSwitch.querySelectorAll<HTMLElement>('[data-rail-view]:not([data-workspace-hidden])'),
-  ];
-  const index = list.findIndex((b) => b.dataset.railView === rail);
-  if (index < 0) return;
-  event.preventDefault();
-  const next = list[(index + (event.key === 'ArrowRight' ? 1 : -1) + list.length) % list.length];
-  showRailView(next.dataset.railView as RailView);
-  next.focus();
-});
 
 // ── Consejo del pie: se puede descartar ──
 $('#inspectorTipClose').addEventListener('click', () => {

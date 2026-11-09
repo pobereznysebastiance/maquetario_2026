@@ -168,20 +168,9 @@ extend.after(
 document.addEventListener('maquetario:language', () => {
   refreshCategoryTabs();
 });
-for (const [selector, name] of [
-  ['[data-tool="folio"]', 'folio'],
-  ['[data-tool="header"]', 'header'],
-  ['[data-tool="grid"]', 'grid'],
-  ['#coverTool', 'book'],
-  ['#indexTool', 'index'],
-  ['#layersTool', 'layers'],
-]) {
-  const previous = $(selector)?.querySelector('svg');
-  if (previous) {
-    previous.insertAdjacentHTML('afterend', icon(name));
-    previous.remove();
-  }
-}
+// Los íconos nuevos (folio, cornisa, grilla, cubierta, índice, capas) los toma el riel al
+// volver a dibujarse (src/components/rail/).
+refreshRail();
 refreshCategoryTabs();
 
 export {};
