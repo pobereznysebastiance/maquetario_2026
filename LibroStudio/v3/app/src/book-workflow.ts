@@ -519,7 +519,7 @@ function bookBuilder(sample = false): void {
     );
   };
   if (dirty) {
-    confirmChanges(run);
+    confirmChanges(run, 'build');
   } else run();
 }
 function preflightBook(): PreflightIssue[] {

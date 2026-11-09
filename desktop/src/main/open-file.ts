@@ -57,7 +57,7 @@ export const OPEN_REQUESTED_SCRIPT = `(() => {
   };
   if (dirty) {
     globalThis.hideWelcome?.();
-    confirmChanges(run);
+    confirmChanges(run, 'open');
   } else run();
 })()`;
 

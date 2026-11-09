@@ -1035,7 +1035,7 @@ modal.confirm = function (
  */
 function settings(isNew = false): Promise<void> | undefined {
   if (isNew && dirty) {
-    confirmChanges(() => settingsNew());
+    confirmChanges(() => settingsNew(), 'new');
     return;
   }
   return settingsNew(isNew);
@@ -1131,34 +1131,27 @@ const applyBookSettings = extensible(
     return true;
   },
 );
-/** Pregunta qué hacer con los cambios sin guardar y, si corresponde, sigue con proceed. */
-function confirmChanges(proceed: () => unknown): void {
-  askChoice({
-    title: bw(
-      'Tu libro tiene cambios sin guardar',
-      'Your book has unsaved changes',
-      'Seu livro tem alterações não salvas',
-    ),
-    message: bw(
-      'Guardalo para retomarlo después, o descartá los cambios desde el último guardado.',
-      'Save it to pick it up later, or discard the changes since the last save.',
-      'Salve para retomar depois ou descarte as alterações desde o último salvamento.',
-    ),
-    actions: [
-      {
-        id: 'discard',
-        label: bw('Descartar cambios', 'Discard changes', 'Descartar alterações'),
-        variant: 'danger',
-      },
-      {
-        id: 'save',
-        label: bw('Guardar y continuar', 'Save and continue', 'Salvar e continuar'),
-        variant: 'primary',
-      },
-    ],
-  }).then(async (choice: string | null) => {
-    if (choice === 'discard') proceed();
-    else if (choice === 'save' && (await saveProject())) setTimeout(proceed, 20);
+/** Para qué se pregunta por los cambios sin guardar: da el verbo de los botones del aviso. */
+type UnsavedIntent = 'close' | 'open' | 'new' | 'build' | 'recover' | 'continue';
+/**
+ * Pregunta qué hacer con los cambios sin guardar (el aviso de app-notices.tsx, el mismo que al
+ * cerrar) y, si corresponde, sigue con proceed: al descartar, en el acto; al guardar, cuando se
+ * guardó. intent da el verbo ("Descartar y abrir", "Guardar y abrir"…).
+ */
+function confirmChanges(proceed: () => unknown, intent: UnsavedIntent = 'continue'): void {
+  // La autoprueba no puede contestar avisos: descarta y sigue, como antes.
+  if (window.maquetarioSelfTest) {
+    proceed();
+    return;
+  }
+  askUnsaved(intent, {
+    save: async () => {
+      const saved = await saveProject();
+      if (saved) setTimeout(proceed, 20);
+      return saved;
+    },
+    discard: () => proceed(),
+    cancel: () => {},
   });
 }
 async function saveProject(): Promise<boolean> {
@@ -1206,7 +1199,7 @@ function openBook(): void {
       toast((error as Error).message, 'error');
     }
   };
-  if (dirty) confirmChanges(run);
+  if (dirty) confirmChanges(run, 'open');
   else run();
 }
 /** Valida el contenido de un proyecto y lo carga como libro actual. */

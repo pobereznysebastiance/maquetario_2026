@@ -1,14 +1,24 @@
-// Avisos al cerrar Maquetario: la confirmación "¿Guardamos tu libro?" (guardar, cerrar sin
-// guardar o cancelar; en React, modal.confirm → openConfirmSheet) y el aviso de que hay una
-// operación en curso.
+// Avisos de cambios sin guardar y de cierre.
 //
-// requestCloseConfirmation y showBusyCloseNotice son globales porque los llama el proceso principal
-// (desktop/src/main/main.ts) al cerrar la ventana; showClosePublicationDialog, por las pruebas
-// (tests/app-notices-tests.js); prepareCloseNoticePreview, por las capturas de estilo.
+// Un solo aviso para "hay cambios sin guardar" (askUnsaved), el mismo al cerrar Maquetario y al
+// abrir, crear, armar o recuperar otro libro: el mismo título y texto, y los mismos botones en el
+// mismo orden. A la izquierda, descartar (destructivo, con el verbo del caso: "Cerrar sin
+// guardar", "Descartar y abrir"…); Cancelar, con el foco; y guardar como acción principal
+// ("Guardar y cerrar", "Guardar y abrir"…). Es una confirmación con contenido (modal.confirm →
+// openConfirmSheet): ids #discardPublication, #sheetCancel y #savePublication, clase
+// close-publication-modal.
+//
+// askUnsaved, showClosePublicationDialog, requestCloseConfirmation y showBusyCloseNotice son
+// globales: confirmChanges (studio.ts) usa askUnsaved; el proceso principal llama a
+// requestCloseConfirmation y showBusyCloseNotice al cerrar la ventana; las pruebas
+// (tests/app-notices-tests.js), a showClosePublicationDialog; las capturas de estilo, a
+// prepareCloseNoticePreview.
+//
+// Los textos van en castellano con su fila en src/i18n.ts y se traducen al dibujar.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
-/** Qué hacer con cada salida del diálogo de cierre. save devuelve si se guardó. */
+/** Qué hacer con cada salida del aviso. save devuelve si se guardó (si no, el aviso sigue abierto). */
 export interface CloseActions {
   save: () => Promise<boolean>;
   discard: () => unknown;
@@ -16,33 +26,41 @@ export interface CloseActions {
 }
 
 declare global {
-  /** Abre el diálogo de cierre con cambios sin guardar. */
+  /** Aviso de cambios sin guardar antes de cerrar, abrir, crear, armar o recuperar. */
+  var askUnsaved: (intent: UnsavedIntent, actions: CloseActions) => void;
+  /** Abre el aviso de cambios sin guardar al cerrar Maquetario. */
   var showClosePublicationDialog: (actions: CloseActions) => void;
   /** Pregunta antes de cerrar y le avisa al proceso principal qué se eligió. */
   var requestCloseConfirmation: () => void;
   /** Aviso de que hay que esperar a que termine una operación antes de cerrar. */
   var showBusyCloseNotice: () => void;
-  /** Muestra el diálogo de cierre sin efectos (para capturas). */
+  /** Muestra el aviso de cierre sin efectos (para capturas). */
   var prepareCloseNoticePreview: () => void;
 }
 
+const tr = (text: string): string => LibroI18n.tr(text);
+
+/** Los verbos de cada caso: [descartar, guardar]. */
+const VERBS: Record<UnsavedIntent, [string, string]> = {
+  close: ['Cerrar sin guardar', 'Guardar y cerrar'],
+  open: ['Descartar y abrir', 'Guardar y abrir'],
+  new: ['Descartar y crear', 'Guardar y crear'],
+  build: ['Descartar y armar', 'Guardar y armar'],
+  recover: ['Descartar y recuperar', 'Guardar y recuperar'],
+  continue: ['Descartar cambios', 'Guardar y continuar'],
+};
+
 /** Contenido del aviso: el libro, qué pasa si se guarda y qué si no. */
-const CloseNotice = () => (
+const UnsavedNotice = ({ closing }: { closing: boolean }) => (
   <div className="close-publication-message">
     <div>
       <h2 className="user-content">{book.title}</h2>
-      <p>
-        {bw(
-          'Tenés cambios sin guardar. Guardalos para retomar tu trabajo tal como está.',
-          'You have unsaved changes. Save them to resume your work exactly as it is.',
-          'Você tem alterações não salvas. Salve para retomar seu trabalho como está.',
-        )}
-      </p>
+      <p>{tr('Tenés cambios sin guardar. Guardalos para retomar tu trabajo tal como está.')}</p>
       <p className="help">
-        {bw(
-          'Si cerrás sin guardar, se descartan los cambios desde el último guardado.',
-          'Closing without saving discards changes since the last save.',
-          'Fechar sem salvar descarta as alterações desde o último salvamento.',
+        {tr(
+          closing
+            ? 'Si cerrás sin guardar, se descartan los cambios desde el último guardado.'
+            : 'Si seguís sin guardar, se descartan los cambios desde el último guardado.',
         )}
       </p>
     </div>
@@ -50,30 +68,31 @@ const CloseNotice = () => (
 );
 
 /**
- * Confirmación de tres salidas: Cerrar sin guardar, Cancelar y Guardar y cerrar (con el foco en
- * Cancelar). Si guardar no se completa (save devuelve false), el aviso queda abierto; si tira un
- * error, se muestra dentro. Cerrar el aviso de cualquier otra forma es cancelar.
+ * El aviso: descartar · Cancelar (con el foco) · guardar. Si guardar no se completa (save devuelve
+ * false), el aviso queda abierto; si tira un error, se muestra dentro. Cerrarlo de cualquier otra
+ * forma es cancelar.
  */
-function showClosePublicationDialog(actions: CloseActions): void {
+function askUnsaved(intent: UnsavedIntent, actions: CloseActions): void {
+  const [discardLabel, saveLabel] = VERBS[intent] || VERBS.continue;
   let settled = false;
   void modal
     .confirm(
-      bw('¿Guardamos tu libro?', 'Save your book?', 'Vamos salvar seu livro?'),
-      <CloseNotice />,
+      '¿Guardamos los cambios de tu libro?',
+      <UnsavedNotice closing={intent === 'close'} />,
       async () => {
         const saved = await actions.save();
         if (!saved) return false;
         settled = true;
         return true;
       },
-      bw('Guardar y cerrar', 'Save and close', 'Salvar e fechar'),
+      saveLabel,
       {
         actionId: 'savePublication',
         variant: 'close-publication-modal',
         extra: {
           id: 'discardPublication',
-          className: 'close-without-save',
-          label: bw('Cerrar sin guardar', 'Close without saving', 'Fechar sem salvar'),
+          className: 'danger close-without-save',
+          label: discardLabel,
           run: () => {
             settled = true;
             actions.discard();
@@ -85,7 +104,8 @@ function showClosePublicationDialog(actions: CloseActions): void {
       if (!settled) actions.cancel();
     });
 }
-globalThis.showClosePublicationDialog = showClosePublicationDialog;
+globalThis.askUnsaved = askUnsaved;
+globalThis.showClosePublicationDialog = (actions) => askUnsaved('close', actions);
 globalThis.requestCloseConfirmation = function () {
   showClosePublicationDialog({
     save: async () => {

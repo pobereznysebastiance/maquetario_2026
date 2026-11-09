@@ -419,6 +419,38 @@ const labels: TranslationRow[] = [
   ['Estás acá', 'You are here', 'Você está aqui'],
   ['Revisar el libro completo', 'Check the whole book', 'Revisar o livro completo'],
   ['Revisar salida PDF', 'Review PDF output', 'Revisar saída PDF'],
+  // ── Aviso de cambios sin guardar (src/app-notices.tsx) ──
+  [
+    '¿Guardamos los cambios de tu libro?',
+    'Save the changes to your book?',
+    'Vamos salvar as alterações do seu livro?',
+  ],
+  [
+    'Tenés cambios sin guardar. Guardalos para retomar tu trabajo tal como está.',
+    'You have unsaved changes. Save them to resume your work exactly as it is.',
+    'Você tem alterações não salvas. Salve para retomar seu trabalho como está.',
+  ],
+  [
+    'Si cerrás sin guardar, se descartan los cambios desde el último guardado.',
+    'Closing without saving discards changes since the last save.',
+    'Fechar sem salvar descarta as alterações desde o último salvamento.',
+  ],
+  [
+    'Si seguís sin guardar, se descartan los cambios desde el último guardado.',
+    'Continuing without saving discards changes since the last save.',
+    'Continuar sem salvar descarta as alterações desde o último salvamento.',
+  ],
+  ['Cerrar sin guardar', 'Close without saving', 'Fechar sem salvar'],
+  ['Guardar y cerrar', 'Save and close', 'Salvar e fechar'],
+  ['Descartar y abrir', 'Discard and open', 'Descartar e abrir'],
+  ['Guardar y abrir', 'Save and open', 'Salvar e abrir'],
+  ['Descartar y crear', 'Discard and create', 'Descartar e criar'],
+  ['Guardar y crear', 'Save and create', 'Salvar e criar'],
+  ['Descartar y armar', 'Discard and build', 'Descartar e montar'],
+  ['Guardar y armar', 'Save and build', 'Salvar e montar'],
+  ['Descartar y recuperar', 'Discard and recover', 'Descartar e recuperar'],
+  ['Guardar y recuperar', 'Save and recover', 'Salvar e recuperar'],
+  ['Descartar cambios', 'Discard changes', 'Descartar alterações'],
   // ── Salida: PDF para imprenta (src/components/output/) ──
   ['PDF para imprenta (PDF/X-4)', 'Print-ready PDF (PDF/X-4)', 'PDF para gráfica (PDF/X-4)'],
   [

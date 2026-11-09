@@ -276,10 +276,11 @@
   gap: var(--space-md);
   padding: 0;
 }
+/* El libro, debajo de la pregunta y más chico que ella (la pregunta es el título del aviso). */
 .close-publication-message h2 {
   margin: 0 0 var(--space-sm);
-  font-size: var(--type-lg);
-  font-weight: var(--weight-medium);
+  font-size: var(--type-body);
+  font-weight: var(--weight-semibold);
   overflow-wrap: anywhere;
 }
 /* La ayuda (.help) conserva su propio margen. */

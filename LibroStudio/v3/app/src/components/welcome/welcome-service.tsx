@@ -148,20 +148,27 @@ function startDemo(): void {
   };
   if (dirty) {
     globalThis.hideWelcome();
-    confirmChanges(go);
+    confirmChanges(go, 'open');
   } else go();
 }
 function recover(): void {
   const copy = recoveryCopy;
   if (!copy) return;
-  globalThis.hideWelcome();
-  book = M.clone(copy);
-  active = spread = 0;
-  selected = null;
-  dirty = true;
-  syncNative();
-  render(true);
-  ensureBookFonts().then(renderPages);
+  const go = () => {
+    globalThis.hideWelcome();
+    book = M.clone(copy);
+    active = spread = 0;
+    selected = null;
+    dirty = true;
+    syncNative();
+    render(true);
+    ensureBookFonts().then(renderPages);
+  };
+  // Con cambios sin guardar en el libro abierto, el mismo aviso que al abrir otro.
+  if (dirty) {
+    globalThis.hideWelcome();
+    confirmChanges(go, 'recover');
+  } else go();
 }
 /** Borra la copia de recuperación de este equipo (después de confirmarlo). */
 async function discardRecovery(): Promise<void> {
@@ -194,7 +201,7 @@ async function openRecentProject(record: RecentProject): Promise<void> {
   };
   if (dirty) {
     globalThis.hideWelcome();
-    confirmChanges(run);
+    confirmChanges(run, 'open');
   } else await run();
 }
 
