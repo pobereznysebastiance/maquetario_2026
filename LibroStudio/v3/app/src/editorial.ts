@@ -1,4 +1,5 @@
-// Editorial: la vista Índice del riel (tabla de contenidos dibujada en el papel y en el PDF), los
+// Editorial: el índice del libro (tabla de contenidos dibujada en el papel y en el PDF; su vista
+// del riel es components/rail/IndexView.tsx), los
 // controles extra de texto (tracking, sangría, espacio entre párrafos, glifos) y las guías
 // individuales del libro. Agrega el botón Índice a la barra de herramientas.
 //
@@ -13,6 +14,8 @@
 import type { BookObject, TocConfig } from './model.ts';
 import { guideForm } from './components/guide/GuideForm.tsx';
 import { tocEntryForm } from './components/toc-entry/TocEntryForm.tsx';
+import { registerRailView } from './components/rail/rail-views.ts';
+import { indexViewFor } from './components/rail/IndexView.tsx';
 
 declare global {
   /** Configuración del índice del libro; la crea con los valores por defecto si no existe. */
@@ -26,91 +29,45 @@ function ensureToc(): TocConfig {
   return book.toc;
 }
 globalThis.ensureToc = ensureToc;
-function tocPanel(): string {
-  const config = M.tocConfig(book),
-    entries = M.tocEntries(book),
-    o = selectObject();
-  return (
-    section(
-      'Índice del libro',
-      'pages',
-      `<p class="help">Generá una tabla de contenidos con secciones, títulos marcados y entradas propias. Los folios se actualizan automáticamente.</p><div class="sub-label" id="tocTitleLabel">Título del índice</div><input id="tocTitle" aria-labelledby="tocTitleLabel" class="field-full" maxlength="250" value="${esc(config.title)}"><label class="check-line"><input id="tocSections" type="checkbox" ${config.includeSections ? 'checked' : ''}> Incluir comienzos de sección</label><label class="check-line"><input id="tocHeadings" type="checkbox" ${config.includeHeadings ? 'checked' : ''}> Incluir títulos marcados</label>${UI.button({ id: 'markHeading', label: o?.heading ? 'Quitar título del índice' : 'Marcar texto como título', wide: true, disabled: !o || o.type !== 'text' || !!o.toc })}${UI.button({ id: 'insertToc', icon: 'plus', label: 'Colocar índice en página activa', variant: 'primary', wide: true })}<p class="help">La tabla se actualiza también en el PDF. Si el contenido no entra, ampliá la caja o reducí el cuerpo.</p>`,
-    ) +
-    section(
-      'Entradas del índice',
-      'pages',
-      `<div class="toc-list">${entries.length ? entries.map((e) => `<div class="toc-entry"><span class="user-content">${esc(e.label)}</span><strong>${esc(e.folio)}</strong>${e.source === 'manual' ? `${UI.iconButton({ icon: 'close', label: 'Quitar entrada', data: { removeEntry: e.id } })}` : ''}</div>`).join('') : '<p class="help">Todavía no hay entradas. Marcá un título o definí una sección.</p>'}</div>${UI.button({ id: 'addTocEntry', icon: 'plus', label: 'Agregar entrada manual', wide: true })}`,
-    )
+/** Coloca el índice en la página activa (o elige el que ya está). */
+function insertToc(): void {
+  commit(() => {
+    let existing = book.pages[active].objects.find((o) => o.toc);
+    if (existing) {
+      selected = existing.id;
+      return;
+    }
+    let m = M.margins(book, active),
+      o = M.text(
+        '',
+        m.left,
+        book.margins.top,
+        book.width - m.left - m.right,
+        book.height - book.margins.top - book.margins.bottom,
+        12,
+      );
+    o.toc = true;
+    book.pages[active].objects.push(o);
+    selected = o.id;
+  }, true);
+}
+/** "Agregar entrada manual": su formulario en una Hoja. */
+function addTocEntry(): void {
+  modal.sheet(
+    'Nueva entrada del índice',
+    tocEntryForm(),
+    () => {
+      const label = $('#entryLabel').value.trim().slice(0, 500),
+        pageId = $('#entryPage').value;
+      if (!label) throw Error(LibroI18n.tr('Escribí el texto de la entrada.'));
+      commit(() => ensureToc().entries.push({ id: M.uid(), label, pageId }), false);
+    },
+    'Agregar entrada',
+    { size: 'sm' },
   );
 }
-// La pestaña Índice dibuja su propio panel; las otras suman controles al final. Va por fuera de
-// toda la cadena del inspector (se registra después de la envoltura de inspector-registry).
-extend.around(
-  'inspector',
-  (draw) =>
-    function () {
-      if (tab !== 'index') {
-        draw();
-        return;
-      }
-      const host = $('#inspectorContent'),
-        scroll = host.scrollTop;
-      host.innerHTML = tocPanel();
-      host.scrollTop = scroll;
-      $('#tocTitle').onchange = (e) =>
-        commit(() => (ensureToc().title = (e.target as HTMLInputElement).value), false);
-      $('#tocSections').onchange = (e) =>
-        commit(() => (ensureToc().includeSections = (e.target as HTMLInputElement).checked), false);
-      $('#tocHeadings').onchange = (e) =>
-        commit(() => (ensureToc().includeHeadings = (e.target as HTMLInputElement).checked), false);
-      $('#markHeading').onclick = () =>
-        commit(() => (selectObject()!.heading = !selectObject()!.heading), false);
-      $('#insertToc').onclick = () =>
-        commit(() => {
-          let existing = book.pages[active].objects.find((o) => o.toc);
-          if (existing) {
-            selected = existing.id;
-            return;
-          }
-          let m = M.margins(book, active),
-            o = M.text(
-              '',
-              m.left,
-              book.margins.top,
-              book.width - m.left - m.right,
-              book.height - book.margins.top - book.margins.bottom,
-              12,
-            );
-          o.toc = true;
-          book.pages[active].objects.push(o);
-          selected = o.id;
-        }, true);
-      $('#addTocEntry').onclick = () => {
-        modal.sheet(
-          'Nueva entrada del índice',
-          tocEntryForm(),
-          () => {
-            const label = $('#entryLabel').value.trim().slice(0, 500),
-              pageId = $('#entryPage').value;
-            if (!label) throw Error(LibroI18n.tr('Escribí el texto de la entrada.'));
-            commit(() => ensureToc().entries.push({ id: M.uid(), label, pageId }), false);
-          },
-          'Agregar entrada',
-          { size: 'sm' },
-        );
-      };
-      $$('[data-remove-entry]').forEach(
-        (el) =>
-          (el.onclick = () =>
-            commit(() => {
-              ensureToc().entries = ensureToc().entries.filter(
-                (e) => e.id !== el.dataset.removeEntry,
-              );
-            }, false)),
-      );
-    },
-  'editorial',
-);
+// La vista Índice del riel es un componente de React (components/rail/IndexView.tsx).
+registerRailView('index', indexViewFor({ ensureToc, insertToc, addEntry: addTocEntry }));
 function renderToc(el: HTMLElement, o: BookObject, px: number): void {
   const content = el.querySelector('.text-content');
   if (!content) return;

@@ -80,11 +80,6 @@ function objectInspector(): void {
   updateSnapButton();
 }
 registerInspectorPanel('object', objectInspector, 'inspector-organization');
-decorateInspector(() => {
-  if (tab === 'object') return;
-  const host = $('#inspectorContent');
-  if (tab === 'layers') host.querySelector('#layerWidth')?.closest('.pair')?.remove();
-}, 'inspector-organization');
 // Los atajos de herramientas buscan su sección por nombre, no por una posición numérica frágil.
 extend.instead(
   'setTool',

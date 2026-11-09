@@ -622,7 +622,8 @@ document.addEventListener('maquetario:language', () => {
   if (!tutorialCard.hidden) showTutorialStep(tutorialIndex);
 });
 decorateInspector(() => {
-  if (selectObject()?.locked && tab !== 'layers')
+  // Capas ya no es una pestaña del inspector (es una vista del riel): no hace falta excluirla.
+  if (selectObject()?.locked)
     $('#inspectorContent')
       .querySelectorAll<HTMLInputElement>(
         '[data-object],[data-extra],[data-align],[data-style],#fontVariant,[data-axis],[data-command="editText"],#glyphPanel',

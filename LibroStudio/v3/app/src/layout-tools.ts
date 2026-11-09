@@ -1,5 +1,6 @@
 // Herramientas de maquetación: imán (ajuste magnético a grilla, márgenes y guías al mover o
-// redimensionar), y capas (panel del inspector para ordenar, ocultar, bloquear y nombrar objetos).
+// redimensionar), y capas (vista del riel para ordenar, ocultar, bloquear y nombrar objetos:
+// components/rail/LayersView.tsx).
 // Los objetos ocultos no se dibujan y los bloqueados no se seleccionan ni se editan.
 //
 // snapLines y snappedFrame son globales porque las usa tests/layout-tools-tests.js;
@@ -10,6 +11,8 @@
 // Fuente TypeScript: se compila a build/layout-tools.js (desktop/scripts/build.mjs).
 import type { Book, BookObject, Rect } from './model.ts';
 import { notifyEditorState } from './react/editor-state.ts';
+import { registerRailView } from './components/rail/rail-views.ts';
+import { layersViewFor } from './components/rail/LayersView.tsx';
 
 /** Posiciones (mm) a las que se ajusta el imán, por eje. */
 export interface SnapLines {
@@ -296,87 +299,8 @@ extend.result(
   },
   'layout-tools',
 );
-let layerDrag: string | null = null;
-function layersPanel(): void {
-  const w = lw(),
-    host = $('#inspectorContent'),
-    objects = book.pages[active].objects;
-  host.innerHTML = section(
-    w.layers + ' · ' + (active + 1),
-    'pages',
-    `<p class="help">${w.hint}</p><div id="layerList">${
-      objects
-        .slice()
-        .reverse()
-        .map(
-          (o) =>
-            `<div class="layer-row ${o.id === selected ? 'active' : ''} ${o.hidden ? 'is-hidden' : ''}" draggable="true" data-layer="${o.id}"><span class="layer-grip">⠿</span><span class="layer-type">${icon(o.type === 'text' ? 'text' : o.type === 'image' ? 'image' : 'frame')}</span><span class="layer-name user-content">${esc(o.name || o.text?.trim().split('\n')[0]?.slice(0, 36) || (o.type === 'frame' ? 'Marco' : 'Objeto'))}</span><button class="icon-btn" data-eye="${o.id}" title="${w.show}">${o.hidden ? '○' : '◉'}</button><button class="icon-btn" data-lock="${o.id}" title="${w.lock}">${o.locked ? '▣' : '□'}</button></div>`,
-        )
-        .join('') || `<p class="help">${w.empty}</p>`
-    }</div>${selectObject() ? `<label class="field-label">${w.rename}</label><input id="layerName" class="field-full" maxlength="100" value="${esc(selectObject()!.name || '')}"><div class="page-action">${UI.button({ id: 'layerUp', label: '↑ ' + w.up })}${UI.button({ id: 'layerDown', label: '↓ ' + w.down })}</div><div class="pair"><div class="control"><label>${w.width} · mm</label><input id="layerWidth" type="number" min="3" max="${book.width}" step=".5" value="${selectObject()!.w.toFixed(1)}"></div><div class="control"><label>${w.height} · mm</label><input id="layerHeight" type="number" min="3" max="${book.height}" step=".5" value="${selectObject()!.h.toFixed(1)}"></div></div>` : ''}`,
-  );
-  host.querySelectorAll<HTMLElement>('[data-layer]').forEach((row) => {
-    row.onclick = (e) => {
-      if ((e.target as Element).closest('button')) return;
-      finishEditing();
-      tool = 'select';
-      selected = row.dataset.layer!;
-      render(false);
-    };
-    row.ondragstart = (e) => {
-      layerDrag = row.dataset.layer!;
-      e.dataTransfer!.setData('text/plain', layerDrag);
-    };
-    row.ondragover = (e) => {
-      e.preventDefault();
-      row.classList.add('drop-target');
-    };
-    row.ondragleave = () => row.classList.remove('drop-target');
-    row.ondrop = (e) => {
-      e.preventDefault();
-      const source = layerDrag,
-        target = row.dataset.layer!;
-      if (source && source !== target) commit(() => reorderLayer(source, target), false);
-      layerDrag = null;
-    };
-  });
-  host.querySelectorAll<HTMLElement>('[data-eye]').forEach(
-    (b) =>
-      (b.onclick = () =>
-        commit(() => {
-          const o = objects.find((o) => o.id === b.dataset.eye)!;
-          o.hidden = !o.hidden;
-        }, false)),
-  );
-  host.querySelectorAll<HTMLElement>('[data-lock]').forEach(
-    (b) =>
-      (b.onclick = () =>
-        commit(() => {
-          const o = objects.find((o) => o.id === b.dataset.lock)!;
-          o.locked = !o.locked;
-        }, false)),
-  );
-  if ($('#layerName')) {
-    $('#layerName').onchange = (e: Event) =>
-      commit(() => (selectObject()!.name = (e.target as HTMLInputElement).value), false);
-    $('#layerUp').onclick = () => moveLayer(1);
-    $('#layerDown').onclick = () => moveLayer(-1);
-    for (const [id, key, limit, pos] of [
-      ['#layerWidth', 'w', 'width', 'x'],
-      ['#layerHeight', 'h', 'height', 'y'],
-    ])
-      $(id).onchange = (e: Event) => {
-        const o = selectObject()!,
-          n = Number((e.target as HTMLInputElement).value);
-        if (o.locked || !Number.isFinite(n) || n < 3 || n > book[limit] - o[pos]) {
-          inspector();
-          return;
-        }
-        commit(() => (o[key] = n), false);
-      };
-  }
-}
-registerInspectorPanel('layers', layersPanel, 'layout-tools');
+// La vista Capas del riel es un componente de React (components/rail/LayersView.tsx).
+registerRailView('layers', layersViewFor({ words: lw, reorder: reorderLayer, move: moveLayer }));
 decorateInspector(() => updateSnapButton(), 'layout-tools');
 function reorderLayer(source: string, target: string): void {
   let list = book.pages[active].objects,

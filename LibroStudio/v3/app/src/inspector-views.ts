@@ -8,9 +8,9 @@
 // Capas e Índice dejan el inspector: son vistas del riel izquierdo, junto a Páginas.
 //
 // Los módulos siguen dibujando por pestaña interna (tab = 'structure', 'design', 'pages', 'text',
-// 'object', 'index', 'layers') con registerInspectorPanel y decorateInspector, como antes. Este
-// módulo arma cada pestaña visible juntando esas pasadas en orden, y dibuja la vista del riel con
-// la misma cadena del inspector. showTab acepta los nombres viejos y los lleva a la vista nueva
+// 'object') con registerInspectorPanel y decorateInspector, como antes. Este módulo arma cada
+// pestaña visible juntando esas pasadas en orden. Las vistas del riel (Índice, Capas) ya no pasan
+// por la cadena: son componentes de React (components/rail/RailViews.tsx). showTab acepta los nombres viejos y los lleva a la vista nueva
 // (showTab('text') → Selección; showTab('index') → Índice del riel). La pestaña elegida se
 // recuerda en localStorage.
 //
@@ -20,6 +20,7 @@
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 import type { AnyFunction } from './extend.ts';
 import { notifyEditorState } from './react/editor-state.ts';
+import { mountRailViews } from './components/rail/RailViews.tsx';
 
 /** Pestaña visible del inspector. */
 type InspectorView = 'book' | 'page' | 'selection';
@@ -99,8 +100,6 @@ migrateSectionStores();
 
 let view: InspectorView = VIEWS[readStore(VIEW_STORE) || ''] || 'book';
 let rail: RailView = 'pages';
-/** Mientras se dibuja la vista del riel, la cadena del inspector dibuja una sola pestaña. */
-let railPass = false;
 
 /** Pasadas (pestañas internas) de la pestaña visible y la que queda en tab al terminar. */
 function planFor(v: InspectorView): { passes: string[]; primary: string } {
@@ -154,7 +153,6 @@ extend(
   'inspector',
   (draw: AnyFunction) =>
     function (this: unknown, ...args: unknown[]) {
-      if (railPass) return draw.apply(this, args);
       const host = $('#inspectorContent'),
         { passes, primary } = planFor(view);
       if (!passes.length) {
@@ -180,41 +178,8 @@ extend(
   'inspector-views',
 );
 
-// ── Vista del riel: la misma cadena, con su pestaña, y el resultado se pasa al riel ──
+// ── Vista del riel: Índice y Capas son componentes de React (components/rail/RailViews.tsx) ──
 const railHost = $('#railView');
-extend.around(
-  'inspector',
-  (draw: AnyFunction) =>
-    function (this: unknown, ...args: unknown[]) {
-      draw.apply(this, args);
-      if (rail === 'pages') return;
-      const host = $('#inspectorContent'),
-        scroll = host.scrollTop,
-        railScroll = railHost.scrollTop,
-        kept = document.createDocumentFragment(),
-        previous = document.createDocumentFragment(),
-        saved = tab;
-      kept.append(...host.childNodes);
-      // Lo anterior del riel sale del documento mientras se dibuja: los ids no se repiten.
-      previous.append(...railHost.childNodes);
-      railPass = true;
-      tab = rail;
-      try {
-        draw.apply(this, args);
-      } finally {
-        railPass = false;
-        tab = saved;
-      }
-      // Sin contenido nuevo (inspector en pausa): queda lo que había.
-      if (host.childNodes.length) railHost.replaceChildren(...host.childNodes);
-      else railHost.replaceChildren(previous);
-      host.replaceChildren(kept);
-      host.scrollTop = scroll;
-      railHost.scrollTop = railScroll;
-      unitsInsideFields(railHost);
-    },
-  'inspector-views',
-);
 
 // ── Pestañas ──
 const tabs = $('.inspector .tabs'),
@@ -296,13 +261,11 @@ function showRailView(name: RailView): void {
   document.body.classList.toggle('rail-wide', wide);
   if (changed) window.dispatchEvent(new Event('resize'));
   railHost.hidden = name === 'pages';
-  if (name === 'pages') {
-    railHost.replaceChildren();
-    return;
-  }
+  if (name === 'pages') return;
   railHost.setAttribute('aria-labelledby', 'railTab-' + name);
   railHost.scrollTop = 0;
-  inspector();
+  // La vista se dibuja sola (React): ya se redibujó con el aviso de arriba.
+  mountRailViews(railHost);
 }
 globalThis.showRailView = showRailView;
 globalThis.currentRailView = () => rail;
