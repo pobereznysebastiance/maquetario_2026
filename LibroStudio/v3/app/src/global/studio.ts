@@ -98,48 +98,13 @@ const esc = (s: unknown): string =>
         >
       )[c],
   );
-let book = M.create(),
-  /** Índice de la página activa. */
-  active = 0,
-  /** Primera página del pliego visible. */
-  spread = 0,
-  /** Id del objeto seleccionado. */
-  selected: string | null = null,
-  /** Herramienta activa ('select', 'hand', 'text'…). */
-  tool = 'select',
-  tab = 'design',
-  zoom = 1,
-  /** Escala efectiva del pliego: px de pantalla por mm. */
-  scale = 1,
-  /** Vista previa (sin guías ni controles). */
-  preview = false,
-  /** Cambios sin guardar. */
-  dirty = false,
-  /** Hay una salida o un paquete en curso. */
-  busy = false,
-  /** Familias tipográficas disponibles (las del sistema, o unas básicas). */
-  fontList = [
-    'Georgia',
-    'Times New Roman',
-    'Garamond',
-    'Arial',
-    'Calibri',
-    'Cambria',
-    'Palatino Linotype',
-    'Verdana',
-  ],
-  /** Si la interfaz corre dentro de la app de escritorio (pasa a true cuando el anfitrión responde a "ready"). */
-  native = false,
-  /** Copias del libro (JSON) para deshacer y rehacer. */
-  undoStack: string[] = [],
-  redoStack: string[] = [],
-  pending = new Map<
+// El estado del editor (book, active, spread, selected, tool, tab, zoom, scale, preview, dirty,
+// busy, fontList, native, undoStack, redoStack, editing, drag) vive en src/state/editor.ts: acá
+// se lo sigue usando por su nombre, que es un accesor sobre ese objeto.
+let pending = new Map<
     string,
     { resolve: (value: unknown) => void; reject: (reason: unknown) => void }
   >(),
-  /** Elemento de texto que se está editando en el lienzo, o null. */
-  editing: HTMLElement | null = null,
-  drag: ObjectDrag | null = null,
   recoveryTimer: number | undefined,
   /** Cajas de texto con texto sobrante en el pliego visible (la cuenta checkOverflow). */
   overflowCount = 0;

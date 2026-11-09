@@ -8,4 +8,5 @@ import '../ui/window-controls.ts';
 import '../extend.ts';
 import '../test-registry.ts';
 import '../model.ts';
+import '../state/editor.ts';
 import '../ui/components.ts';
