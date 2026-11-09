@@ -175,7 +175,7 @@
   border-color: var(--line-default);
 }
 .page-priority .tab.active::after {
-  background: var(--accent-hover);
+  background: var(--action-hover);
 }
 
 /* Alineación de párrafo y de objetos. */
@@ -189,7 +189,7 @@
 .alignment button.active,
 .paragraph-align button.active,
 .segmented button.active {
-  border-color: var(--accent);
+  border-color: var(--action);
   background: var(--surface-selected-strong);
   color: var(--text-primary);
 }
@@ -203,11 +203,11 @@
   background: var(--surface-control);
 }
 .layer-row.active {
-  border-color: var(--accent);
+  border-color: var(--action);
   background: var(--surface-selected);
 }
 .layer-row.drop-target {
-  border-color: var(--accent);
+  border-color: var(--action);
 }
 .layer-row .icon-btn:hover {
   color: var(--text-primary);
@@ -576,7 +576,7 @@
   color: var(--text-accent);
 }
 #moreCategories.active {
-  box-shadow: inset 0 calc(var(--space-3xs) * -1) 0 var(--accent);
+  box-shadow: inset 0 calc(var(--space-3xs) * -1) 0 var(--action);
 }
 #categoryMenu {
   --category-menu-min: 170px;

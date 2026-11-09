@@ -11,7 +11,7 @@ Maquetario y Motiova usan **los mismos nombres de tokens semánticos con valores
 
 ## En Maquetario
 
-`contract.css` se carga en `ui/index.css`, en la capa `tokens`, después de `semantic.css`. Declara los nombres comunes como **alias** de los tokens propios (`--background: var(--surface-window)`, `--primary: var(--accent)`…). Así no cambia nada visualmente y los valores siguen viviendo en `semantic.css`. Los nombres del contrato que ya existen en Maquetario (`--material-*`, `--elevation-*`, `--type-*`, `--status-*`, `--radius-sm/md/lg`) no se repiten.
+`contract.css` se carga en `ui/index.css`, en la capa `tokens`, después de `semantic.css`. Declara los nombres comunes como **alias** de los tokens propios (`--background: var(--surface-window)`, `--primary: var(--action)`, `--accent: var(--surface-control-hover)`…). Así no cambia nada visualmente y los valores siguen viviendo en `semantic.css`. Los nombres del contrato que ya existen en Maquetario (`--material-*`, `--elevation-*`, `--type-*`, `--status-*`, `--radius-sm/md/lg`) no se repiten.
 
 ```bash
 npm run build --workspace @maquetario/tokens   # regenera contract.css desde tokens.json
@@ -31,16 +31,16 @@ Los componentes nuevos (React + Radix, D1) pueden usar los nombres del contrato 
 
 | Grupo | Nombres | Origen |
 |---|---|---|
-| color | `background`, `foreground`, `card`, `card-foreground`, `popover`, `popover-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `muted`, `muted-foreground`, `accent`*, `accent-foreground`, `destructive`, `border`, `input`, `ring`, `highlight`, `highlight-foreground` | shadcn / Motiova |
+| color | `background`, `foreground`, `card`, `card-foreground`, `popover`, `popover-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground`, `destructive`, `border`, `input`, `ring`, `highlight`, `highlight-foreground` | shadcn / Motiova |
 | color | `sidebar`, `sidebar-foreground`, `sidebar-primary`, `sidebar-primary-foreground`, `sidebar-accent`, `sidebar-accent-foreground`, `sidebar-border`, `sidebar-ring` | shadcn / Motiova |
 | font | `font-sans`, `font-heading` | Motiova (`@theme`) |
 | radius | `radius` (base), `radius-sm`, `radius-md`, `radius-lg` | Motiova (`--radius` y derivados) |
-| material | `material-sidebar`, `material-bar`, `material-popover`, `material-sheet`, `material-scrim`, `material-blur-sidebar`, `material-blur-bar`, `material-blur-popover`, `material-edge` | Maquetario |
+| material | `material-sidebar`, `material-bar`, `material-popover`, `material-sheet`, `material-scrim`, `material-blur-bar`, `material-edge` | Maquetario. "Glass" (D9): el material del sistema sólo en la ventana y las barras; paneles, menús y diálogos opacos |
 | elevation | `elevation-1`, `elevation-2`, `elevation-3` | Maquetario |
 | type | `type-caption2`, `type-footnote`, `type-callout`, `type-body`, `type-headline`, `type-title3`, `type-title2`, `type-title1`, `type-large-title` | Maquetario (roles de macOS) |
 | status | `status-{error,warning,success,info}` y sus variantes `-surface` y `-line` | Maquetario |
 
-\* `accent` está en el contrato pero Maquetario no lo emite: en Maquetario `--accent` es la acción principal (lo que shadcn llama `primary`), y en shadcn `accent` es el fondo sutil al pasar el mouse. Emitirlo cambiaría 36 usos. Ver "Qué acordar".
+`accent` tiene el sentido de shadcn: el fondo sutil al pasar el mouse o resaltar (en Maquetario, `--surface-control-hover`). La acción principal de Maquetario se llama `--action` (en el contrato, `primary`). Hasta el 09-nov se llamaba `--accent` y chocaba con este nombre.
 
 **Tiene Motiova, no el contrato:** `chart-1…5` (Maquetario no tiene gráficos), los colores crudos de marca (`brand-*`), los radios `radius-xl…4xl` y el modo Terminal.
 **Tiene el contrato, no Motiova:** `material-*`, `elevation-*`, `type-*` y `status-*` (Motiova sólo tiene `destructive`).
@@ -75,7 +75,7 @@ Con eso, una clase como `bg-material-sheet`, `text-status-warning`, `shadow-elev
 
 ## Qué hay que acordar con el equipo de Motiova
 
-1. **`accent`.** Maquetario tiene que renombrar su `--accent` (acción) a otro nombre, por ejemplo `--action`, para liberar `accent` con el sentido de shadcn. Es un cambio mecánico de 36 usos en `ui/`.
+1. **`accent`: resuelto de nuestro lado.** Maquetario renombró su acción a `--action` (y `--action-hover`, `--action-pressed`) y emite `accent` con el sentido de shadcn. Falta que Motiova confirme que su `accent` es el mismo: el fondo sutil de menús y filas.
 2. **Radios.** Motiova deriva `sm`/`md` del radio base con `calc()` (×0,6 y ×0,8). Maquetario los fija (4, 6 y 8 px: ×0,5 y ×0,75). Hay que acordar si el contrato fija los tres valores o sólo la base.
 3. **Modos.** Maquetario es sólo oscuro; Motiova tiene claro, oscuro y Terminal. DTCG no tiene modos: hay que elegir entre un archivo por modo o `$extensions` por modo.
 4. **Formato de los valores.** Acá van como texto CSS (`#13242b`, `rgb(… / 0.62)`, `0 6px 16px …`). Es la forma de los borradores de DTCG, y la entiende cualquier herramienta que acepte CSS. La versión estable de DTCG (2025) pide objetos para `color`, `dimension` y `shadow`. Si Motiova usa Style Dictionary, conviene acordar cuál de las dos.

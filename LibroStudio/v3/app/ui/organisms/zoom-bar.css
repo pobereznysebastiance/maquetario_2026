@@ -22,7 +22,7 @@
 .zoom input[type='range'] {
   --zoom-slider-width: 96px;
   width: var(--zoom-slider-width);
-  accent-color: var(--accent);
+  accent-color: var(--action);
 }
 
 .zoom .icon-btn {

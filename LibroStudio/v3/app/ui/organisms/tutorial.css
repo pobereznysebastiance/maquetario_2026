@@ -4,8 +4,7 @@
   border: var(--border-width) solid var(--line-default);
   border-radius: var(--radius-lg);
   background: var(--material-popover);
-  backdrop-filter: var(--material-blur-popover);
-  box-shadow: var(--elevation-3);
+  box-shadow: var(--shadow-sheet);
   overflow: hidden;
 }
 .tutorial-card-head {
@@ -22,7 +21,7 @@
   background: var(--line-subtle);
 }
 .tutorial-progress span {
-  background: var(--accent);
+  background: var(--action);
 }
 .tutorial-body h2,
 .tutorial-card h2 {
@@ -150,7 +149,7 @@
 }
 #tutorialSpotlight rect {
   fill: none;
-  stroke: var(--accent-hover);
+  stroke: var(--action-hover);
   stroke-width: var(--focus-ring-width);
 }
 

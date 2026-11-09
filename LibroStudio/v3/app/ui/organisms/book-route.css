@@ -100,7 +100,7 @@
   box-shadow: var(--material-edge);
 }
 .book-route button:hover .route-step-number {
-  background: var(--accent);
+  background: var(--action);
 }
 .workflow-collapsed .book-route {
   display: none !important;

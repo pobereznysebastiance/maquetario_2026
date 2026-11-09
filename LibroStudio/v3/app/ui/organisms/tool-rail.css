@@ -39,14 +39,14 @@
   left: 0;
   width: var(--space-3xs);
   border-radius: var(--radius-pill);
-  background: var(--accent);
+  background: var(--action);
 }
 .tool .icon {
   width: var(--icon-md);
   height: var(--icon-md);
 }
 .tool.active .icon {
-  color: var(--accent);
+  color: var(--action);
 }
 .tool .shortcut {
   margin-left: auto;

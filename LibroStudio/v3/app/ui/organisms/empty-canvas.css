@@ -11,7 +11,7 @@
 #emptyCanvas .icon {
   width: var(--icon-xl);
   height: var(--icon-xl);
-  color: var(--accent);
+  color: var(--action);
   stroke-width: var(--icon-stroke-display);
 }
 #emptyCanvas h2 {

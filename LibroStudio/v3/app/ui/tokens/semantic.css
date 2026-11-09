@@ -20,21 +20,21 @@
   --surface-selected: rgb(54 206 185 / 0.16);
   --surface-selected-strong: rgb(54 206 185 / 0.26);
 
-  /* ── Materiales (vidrio) ─────────────────────────────────── */
-  /* Cada material tiene una función. Nunca vidrio sobre vidrio, nunca detrás de la página. */
-  --material-sidebar: rgb(19 36 43 / 0.74);
-  --material-bar: rgb(23 39 45 / 0.62);
-  --material-popover: rgb(17 31 37 / 0.95);
+  /* ── Materiales ──────────────────────────────────────────── */
+  /* El material del sistema (Mica / vibrancy) se ve sólo en el fondo de la ventana y en las barras.
+     Paneles, menús y diálogos son opacos: detrás no hay nada propio que desenfocar, y opacos se
+     leen mejor con brillo bajo. El vidrio se nota en el canto de luz y en la elevación. */
+  --material-sidebar: rgb(19 36 43 / 0.94); /* casi opaco, sin desenfoque */
+  --material-bar: rgb(23 39 45 / 0.62); /* deja ver el material del sistema */
+  --material-popover: rgb(17 31 37);
   --material-sheet: var(--petrol-800);
   --material-scrim: rgb(5 12 15 / 0.56);
-  --material-blur-sidebar: blur(28px) saturate(150%);
   --material-blur-bar: blur(20px) saturate(140%);
-  --material-blur-popover: blur(16px) saturate(130%);
-  /* Luz de borde superior: el canto del vidrio. */
+  /* Luz de borde superior: el canto del vidrio (barras, paneles, menús y diálogos). */
+  --material-edge: inset 0 1px 0 rgb(255 255 255 / 0.07);
   /* Hundido de campos e interruptor; oscurecido de la máscara del tutorial. */
   --shadow-field-inset: inset 0 1px 3px rgb(0 0 0 / 0.2);
   --material-spotlight: rgb(7 20 29 / 0.8);
-  --material-edge: inset 0 1px 0 rgb(255 255 255 / 0.07);
 
   /* ── Líneas ──────────────────────────────────────────────── */
   --line-subtle: rgb(214 240 234 / 0.08);
@@ -54,9 +54,9 @@
   --text-mark: var(--gold-400);
 
   /* ── Acciones ────────────────────────────────────────────── */
-  --accent: var(--teal-500);
-  --accent-hover: var(--teal-400);
-  --accent-pressed: var(--teal-600);
+  --action: var(--teal-500);
+  --action-hover: var(--teal-400);
+  --action-pressed: var(--teal-600);
   /* ── Estados (derivados de la marca, no genéricos) ──────── */
   /* Error: ladrillo cálido. Advertencia: el dorado de la marca. Éxito: salvia. Información: verde agua claro. */
   --status-error: #e5806c;
@@ -139,6 +139,9 @@
   --elevation-2: 0 6px 16px -6px rgb(0 0 0 / 0.42), 0 1px 2px rgb(0 0 0 / 0.22);
   --elevation-3: 0 22px 56px -16px rgb(0 0 0 / 0.58), 0 2px 8px rgb(0 0 0 / 0.26);
   --elevation-page: 0 14px 40px -10px rgb(0 0 0 / 0.55), 0 1px 3px rgb(0 0 0 / 0.35);
+  /* Superficies que flotan: canto de luz más su elevación. */
+  --shadow-popover: var(--material-edge), var(--elevation-2);
+  --shadow-sheet: var(--material-edge), var(--elevation-3);
 
   /* ── Carga ───────────────────────────────────────────────── */
   --skeleton-base: rgb(244 245 238 / 0.06);

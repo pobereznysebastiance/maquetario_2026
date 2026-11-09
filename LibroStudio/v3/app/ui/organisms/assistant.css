@@ -31,12 +31,12 @@
 /* Revisión automática: la acción principal de la columna. */
 .btn.assistant-run {
   width: 100%;
-  background: var(--accent);
+  background: var(--action);
   border-color: transparent;
   color: var(--text-on-accent);
 }
 .btn.assistant-run:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: var(--action-hover);
   color: var(--text-on-accent);
 }
 

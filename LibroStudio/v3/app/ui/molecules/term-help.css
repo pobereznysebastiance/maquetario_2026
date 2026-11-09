@@ -17,7 +17,7 @@
 }
 .term-help:hover {
   background: var(--surface-control);
-  color: var(--accent);
+  color: var(--action);
 }
 .term-help .icon {
   width: var(--icon-sm);

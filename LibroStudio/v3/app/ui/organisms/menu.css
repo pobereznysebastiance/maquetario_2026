@@ -1,5 +1,5 @@
 /* Organismo: menú desplegable (popover nativo). Se cierra solo al hacer clic afuera o con Escape.
-   Material de menú: el más opaco, para leerse sobre cualquier fondo. */
+   Material de menú: opaco, para leerse sobre cualquier fondo; canto de luz y elevación. */
 .menu {
   --menu-width: 260px;
   width: var(--menu-width);
@@ -8,9 +8,8 @@
   border: var(--border-width) solid var(--line-default);
   border-radius: var(--radius-md);
   background: var(--material-popover);
-  backdrop-filter: var(--material-blur-popover);
   color: var(--text-primary);
-  box-shadow: var(--elevation-2);
+  box-shadow: var(--shadow-popover);
 }
 .menu-separator {
   height: var(--border-width);

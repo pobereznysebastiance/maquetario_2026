@@ -34,8 +34,8 @@
   opacity: var(--opacity-disabled);
 }
 .section.drop-before {
-  box-shadow: inset 0 var(--space-3xs) 0 var(--accent);
+  box-shadow: inset 0 var(--space-3xs) 0 var(--action);
 }
 .section.drop-after {
-  box-shadow: inset 0 calc(-1 * var(--space-3xs)) 0 var(--accent);
+  box-shadow: inset 0 calc(-1 * var(--space-3xs)) 0 var(--action);
 }

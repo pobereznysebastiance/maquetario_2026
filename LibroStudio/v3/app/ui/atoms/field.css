@@ -28,7 +28,7 @@
 
 :is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog)
   :is(input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']), select, textarea):focus-visible {
-  border-color: var(--accent);
+  border-color: var(--action);
   outline-offset: 0;
 }
 
@@ -52,7 +52,7 @@
 
 /* Casillas y deslizadores toman el color de acción. */
 :is(input[type='checkbox'], input[type='radio'], input[type='range']) {
-  accent-color: var(--accent);
+  accent-color: var(--action);
 }
 
 /* Lista desplegable propia (selector personalizable de Chromium): mismo comportamiento,
@@ -77,7 +77,7 @@ select::picker(select) {
   border-radius: var(--radius-md);
   background: var(--material-popover);
   color: var(--text-primary);
-  box-shadow: var(--elevation-2);
+  box-shadow: var(--shadow-popover);
 }
 select option {
   padding: var(--space-xs) var(--space-sm);
@@ -94,7 +94,7 @@ select option:checked {
   font-weight: var(--weight-semibold);
 }
 select option::checkmark {
-  color: var(--accent);
+  color: var(--action);
 }
 
 /* Campos fuera de los paneles (bienvenida, diálogos sueltos): mismo hundido y texto. */
@@ -106,7 +106,7 @@ textarea {
   color: var(--text-primary);
 }
 :is(input:not([type='range'], [type='checkbox'], [type='radio'], [type='file'], [type='color']), select, textarea):focus {
-  border-color: var(--accent-hover);
+  border-color: var(--action-hover);
   box-shadow: 0 0 0 var(--focus-ring-width) var(--surface-selected);
 }
 select option {
@@ -114,7 +114,7 @@ select option {
 }
 /* Interruptor encendido: el color de acción, liso. */
 .switch input:checked + span {
-  background: var(--accent);
+  background: var(--action);
 }
 input:not([type='range'], [type='checkbox'], [type='file']),
 select,

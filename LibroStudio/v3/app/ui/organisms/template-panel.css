@@ -21,7 +21,7 @@
   border-radius: var(--radius-sm);
 }
 .template.active .template-art {
-  border-color: var(--accent);
+  border-color: var(--action);
   background: var(--surface-selected);
   box-shadow: none;
 }
@@ -31,7 +31,6 @@
 
 .page-priority .template-panel {
   border-color: var(--line-default);
-  backdrop-filter: var(--material-blur-bar);
 }
 
 /* ── Migrado de readability.css ── */
@@ -59,7 +58,7 @@
   box-shadow: var(--elevation-1);
 }
 .grid-mini-page i {
-  border: var(--border-hairline) solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border: var(--border-hairline) solid color-mix(in srgb, var(--action) 45%, transparent);
 }
 .template-dimensions {
   color: var(--text-tertiary);

@@ -20,7 +20,7 @@
 }
 .action-item > .icon {
   margin-top: var(--space-3xs);
-  color: var(--accent);
+  color: var(--action);
 }
 .action-item-text {
   display: flex;

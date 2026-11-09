@@ -27,7 +27,7 @@
 }
 .format-option.active,
 .export-choice:has(input:checked) {
-  border: var(--border-width) solid var(--accent);
+  border: var(--border-width) solid var(--action);
   background: var(--surface-selected);
   color: var(--text-primary);
   box-shadow: none;
@@ -72,7 +72,7 @@
   background: var(--surface-selected);
 }
 .cover-tabs button:hover {
-  border-color: var(--accent);
+  border-color: var(--action);
 }
 
 /* Glifos de la tipografía. */
@@ -81,7 +81,7 @@
   background: var(--surface-control);
 }
 .glyph-grid button:hover {
-  background: var(--accent);
+  background: var(--action);
   color: var(--text-on-accent);
 }
 
@@ -141,7 +141,7 @@
   text-align: center;
 }
 .shape-choice:hover {
-  border-color: var(--accent-hover);
+  border-color: var(--action-hover);
   background: var(--surface-selected);
 }
 .shape-choice > div {
@@ -650,7 +650,7 @@
   font-size: var(--type-caption2);
 }
 #fontGlyphGrid button:is(:hover, .active) {
-  border-color: var(--accent);
+  border-color: var(--action);
   background: var(--surface-selected);
 }
 .glyph-pages {
@@ -875,7 +875,7 @@
   text-align: left;
 }
 .grid-card:is(:hover, .active) {
-  border-color: var(--accent);
+  border-color: var(--action);
   background: var(--surface-selected);
 }
 .grid-card .template-art {

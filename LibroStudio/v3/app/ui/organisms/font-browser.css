@@ -226,7 +226,7 @@
   width: 100%;
   height: var(--font-axis-track);
   margin: var(--space-sm) 0 var(--space-2xs);
-  accent-color: var(--accent);
+  accent-color: var(--action);
 }
 .font-specimen {
   --font-specimen-size: 24px;

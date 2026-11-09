@@ -13,7 +13,7 @@ dialog {
   border-radius: var(--radius-lg);
   background: var(--material-sheet);
   color: var(--text-primary);
-  box-shadow: var(--elevation-3);
+  box-shadow: var(--shadow-sheet);
   backdrop-filter: none;
 }
 /* Hoja (y cualquier diálogo sin tipo): apaisada; el contenido largo se desplaza dentro. */

@@ -56,7 +56,7 @@
   box-shadow: var(--material-edge), var(--elevation-3);
 }
 .art-swatches i {
-  background: var(--accent);
+  background: var(--action);
 }
 .art-swatches i:nth-child(2) {
   background: var(--text-mark);

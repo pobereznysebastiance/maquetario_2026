@@ -1,10 +1,10 @@
 /* Organismo: paneles laterales (herramientas y páginas a la izquierda, inspector a la derecha)
-   y marco del centro. Material de barra lateral: vidrio denso, legible con brillo bajo. */
+   y marco del centro. Paneles casi opacos, sin desenfoque (no hay nada propio detrás):
+   legibles con brillo bajo. El vidrio se nota sólo en el canto de luz de arriba. */
 .leftpanel,
 .inspector {
   background: var(--material-sidebar);
-  backdrop-filter: var(--material-blur-sidebar);
-  box-shadow: none;
+  box-shadow: var(--material-edge);
 }
 
 /* El centro no es vidrio: enmarca la mesa de trabajo, que es sólida. */
@@ -38,7 +38,7 @@
   background: transparent;
   color: var(--text-primary);
   font-weight: var(--weight-semibold);
-  box-shadow: inset 0 calc(-1 * var(--space-3xs)) 0 var(--accent);
+  box-shadow: inset 0 calc(-1 * var(--space-3xs)) 0 var(--action);
 }
 .inspector .tab .icon {
   width: var(--icon-sm);
@@ -46,7 +46,7 @@
   color: var(--text-tertiary);
 }
 .inspector .tab.active .icon {
-  color: var(--accent);
+  color: var(--action);
 }
 
 .left-bottom .version {

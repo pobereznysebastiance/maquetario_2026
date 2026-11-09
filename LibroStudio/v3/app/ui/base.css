@@ -28,7 +28,7 @@ body {
 }
 
 * {
-  caret-color: var(--accent);
+  caret-color: var(--action);
   scrollbar-color: var(--line-strong) transparent;
 }
 

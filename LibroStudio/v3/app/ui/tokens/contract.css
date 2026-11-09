@@ -3,8 +3,7 @@
    no se edita a mano. Los nombres comunes apuntan a los tokens de Maquetario (semantic.css);
    los valores siguen viviendo allí.
    Los nombres del contrato que ya son de Maquetario (material-*, elevation-*, type-*, status-*,
-   radius-*) no se repiten acá.
-   Sin emitir por choque de nombres: --accent (en Maquetario --accent es la acción principal; hay que renombrarlo antes). */
+   radius-*) no se repiten acá. */
 :root {
   --background: var(--surface-window);
   --foreground: var(--text-primary);
@@ -12,12 +11,13 @@
   --card-foreground: var(--text-primary);
   --popover: var(--material-popover);
   --popover-foreground: var(--text-primary);
-  --primary: var(--accent);
+  --primary: var(--action);
   --primary-foreground: var(--text-on-accent);
   --secondary: var(--surface-control);
   --secondary-foreground: var(--text-primary);
   --muted: var(--surface-field);
   --muted-foreground: var(--text-secondary);
+  --accent: var(--surface-control-hover);
   --accent-foreground: var(--text-primary);
   --destructive: var(--danger);
   --border: var(--line-default);
@@ -27,7 +27,7 @@
   --highlight-foreground: var(--text-on-accent);
   --sidebar: var(--material-sidebar);
   --sidebar-foreground: var(--text-primary);
-  --sidebar-primary: var(--accent);
+  --sidebar-primary: var(--action);
   --sidebar-primary-foreground: var(--text-on-accent);
   --sidebar-accent: var(--surface-selected);
   --sidebar-accent-foreground: var(--text-primary);

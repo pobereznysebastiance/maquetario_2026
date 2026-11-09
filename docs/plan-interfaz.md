@@ -33,7 +33,7 @@ La causa es estructural: cada función nueva trajo su hoja de estilos y pisó a 
 LibroStudio/v3/app/ui/
   tokens/
     primitives.css     Rampas de color (petróleo, verde agua, dorado, neutros), escalas crudas.
-    semantic.css       Lo que usan los componentes: --surface-*, --text-*, --accent-*, --focus,
+    semantic.css       Lo que usan los componentes: --surface-*, --text-*, --action-*, --focus,
                        --danger, --material-*, --elevation-*, --radius-*, --space-*, --type-*, --motion-*.
   base.css             Reset, tipografía de interfaz, foco visible, barras de desplazamiento.
   atoms/               button, icon-button, input, select, checkbox, switch, slider,
@@ -58,12 +58,12 @@ LibroStudio/v3/app/ui/
 | Material | Dónde | Comportamiento |
 |---|---|---|
 | `--material-window` | Fondo de la ventana | En macOS, translucidez real del sistema (`vibrancy`); en Windows 11, Mica (`backgroundMaterial`). Sin soporte, color petróleo sólido. |
-| `--material-sidebar` | Herramientas, páginas, inspector | Vidrio denso, poco desenfoque, legible con brillo bajo. |
-| `--material-bar` | Barra superior y de estado | Vidrio más liviano, borde inferior de luz de 1 px. |
-| `--material-popover` | Menús, tooltips, selectores | El más opaco: tiene que leerse sobre cualquier fondo. |
-| `--material-sheet` | Diálogos | Opaco con velo detrás; nunca vidrio sobre vidrio. |
+| `--material-sidebar` | Herramientas, páginas, inspector | Casi opaco (94 %), sin desenfoque: detrás no hay nada propio. Canto de luz arriba. |
+| `--material-bar` | Barra superior y de estado | El único vidrio: deja ver el material del sistema (la barra superior con desenfoque). Canto de luz de 1 px. |
+| `--material-popover` | Menús, tooltips, selectores | Opaco, con canto de luz y elevación (`--shadow-popover`). |
+| `--material-sheet` | Diálogos | Opaco con velo detrás, canto de luz y elevación (`--shadow-sheet`). |
 
-El lienzo (la mesa de trabajo alrededor de la página) es sólido y neutro, para que el color del libro se juzgue bien. El vidrio nunca queda detrás de la página.
+"Glass" (D9): el material del sistema sólo en el fondo de la ventana y las barras; el vidrio se nota en el canto de luz (`--material-edge`) y en la elevación, no en tintes ni degradés. La acción principal se llama `--action` (`--accent` es el nombre de shadcn para el fondo sutil al pasar, en el contrato con Motiova). El lienzo (la mesa de trabajo alrededor de la página) es sólido y neutro, para que el color del libro se juzgue bien. El vidrio nunca queda detrás de la página.
 
 ## Diálogos: tres tipos (D4)
 
