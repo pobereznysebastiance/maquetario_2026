@@ -17,6 +17,7 @@ desktop/                   Programa de escritorio en Electron + TypeScript (Wind
   src/main/selftest.ts     Autoprueba de regresión (npm run self-test).
   src/preload/preload.ts   Puente mínimo: sólo mensajes, sin acceso a Node desde la interfaz.
 packages/license/          Formato y verificación de licencias firmadas (Ed25519). Lo comparten app, launcher y backend.
+packages/compose/          Prototipo del motor de composición (HarfBuzz WASM + Knuth-Plass). Todavía no lo usa la app.
 Maquetario/Servicio-aula/  Servicio opcional del asistente con IA (se reemplaza por Motiova en la etapa 4).
 ```
 
@@ -230,7 +231,7 @@ El inspector muestra tres pestañas: **Libro**, **Página** y **Selección**. Lo
 1. **Electron con la interfaz actual** (cerrada el 08-nov). Funciona en macOS y Linux además de Windows; la versión C#/WebView2 (`Host*.cs`, `Build*.ps1`, `Maquetario.iss`) y su rama en la interfaz se retiraron. Pendiente, porque depende de Motiova o de la venta: URLs y clave pública de producción, `licenseMode: "enforce"` y la firma de código (ver "Licencias y conexión con Motiova").
 2. **TypeScript + módulos** (cerrada el 08-nov, salvo la parte B): pruebas fuera del build de producción (`app/tests/`), prettier, reemplazos de funciones globales por `extend`, toda la interfaz en `.ts` estricto con dos puntos de entrada (`src/entries/`) y migraciones del `.mqt` (ver "Formato del proyecto y migraciones"). Queda la **parte B** (cambiar los globales por `import` reales: objeto de estado y un `extend` que no dependa de `window`), que va con la etapa 3. Detalle en `docs/proximos-pasos.md` → "Etapa 2".
 3. **Interfaz con componentes** (atomic design, React + Radix, tokens de diseño compartidos con Motiova), revisada con impeccable. Dirección visual: "glass" de macOS, sin que parezca un panel genérico de IA. Decisiones tomadas el 08-nov: `docs/INTERFAZ_08-nov_decisiones-etapa3.md` (Radix sin estilos + CSS propio; inspector en 3 pestañas; tres tipos de diálogo; tokens con los nombres de Motiova).
-4. **Motor de composición propio** (HarfBuzz/WASM, justificación Knuth-Plass) y PDF de imprenta (CMYK, PDF/X, TrimBox/BleedBox exactas).
+4. **Motor de composición propio** (HarfBuzz/WASM, justificación Knuth-Plass) y PDF de imprenta (CMYK, PDF/X, TrimBox/BleedBox exactas). Prototipo del motor y plan para conectarlo: `docs/MOTOR_09-nov_composicion.md`.
 
 ## Problemas conocidos
 

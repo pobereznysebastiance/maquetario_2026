@@ -1,0 +1,21 @@
+{
+  "name": "@maquetario/compose",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Prototipo del motor de composición (etapa 4): conformado con HarfBuzz (WASM) y cortes de línea Knuth-Plass. Todavía no lo usa la app.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.ts\"",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "harfbuzzjs": "1.6.4"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
+}
