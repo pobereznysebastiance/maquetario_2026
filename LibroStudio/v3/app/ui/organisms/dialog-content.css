@@ -753,9 +753,11 @@ dialog.output-modal .dialog-frame .dialog-body {
 /* Pauta por rol (editorial-rules.tsx): campos chicos dentro de las celdas, dobles páginas con las
    zonas activas, páginas de las excepciones y la leyenda de la cátedra. */
 .guide-table {
-  --guide-field-min: 72px;
+  /* Ancho para que el valor elegido entre con su flecha ("Justificada", "Normal · auto"). */
+  --guide-field-min: 124px;
+  --guide-font-min: 140px;
   --guide-number: 64px;
-  --guide-spread-width: 56px;
+  --guide-spread-width: 44px;
 }
 .guide-table td {
   vertical-align: top;
@@ -763,6 +765,9 @@ dialog.output-modal .dialog-frame .dialog-body {
 .guide-table :is(select, input[type='text']) {
   width: 100%;
   min-width: var(--guide-field-min);
+}
+.guide-table [data-pauta='font'] {
+  min-width: var(--guide-font-min);
 }
 .guide-table td > select + .guide-unit,
 .guide-table .guide-unit + select {
@@ -798,13 +803,7 @@ dialog.output-modal .dialog-frame .dialog-body {
 }
 .guide-page {
   margin-right: var(--space-2xs);
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--text-accent);
   font-size: var(--type-xs);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
 }
 .guide-unassigned ul {
   margin: var(--space-xs) 0 0;

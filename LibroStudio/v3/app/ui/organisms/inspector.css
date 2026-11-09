@@ -53,12 +53,20 @@
 /* Fila: etiqueta a la izquierda, control a la derecha, alto de control constante. */
 #inspectorContent .field-row {
   display: grid;
-  /* La etiqueta tiene más lugar que el control: las etiquetas largas no se parten en tres líneas. */
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  /* El control tiene más lugar que la etiqueta: con 1,25 a 1 a favor de la etiqueta, diez selectores
+     mostraban su valor cortado ("Todas las páginas", "Margen superior"…). Con 1 a 1,35 ninguna
+     etiqueta pasa de dos líneas (medido en 1366 × 768 y 1920 × 1080). */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
   align-items: center;
   gap: var(--space-md);
   min-height: var(--control-md);
   margin: 0 0 var(--space-xs);
+}
+/* Fila apilada: la etiqueta arriba y el control a todo el ancho, para valores que son nombres
+   (rol del texto, estilo de párrafo) y no entran en la columna del control. */
+#inspectorContent .field-row.stacked {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2xs);
 }
 /* La columna de la fila define el ancho: sin topes heredados (legacy limitaba la etiqueta al 45 %). */
 #inspectorContent .field-row > label {
@@ -676,10 +684,12 @@
   color: var(--text-accent);
   font-weight: var(--weight-medium);
 }
+/* Quitar una entrada: el tamaño mínimo de control (a 18 px costaba apuntarle). */
 .toc-entry .icon-btn {
-  --toc-icon-size: 18px;
-  width: var(--toc-icon-size);
-  height: var(--toc-icon-size);
+  flex: none;
+  width: var(--control-sm);
+  height: var(--control-sm);
+  margin: calc(var(--space-2xs) * -1) 0;
   font-size: var(--type-lg);
 }
 .toc-entry .btn {

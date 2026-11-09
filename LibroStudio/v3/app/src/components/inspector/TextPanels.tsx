@@ -188,8 +188,9 @@ export const ParagraphPanel = () => {
           ))}
         </select>
       </div>
-      <div className="field-row">
-        <label>{w.style}</label>
+      {/* A todo el ancho: los estilos llevan nombres propios y los de los roles son largos. */}
+      <div className="field-row stacked">
+        <label htmlFor="paragraphStyle">{w.style}</label>
         <select
           key={fieldKey('style', singleStyle + ':' + styles.map((s) => s.id).join())}
           id="paragraphStyle"

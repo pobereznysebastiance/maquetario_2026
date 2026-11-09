@@ -57,6 +57,7 @@ Hoja de ruta para retomar. Estado al cierre (09-nov, noche): todo subido, `npm t
   - Juntar la devolución de Seba y de quienes prueben, y ordenarla antes de seguir.
   - Proyecto de la 3.24: probado el 09-nov. La novela de ejemplo armada y guardada con el código de la 3.24 (rama `main`) se abre tal cual, sin migración, y el pliego se ve igual que en la 3.24; queda como prueba fija (`desktop/test/fixtures/novela-3.24.mqt`). Falta un archivo de la 3.20 (no está en git): pedirle a Seba uno real de un alumno.
   - Hecho el 09-nov: la Alineación de Tipografía ya no queda cortada (llena la columna del control) y los botones de tipo de letra se ven como los otros campos.
+  - Revisión con impeccable antes del instalador (09-nov, noche): barrido automático de botones, selectores y campos en todas las pantallas, en 1366 × 768 y 1920 × 1080. Quedaron sin valores cortados ni botones partidos: el inspector da más lugar al control (1 a 1,35), Rol y Estilo de párrafo van a todo el ancho (`.field-row.stacked`), textos de opciones más cortos, la pauta es una ventana de trabajo, átomo `.link-button` y `Btn keepFocus` en lugar de botones armados a mano. Quedan chicos (22 px) los "?" de ayuda de términos: razonables con mouse.
   - El `git stash` local "tanda workspace/page-priority/…" es obsoleto (la capa legacy ya se vació): se puede borrar.
 
 ## Antes de cada commit

@@ -381,6 +381,7 @@ export const Btn = ({
   disabled = false,
   title,
   command: name,
+  keepFocus = false,
   onClick,
 }: {
   id?: string;
@@ -393,6 +394,8 @@ export const Btn = ({
   title?: string;
   /** Orden del editor (data-command). */
   command?: string;
+  /** No se lleva el foco: la caja que se está escribiendo sigue en edición (y su cursor). */
+  keepFocus?: boolean;
   onClick?: () => void;
 }) => (
   <button
@@ -402,6 +405,7 @@ export const Btn = ({
     title={title}
     disabled={disabled}
     data-command={name}
+    onMouseDown={keepFocus ? (event) => event.preventDefault() : undefined}
     onClick={onClick ?? (name ? () => command(name) : undefined)}
   >
     {icon ? <Icon name={icon} /> : null}

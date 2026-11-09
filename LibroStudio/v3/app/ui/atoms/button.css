@@ -114,6 +114,20 @@
   color: var(--text-primary);
 }
 
+/* Botón con aspecto de enlace: llevar a una página o a un aviso desde un texto (revisión del libro,
+   excepciones de la pauta). */
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.link-button:hover:not(:disabled) {
+  color: var(--text-primary);
+}
+
 /* ── Migrado de studio.css ── */
 button > span[data-icon] {
   display: flex;

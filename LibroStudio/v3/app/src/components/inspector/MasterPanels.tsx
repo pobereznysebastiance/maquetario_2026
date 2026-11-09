@@ -51,12 +51,8 @@ const SideReading = ({ type }: { type: MasterType }) =>
           data-master-direction={type}
           ref={saveDirection(type)}
         >
-          <option value="up">
-            {'↑ ' + bw('De abajo hacia arriba', 'Bottom to top', 'De baixo para cima')}
-          </option>
-          <option value="down">
-            {'↓ ' + bw('De arriba hacia abajo', 'Top to bottom', 'De cima para baixo')}
-          </option>
+          <option value="up">{'↑ ' + bw('Hacia arriba', 'Upward', 'Para cima')}</option>
+          <option value="down">{'↓ ' + bw('Hacia abajo', 'Downward', 'Para baixo')}</option>
         </select>
       </div>
       <p className="help">

@@ -45,7 +45,8 @@ export const RolePanel = () => {
   return (
     <>
       <Heading icon="text" title={bw('Rol', 'Role', 'Função')} />
-      <div className="field-row">
+      {/* A todo el ancho: los nombres de la planilla ("Frases destacadas A") no entran en la columna. */}
+      <div className="field-row stacked">
         <label htmlFor="textRole">{bw('Rol del texto', 'Text role', 'Função do texto')}</label>
         <select
           key={fieldKey('role', role + ':' + o.id + ':' + paragraphIndices(o).join())}

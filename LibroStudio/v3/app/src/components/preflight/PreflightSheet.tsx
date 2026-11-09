@@ -34,7 +34,7 @@ const PreflightReport = ({ issues, pages }: { issues: PreflightIssue[]; pages: n
             : bw('Objeto fuera de página', 'Object outside page', 'Objeto fora da página')}
           <button
             type="button"
-            className="preflight-link"
+            className="link-button preflight-link"
             data-issue-page={issue.page}
             onClick={() => {
               closeSheet();

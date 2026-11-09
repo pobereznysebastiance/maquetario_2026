@@ -63,11 +63,6 @@
 }
 .preflight-link {
   margin-left: var(--space-sm);
-  border: 0;
-  background: none;
-  color: var(--text-accent);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
 }
 
 /* Partes del libro para tildar (pedido de la cátedra): una fila por parte, con su página a la

@@ -440,11 +440,7 @@ const GuideTable = ({ rows, editable }: { rows: RoleRow[]; editable: boolean }) 
                       aria-label={bw('Tipo de interlineado', 'Leading type', 'Tipo de entrelinha')}
                       defaultValue={note?.leading || ''}
                     >
-                      <option value="">
-                        {leadingNames()[automatic] +
-                          ' · ' +
-                          bw('según el valor', 'from the value', 'pelo valor')}
-                      </option>
+                      <option value="">{leadingNames()[automatic] + ' · auto'}</option>
                       {(Object.entries(leadingNames()) as [LeadingClass, string][]).map(
                         ([key, label]) => (
                           <option key={key} value={key}>
@@ -507,7 +503,7 @@ const GuideTable = ({ rows, editable }: { rows: RoleRow[]; editable: boolean }) 
                           <button
                             key={page}
                             type="button"
-                            className="guide-page"
+                            className="link-button guide-page"
                             data-guide-page={page}
                             onClick={() => {
                               closeSheet();
@@ -773,15 +769,22 @@ function editorialRulesDialog(): void {
   finishEditing();
   const rows = collectRoleRows(),
     unassigned = collectEditorialRules().filter((rule) => !rule.style?.role);
-  modal.sheet(
+  // Ventana de trabajo (no una Hoja): la tabla tiene nueve columnas y en una Hoja grande se
+  // desplazaba de costado. "Aplicar" va en la barra del título; la cruz cierra sin aplicar.
+  modal.workspace(
     bw('Pauta de uso tipográfico', 'Typography usage guide', 'Pauta de uso tipográfico'),
     <GuideSheet rows={rows} unassigned={unassigned} />,
-    async () => {
-      if (rows.length) await applyEdits(readEdits(rows), rows);
-      return true;
+    {
+      variant: 'editorial-rules-dialog',
+      action: {
+        id: 'sheetApply',
+        label: bw('Aplicar', 'Apply', 'Aplicar'),
+        run: async () => {
+          if (rows.length) await applyEdits(readEdits(rows), rows);
+          return true;
+        },
+      },
     },
-    bw('Aplicar', 'Apply', 'Aplicar'),
-    { size: 'lg', variant: 'editorial-rules-dialog' },
   );
 }
 

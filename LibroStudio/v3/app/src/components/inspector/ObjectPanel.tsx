@@ -202,6 +202,8 @@ export const AlignPanel = () => {
         {(
           [
             ['left', w.xLeft],
+            // En pantalla, el nombre corto (la fila ya dice si es horizontal o vertical); el completo
+            // va en el texto emergente y para lectores de pantalla.
             ['hcenter', w.xCenter],
             ['right', w.xRight],
             ['top', w.yTop],
@@ -213,10 +215,12 @@ export const AlignPanel = () => {
             key={key}
             type="button"
             data-object-align={key}
+            title={label}
+            aria-label={label}
             disabled={none}
             onClick={() => alignSelection(key)}
           >
-            {label}
+            {key === 'hcenter' ? w.xCenterShort : key === 'vcenter' ? w.yCenterShort : label}
           </button>
         ))}
       </div>

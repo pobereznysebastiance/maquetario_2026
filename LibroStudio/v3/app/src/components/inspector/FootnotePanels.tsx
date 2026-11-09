@@ -4,14 +4,14 @@
 // - Libro → "Notas al pie" (design:footnotes): tipo de letra, cuerpo, interlineado, espacio sobre
 //   las notas, filete y numeración. Aparece cuando el libro tiene alguna nota.
 //
-// Los campos graban con el "change" nativo. El botón de insertar no se lleva el foco
-// (preventDefault en mousedown): así la caja sigue en edición y la nota va donde está el cursor.
+// Los campos graban con el "change" nativo. El botón de insertar no se lleva el foco (Btn keepFocus:
+// preventDefault en mousedown): así la caja sigue en edición y la nota va donde está el cursor.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 import type { ReactNode } from 'react';
 import { useLanguage } from '../../react/mount.tsx';
-import { Icon } from '../Icon.tsx';
 import {
+  Btn,
   fieldKey,
   firstTime,
   FontBrowserButton,
@@ -51,17 +51,15 @@ export const NotesPanel = () => {
   return (
     <>
       <Heading icon="text" title={title()} />
-      <button
-        type="button"
-        className="btn wide"
+      <Btn
         id="insertFootnote"
+        icon="plus"
+        label={bw('Insertar nota al pie', 'Insert footnote', 'Inserir nota de rodapé')}
+        wide
+        keepFocus
         disabled={locked}
-        onMouseDown={(event) => event.preventDefault()}
         onClick={insertFootnote}
-      >
-        <Icon name="plus" />
-        {bw('Insertar nota al pie', 'Insert footnote', 'Inserir nota de rodapé')}
-      </button>
+      />
       <p className="help">
         {keys.length
           ? bw(
@@ -204,15 +202,9 @@ export const FootnoteFormatPanel = () => {
             setFootnoteSetting('restart', select.value as FootnoteSettings['restart']),
           )}
         >
-          <option value="book">
-            {bw('Continua en el libro', 'Continuous', 'Contínua no livro')}
-          </option>
-          <option value="section">
-            {bw('Desde 1 en cada sección', 'Restart each section', 'Recomeça em cada seção')}
-          </option>
-          <option value="page">
-            {bw('Desde 1 en cada página', 'Restart each page', 'Recomeça em cada página')}
-          </option>
+          <option value="book">{bw('Continua', 'Continuous', 'Contínua')}</option>
+          <option value="section">{bw('Por sección', 'By section', 'Por seção')}</option>
+          <option value="page">{bw('Por página', 'By page', 'Por página')}</option>
         </select>,
       )}
       <label className="check-line">

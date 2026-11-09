@@ -31,7 +31,7 @@ const paragraphWords = {
   es: {
     panel: 'Párrafo y estilos',
     scope: 'Aplicar a',
-    all: 'Todos los párrafos de la caja',
+    all: 'Toda la caja',
     paragraph: 'Párrafo',
     style: 'Estilo de párrafo',
     none: 'Sin estilo',
@@ -67,7 +67,7 @@ const paragraphWords = {
   en: {
     panel: 'Paragraphs and styles',
     scope: 'Apply to',
-    all: 'All paragraphs in the frame',
+    all: 'Whole frame',
     paragraph: 'Paragraph',
     style: 'Paragraph style',
     none: 'No style',
@@ -103,7 +103,7 @@ const paragraphWords = {
   pt: {
     panel: 'Parágrafos e estilos',
     scope: 'Aplicar a',
-    all: 'Todos os parágrafos da caixa',
+    all: 'Toda a caixa',
     paragraph: 'Parágrafo',
     style: 'Estilo de parágrafo',
     none: 'Sem estilo',
