@@ -260,7 +260,14 @@ Pago único con actualizaciones (`maxMajor: null`), edición `estandar`, 2 compu
 
 ## Informes
 
-PDF con la tipografía de la app (`scripts/render-pdf.cjs`). BETA 0.1, para Seba y para quienes prueban:
+PDF con la tipografía de la app (`scripts/render-pdf.cjs`). BETA 0.2 (09-nov, noche; las capturas están en `docs/informe/img/beta02-*.png`), para Seba y para quienes prueban:
+
+```bash
+npx electron scripts/render-pdf.cjs docs/informe/beta-0.2.html "Maquetario BETA 0.2 - Para Seba.pdf" "Maquetario BETA 0.2 · Qué se sumó y qué probar"
+npx electron scripts/render-pdf.cjs docs/informe/beta-0.2-presentacion.html "Maquetario BETA 0.2 - Presentación y prueba.pdf" "Maquetario BETA 0.2 · Presentación y prueba"
+```
+
+BETA 0.1:
 
 ```bash
 npx electron scripts/render-pdf.cjs docs/informe/beta-0.1.html "Maquetario BETA 0.1 - Novedades y qué probar.pdf" "Maquetario BETA 0.1 · Novedades y qué probar"

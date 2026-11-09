@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Maquetario BETA 0.2 · Qué se sumó y qué probar</title>
+<style>
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-400.ttf'); font-weight: 400; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-500.ttf'); font-weight: 500; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-600.ttf'); font-weight: 600; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-700.ttf'); font-weight: 700; }
+
+@page { size: A4; margin: 22mm 20mm 20mm 22mm; }
+
+:root {
+  --ink: #1d2a2f;
+  --ink-soft: #4b5b60;
+  --ink-faint: #7a8a8d;
+  --rule: #d5dcdc;
+  --petrol: #17272d;
+  --teal: #1f9e8d;
+  --gold: #b9823e;
+  --shade: #f2f4f2;
+}
+
+* { box-sizing: border-box; }
+html { font-family: 'DM Sans', 'Segoe UI', sans-serif; color: var(--ink); font-size: 10.2pt; line-height: 1.52; }
+body { margin: 0; }
+h1, h2, h3 { font-weight: 600; color: var(--petrol); line-height: 1.2; break-after: avoid; }
+h1 { font-size: 22pt; margin: 0 0 4mm; letter-spacing: -0.015em; }
+h2 { font-size: 13.5pt; margin: 9mm 0 3mm; padding-top: 3mm; border-top: 0.6pt solid var(--rule); }
+h3 { font-size: 10.8pt; margin: 5mm 0 1.5mm; }
+p { margin: 0 0 2.6mm; text-wrap: pretty; }
+ul, ol { margin: 0 0 2.6mm; padding-left: 5mm; }
+li { margin-bottom: 1.2mm; text-wrap: pretty; }
+strong { font-weight: 600; }
+
+.cover { height: 247mm; display: flex; flex-direction: column; break-after: page; }
+.cover-brand { display: flex; align-items: center; gap: 3.5mm; font-weight: 600; font-size: 13pt; color: var(--petrol); }
+.cover-brand img { width: 12mm; height: 12mm; }
+.cover-title { margin-top: 52mm; }
+.cover-title h1 { font-size: 30pt; max-width: 150mm; }
+.cover-title p { font-size: 12pt; color: var(--ink-soft); max-width: 140mm; }
+.cover-rule { width: 22mm; height: 0.9mm; background: var(--gold); margin: 7mm 0; }
+.cover-meta { margin-top: auto; display: grid; grid-template-columns: 38mm 1fr; row-gap: 1.6mm; font-size: 9.4pt; }
+.cover-meta dt { color: var(--ink-faint); }
+.cover-meta dd { margin: 0; }
+
+.lead { font-size: 11pt; color: var(--ink-soft); }
+.group { break-inside: avoid; margin-bottom: 4mm; }
+
+figure { margin: 3mm 0 5mm; break-inside: avoid; }
+figure .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+figure img { width: 100%; border: 0.5pt solid var(--rule); display: block; }
+figcaption { font-size: 8.6pt; color: var(--ink-faint); margin-top: 1.6mm; }
+.label { font-size: 8.4pt; color: var(--ink-soft); margin-bottom: 1mm; }
+
+ol.checks { counter-reset: check; list-style: none; padding-left: 0; }
+ol.checks > li { counter-increment: check; position: relative; padding-left: 8mm; margin-bottom: 2.4mm; break-inside: avoid; }
+ol.checks > li::before { content: counter(check); position: absolute; left: 0; top: 0.2mm; width: 5mm; height: 5mm; border-radius: 50%; background: var(--teal); color: #fff; font-size: 7.6pt; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+ol.checks .how { display: block; color: var(--ink-soft); font-size: 9.3pt; }
+
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9pt; break-inside: avoid; }
+th, td { text-align: left; vertical-align: top; padding: 1.6mm 2mm; border-bottom: 0.5pt solid var(--rule); }
+th { font-weight: 600; color: var(--petrol); border-bottom: 0.9pt solid var(--petrol); }
+
+.note { font-size: 9.2pt; color: var(--ink-soft); }
+.page-break { break-before: page; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="cover-brand"><img src="../../LibroStudio/v3/app/maquetario.svg" alt=""> Maquetario</div>
+  <div class="cover-title">
+    <h1>Maquetario BETA 0.2</h1>
+    <div class="cover-rule"></div>
+    <p>Lo que se sumó desde la BETA 0.1: el pedido de la cátedra de Tipografía I resuelto entero, con sus respuestas aplicadas. Qué probar y qué devolución nos sirve.</p>
+  </div>
+  <dl class="cover-meta">
+    <dt>Para</dt><dd>Sebastián Poberezny</dd>
+    <dt>De</dt><dd>Juan Cruz Canteros · Tiny Studio</dd>
+    <dt>Fecha</dt><dd>9 de noviembre de 2026</dd>
+    <dt>Versión a probar</dt><dd>BETA 0.2 (instalador <em>Maquetario BETA 0.2.exe</em>)</dd>
+    <dt>Comparada con</dt><dd>BETA 0.1</dd>
+  </dl>
+</section>
+
+<h2 style="border-top:0;padding-top:0;margin-top:0">En pocas palabras</h2>
+<p class="lead">BETA 0.2 trae los cuatro puntos que pidió la cátedra de Tipografía I (FAU-UNNE): notas al pie, roles en lugar de estilos sueltos, la pauta de uso tipográfico que se arma sola y las partes del libro, con la Cubierta y el Aprendizaje a la vista. Todo lo de la BETA 0.1 sigue igual.</p>
+<ul>
+  <li><strong>Notas al pie y citas</strong> dentro del texto corrido, para las novelas que están maquetando los alumnos.</li>
+  <li><strong>Roles con los nombres de la planilla:</strong> cambiar el Texto principal cambia todo el libro.</li>
+  <li><strong>La pauta de uso tipográfico se arma sola</strong> mientras se diseña. Se edita y se descarga en PDF o imagen, con la leyenda y el logo de la cátedra.</li>
+  <li><strong>Partes del libro para tildar</strong>, de la portadilla al colofón.</li>
+  <li><strong>Cubierta y solapas, y Aprender</strong>, en la barra principal.</li>
+</ul>
+
+<figure>
+  <img src="img/beta02-editor.png" alt="">
+  <figcaption>BETA 0.2: arriba, Interior | Cubierta y solapas y Aprender. En la página, una llamada volada y su nota al pie. A la derecha, el rol del texto (Texto principal).</figcaption>
+</figure>
+
+<h2>Lo que pidió la cátedra</h2>
+
+<div class="group">
+<h3>1. Notas al pie y citas</h3>
+<ul>
+  <li>La nota se inserta donde está el cursor, con el botón <strong>"Insertar nota al pie"</strong> (Selección → Notas al pie y citas) o con <strong>Ctrl+Alt+F</strong> mientras se escribe.</li>
+  <li>En el texto queda un número volado; al pie de la caja tipográfica, un filete corto y la nota. Las notas se numeran solas, en el orden del libro.</li>
+  <li>En Libro → Notas al pie se eligen tipo de letra, cuerpo, interlineado, espacio, filete, numeración (continua, por sección o por página) y si el número al pie va volado o normal.</li>
+  <li>Copiar un texto con nota la duplica; cortarlo y pegarlo la mueve.</li>
+  <li><strong>"Marcar como cita"</strong> le da al párrafo el estilo Cita: sangrado de los dos lados y un punto más chico.</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>2. Roles en lugar de estilos sueltos</h3>
+<ul>
+  <li>Cada texto lleva un rol con los nombres de la planilla: Título, Subtítulo (y sus dos variables), Texto principal, Texto secundario A y B, Frases destacadas A, B y C, Listados A, B y C, y Otros.</li>
+  <li>Cambiar el formato de un rol cambia todos los textos que lo tienen, en todo el libro.</li>
+  <li>Si un texto se aparta de su rol, el panel lo dice y pregunta: <strong>¿sólo acá o en todo el rol?</strong></li>
+  <li>El ancho de caja (en columnas de la grilla) también es del rol: se aplica a todas sus cajas, y una caja con otro ancho ofrece llevarla al rol o llevar su ancho al rol.</li>
+  <li>Un libro hecho antes no cambia: si sus párrafos ya comparten un estilo (por ejemplo, "Cuerpo de novela"), ese estilo pasa a ser el del rol.</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>3. La pauta de uso tipográfico</h3>
+<ul>
+  <li>Se arma sola a medida que se diseña, con las filas y las columnas de la planilla de la clase 3: tipografía y cuerpo; escritura, peso, rendimiento e inclinación; alineación; ancho de caja; interlineado (amplio, normal o ajustado, con su valor); operación tipográfica; y zonas activas de la grilla en tres dobles páginas.</li>
+  <li>Se edita ahí mismo: lo que se cambia, cambia el libro entero.</li>
+  <li>Marca las excepciones (los textos que se apartan de su rol) con las páginas para ir a verlas.</li>
+  <li>Se descarga en <strong>PDF o imagen</strong> (y en planilla CSV), con la leyenda "Pautas tipográficas" y el logo de Tipografía I.</li>
+  <li>Se abre desde la vista Estructura ("Pauta tipográfica") o desde Selección → Rol.</li>
+</ul>
+</div>
+
+<figure>
+  <img src="img/beta02-pauta.png" alt="">
+  <figcaption>La pauta en el programa: una fila por rol, editable. Las filas que el libro todavía no usa quedan marcadas "Sin usar".</figcaption>
+</figure>
+
+<figure>
+  <img src="img/beta02-pauta-descarga.png" alt="">
+  <figcaption>La misma pauta descargada como imagen, lista para entregar, con la leyenda y el logo de la cátedra.</figcaption>
+</figure>
+
+<div class="group">
+<h3>4. Partes del libro, Cubierta y Aprender</h3>
+<ul>
+  <li><strong>Partes del libro para tildar</strong> (vista Estructura): portadilla, portada, créditos, dedicatoria, epígrafe, índice, prólogo, introducción, cuerpo, apéndice, bibliografía, agradecimientos y colofón. Tildar agrega la parte en su lugar, con un blanco detrás para que los capítulos sigan empezando en página impar. Destildar la quita, después de confirmar.</li>
+  <li><strong>Interior | Cubierta y solapas</strong>, en la barra principal y en la cabecera de la cubierta, para pasar de una pieza a la otra.</li>
+  <li><strong>Aprender</strong>, siempre a la vista: tutorial guiado, glosario, una bibliografía nueva de tipografía y diseño editorial, atajos y el recorrido del libro.</li>
+</ul>
+</div>
+
+<figure>
+  <img src="img/beta02-partes.png" alt="">
+  <figcaption>Las partes del libro en la vista Estructura: la novela de ejemplo ya tiene casi todas; Introducción, Apéndice y Bibliografía se agregan tildándolas.</figcaption>
+</figure>
+
+<h2>Las respuestas de la cátedra, aplicadas</h2>
+<table>
+  <tr><th style="width:52mm">Pregunta</th><th>Respuesta y qué hicimos</th></tr>
+  <tr><td>Llamada en el texto</td><td>Volada, como estaba.</td></tr>
+  <tr><td>Número de la nota al pie</td><td>Las dos opciones: normal o volado, en Libro → Notas al pie.</td></tr>
+  <tr><td>Numeración de las notas</td><td>Quedan las opciones: continua, por sección o por página.</td></tr>
+  <tr><td>Amplio, Normal y Ajustado</td><td>Por interlineado ÷ cuerpo: menos de 1,2 es ajustado, hasta 1,4 normal, más es amplio. Se puede elegir a mano.</td></tr>
+  <tr><td>Operación tipográfica</td><td>Son estilos: texto libre, más lo que se detecta solo (color aplicado, interletrado).</td></tr>
+  <tr><td>Logo y leyenda</td><td>Van en la pauta y en lo descargado.</td></tr>
+  <tr><td>Escritura y rendimiento</td><td>Alcanza. La escritura (alta y baja, mayúsculas, versalitas) ya es una propiedad del párrafo.</td></tr>
+</table>
+
+<h2>Otras mejoras</h2>
+<ul>
+  <li>Revisión de toda la interfaz en notebooks de 1366 × 768 y en monitores grandes: ningún selector muestra su valor cortado y ningún botón se parte en dos líneas.</li>
+  <li>Los proyectos de la 3.20 y de la 3.24 se abren bien. Un proyecto de la 3.24 quedó como prueba fija.</li>
+  <li>Corregido: el doble clic en el tirador inferior para ajustar la caja al texto no andaba con el mouse.</li>
+</ul>
+
+<h2>Qué probar</h2>
+<p>Lo ideal es una novela real, como las que están armando los alumnos.</p>
+<ol class="checks">
+  <li><strong>Instalar.</strong> <span class="how">Abrir <em>Maquetario BETA 0.2.exe</em>. La bienvenida dice "BETA 0.2".</span></li>
+  <li><strong>Notas al pie.</strong> <span class="how">Insertar varias en distintas páginas, escribirlas, quitar una, cortar y pegar un párrafo con nota. Probar el número volado y la numeración por página.</span></li>
+  <li><strong>Roles.</strong> <span class="how">Darle rol a los textos de un libro y cambiar el Texto principal desde la pauta: ¿cambia todo el libro?</span></li>
+  <li><strong>La pauta.</strong> <span class="how">Abrirla, editarla y descargarla en PDF. ¿Sirve como entregable para la cátedra?</span></li>
+  <li><strong>Partes del libro.</strong> <span class="how">Agregar y quitar partes, y ver que los capítulos sigan en página impar.</span></li>
+  <li><strong>Cubierta y Aprender.</strong> <span class="how">Pasar de Interior a Cubierta y volver; recorrer la Bibliografía.</span></li>
+  <li><strong>Un proyecto de un alumno.</strong> <span class="how">Abrir uno hecho con la 3.20 y ver que todo siga igual.</span></li>
+</ol>
+
+<h2>Qué devolución nos sirve</h2>
+<ul>
+  <li>¿Las notas al pie resuelven lo que necesitan las novelas de los alumnos?</li>
+  <li>¿La pauta descargada sirve tal cual como entrega, o falta algo de la planilla?</li>
+  <li>¿Los roles se entienden en clase, o hace falta explicarlos en el tutorial?</li>
+  <li>¿Falta alguna parte del libro en la lista?</li>
+  <li>¿La bibliografía de Aprender es la que usa la cátedra? Si tienen la suya, la sumamos.</li>
+</ul>
+
+<h3>Lo que todavía no hace</h3>
+<ul>
+  <li>Una nota que no entra en su página no pasa a la siguiente (no hay reflujo de texto entre cajas).</li>
+  <li>Las notas son texto simple, sin cursiva dentro de la nota.</li>
+</ul>
+
+<p class="note" style="margin-top:8mm">Gracias por pasarle el pedido de la cátedra. Cualquier cosa, por el canal de siempre.</p>
+
+</body>
+</html>

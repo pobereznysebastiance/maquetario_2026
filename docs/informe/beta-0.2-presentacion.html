@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Maquetario BETA 0.2 · Presentación y prueba</title>
+<style>
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-400.ttf'); font-weight: 400; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-500.ttf'); font-weight: 500; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-600.ttf'); font-weight: 600; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-700.ttf'); font-weight: 700; }
+
+@page { size: A4; margin: 22mm 20mm 20mm 22mm; }
+
+:root {
+  --ink: #1d2a2f;
+  --ink-soft: #4b5b60;
+  --ink-faint: #7a8a8d;
+  --rule: #d5dcdc;
+  --petrol: #17272d;
+  --teal: #1f9e8d;
+  --gold: #b9823e;
+}
+
+* { box-sizing: border-box; }
+html { font-family: 'DM Sans', 'Segoe UI', sans-serif; color: var(--ink); font-size: 10.2pt; line-height: 1.52; }
+body { margin: 0; }
+h1, h2, h3 { font-weight: 600; color: var(--petrol); line-height: 1.2; break-after: avoid; }
+h1 { font-size: 22pt; margin: 0 0 4mm; letter-spacing: -0.015em; }
+h2 { font-size: 13.5pt; margin: 9mm 0 3mm; padding-top: 3mm; border-top: 0.6pt solid var(--rule); }
+h3 { font-size: 10.8pt; margin: 5mm 0 1.5mm; }
+p { margin: 0 0 2.6mm; text-wrap: pretty; }
+ul, ol { margin: 0 0 2.6mm; padding-left: 5mm; }
+li { margin-bottom: 1.1mm; text-wrap: pretty; }
+strong { font-weight: 600; }
+
+.cover { height: 247mm; display: flex; flex-direction: column; break-after: page; }
+.cover-brand { display: flex; align-items: center; gap: 3.5mm; font-weight: 600; font-size: 13pt; color: var(--petrol); }
+.cover-brand img { width: 12mm; height: 12mm; }
+.cover-title { margin-top: 52mm; }
+.cover-title h1 { font-size: 30pt; max-width: 150mm; }
+.cover-title p { font-size: 12pt; color: var(--ink-soft); max-width: 140mm; }
+.cover-rule { width: 22mm; height: 0.9mm; background: var(--gold); margin: 7mm 0; }
+.cover-meta { margin-top: auto; display: grid; grid-template-columns: 38mm 1fr; row-gap: 1.6mm; font-size: 9.4pt; }
+.cover-meta dt { color: var(--ink-faint); }
+.cover-meta dd { margin: 0; }
+
+.lead { font-size: 11pt; color: var(--ink-soft); }
+.group { break-inside: avoid; margin-bottom: 3mm; }
+.new { color: var(--teal); font-weight: 600; }
+
+figure { margin: 3mm 0 5mm; break-inside: avoid; }
+figure img { width: 100%; border: 0.5pt solid var(--rule); display: block; }
+figcaption { font-size: 8.6pt; color: var(--ink-faint); margin-top: 1.6mm; }
+
+ol.checks { counter-reset: check; list-style: none; padding-left: 0; }
+ol.checks > li { counter-increment: check; position: relative; padding-left: 8mm; margin-bottom: 2.2mm; break-inside: avoid; }
+ol.checks > li::before { content: counter(check); position: absolute; left: 0; top: 0.2mm; width: 5mm; height: 5mm; border-radius: 50%; background: var(--teal); color: #fff; font-size: 7.6pt; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+ol.checks .how { display: block; color: var(--ink-soft); font-size: 9.3pt; }
+
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9pt; break-inside: avoid; }
+th, td { text-align: left; vertical-align: top; padding: 1.6mm 2mm; border-bottom: 0.5pt solid var(--rule); }
+th { font-weight: 600; color: var(--petrol); border-bottom: 0.9pt solid var(--petrol); }
+
+.note { font-size: 9.2pt; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="cover-brand"><img src="../../LibroStudio/v3/app/maquetario.svg" alt=""> Maquetario</div>
+  <div class="cover-title">
+    <h1>Maquetario BETA 0.2</h1>
+    <div class="cover-rule"></div>
+    <p>Una aplicación de escritorio para diseñar libros, revistas, diarios, manuales y otros productos editoriales. Qué incluye, qué hay de nuevo y cómo probarla.</p>
+  </div>
+  <dl class="cover-meta">
+    <dt>Creada por</dt><dd>Sebastián Poberezny</dd>
+    <dt>Versión de prueba</dt><dd>BETA 0.2 · Windows 10 y 11 de 64 bits</dd>
+    <dt>Instalador</dt><dd><em>Maquetario BETA 0.2.exe</em></dd>
+    <dt>Fecha</dt><dd>Noviembre de 2026</dd>
+  </dl>
+</section>
+
+<h2 style="border-top:0;padding-top:0;margin-top:0">Qué es Maquetario</h2>
+<p class="lead">Maquetario es una aplicación de escritorio para diseñar libros, revistas, diarios, manuales y otros productos editoriales. La idea es acercar la maquetación a docentes y estudiantes, con herramientas fáciles de encontrar y una interfaz propia, sobria y ordenada, pensada para trabajar muchas horas sobre la página.</p>
+
+<figure>
+  <img src="img/beta02-editor.png" alt="">
+  <figcaption>El editor en BETA 0.2. Arriba, Interior | Cubierta y solapas y Aprender; en el centro, el libro tal como se imprime, con una nota al pie; a la derecha, el panel de lo que esté elegido.</figcaption>
+</figure>
+
+<h2>Lo nuevo en BETA 0.2</h2>
+<p>Esta versión suma lo que pidió la cátedra de Tipografía I (FAU-UNNE) y conserva todo lo anterior:</p>
+<ul>
+  <li><strong>Notas al pie y citas:</strong> la nota va donde está el cursor (botón o Ctrl+Alt+F), con su número volado en el texto y la nota al pie de la página, numeradas solas.</li>
+  <li><strong>Roles de texto:</strong> Título, Subtítulo, Texto principal, Textos secundarios, Frases destacadas, Listados y Otros. Cambiar un rol cambia todo el libro.</li>
+  <li><strong>Pauta de uso tipográfico automática:</strong> la tabla de la cátedra se arma sola mientras diseñás, se edita y se descarga en PDF o imagen, con la leyenda y el logo de la cátedra.</li>
+  <li><strong>Partes del libro para tildar:</strong> de la portadilla al colofón, cada una se agrega en su lugar.</li>
+  <li><strong>Cubierta y solapas</strong> y <strong>Aprender</strong> (tutorial, glosario y bibliografía), siempre a la vista en la barra principal.</li>
+</ul>
+
+<figure>
+  <img src="img/beta02-pauta-descarga.png" alt="">
+  <figcaption>La pauta de uso tipográfico descargada, lista para entregar.</figcaption>
+</figure>
+
+<h2>Qué incluye</h2>
+<p class="note">Lo marcado <span class="new">nuevo</span> se sumó en BETA 0.2.</p>
+
+<div class="group">
+<h3>Documento y grillas</h3>
+<ul>
+  <li>Formatos predeterminados (A3, A4, A5, A6, Carta, Oficio, 17 × 24, 20 × 20 y otros) y medidas personalizadas.</li>
+  <li>Márgenes, filas, columnas y medianiles independientes.</li>
+  <li>Grillas ajustables a los márgenes o al borde de la página, guías e imantado para ubicar los elementos con precisión.</li>
+  <li>Guías que se sacan de las reglas, se mueven y se quitan con el mouse.</li>
+  <li>Plantillas de distintas estructuras editoriales y armado de un libro desde un manuscrito.</li>
+  <li><span class="new">nuevo</span> Partes del libro para tildar: portadilla, portada, créditos, dedicatoria, epígrafe, índice, prólogo, introducción, cuerpo, apéndice, bibliografía, agradecimientos y colofón.</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>Texto y tipografía</h3>
+<ul>
+  <li>Acceso a las fuentes instaladas y a carpetas de fuentes, con vista previa de su diseño.</li>
+  <li>Familias, pesos, estilos y ejes de fuentes variables, y panel de glifos.</li>
+  <li>Alineación, sangrías, espaciados, separación silábica y estilos de párrafo.</li>
+  <li><span class="new">nuevo</span> Roles de texto con los nombres de la planilla de la cátedra, y el ancho de caja del rol en columnas.</li>
+  <li><span class="new">nuevo</span> Escritura: alta y baja, todo mayúsculas o versalitas.</li>
+  <li><span class="new">nuevo</span> Notas al pie y citas.</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>Objetos y composición</h3>
+<ul>
+  <li>Imágenes, marcos y figuras con relleno, contorno y transparencia.</li>
+  <li>Controles de posición, tamaño, alineación y distribución, y capas para ordenar, ocultar y bloquear.</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>Automatización editorial</h3>
+<ul>
+  <li>Foliado automático, cornisas y titulillos, con opciones para páginas pares e impares y lectura lateral.</li>
+  <li>Índice automático a partir de los títulos y secciones.</li>
+  <li><span class="new">nuevo</span> Pauta de uso tipográfico que se arma sola, editable y descargable en PDF, imagen o planilla.</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>Cubierta dentro del mismo proyecto</h3>
+<ul>
+  <li>Diseño de tapa, contratapa, lomo y solapas, con sus medidas, sangrado y zona de seguridad.</li>
+  <li>Textos e imágenes en cada zona y exportación de la cubierta separada del interior.</li>
+  <li><span class="new">nuevo</span> Interior | Cubierta y solapas en la barra principal.</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>Revisión, exportación e impresión</h3>
+<ul>
+  <li>Vista previa, exportación a PDF en orden de lectura o como cuadernillo, e impresión.</li>
+  <li>PDF con cajas de corte y de sangrado, y "PDF para imprenta (PDF/X-4)".</li>
+  <li>Paquete para imprenta y "Revisar libro".</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>Herramientas para aprender</h3>
+<ul>
+  <li>Tutorial guiado, glosario de diseño editorial y una novela de ejemplo.</li>
+  <li>Espacios de trabajo: Inicial (lo esencial, para empezar en clase), Predeterminado y Personalizado.</li>
+  <li><span class="new">nuevo</span> Aprender, siempre a la vista, con una bibliografía de tipografía y diseño editorial.</li>
+</ul>
+</div>
+
+<p>También tiene guardado y "Guardar como" en formato <em>.mqt</em>, proyectos recientes, deshacer y rehacer, zoom, desplazamiento con la mano y atajos de teclado. La interfaz está disponible en español, inglés y portugués.</p>
+
+<h2>Instalación</h2>
+<ul>
+  <li>Abrí <em>Maquetario BETA 0.2.exe</em>. Se instala con un clic, sólo para tu usuario, sin pedir permisos de administrador. Si tenías la BETA 0.1, la reemplaza. Para desinstalarlo, usá "Agregar o quitar programas" de Windows.</li>
+  <li>Todavía no tiene firma digital, así que Windows puede mostrar un aviso de editor desconocido. Para seguir, tocá <strong>"Más información"</strong> y después <strong>"Ejecutar de todas formas"</strong>.</li>
+  <li>Al abrir, la bienvenida dice "BETA 0.2". Los proyectos hechos con la 3.20 se abren igual; si alguno no, avisanos.</li>
+</ul>
+
+<h2>Qué probar</h2>
+<ol class="checks">
+  <li><strong>Empezar.</strong> <span class="how">Crear un libro nuevo, armar uno desde un manuscrito o abrir la novela de ejemplo.</span></li>
+  <li><strong>Notas al pie.</strong> <span class="how">Escribiendo en una caja, tocar "Insertar nota al pie" o Ctrl+Alt+F y escribir la nota.</span></li>
+  <li><strong>Roles.</strong> <span class="how">Darle un rol a cada texto (Selección → Rol) y cambiar el formato del rol.</span></li>
+  <li><strong>La pauta.</strong> <span class="how">Abrirla desde Estructura → Pauta tipográfica y descargarla en PDF.</span></li>
+  <li><strong>Partes del libro.</strong> <span class="how">Tildar y destildar partes en la vista Estructura.</span></li>
+  <li><strong>La cubierta.</strong> <span class="how">Pasar a Cubierta y solapas: medidas, lomo, solapas e imágenes.</span></li>
+  <li><strong>Revisar y sacar.</strong> <span class="how">"Revisar libro", PDF común y para imprenta, impresión y paquete.</span></li>
+  <li><strong>En clase.</strong> <span class="how">El espacio Inicial, el tutorial y Aprender.</span></li>
+</ol>
+
+<h2>Tu opinión</h2>
+<p>Me sirve mucho saber qué resulta claro, qué cuesta encontrar y qué mejorarías. Algunas preguntas para guiarte:</p>
+<ul>
+  <li>¿Encontrás cada cosa donde la buscarías? ¿Algo que pondrías en otro lugar?</li>
+  <li>¿Las notas al pie y la pauta resuelven lo que necesitás para tus entregas?</li>
+  <li>¿Los nombres y textos se entienden, con el vocabulario del oficio?</li>
+  <li>¿Los PDF salen como esperás? ¿Una imprenta los aceptó sin pedir cambios?</li>
+  <li>Con un libro largo, ¿se siente ágil?</li>
+</ul>
+
+<h3>Si encontrás un problema</h3>
+<table>
+  <tr><th style="width:48mm">Qué incluir</th><th>Por qué ayuda</th></tr>
+  <tr><td>Los pasos que hiciste</td><td>En el orden en que los hiciste.</td></tr>
+  <tr><td>Qué esperabas y qué pasó</td><td>A veces funciona, pero no como se espera.</td></tr>
+  <tr><td>Una captura de pantalla</td><td>Ayuda un montón.</td></tr>
+  <tr><td>El archivo <em>.mqt</em>, si podés</td><td>Así vemos el problema con el mismo libro.</td></tr>
+</table>
+
+<p class="note" style="margin-top:8mm">Gracias por probarla.</p>
+
+</body>
+</html>
