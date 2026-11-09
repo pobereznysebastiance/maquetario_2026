@@ -281,9 +281,6 @@ function set(path: string, value: unknown): void {
     obj = keys.reduce((a: any, k) => a[k], book);
   obj[last] = value;
 }
-function pair(label: string, path1: string, path2: string, label1: string, label2: string): string {
-  return `${label ? `<div class="sub-label">${label}</div>` : ''}<div class="pair"><div>${number(path1, 0, 150)}<label>${label1}</label></div><div>${number(path2, 0, 150)}<label>${label2}</label></div></div>`;
-}
 const positions = [
   ['top', 'Margen superior'],
   ['bottom', 'Margen inferior'],
@@ -302,29 +299,8 @@ const folioPositions = [
   ['outer', 'Lateral exterior'],
   ['inner', 'Lateral interior'],
 ];
-function masterDetails(type: 'folio' | 'header' | 'titulillo'): string {
-  return `<details><summary>Personalizar pares, impares y posición</summary><label class="field-label">Páginas impares</label><input class="field-full" data-bind="${type}.odd" value="${esc(book[type].odd)}" maxlength="1000"><label class="field-label">Páginas pares</label><input class="field-full" data-bind="${type}.even" value="${esc(book[type].even)}" maxlength="1000">${row(
-    'Aplicar a',
-    options(type + '.scope', [
-      ['all', 'Todas las páginas'],
-      ['odd', 'Solo impares'],
-      ['even', 'Solo pares'],
-    ]),
-  )}${row(
-    'Tipo de letra',
-    options(
-      type + '.font',
-      fontList.map((f) => [f, esc(f)]),
-    ),
-  )}${row('Cuerpo', number(type + '.size', 4, 72, 0.5, 'pt'))}${row('Distancia al borde', number(type + '.distance', 0, 100, 0.5))}${row('Desplazamiento X', number(type + '.offsetX', -200, 200, 0.5))}${row('Desplazamiento Y', number(type + '.offsetY', -200, 200, 0.5))}${row(
-    'Alineación',
-    options(type + '.align', [
-      ['left', 'Izquierda'],
-      ['center', 'Centrada'],
-      ['right', 'Derecha'],
-    ]),
-  )}<label class="check-line"><input type="checkbox" data-bind="${type}.vertical" ${book[type].vertical ? 'checked' : ''}> Rotar texto 90°</label>${type === 'header' ? `<label class="check-line"><input type="checkbox" data-bind="header.rule" ${book.header.rule ? 'checked' : ''}> Línea debajo de la cornisa</label>` : ''}<p class="help">Variables: {book} libro · {section} sección<br>{page} folio · {total} total de páginas.<br>Usá | para separar dos extremos.</p></details>`;
-}
+// Cornisa, titulillo y folio: "Personalizar pares, impares y posición" está en
+// src/components/inspector/fields.tsx (MasterDetails), con sus paneles de React.
 function textControls(compact = false): string {
   const o = selectObject();
   let disabled = !o || o.type !== 'text';
@@ -344,36 +320,15 @@ function textControls(compact = false): string {
 }
 function inspector(): void {
   const host = $('#inspectorContent');
+  // Libro: Grilla, Foliado, Cornisa y Titulillo son paneles de React (src/components/inspector/);
+  // acá queda su lugar, en orden, entre las secciones en HTML.
   if (tab === 'design')
     host.innerHTML =
-      section(
-        'Grilla',
-        'grid',
-        row('Columnas', number('grid.cols', 1, 12, 1, '')) +
-          row('Filas', number('grid.rows', 1, 40, 1, '')) +
-          pair('Medianiles', 'grid.gapX', 'grid.gapY', 'Entre columnas', 'Entre filas') +
-          `<div class="sub-label">Ajustar grilla a</div><div class="segmented">${UI.textButton({ label: 'A los márgenes', data: { fit: 'margins' }, active: book.grid.fit === 'margins' })}${UI.textButton({ label: 'Al borde de página', data: { fit: 'page' }, active: book.grid.fit === 'page' })}</div>` +
-          pair('Márgenes', 'margins.top', 'margins.bottom', 'Superior', 'Inferior') +
-          pair('', 'margins.inside', 'margins.outside', 'Interior', 'Exterior'),
-        'grid.enabled',
-      ) +
+      inspectorSlot('grid', 'Grilla', 'grid') +
       section('Texto', 'text', textControls(true)) +
-      // Foliado: panel de React (src/components/inspector/FolioPanel.tsx).
       inspectorSlot('folio', 'Foliado', 'folio') +
-      section(
-        'Cornisa',
-        'header',
-        row('Posición', options('header.pos', positions)) +
-          `<input class="field-full" aria-label="Título del libro" data-bind="title" maxlength="250" value="${esc(book.title)}"><input class="field-full" aria-label="Sección general" data-bind="chapter" maxlength="250" value="${esc(book.chapter)}">` +
-          masterDetails('header'),
-        'header.enabled',
-      ) +
-      section(
-        'Titulillo',
-        'text',
-        row('Posición', options('titulillo.pos', positions)) + masterDetails('titulillo'),
-        'titulillo.enabled',
-      );
+      inspectorSlot('header', 'Cornisa', 'header') +
+      inspectorSlot('titulillo', 'Titulillo', 'text');
   if (tab === 'text') {
     const o = selectObject();
     host.innerHTML =

@@ -1,6 +1,6 @@
 // Cornisa y titulillo en el margen lateral: cuando su posición es izquierda, derecha, exterior o
-// interior, se dibujan girados dentro del margen, con un selector de sentido de lectura (de abajo
-// hacia arriba o al revés) en el inspector. También evita que el inspector se redibuje mientras
+// interior, se dibujan girados dentro del margen; el selector de sentido de lectura (de abajo
+// hacia arriba o al revés) está en sus paneles del inspector (MasterPanels.tsx). También evita que el inspector se redibuje mientras
 // se ajusta un número de cornisa, titulillo o folio, y suma al validador del modelo el chequeo
 // de la dirección lateral.
 //
@@ -37,33 +37,8 @@ document.addEventListener(
   true,
 );
 pauseInspectorWhile(() => liveMasterAdjustment, 'master-refinement');
-decorateInspector(() => {
-  const host = $('#inspectorContent');
-  for (const type of ['header', 'titulillo'] as const) {
-    const selector = host.querySelector(`[data-bind="${type}.pos"]`);
-    if (!selector) continue;
-    const c = book[type],
-      lateral = ['left', 'right', 'outer', 'inner'].includes(c.pos);
-    if (!lateral) continue;
-    const row = document.createElement('div');
-    row.className = 'field-row';
-    row.innerHTML = `<label>${bw('Lectura lateral', 'Side reading direction', 'Leitura lateral')}</label><select data-master-direction="${type}"><option value="up">↑ ${bw('De abajo hacia arriba', 'Bottom to top', 'De baixo para cima')}</option><option value="down">↓ ${bw('De arriba hacia abajo', 'Top to bottom', 'De cima para baixo')}</option></select>`;
-    selector.closest('.field-row')!.after(row);
-    const input = row.querySelector('select')!;
-    input.value = c.sideDirection || 'up';
-    input.onchange = () => commit(() => (c.sideDirection = input.value), false);
-    const legacy = host.querySelector(`[data-bind="${type}.vertical"]`);
-    if (legacy) legacy.closest('label')!.hidden = true;
-    const hint = document.createElement('p');
-    hint.className = 'help';
-    hint.textContent = bw(
-      'Se ubica dentro del margen lateral. Distancia al borde mueve el eje; X e Y permiten ajustes adicionales.',
-      'Placed inside the side margin. Distance from edge moves the axis; X and Y provide additional adjustment.',
-      'Fica na margem lateral. Distância da borda move o eixo; X e Y permitem ajustes adicionais.',
-    );
-    row.after(hint);
-  }
-}, 'master-refinement');
+// La fila "Lectura lateral" del inspector la dibujan los paneles de Cornisa y Titulillo
+// (src/components/inspector/MasterPanels.tsx).
 extend.result(
   'autoElement',
   function (

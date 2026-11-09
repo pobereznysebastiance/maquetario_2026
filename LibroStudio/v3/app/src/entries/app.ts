@@ -58,6 +58,8 @@ import '../components/inspector/FolioPanel.tsx';
 import '../components/inspector/RulesPanel.tsx';
 import '../components/inspector/FontLibraryPanel.tsx';
 import '../components/inspector/PagePanel.tsx';
+import '../components/inspector/GridPanel.tsx';
+import '../components/inspector/MasterPanels.tsx';
 import '../category-design.ts';
 import '../ui/focus.ts';
 import '../ui/select.ts';

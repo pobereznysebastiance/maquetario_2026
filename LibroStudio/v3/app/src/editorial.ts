@@ -213,8 +213,11 @@ function extraGuideControls(): void {
   const host = $('#inspectorContent'),
     first = host.querySelector('.section[data-key="grid"]') || host.querySelector('.section');
   if (!first) return;
-  const box = document.createElement('div');
-  box.innerHTML = `<details class="guide-controls"><summary>Guías individuales</summary><p class="help">Guías horizontales y verticales en todas las páginas. No se imprimen.</p>${UI.button({ id: 'addGuide', label: 'Agregar guía', wide: true })}<div class="guide-list">${(book.guides || []).map((g: BookGuide, i: number) => `<div class="field-row"><span>${g.axis === 'v' ? 'Vertical' : 'Horizontal'} · ${displayMeasure(g.position)} ${documentUnit()}</span>${UI.iconButton({ icon: 'close', label: 'Quitar guía', data: { removeGuide: i } })}</div>`).join('')}</div></details>`;
+  const box = document.createElement('div'),
+    // La Grilla la dibuja React y el traductor del DOM no entra ahí: los textos van traducidos.
+    // (Este módulo carga antes que i18n.ts y dibuja una vez al cargar.)
+    tr = (text: string) => globalThis.LibroI18n?.tr(text) ?? text;
+  box.innerHTML = `<details class="guide-controls"><summary>${tr('Guías individuales')}</summary><p class="help">${tr('Guías horizontales y verticales en todas las páginas. No se imprimen.')}</p>${UI.button({ id: 'addGuide', label: tr('Agregar guía'), wide: true })}<div class="guide-list">${(book.guides || []).map((g: BookGuide, i: number) => `<div class="field-row"><span>${g.axis === 'v' ? 'Vertical' : 'Horizontal'} · ${displayMeasure(g.position)} ${documentUnit()}</span>${UI.iconButton({ icon: 'close', label: tr('Quitar guía'), data: { removeGuide: i } })}</div>`).join('')}</div></details>`;
   first.append(box);
   $('#addGuide').onclick = () => {
     modal.sheet(
