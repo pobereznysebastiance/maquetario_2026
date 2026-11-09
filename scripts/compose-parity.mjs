@@ -98,6 +98,68 @@ const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
  * las justificadas lleguen al borde, que pantalla y salida tengan los mismos cortes, que el alto
  * sea líneas × interlineado y que editar vuelva al texto de siempre y al salir se recomponga.
  */
+/**
+ * Casos que la novela no trae, para --draw: espacios duros ("de la" con un espacio duro)
+ * y tramos con otro estilo en el segundo párrafo de cada caja (negrita, cursiva y cuerpo 13), con
+ * el formato provisorio paragraphMap[i].runs (src/modules/compose.ts → paragraphRuns).
+ */
+const drawVariants = function () {
+  let hard = 0;
+  let runs = 0;
+  for (const page of book.pages)
+    for (const o of page.objects) {
+      if (o.type !== 'text' || o.toc) continue;
+      const before = o.text;
+      o.text = o.text.replaceAll(' de la ', ' de la ');
+      if (o.text !== before) hard++;
+      const lines = o.text.split('\n');
+      if (!lines[1] || lines[1].length < 100) continue;
+      o.paragraphMap ??= lines.map(() => ({ styleId: null, overrides: {} }));
+      o.paragraphMap[1] = {
+        ...(o.paragraphMap[1] || { styleId: null, overrides: {} }),
+        runs: [
+          { start: 10, end: 30, overrides: { bold: true } },
+          { start: 40, end: 60, overrides: { italic: true } },
+          { start: 70, end: 90, overrides: { size: 13 } },
+        ],
+      };
+      runs++;
+    }
+  return { hard, runs };
+}.toString();
+
+/**
+ * La salida espera al motor: con una fuente que el motor todavía no cargó (Cambria en un
+ * párrafo), prepareNovelPdf deja composeOutputReady en false, y cuando queda en true la salida
+ * tiene todos los párrafos compuestos.
+ */
+const outputWaitCheck = async function () {
+  const o = book.pages.flatMap((p) => p.objects).find((x) => x.type === 'text' && !x.toc);
+  o.font = 'Cambria';
+  for (const meta of o.paragraphMap || [])
+    if (meta) meta.overrides = { ...meta.overrides, font: 'Cambria' };
+  window.prepareNovelPdf();
+  const rightAway = window.composeOutputReady;
+  let waited = 0;
+  while (window.composeOutputReady !== true && waited < 10000) {
+    await new Promise((done) => setTimeout(done, 50));
+    waited += 50;
+  }
+  const root = document.querySelector('#printRoot');
+  const paragraphs = [...root.querySelectorAll('.mqt-paragraph')].filter((p) =>
+    p.textContent.trim(),
+  );
+  const result = {
+    notReadyRightAway: rightAway === false,
+    readyAfterMs: waited,
+    paragraphsInOutput: paragraphs.length,
+    composedInOutput: paragraphs.filter((p) => p.classList.contains('mqt-composed')).length,
+    cambriaComposed: !!root.querySelector(`[data-id="${o.id}"] .mqt-composed`),
+  };
+  clearPrint();
+  return JSON.stringify(result);
+}.toString();
+
 const drawChecks = async function () {
   const rowTexts = (root) =>
     [...root.querySelectorAll('.mqt-composed')].map((p) =>
@@ -112,12 +174,16 @@ const drawChecks = async function () {
   let worstJustifiedGap = 0;
   let wrongHeights = 0;
   let screenMatchesOutput = true;
+  let styledRuns = 0;
+  let hardSpaces = 0;
   const range = document.createRange();
   for (let i = 0; i < book.pages.length; i++) {
     const page = paper(i, 96 / 25.4, true);
     Object.assign(page.style, { position: 'fixed', left: '-10000px', top: '0', display: 'block' });
     document.body.append(page);
     paragraphs += page.querySelectorAll('.mqt-paragraph').length;
+    styledRuns += page.querySelectorAll('.mqt-line span[style*="font-"]').length;
+    hardSpaces += page.querySelectorAll('.mqt-nbsp').length;
     for (const p of page.querySelectorAll('.mqt-composed')) {
       composedParagraphs++;
       const style = getComputedStyle(p);
@@ -130,7 +196,9 @@ const drawChecks = async function () {
         rows++;
         range.selectNodeContents(row);
         const rects = [...range.getClientRects()].filter((r) => r.width > 0);
-        if (new Set(rects.map((r) => Math.round(r.top))).size > 1) wrappedRows++;
+        // Una línea que el navegador partiera en dos tendría el doble de alto (con tramos de otro
+        // cuerpo, los rectángulos de una misma línea no empiezan a la misma altura).
+        if (row.getBoundingClientRect().height > lineHeight * 1.5) wrappedRows++;
         const end = Math.max(...rects.map((r) => r.right));
         if (end > right + 1) overflowingRows++;
         const justified = style.textAlign === 'justify' && index < lines.length - 1;
@@ -151,6 +219,8 @@ const drawChecks = async function () {
     worstJustifiedGapPx: Math.round(worstJustifiedGap * 1000) / 1000,
     wrongHeights,
     screenMatchesOutput,
+    styledRuns,
+    hardSpaces,
   });
   // Edición: el cuadro vuelve al texto de siempre y al terminar se recompone, sin tocar el texto.
   const composedOnScreen = document.querySelector('#spread .mqt-composed');
@@ -251,9 +321,12 @@ try {
   } else if (process.argv.includes('--draw')) {
     // Dibujo con el motor sobre la novela: pantalla, salida (paper de impresión), edición y alto.
     await evaluate('prepareNovelProof()');
+    await evaluate(`(${drawVariants})()`);
     await evaluate(`composeActivate(${JSON.stringify({ fonts })})`);
     await sleep(300);
-    console.log(JSON.stringify(JSON.parse(await evaluate(`(${drawChecks})()`)), null, 2));
+    const checks = JSON.parse(await evaluate(`(${drawChecks})()`));
+    const output = JSON.parse(await evaluate(`(${outputWaitCheck})()`));
+    console.log(JSON.stringify({ ...checks, output }, null, 2));
     const shot = process.argv[process.argv.indexOf('--shot') + 1];
     if (process.argv.includes('--shot') && shot) {
       const { data } = (await send('Page.captureScreenshot', { format: 'png' })).result;

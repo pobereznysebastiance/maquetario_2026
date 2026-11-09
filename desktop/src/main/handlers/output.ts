@@ -121,7 +121,8 @@ export async function prepareOutput(session: Session, options: unknown): Promise
   }
   const ready = await waitFor(
     session,
-    'window.outputReady===true && window.fontOutputReady!==false && window.shapeOutputReady!==false',
+    // composeOutputReady: con el motor de composición prendido, todos los párrafos compuestos.
+    'window.outputReady===true && window.fontOutputReady!==false && window.shapeOutputReady!==false && window.composeOutputReady!==false',
     100,
     100,
   );
@@ -230,6 +231,8 @@ export function legacyExport(session: Session, payload: { width?: unknown; heigh
     try {
       await exec(session, 'window.preparePrint()');
       await delay(350);
+      if (!(await waitFor(session, 'window.composeOutputReady!==false', 100, 100)))
+        throw new Error('El motor de composición no terminó de preparar la salida.');
       const bytes = await exactPdf(session, {
         width: Number(payload.width),
         height: Number(payload.height),

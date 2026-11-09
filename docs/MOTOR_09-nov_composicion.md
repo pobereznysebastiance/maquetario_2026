@@ -84,8 +84,8 @@ Corrida en Chrome sin ventana (`node desktop/scripts/build.mjs && node scripts/c
 
 | Libro | Párrafos | Líneas Chromium | Voraz exacto: idénticos | Voraz con cuerpo de Chromium: idénticos (esperadas / sin explicar) | Knuth-Plass: idénticos · diferencia de líneas | Cajas: desborde distinto |
 |---|---|---|---|---|---|---|
-| Libro de muestra (Georgia) | 4 | 15 | 4 / 4 | 4 / 4 (0 / 0) | 1 / 4 · +1 en uno, −1 en otro | 0 de 3 |
-| Novela de la autoprueba (Georgia) | 85 | 279 | 80 / 85 | **83 / 85 (2 / 0)** | 47 / 85 · −1 en 5 | 0 de 30 |
+| Libro de muestra (Georgia) | 4 | 15 | 4 / 4 | 4 / 4 (0 / 0) | 2 / 4 · −1 en uno | 0 de 3 |
+| Novela de la autoprueba (Georgia) | 85 | 279 | 80 / 85 | **83 / 85 (2 / 0)** | 48 / 85 · −1 en 5 | 0 de 30 |
 | … con separación silábica | 85 | 275 | 80 / 85 | **83 / 85 (2 / 0)** | 40 / 85 · −1 en 7 | 0 de 30 |
 | … con interletraje 30/1000 | 85 | 291 | 83 / 85 | **84 / 85 (1 / 0)** | 37 / 85 · −1 en 6 | 0 de 30 |
 | … en Bahnschrift variable, `wdth` 85 | 85 | 242 | 85 / 85 | **85 / 85 (0 / 0)** | 48 / 85 · −1 en 5 | 0 de 30 |
@@ -98,7 +98,7 @@ Lo que se lee:
 - **Knuth-Plass cambia mucho, a propósito:**
   - sólo la mitad de los párrafos queda igual;
   - casi siempre ahorra una línea o deja la cantidad igual;
-  - en el libro de muestra y en Cambria alarga un párrafo.
+  - sólo en Cambria alarga un párrafo.
 - **Desborde:** ninguna caja cambia de "desborda" a "no desborda" en estos libros, porque no hay cajas llenas al límite.
 - **Tiempo:** de 20 a 160 ms por libro, con la carga de las fuentes.
 
@@ -139,7 +139,20 @@ Con la llave prendida (`localStorage['maquetario-compose'] = '1'` y recargar), l
   - Al terminar de editar, la página se vuelve a armar y el cuadro se recompone.
   - Mientras se edita, `composePage` deja ese cuadro sin tocar y no se redibuja por fuentes que lleguen tarde.
   - La selección de objetos no cambia.
-- **Fuentes:** en el primer dibujo, las caras que faltan se piden y la página se redibuja cuando llegan. Hasta entonces, esos párrafos se ven con CSS. **Antes de sacar un PDF con el motor hay que esperar `composeReady()`**: carga las fuentes de todo el libro y redibuja. Si se exporta antes, ese PDF puede salir con CSS en los párrafos cuya fuente no llegó.
+- **Fuentes:** en el primer dibujo, las caras que faltan se piden y la página se redibuja cuando llegan. Hasta entonces, esos párrafos se ven con CSS en pantalla.
+- **La salida espera al motor.** `compose-loader.ts` extiende `prepareOutput` (PDF, PDF/X, impresión y vista previa) y `preparePrint` (la exportación anterior).
+  - Si al armar `#printRoot` falta alguna fuente del libro, `composeOutputReady` queda en `false`. Se cargan las fuentes y la salida se vuelve a armar ya compuesta; recién entonces pasa a `true`.
+  - El proceso principal espera `composeOutputReady !== false` junto con las otras banderas (`handlers/output.ts`: `prepareOutput` y `legacyExport`; también `writePdf` en la autoprueba).
+  - Si mientras tanto la salida se descartó (una vista previa que ya limpió `#printRoot`), no se rearma.
+  - Con la llave apagada la bandera no existe y no cambia nada.
+- **Varios estilos dentro de un párrafo (tramos):**
+  - El motor ya los compone (`createRunParagraph` en `packages/compose`): cada trozo de palabra se conforma con la cara y el cuerpo de su tramo, y las cajas de Knuth-Plass llevan esos anchos.
+  - Un cambio de tramo no es un lugar de corte, y cada espacio se estira según su tramo.
+  - En el dibujo, cada línea conserva los tramos: un elemento por tramo, con su fuente, peso, estilo, cuerpo (en em del párrafo) e interletraje, y su `word-spacing`. Las caras de los tramos se registran en la página (`ensureFace`) antes de dibujar y de sacar la salida.
+  - **Lo que falta es la app:** el libro todavía no tiene estilos de carácter ni una interfaz para crearlos. El motor lee, sólo con la llave prendida, un formato **provisorio**: `o.paragraphMap[i].runs = [{ start, end, overrides }]`, con los mismos campos que el formato de un párrafo.
+  - El dibujo de siempre (CSS) no muestra esos tramos. El formato definitivo, cómo se editan y cómo se ven sin el motor hay que decidirlo al sumar la función al editor.
+- **Espacio duro (U+00A0):** para CSS es un separador de palabras, así que el navegador le sumaría el `word-spacing` de la justificación; el motor no lo estira. En las líneas justificadas, cada espacio duro va en su elemento `.mqt-nbsp` con `word-spacing: 0` (`ui/book/page.css`). Prueba en `packages/compose/test/runs.test.ts`: no corta ni se estira, mientras los espacios comunes de la misma línea sí. En Chrome se verificó con la revisión `--draw`.
+- **Knuth-Plass sin solución:** cuando un párrafo no tiene solución con tolerancia 200 ni 1000, el motor pasa a la tolerancia sin límite. Ahí la maldad se compara sin el tope de 10000, así que ya no elige una línea con los espacios cien veces más anchos. El caso apareció con un párrafo sin separación silábica y palabras pegadas con espacios duros: el motor armaba la línea "sin tapa," sola.
 - **Autoprueba:** `npm run self-test -- --compose` suma, al final, la novela con el motor en `motor-de-composicion/`: el PDF, una captura y `paridad.json`. La carpeta queda fuera de la comparación de PDF. El motor se prende sólo por esa sesión (`composeActivate()`), sin dejar la llave guardada.
 - **Llave apagada:** no se instala ninguna extensión ni se pide ningún archivo. `scripts/compose-parity.mjs` lo comprueba: 0 extensiones del motor y ni el módulo ni el WASM en los recursos de la página. Las reglas nuevas de `page.css` sólo tocan `.mqt-line`, que sin la llave no existe.
 
@@ -148,20 +161,22 @@ Revisión en Chrome sin ventana (`node scripts/compose-parity.mjs --draw --shot 
 | Qué | Resultado |
 |---|---|
 | Párrafos compuestos por el motor | 85 de 88 (los 3 restantes están vacíos) |
-| Líneas | 274; ninguna se parte en dos ni se pasa del ancho |
+| Líneas | 275; ninguna se parte en dos ni se pasa del ancho |
 | Justificadas | todas llegan al borde derecho (diferencia de 0 px) |
 | Alto | líneas × interlineado en todos los párrafos |
 | Pantalla y salida | mismos cortes en las páginas visibles |
+| Tramos (negrita, cursiva y cuerpo 13 en el segundo párrafo de cada caja) | 44 tramos dibujados, sin líneas partidas ni pasadas del ancho |
+| Espacios duros ("de la" con un duro) | 15 en líneas justificadas, sin pasarse del borde |
 | Edición | al empezar, 0 líneas del motor y el texto igual al del libro; al terminar, recompuesto y el texto sin cambios |
+| Salida con una fuente que el motor no tenía (Cambria) | `composeOutputReady` en `false` enseguida y en `true` a los 50 ms, con los 85 párrafos de la salida compuestos |
 
 ## Qué falta
 
-1. Tramos con distinto estilo dentro de un párrafo. Hoy el motor compone el párrafo con su formato; la app no tiene estilos de carácter, pero sí índices y figuras que conviene excluir.
+1. Estilos de carácter en la app: formato definitivo de los tramos, cómo se crean en el editor y cómo se ven sin el motor (hoy el motor lee `paragraphMap[i].runs`, provisorio).
 2. Revisar a ojo el PDF de `npm run self-test -- --compose` con Seba y decidir los ajustes por defecto, antes de pensar en prender la llave para todos.
 3. Usar en la app el tope de guiones y el largo mínimo de la última línea: hoy son opciones del motor sin control en la interfaz. Hay que decidir los valores por defecto con Seba.
 4. Confirmar en macOS y Linux la regla del cuerpo truncado.
-5. Espacio duro (U+00A0): el navegador le suma el `word-spacing` de la justificación y el motor no lo trata como espacio; una línea justificada con un espacio duro se pasaría del borde por esa diferencia.
-6. Que `prepareOutput` espere solo a `composeReady()` (hoy hay que esperarlo antes).
+5. Probar en Electron la espera de la salida (`composeOutputReady`) con una exportación real, no sólo en la autoprueba.
 
 ## Cómo se enchufaría
 

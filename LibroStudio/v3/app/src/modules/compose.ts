@@ -14,6 +14,7 @@ import {
   breakLines,
   type ComposeFont,
   createParagraph,
+  createRunParagraph,
   type Hyphenator,
   type HyphenLanguage,
   loadFont,
@@ -536,57 +537,174 @@ function redrawSoon(): void {
   }, 0);
 }
 
-interface ComposedLine {
-  text: string;
-  /** Espacio que se suma a cada espacio entre palabras (justificación), en puntos. */
-  extra: number;
+/**
+ * Tramos de un párrafo (estilos de carácter), PROVISORIO: la app todavía no tiene estilos dentro
+ * de un párrafo ni una interfaz para crearlos. El motor lee, sólo con la llave prendida,
+ * o.paragraphMap[i].runs = [{ start, end, overrides }], con los mismos campos de formato que un
+ * párrafo (font, fontFaceId, fontWeight, fontItalic, bold, italic, size, tracking, fontAxes…).
+ * Lo que no cubre ningún tramo va con el formato del párrafo. El dibujo de siempre (CSS) no los
+ * muestra: el formato definitivo se decide al sumar la función al editor.
+ */
+interface RunSpec {
+  start: number;
+  end: number;
+  overrides: Record<string, any>;
 }
 
-const composed = new Map<string, ComposedLine[]>();
-
-/** Las líneas del motor para un párrafo (en caché por texto, formato, fuente y ancho). */
-function composeParagraph(
+/** Los tramos del párrafo como formatos completos que cubren todo el texto (uno solo si no hay). */
+function paragraphRuns(
   o: BookObject,
+  index: number,
   text: string,
   f: Record<string, any>,
-): ComposedLine[] | null {
+): { start: number; end: number; format: Record<string, any>; styled: boolean }[] {
+  const specs: RunSpec[] = (o.paragraphMap?.[index]?.runs ?? [])
+    .filter(
+      (r: RunSpec) =>
+        r &&
+        Number.isInteger(r.start) &&
+        Number.isInteger(r.end) &&
+        r.start < r.end &&
+        r.start >= 0 &&
+        r.end <= text.length,
+    )
+    .sort((a: RunSpec, b: RunSpec) => a.start - b.start);
+  const runs: { start: number; end: number; format: Record<string, any>; styled: boolean }[] = [];
+  let at = 0;
+  for (const spec of specs) {
+    if (spec.start < at) continue; // tramos encimados: vale el primero
+    if (spec.start > at) runs.push({ start: at, end: spec.start, format: f, styled: false });
+    runs.push({
+      start: spec.start,
+      end: spec.end,
+      format: { ...f, ...(spec.overrides || {}) },
+      styled: true,
+    });
+    at = spec.end;
+  }
+  if (at < text.length) runs.push({ start: at, end: text.length, format: f, styled: false });
+  return runs;
+}
+
+/** CSS de un tramo, como paragraphs.ts arma el del párrafo; el cuerpo, relativo al del párrafo. */
+function runStyle(
+  format: Record<string, any>,
+  weight: number,
+  paragraphSize: number,
+): Record<string, string> {
+  const face = drawFonts ? undefined : selectedFace(format);
+  return {
+    fontFamily: face ? `"MQT_${face.id}", "${format.font}"` : format.font,
+    // En la página se escala con el resto: el cuerpo va en em del párrafo.
+    fontSize: format.size / paragraphSize + 'em',
+    fontWeight: String(weight),
+    fontStyle: format.fontItalic || format.italic ? 'italic' : 'normal',
+    fontVariationSettings: Object.entries(format.fontAxes || {})
+      .map(([tag, value]) => `"${tag}" ${value}`)
+      .join(','),
+    letterSpacing: (format.tracking || 0) / 1000 + 'em',
+  };
+}
+
+interface ComposedSegment {
+  text: string;
+  /** Espacio que se suma a cada espacio del trozo (justificación), en puntos. */
+  extra: number;
+  /** CSS del tramo, o null si es el del párrafo. */
+  style: Record<string, string> | null;
+}
+
+const composed = new Map<string, ComposedSegment[][]>();
+
+/** Las líneas del motor para un párrafo (en caché por texto, formato, fuentes y ancho). */
+function composeParagraph(
+  o: BookObject,
+  index: number,
+  text: string,
+  f: Record<string, any>,
+): ComposedSegment[][] | null {
   if (unsupported(text)) return null;
-  const resolved = resolveFace(f, drawFonts);
-  if (typeof resolved === 'string') return null;
-  const file = fontNow(resolved.url);
-  if (!file) return null;
-  const sizePx = ((f.size * 25.4) / 72) * OUTPUT_PX;
-  const variations = cssVariations(f, resolved.weight, sizePx);
+  const sizePx = (size: number) => ((size * 25.4) / 72) * OUTPUT_PX;
+  // El cuerpo como lo usa Chromium (px truncado a centésimas): así el ancho de cada palabra en
+  // pantalla coincide con el del motor y el borde derecho queda parejo.
+  const chromiumSize = (size: number) =>
+    ((Math.floor(sizePx(size) * 100) / 100) * size) / sizePx(size);
+  const runs = [];
+  for (const run of paragraphRuns(o, index, text, f)) {
+    const resolved = resolveFace(run.format, drawFonts);
+    if (typeof resolved === 'string') return null;
+    const file = fontNow(resolved.url);
+    if (!file) return null;
+    const variations = cssVariations(run.format, resolved.weight, sizePx(run.format.size));
+    runs.push({
+      ...run,
+      url: resolved.url,
+      weight: resolved.weight,
+      variations,
+      font: withVariations(file, variations),
+      size: chromiumSize(run.format.size),
+      letterSpacing: ((run.format.tracking || 0) / 1000) * run.format.size,
+    });
+  }
   const width = (o.w - (f.indentLeft || 0) - (f.indentRight || 0)) * PT_PER_MM;
   const indent = (f.firstIndent || 0) * PT_PER_MM;
   const justify = f.align === 'justify';
   const options = engineOptions(f);
-  // El cuerpo como lo usa Chromium (px truncado a centésimas): así el ancho de cada palabra en
-  // pantalla coincide con el del motor y el borde derecho queda parejo.
-  const size = ((Math.floor(sizePx * 100) / 100) * f.size) / sizePx;
   const method = algorithm();
   const key = JSON.stringify([
     text,
-    resolved.url,
-    variations,
-    size,
+    runs.map((r) => [r.start, r.end, r.url, r.variations, r.size, r.letterSpacing, r.styled]),
     width,
     indent,
     justify,
     options.hyphenate,
     options.language,
-    options.letterSpacing,
     method,
   ]);
   let lines = composed.get(key);
   if (!lines) {
-    const paragraph = createParagraph(withVariations(file, variations), text, { ...options, size });
-    lines = breakLines(paragraph, width, { algorithm: method, indent, justify }).lines.map(
-      (line) => ({ text: line.text, extra: line.spaceWidth - paragraph.spaceWidth }),
+    const paragraph = createRunParagraph(
+      runs.map((r) => ({
+        text: text.slice(r.start, r.end),
+        font: r.font,
+        size: r.size,
+        letterSpacing: r.letterSpacing,
+      })),
+      { ...options, size: runs[0]!.size },
+    );
+    const styles = runs.map((r) => (r.styled ? runStyle(r.format, r.weight, f.size) : null));
+    lines = breakLines(paragraph, width, { algorithm: method, indent, justify }).lines.map((line) =>
+      line.segments.map((segment) => ({
+        text: segment.text,
+        extra: segment.spaceExtra,
+        style: styles[segment.run] ?? null,
+      })),
     );
     composed.set(key, lines);
   }
   return lines;
+}
+
+const NBSP = String.fromCharCode(0xa0);
+
+/**
+ * El texto de un trozo de línea. El espacio duro va en su propio elemento sin word-spacing: el
+ * navegador le sumaría la justificación (CSS lo trata como separador de palabras) y el motor no.
+ */
+function fillText(target: HTMLElement, text: string, justified: boolean): void {
+  if (!justified || !text.includes(NBSP)) {
+    target.append(text);
+    return;
+  }
+  text.split(NBSP).forEach((part, i) => {
+    if (i > 0) {
+      const hard = document.createElement('span');
+      hard.className = 'mqt-nbsp';
+      hard.textContent = NBSP;
+      target.append(hard);
+    }
+    if (part) target.append(part);
+  });
 }
 
 /** El objeto que se está editando: ése se queda con el texto de siempre. */
@@ -595,6 +713,7 @@ const isEditing = (o: BookObject) => editing?.dataset.id === o.id;
 /** extend.result('paper', …): dibuja con el motor los párrafos que puede componer. */
 export function composePage(page: HTMLElement, pageIndex: number, px: number): HTMLElement {
   if (suspended || !page) return page;
+  const pxPerPt = (px * 25.4) / 72;
   for (const o of book.pages[pageIndex]?.objects ?? []) {
     if (o.type !== 'text' || o.toc || isEditing(o)) continue;
     const box = page.querySelector<HTMLElement>(`[data-id="${o.id}"] .text-content`);
@@ -603,16 +722,23 @@ export function composePage(page: HTMLElement, pageIndex: number, px: number): H
       if (!text.trim()) return;
       const element = box.querySelector<HTMLElement>(`[data-paragraph-index="${index}"]`);
       const f = paragraphFormat(book, o, index);
-      const lines = element && composeParagraph(o, text, f);
+      const lines = element && composeParagraph(o, index, text, f);
       if (!element || !lines) return;
-      const pxPerPt = (px * 25.4) / 72;
       element.classList.add('mqt-composed');
       element.replaceChildren(
-        ...lines.map((line) => {
+        ...lines.map((segments) => {
           const row = document.createElement('div');
           row.className = 'mqt-line';
-          row.textContent = line.text;
-          if (Math.abs(line.extra) > 1e-6) row.style.wordSpacing = line.extra * pxPerPt + 'px';
+          const plain = segments.length === 1 && !segments[0]!.style;
+          for (const segment of segments) {
+            // Un trozo con el estilo del párrafo va directo en la línea; un tramo, en su elemento.
+            const target = plain ? row : document.createElement('span');
+            if (segment.style) Object.assign(target.style, segment.style);
+            const justified = Math.abs(segment.extra) > 1e-6;
+            if (justified) target.style.wordSpacing = segment.extra * pxPerPt + 'px';
+            fillText(target, segment.text, justified);
+            if (target !== row) row.append(target);
+          }
           return row;
         }),
       );
@@ -636,29 +762,53 @@ export function restoreForEditing(element: HTMLElement): void {
   });
 }
 
-/**
- * Carga las fuentes de todos los párrafos que el motor puede componer en el libro abierto y
- * redibuja. Antes de sacar un PDF con el motor, esperar a que se cumpla.
- */
-export async function composeReady(): Promise<void> {
+/** Las fuentes (direcciones) y caras del catálogo que necesitan los párrafos del libro. */
+function bookFontNeeds(): { urls: Set<string>; faces: Set<NativeFontFace> } {
   const urls = new Set<string>();
+  const faces = new Set<NativeFontFace>();
   for (const p of book.pages)
     for (const o of p.objects as BookObject[]) {
       if (o.type !== 'text' || o.toc) continue;
       o.text.split('\n').forEach((text: string, index: number) => {
-        const resolved =
-          text.trim() &&
-          !unsupported(text) &&
-          resolveFace(paragraphFormat(book, o, index), drawFonts);
-        if (resolved && typeof resolved !== 'string') urls.add(resolved.url);
+        if (!text.trim() || unsupported(text)) return;
+        const f = paragraphFormat(book, o, index);
+        for (const run of paragraphRuns(o, index, text, f)) {
+          const resolved = resolveFace(run.format, drawFonts);
+          if (typeof resolved === 'string') continue;
+          urls.add(resolved.url);
+          // La cara de un tramo la registra el motor (las de los párrafos, ensureBookFonts).
+          const face = run.styled && !drawFonts ? selectedFace(run.format) : undefined;
+          if (face) faces.add(face);
+        }
       });
     }
-  await Promise.all(
-    [...urls].map((url) =>
+  return { urls, faces };
+}
+
+/** Si todas las fuentes que el libro le pide al motor ya llegaron (o fallaron). */
+export function outputComplete(): boolean {
+  return [...bookFontNeeds().urls].every((url) => readyFonts.has(url) || failedFonts.has(url));
+}
+
+/** Carga en el motor (y en la página, para los tramos) las fuentes del libro, sin redibujar. */
+export async function loadBookFonts(): Promise<void> {
+  const { urls, faces } = bookFontNeeds();
+  await Promise.all([
+    ...[...urls].map((url) =>
       fontFrom(url)
         .then((font) => readyFonts.set(url, font))
         .catch(() => failedFonts.add(url)),
     ),
-  );
+    ...[...faces].map((face) => ensureFace(face).catch(() => {})),
+  ]);
+  await document.fonts.ready;
+}
+
+/**
+ * Carga las fuentes de todos los párrafos que el motor puede componer en el libro abierto y
+ * redibuja. La salida (prepareOutput, preparePrint) ya lo espera sola (src/compose-loader.ts).
+ */
+export async function composeReady(): Promise<void> {
+  await loadBookFonts();
   if (!editing) render(true);
 }

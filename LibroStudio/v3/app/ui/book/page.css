@@ -184,6 +184,10 @@
 .mqt-line:last-child {
   text-align-last: inherit;
 }
+/* El espacio duro no se estira al justificar (para CSS es un separador de palabras). */
+.mqt-nbsp {
+  word-spacing: 0;
+}
 
 /* ── Figuras dibujadas sobre la página ── */
 .editorial-shape-svg {

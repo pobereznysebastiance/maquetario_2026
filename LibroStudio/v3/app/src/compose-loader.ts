@@ -2,7 +2,7 @@
 //
 //   localStorage.setItem('maquetario-compose', '1')    y recargar (Ctrl+R)
 //   await composeReport()                              paridad con los cortes de Chromium
-//   await composeReady()                               fuentes cargadas (antes de un PDF)
+//   await composeReady()                               fuentes cargadas y página redibujada
 //   composeAlgorithm('greedy' | 'knuth-plass')         ajuste de desarrollo (por defecto K-P)
 //   composeActivate()                                  prende el dibujo sólo por esta sesión
 //
@@ -57,6 +57,27 @@ function loadComposeEngine(): Promise<ComposeModule> {
   return importEngine();
 }
 
+/**
+ * Después de armar la salida (#printRoot): si el motor ya tiene todas las fuentes del libro, está
+ * lista; si no, composeOutputReady queda en false, se cargan y se vuelve a armar con `again`
+ * (que pasa otra vez por acá, ya completa). Si mientras tanto la salida se descartó (#printRoot
+ * vacío, por ejemplo una vista previa), no se rearma.
+ */
+function guardOutput(again: () => void): void {
+  if (loaded?.outputComplete()) {
+    globalThis.composeOutputReady = true;
+    return;
+  }
+  globalThis.composeOutputReady = false;
+  importEngine()
+    .then((module) => module.loadBookFonts())
+    .catch((error: unknown) => console.warn('[motor de composición]', error))
+    .then(() => {
+      if (loaded?.outputComplete() && $('#printRoot').childElementCount) again();
+      else globalThis.composeOutputReady = true;
+    });
+}
+
 /** Instala el dibujo con el motor (una vez) y carga el módulo y las fuentes del libro. */
 function activate(options?: ComposeDrawOptions): Promise<void> {
   if (!active) {
@@ -76,6 +97,23 @@ function activate(options?: ComposeDrawOptions): Promise<void> {
       },
       'compose-loader',
     );
+    // La salida espera al motor: si al armarla faltaba alguna fuente, se marca como no lista
+    // (el proceso principal espera composeOutputReady), se cargan y se vuelve a armar.
+    extend.result(
+      'prepareOutput',
+      function (result: unknown, config: unknown) {
+        guardOutput(() => globalThis.prepareOutput(config as never));
+        return result;
+      },
+      'compose-loader',
+    );
+    extend.after(
+      'preparePrint',
+      function () {
+        guardOutput(() => globalThis.preparePrint());
+      },
+      'compose-loader',
+    );
   }
   return importEngine().then((module) => {
     if (options) module.configureDrawing(options);
@@ -86,7 +124,7 @@ function activate(options?: ComposeDrawOptions): Promise<void> {
 declare global {
   /** Herramienta de desarrollo: compara los cortes de línea del motor con los de Chromium. */
   var composeReport: (options?: ComposeReportOptions) => Promise<ComposeReport>;
-  /** Fuentes del libro cargadas en el motor y página redibujada (esperar antes de un PDF). */
+  /** Fuentes del libro cargadas en el motor y página redibujada (la salida ya lo espera sola). */
   var composeReady: () => Promise<void>;
   /** Ajuste de desarrollo: corte voraz o Knuth-Plass (queda guardado en este equipo). */
   var composeAlgorithm: (name: ComposeAlgorithm) => Promise<void>;
@@ -95,6 +133,11 @@ declare global {
    * --compose). `fonts`, como en composeReport, para el navegador sin catálogo.
    */
   var composeActivate: (options?: ComposeDrawOptions) => Promise<void>;
+  /**
+   * La salida armada ya tiene todos los párrafos compuestos por el motor. Sólo existe con el motor
+   * prendido; el proceso principal espera que no sea false (desktop/src/main/handlers/output.ts).
+   */
+  var composeOutputReady: boolean | undefined;
 }
 globalThis.composeReport = async (options) => (await loadComposeEngine()).composeReport(options);
 globalThis.composeReady = async () => (await loadComposeEngine()).composeReady();

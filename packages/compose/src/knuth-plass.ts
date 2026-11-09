@@ -176,7 +176,11 @@ export function knuthPlass(items: Item[], options: BreakOptions): Break[] | null
         const tooManyHyphens = maxHyphens !== undefined && hyphens > maxHyphens;
         const shortLastLine = penalty === -INFINITY_PENALTY && node.line > 0 && width < minLastLine;
         if (badness <= tolerance && !tooManyHyphens && !shortLastLine) {
-          let demerits = (linePenalty + badness) ** 2;
+          // Para elegir no se usa el tope de 10000 de la maldad: si no, con la tolerancia más alta
+          // (cuando no hay otra solución) una línea con los espacios cien veces más anchos valdría
+          // lo mismo que una apenas floja. Se limita igual, para no llegar a infinito.
+          const cost = ratio < -1 ? badness : Math.min(100 * Math.abs(ratio) ** 3, 1e7);
+          let demerits = (linePenalty + cost) ** 2;
           if (penalty >= 0) demerits += penalty ** 2;
           else if (penalty > -INFINITY_PENALTY) demerits -= penalty ** 2;
           const previousItem = items[node.position];

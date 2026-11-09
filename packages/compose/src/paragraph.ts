@@ -15,7 +15,7 @@ import {
   type Item,
   knuthPlass,
 } from './knuth-plass.ts';
-import { type ComposeFont, shape, type ShapeOptions } from './shape.ts';
+import { type ComposeFont, shape, type ShapedGlyph, type ShapeOptions } from './shape.ts';
 
 export interface ParagraphOptions extends Omit<ShapeOptions, 'language'>, HyphenationOptions {
   /** Partir palabras con guion. Por defecto true. */
@@ -30,6 +30,7 @@ export interface ParagraphOptions extends Omit<ShapeOptions, 'language'>, Hyphen
 /** De qué parte del texto sale cada caja (índices UTF-16 del texto del párrafo). */
 interface Segment {
   word: number;
+  run: number;
   start: number;
   end: number;
 }
@@ -37,47 +38,112 @@ interface Segment {
 /** Corte dentro de una palabra: por sílaba (se agrega un guion) o en el guion de una compuesta. */
 export type WordBreak = 'syllable' | 'compound';
 
+/**
+ * Un tramo del párrafo con su propia fuente o formato: negrita, cursiva, otra fuente u otro
+ * cuerpo. Lo que no dice lo toma del párrafo (ParagraphOptions).
+ */
+export interface TextRun {
+  text: string;
+  font: ComposeFont;
+  size?: number;
+  letterSpacing?: number;
+  features?: string[];
+}
+
+/** Un tramo ya ubicado en el texto del párrafo, con lo que necesita para conformarse. */
+export interface ParagraphRun {
+  readonly font: ComposeFont;
+  readonly shape: ShapeOptions;
+  readonly start: number;
+  readonly end: number;
+  /** Ancho natural del espacio y cuánto se estira y se encoge, en puntos. */
+  readonly spaceWidth: number;
+  readonly stretch: number;
+  readonly shrink: number;
+}
+
 export interface Paragraph {
+  /** La fuente del primer tramo (la del párrafo, si tiene uno solo). */
   readonly font: ComposeFont;
   readonly text: string;
   readonly options: ParagraphOptions;
+  readonly runs: readonly ParagraphRun[];
   readonly items: Item[];
-  /** Para cada ítem caja, el trozo de texto; para los demás, null. */
+  /** Para cada ítem caja, el trozo de texto y su tramo; para los demás, null. */
   readonly segments: (Segment | null)[];
+  /** Para cada pegamento entre palabras, el tramo del espacio. */
+  readonly glueRuns: ReadonlyMap<number, number>;
   /** Los cortes dentro de palabras, por índice de ítem (la penalización). */
   readonly wordBreaks: ReadonlyMap<number, WordBreak>;
   /** Dónde puede empezar una línea (índices del texto), además del comienzo. */
   readonly breakStarts: readonly number[];
+  /** Espacio y guion del primer tramo. */
   readonly spaceWidth: number;
   readonly hyphenWidth: number;
 }
 
 const LETTER = /\p{L}/u;
-const DASH_ONLY = /^[\u2013\u2014]+$/;
+const DASH_ONLY = /^[–—]+$/;
 const countLetters = (text: string): number => [...text].filter((c) => LETTER.test(c)).length;
 
-/**
- * Arma el párrafo: los blancos seguidos cuentan como un espacio. Reglas de corte del castellano:
- * - dentro de una palabra sólo se corta por sílaba (con guion) o en el guion de una palabra
- *   compuesta, y entonces el guion se repite al comienzo de la línea siguiente (RAE);
- * - nunca después de una raya o un guion de rango pegados (—dijo—, 1990–2000): la raya de
- *   apertura no queda al final de línea ni la de cierre al comienzo;
- * - una raya suelta, entre espacios, queda pegada a sus vecinas.
- */
+/** Arma un párrafo de un solo tramo (ver createRunParagraph). */
 export function createParagraph(
   font: ComposeFont,
   text: string,
   options: ParagraphOptions,
 ): Paragraph {
-  const spaceWidth = shape(font, ' ', options).width;
-  const hyphenWidth = shape(font, '-', options).width;
-  const stretch = spaceWidth * (options.spaceStretch ?? 1 / 2);
-  const shrink = spaceWidth * (options.spaceShrink ?? 1 / 3);
+  return createRunParagraph([{ text, font }], options);
+}
+
+/**
+ * Arma el párrafo con sus tramos: cada trozo de palabra se conforma con la cara y el formato de
+ * su tramo, y las cajas de Knuth-Plass llevan esos anchos. Un tramo no es un lugar de corte: una
+ * palabra con una parte en cursiva sigue siendo una palabra. Cada espacio se estira según el
+ * tramo al que pertenece. Los blancos seguidos cuentan como un espacio.
+ *
+ * Reglas de corte del castellano:
+ * - dentro de una palabra sólo se corta por sílaba (con guion) o en el guion de una palabra
+ *   compuesta, y entonces el guion se repite al comienzo de la línea siguiente (RAE);
+ * - nunca después de una raya o un guion de rango pegados (—dijo—, 1990–2000): la raya de
+ *   apertura no queda al final de línea ni la de cierre al comienzo;
+ * - una raya suelta, entre espacios, queda pegada a sus vecinas;
+ * - el espacio duro (U+00A0) no corta ni se estira: es parte de la palabra.
+ */
+export function createRunParagraph(input: TextRun[], options: ParagraphOptions): Paragraph {
+  if (!input.length) throw new Error('Un párrafo necesita al menos un tramo.');
+  const runs: ParagraphRun[] = [];
+  let offset = 0;
+  for (const run of input) {
+    const shapeOptions: ShapeOptions = {
+      ...options,
+      size: run.size ?? options.size,
+      letterSpacing: run.letterSpacing ?? options.letterSpacing,
+      features: run.features ?? options.features,
+    };
+    const spaceWidth = shape(run.font, ' ', shapeOptions).width;
+    runs.push({
+      font: run.font,
+      shape: shapeOptions,
+      start: offset,
+      end: offset + run.text.length,
+      spaceWidth,
+      stretch: spaceWidth * (options.spaceStretch ?? 1 / 2),
+      shrink: spaceWidth * (options.spaceShrink ?? 1 / 3),
+    });
+    offset += run.text.length;
+  }
+  const text = input.map((run) => run.text).join('');
+  const runAt = (index: number): number => {
+    const found = runs.findIndex((run) => index >= run.start && index < run.end);
+    return found < 0 ? runs.length - 1 : found;
+  };
+  const hyphenWidths = runs.map((run) => shape(run.font, '-', run.shape).width);
   const hyphenPenalty = options.hyphenPenalty ?? 50;
   const leftMin = options.leftMin ?? 2;
   const rightMin = options.rightMin ?? 3;
   const items: Item[] = [];
   const segments: (Segment | null)[] = [];
+  const glueRuns = new Map<number, number>();
   const wordBreaks = new Map<number, WordBreak>();
   const breakStarts: number[] = [];
   const push = (item: Item, segment: Segment | null = null) => {
@@ -97,10 +163,12 @@ export function createParagraph(
       if (dashOnly || previousDashOnly)
         push({ type: 'penalty', width: 0, penalty: INFINITY_PENALTY, flagged: false });
       else breakStarts.push(start);
-      push({ type: 'glue', width: spaceWidth, stretch, shrink });
+      // El espacio es del tramo del blanco que precede a la palabra.
+      const space = runs[runAt(start - 1)]!;
+      glueRuns.set(items.length, runAt(start - 1));
+      push({ type: 'glue', width: space.spaceWidth, stretch: space.stretch, shrink: space.shrink });
     }
     previousDashOnly = dashOnly;
-    const shaped = shape(font, token, options);
     // Cortes dentro de la palabra: el guion de cada compuesta y las sílabas de cada parte.
     const cuts: { at: number; kind: WordBreak }[] = [];
     let partStart = 0;
@@ -123,42 +191,56 @@ export function createParagraph(
         cuts.push({ at: i + 1, kind: 'compound' });
       partStart = i + 1;
     }
-    const bounds = [0, ...cuts.map((c) => c.at), token.length];
+    // Cada trozo de la palabra que cae en un tramo se conforma con la cara de ese tramo.
+    const pieces: { from: number; to: number; run: number; glyphs: ShapedGlyph[] }[] = [];
+    for (let from = 0; from < token.length;) {
+      const run = runAt(start + from);
+      const to = Math.min(token.length, runs[run]!.end - start);
+      const shaped = shape(runs[run]!.font, token.slice(from, to), runs[run]!.shape);
+      pieces.push({ from, to, run, glyphs: shaped.glyphs });
+      from = to;
+    }
+    const bounds = [
+      ...new Set([0, ...cuts.map((c) => c.at), ...pieces.map((p) => p.from), token.length]),
+    ].sort((a, b) => a - b);
     for (let i = 0; i < bounds.length - 1; i++) {
       const from = bounds[i]!;
       const to = bounds[i + 1]!;
-      const width = shaped.glyphs
-        .filter((g) => g.cluster >= from && g.cluster < to)
+      const piece = pieces.find((p) => from >= p.from && from < p.to)!;
+      const width = piece.glyphs
+        .filter((g) => g.cluster + piece.from >= from && g.cluster + piece.from < to)
         .reduce((sum, g) => sum + g.advance, 0);
-      if (i > 0) {
-        const kind = cuts[i - 1]!.kind;
-        wordBreaks.set(items.length, kind);
+      const cut = cuts.find((c) => c.at === from);
+      if (cut) {
+        wordBreaks.set(items.length, cut.kind);
         breakStarts.push(start + from);
         // En la compuesta el guion ya está en el texto: cortar no agrega ancho.
         push({
           type: 'penalty',
-          width: kind === 'syllable' ? hyphenWidth : 0,
+          width: cut.kind === 'syllable' ? hyphenWidths[runAt(start + from - 1)]! : 0,
           penalty: hyphenPenalty,
           flagged: true,
         });
       }
-      push({ type: 'box', width }, { word, start: start + from, end: start + to });
+      push({ type: 'box', width }, { word, run: piece.run, start: start + from, end: start + to });
     }
     word++;
   }
   // Fin de párrafo: la última línea queda corta (pegamento que se estira sin límite) y se corta sí o sí.
-  push({ type: 'glue', width: 0, stretch: INFINITY_PENALTY * spaceWidth, shrink: 0 });
+  push({ type: 'glue', width: 0, stretch: INFINITY_PENALTY * runs[0]!.spaceWidth, shrink: 0 });
   push({ type: 'penalty', width: 0, penalty: -INFINITY_PENALTY, flagged: false });
   return {
-    font,
+    font: runs[0]!.font,
     text,
     options,
+    runs,
     items,
     segments,
+    glueRuns,
     wordBreaks,
     breakStarts,
-    spaceWidth,
-    hyphenWidth,
+    spaceWidth: runs[0]!.spaceWidth,
+    hyphenWidth: hyphenWidths[0]!,
   };
 }
 
@@ -170,13 +252,26 @@ export interface LineGlyph {
   advance: number;
   /** Índice en el texto del párrafo del carácter que lo produjo. */
   cluster: number;
+  /** Tramo del párrafo al que pertenece (su fuente y cuerpo). */
+  run: number;
   /** El guion agregado al cortar la palabra. */
   hyphen?: boolean;
+}
+
+/** Un trozo de la línea con un mismo tramo: lo que el dibujo pone con una sola fuente. */
+export interface LineSegment {
+  run: number;
+  /** Texto, con los espacios entre palabras y el guion si corta. */
+  text: string;
+  /** Lo que se suma a cada espacio del trozo por la justificación, en puntos. */
+  spaceExtra: number;
 }
 
 export interface Line {
   /** Texto de la línea, con el guion si corta una palabra. */
   text: string;
+  /** La línea por tramos, en orden. */
+  segments: LineSegment[];
   /** Tramo del texto del párrafo que ocupa la línea. */
   start: number;
   end: number;
@@ -186,7 +281,7 @@ export interface Line {
   naturalWidth: number;
   /** Holgura: ancho pedido menos ancho natural (negativa si hubo que encoger). */
   slack: number;
-  /** Ancho final de cada espacio. */
+  /** Ancho final de cada espacio del primer tramo. */
   spaceWidth: number;
   /** Relación de ajuste y maldad, medidas sobre el conformado final. */
   ratio: number;
@@ -305,10 +400,7 @@ function buildLines(
   indent: number,
   justify: boolean,
 ): Line[] {
-  const { items, segments, font, options, text } = paragraph;
-  const glue = items.find((item) => item.type === 'glue');
-  const stretch = glue?.type === 'glue' ? glue.stretch : 0;
-  const shrink = glue?.type === 'glue' ? glue.shrink : 0;
+  const { items, segments, runs, text } = paragraph;
   const lines: Line[] = [];
   let from = 0;
   // La línea anterior cortó en el guion de una compuesta: éste se repite al comienzo (RAE).
@@ -319,65 +411,100 @@ function buildLines(
     const breakItem = items[position];
     const hyphenated = breakItem?.type === 'penalty' && breakItem.flagged;
     const wordBreak = paragraph.wordBreaks.get(position);
-    // Trozos de palabra de la línea, unidos por palabra.
-    const words: { start: number; end: number }[] = [];
-    let previousWord = -1;
+    // Trozos de la línea (unidos por palabra y tramo) y los espacios entre palabras.
+    const parts: { word: number; run: number; start: number; end: number; gap?: number }[] = [];
+    let pendingGap: number | undefined;
     for (let i = from; i < position; i++) {
+      const item = items[i]!;
+      if (item.type === 'glue' && paragraph.glueRuns.has(i)) pendingGap = i;
       const segment = segments[i];
       if (!segment) continue;
-      if (segment.word === previousWord) words[words.length - 1]!.end = segment.end;
-      else words.push({ start: segment.start, end: segment.end });
-      previousWord = segment.word;
+      const previous = parts.at(-1);
+      if (previous && previous.word === segment.word && previous.run === segment.run)
+        previous.end = segment.end;
+      else
+        parts.push({
+          ...segment,
+          ...(previous && previous.word !== segment.word ? { gap: pendingGap } : {}),
+        });
+      pendingGap = undefined;
     }
-    const pieces = words.map((w, i) => {
+    const pieces = parts.map((part, i) => {
       const prefix = repeatHyphen && i === 0 ? '-' : '';
-      const suffix = wordBreak === 'syllable' && i === words.length - 1 ? '-' : '';
+      const suffix = wordBreak === 'syllable' && i === parts.length - 1 ? '-' : '';
+      const run = runs[part.run]!;
       return {
-        ...w,
+        ...part,
         prefix,
-        run: shape(font, prefix + text.slice(w.start, w.end) + suffix, options),
+        shaped: shape(run.font, prefix + text.slice(part.start, part.end) + suffix, run.shape),
       };
     });
     repeatHyphen = wordBreak === 'compound';
-    const gaps = Math.max(pieces.length - 1, 0);
+    const gaps = pieces.flatMap((piece) => {
+      if (piece.gap === undefined) return [];
+      const glue = items[piece.gap]!;
+      return glue.type === 'glue' ? [{ piece, glue, run: paragraph.glueRuns.get(piece.gap)! }] : [];
+    });
     const naturalWidth =
-      pieces.reduce((sum, p) => sum + p.run.width, 0) + gaps * paragraph.spaceWidth;
+      pieces.reduce((sum, p) => sum + p.shaped.width, 0) +
+      gaps.reduce((sum, g) => sum + g.glue.width, 0);
     const slack = width - naturalWidth;
+    const stretch = gaps.reduce((sum, g) => sum + g.glue.stretch, 0);
+    const shrink = gaps.reduce((sum, g) => sum + g.glue.shrink, 0);
     let ratio = 0;
-    if (gaps > 0 && (slack < 0 || (justify && !last)))
-      ratio = slack >= 0 ? slack / (gaps * stretch) : slack / (gaps * shrink);
-    const spaceWidth = paragraph.spaceWidth + (ratio >= 0 ? ratio * stretch : ratio * shrink);
+    if (gaps.length && (slack < 0 || (justify && !last)))
+      ratio = slack >= 0 ? slack / stretch : slack / shrink;
+    const extraFor = (run: ParagraphRun) => (ratio >= 0 ? ratio * run.stretch : ratio * run.shrink);
 
     const glyphs: LineGlyph[] = [];
+    const chunks: { run: number; text: string }[] = [];
     let x = lineIndex === 0 ? indent : 0;
-    pieces.forEach((piece, i) => {
-      if (i > 0) x += spaceWidth;
-      const wordLength = piece.end - piece.start;
-      for (const g of piece.run.glyphs) {
-        const inWord = g.cluster - piece.prefix.length;
-        const isHyphen = inWord < 0 || inWord >= wordLength;
+    for (const piece of pieces) {
+      const gap = gaps.find((g) => g.piece === piece);
+      if (gap) {
+        x += gap.glue.width + extraFor(runs[gap.run]!);
+        chunks.push({ run: gap.run, text: ' ' });
+      }
+      const length = piece.end - piece.start;
+      for (const g of piece.shaped.glyphs) {
+        const inPiece = g.cluster - piece.prefix.length;
+        const isHyphen = inPiece < 0 || inPiece >= length;
         glyphs.push({
           id: g.id,
           x: x + g.xOffset,
           y: g.yOffset,
           advance: g.advance,
-          cluster: piece.start + Math.min(Math.max(inWord, 0), wordLength),
+          cluster: piece.start + Math.min(Math.max(inPiece, 0), length),
+          run: piece.run,
           ...(isHyphen ? { hyphen: true } : {}),
         });
         x += g.advance;
       }
-    });
+      chunks.push({ run: piece.run, text: piece.shaped.text });
+    }
+    const lineSegments: LineSegment[] = [];
+    for (const chunk of chunks) {
+      const previous = lineSegments.at(-1);
+      if (previous?.run === chunk.run) previous.text += chunk.text;
+      else
+        lineSegments.push({
+          run: chunk.run,
+          text: chunk.text,
+          spaceExtra: extraFor(runs[chunk.run]!),
+        });
+    }
     const start = pieces[0]?.start ?? 0;
-    const end = pieces[pieces.length - 1]?.end ?? start;
+    const end = pieces.at(-1)?.end ?? start;
     lines.push({
-      text: pieces.map((p) => p.run.text).join(' '),
+      text: lineSegments.map((segment) => segment.text).join(''),
+      segments: lineSegments,
       start,
       end,
       glyphs,
       width,
       naturalWidth,
       slack,
-      spaceWidth,
+      spaceWidth: runs[0]!.spaceWidth + extraFor(runs[0]!),
       ratio,
       badness: last && ratio >= 0 ? 0 : badnessOf(ratio),
       hyphenated,

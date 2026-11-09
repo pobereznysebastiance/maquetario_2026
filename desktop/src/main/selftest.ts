@@ -95,6 +95,8 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   ) => {
     await exec(session, prepare);
     await delay(wait);
+    // Con el motor de composición prendido (--compose), esperar a que la salida esté compuesta.
+    await waitFor(session, 'window.composeOutputReady!==false', 100, 100);
     const bytes = await exactPdf(session, page, trim, pdfx);
     await exec(session, 'window.clearPrint()');
     if (bytes.subarray(0, 5).toString('latin1') !== '%PDF-')
@@ -422,7 +424,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
       await capture(join(folder, 'novela.png'));
       const report = await exec<unknown>(session, 'composeReport()');
       await writeFile(join(out, folder, 'paridad.json'), JSON.stringify(report, null, 2));
-      await exec(session, 'composeReady().then(() => true)');
+      // La salida espera sola al motor (composeOutputReady): no hace falta composeReady().
       return writePdf(
         join(folder, 'El atlas de las casas vacias.pdf'),
         'window.prepareNovelPdf()',
