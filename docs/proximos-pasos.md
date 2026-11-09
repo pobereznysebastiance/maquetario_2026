@@ -122,9 +122,19 @@ En React (`src/components/`):
 - **Inspector**, pestaña Libro: entera (Estructura, Grilla, Misceláneas y líneas, Foliado, Cornisa, Titulillo, Fuentes de tu equipo).
 - **Inspector**, pestaña Página: entera. Selección: el objeto (posición, medidas, alinear, distribuir, orden y bloqueo) y el estado vacío.
 - **Inspector:** Selección de texto y párrafo, las vistas Índice y Capas del riel, y la cadena: `<Inspector/>` arma las tres pestañas e `inspector()` es una fachada (pasos 8 a 10).
+- **Lienzo** (seis pasos, `docs/arquitectura.md` → "El lienzo"):
+  - el papel separado de la pantalla y los eventos delegados en `#spread`;
+  - en React con portales: capa de selección, grilla y guías, imán y reglas;
+  - `<Spread/>` decide qué páginas o filas se ven, también en la vista continua.
+  - Edición y arrastre quedan fuera de React, con su ciclo escrito.
+  - El papel y lo impreso no cambiaron: PDF idénticos.
 
 Falta:
-- **Lienzo:** lo que se dibuja alrededor del libro (selección, controladores, guías, reglas, el pliego y la vista continua), en seis pasos. El papel (`paper()` con `print`) no cambia. Plan en `docs/arquitectura.md` → "El lienzo".
+- **Lienzo, lo que quedó fuera** (`docs/arquitectura.md` → "El lienzo" → "Lo que quedó fuera"):
+  - unir las dos restauraciones del cuadro en edición (motor y separación silábica);
+  - sacar las clases de página activa que todavía pone `updateActivePage`;
+  - un solo cálculo de escala;
+  - las miniaturas.
 - **Retirar `#modal`:** ya nadie lo abre (`exportDialog` y `offerRecovery` se borraron); quedan el `<dialog>` de `index.html`, chequeos `$('#modal').open`, reglas de CSS con `#modalBody` y pruebas que lo cierran.
 - **Al final:**
   - retirar `#modal` y la API de cadenas de `src/ui/components.ts` cuando no quede HTML;

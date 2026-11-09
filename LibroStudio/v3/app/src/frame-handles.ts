@@ -1,6 +1,8 @@
-// Ocho controladores (esquinas y bordes) para redimensionar la caja seleccionada. Reemplaza
-// objectDown y moveObject de studio.js para arrastrar desde cualquier controlador, y Escape o
-// pointercancel devuelven la caja a su lugar (y la dejan elegida). Los controladores no se imprimen.
+// El arrastre de los objetos del papel: mover y redimensionar desde los ocho controladores
+// (esquinas y bordes). Arma objectDown y moveObject (en studio.ts sólo está su nombre). Escape o
+// pointercancel devuelven la caja a su lugar (y la dejan elegida). Los controladores los dibuja la
+// capa de selección y no se imprimen. El ciclo del arrastre y de la edición: docs/arquitectura.md,
+// "El lienzo", paso 6.
 //
 // frameDirections y frameGeometry son globales porque los usa tests/frame-handles-tests.js;
 // showHandlePreview lo llama la autoprueba (desktop/src/main/selftest.ts).

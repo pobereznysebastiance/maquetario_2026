@@ -59,11 +59,23 @@ registerNavigationTest(async function (result) {
       '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40"><path fill="#3CD1BB" d="M0 0h80v40H0z"/></svg>',
     );
     document.activeElement.blur();
+    // Lo que haría que el pegado no haga nada (placed-artwork.ts sale temprano): si falla, el
+    // mensaje lo dice.
+    const pasteState = {
+      unavailable: canvasUnavailable(),
+      editing: !!maquetarioEditor.editing,
+      drag: !!maquetarioEditor.drag,
+      preview: !!maquetarioEditor.preview,
+      dialog: !!document.querySelector('dialog[open]'),
+    };
     $('#spread').dispatchEvent(
       new ClipboardEvent('paste', { clipboardData: clipboard, bubbles: true, cancelable: true }),
     );
-    for (let i = 0; i < 30 && !maquetarioEditor.book.pages[0].objects.length; i++)
+    // El SVG se lee y se decodifica antes de colocarse: con la máquina cargada puede tardar.
+    for (let i = 0; i < 150 && !maquetarioEditor.book.pages[0].objects.length; i++)
       await new Promise((resolve) => setTimeout(resolve, 20));
+    if (!maquetarioEditor.book.pages[0].objects[0]?.src.startsWith('data:image/svg+xml;base64,'))
+      throw Error('Pegar SVG coloca un objeto vectorial · estado: ' + JSON.stringify(pasteState));
     check(
       maquetarioEditor.book.pages[0].objects[0]?.src.startsWith('data:image/svg+xml;base64,'),
       'Pegar SVG coloca un objeto vectorial',

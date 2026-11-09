@@ -308,9 +308,9 @@ Tiempos (Chrome sin ventana, libro de muestra, 50 llamadas seguidas a `inspector
 - **El traductor del DOM:** no traduce `data-react`.
 - **`flushSync` desde un efecto de React:** si `inspector()` se llama dentro de un efecto, el dibujo sincrónico no se cumple (React avisa y dibuja después).
 
-## El lienzo (etapa 3, D2): plan
+## El lienzo (etapa 3, D2): hecho
 
-Es lo último del orden D2. Plan escrito el 09-nov. Hechos: pasos 1 a 5.
+Es lo último del orden D2. Plan escrito el 09-nov y hecho el mismo día, en seis pasos (abajo, cada uno con lo que se hizo). Lo que quedó fuera está al final de la sección.
 
 ### Qué es hoy
 
@@ -450,9 +450,46 @@ Cada paso es una entrega con la autoprueba en verde, PDF idénticos (`compare-ou
        - pliego, de 116 a 152 ms (de ~2,3 a ~3 ms cada una);
        - vista continua, de 133 a 121 ms.
        - El cuadro de desplazamiento y el arrastre cuestan lo mismo (~0,9 ms por movimiento).
-6. **Edición y arrastre: se ordenan, no se pasan.**
-   - `editing` y `drag` ya viven en `editor`. La capa de selección dibuja el anillo de edición.
-   - Durante el arrastre, el aviso a React se junta en un `requestAnimationFrame` (hoy, uno por `pointermove`), y el inspector sólo se entera de la geometría (`GeometryPanel`).
+6. ✓ **Edición y arrastre: se ordenan, no se pasan.**
+   - `editing` y `drag` ya viven en `editor`.
+   - Durante el arrastre, el aviso a React se junta en un `requestAnimationFrame` (`editor-state`, dc629ce), y el inspector sólo se entera de la geometría (`GeometryPanel`).
+   - **Hecho (09-nov).** El ciclo quedó así:
+     - **La edición.**
+       - El nodo editable es el `.text-content` que arma `paper()`. No se crea uno aparte.
+       - `startEditing(el)` (doble clic, desde `#spread`) cierra la edición anterior y guarda un paso de deshacer. Pone `editing`, la clase `editing` y `contentEditable`, y le da el foco.
+       - Al empezar, el motor (`restoreForEditing`, `compose-loader`) y la separación silábica (`hyphenation-controls`) devuelven el cuadro al texto de CSS.
+       - Cada `input` escribe `o.text` (`changed()`, sin redibujar). Funciona igual con un IME, y deshacer adentro (Ctrl+Z) es el del navegador.
+       - `finishEditing()` la cierra: con `focusout` (clic afuera), Escape, zoom, otro objeto, deshacer afuera o un dibujo.
+       - Después, `paragraphs` redibuja en el próximo cuadro, si no hay otra edición ni un arrastre.
+       - **React nunca tiene hijos dentro del nodo editable.** La capa de selección dibuja en el `.paper-object`, al lado del `.text-content`, y la clase `editing` la ponen `startEditing` y `finishEditing`, no la capa.
+     - **El arrastre.**
+       - `objectDown` y `moveObject` los arma `frame-handles`; en `studio.ts` sólo está su nombre (extensible).
+       - `objectDown` elige el objeto, guarda `drag` y captura el puntero en el `.paper-object`.
+       - `moveObject` escribe el estilo del nodo; el imán (`layout-tools`) lo ajusta y pasa sus líneas a la capa. El aviso a React va por cuadro.
+       - `upObject` suelta la captura y, si se movió, guarda y redibuja. Escape o `pointercancel` vuelven atrás (`frame-handles`).
+       - Los controladores van dentro del nodo que se mueve, así siguen al estilo sin redibujar.
+     - **Cambiar de página, de zoom o redibujar en el medio:**
+       - Durante un arrastre, el zoom no cambia: `zoomCanvasTo` y la rueda lo ignoran, y Ctrl + "+" también.
+       - Un dibujo pedido durante un arrastre (`renderPages`) espera a que termine. Antes reemplazaba el nodo que tenía la captura y el arrastre quedaba abierto.
+       - Durante una edición, el zoom, las miniaturas y deshacer afuera la cierran primero. Un dibujo también: `drawSpread` llama a `finishEditing()` antes de reemplazar el papel.
+       - En la vista continua, una fila con la edición o con el arrastre no se vacía al desplazarse.
+     - **Código que salió:**
+       - las bases muertas de `objectDown` y `moveObject` en `studio.ts`, que `frame-handles` reemplazaba enteras;
+       - las clases de página activa que `markVisiblePage` repetía a mano: ya las pone la capa.
+     - **Pruebas:**
+       - La autoprueba da PDF y JSON idénticos; esta vez la lista de extensiones no cambia.
+       - Con eventos reales dan igual antes y después: escribir con IME (`Input.insertText`), deshacer adentro y afuera de la edición, y arrastrar mientras se intenta el zoom con Ctrl + rueda y Ctrl + "+".
+       - Diferencia buscada: un `renderPages()` a mitad del arrastre ya no lo rompe.
+       - Vista continua de punta a punta, con las clases de página activa en cada paso, igual.
+       - El arrastre cuesta lo mismo (~0,8 ms por movimiento).
+
+### Lo que quedó fuera
+
+- **Dos restauraciones del cuadro en edición.** El motor (`restoreForEditing`) y la separación silábica (`hyphenation-controls`) devuelven, cada uno por su lado, el texto de CSS al empezar a editar; al terminar, `hyphenation-controls` y `paragraphs` lo rehacen. Podrían ser un solo paso del ciclo de edición.
+- **Clases de página activa repetidas.** `updateActivePage` (`review-workspace`) todavía las pone a mano además de la capa.
+- **El cálculo de la escala** sigue en `studio.ts` (`calculateScale`, para el pliego) y en `Spread.tsx` (para la vista continua).
+- **Las miniaturas** siguen fuera de React: son de la capa `book`.
+- **Rendimiento:** `renderPages` en el pliego cuesta ~0,5 ms más que antes del paso 5 (React decide los lugares).
 
 ### Convivencia con el motor de composición
 

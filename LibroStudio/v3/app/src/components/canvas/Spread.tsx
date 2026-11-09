@@ -75,6 +75,8 @@ const notify = () => {
   for (const listener of listeners) listener();
 };
 let mounted = false;
+/** Un dibujo pedido durante un arrastre, que espera a que termine. */
+let postponed = false;
 
 // ── Antes de dibujar: escala, filas y ancla ──
 
@@ -158,6 +160,24 @@ function planContinuous(): ContinuousPlan {
  * acto.
  */
 export function drawSpread(): void {
+  // Durante un arrastre no se redibuja: el nodo que se mueve tiene la captura del puntero y el
+  // dibujo lo reemplazaría. Se dibuja al terminar el arrastre.
+  if (editor.drag) {
+    if (!postponed) {
+      postponed = true;
+      const retry = () => {
+        if (editor.drag) requestAnimationFrame(retry);
+        else {
+          postponed = false;
+          drawSpread();
+        }
+      };
+      requestAnimationFrame(retry);
+    }
+    return;
+  }
+  // El nodo editable es del papel: el dibujo lo reemplaza, así que la edición se cierra antes.
+  if (editor.editing) finishEditing();
   if (!mounted) {
     mounted = true;
     const host = document.createElement('div');
@@ -198,11 +218,7 @@ function markVisiblePage(): void {
     return;
   editor.active = editor.spread = visible.start;
   continuousSpread = editor.spread;
-  for (const page of $$('#spread .page')) {
-    const current = Number(page.dataset.page) === editor.active;
-    page.classList.toggle('active-page', current);
-    page.classList.toggle('is-page-active', current);
-  }
+  // La página activa la marca la capa de selección, con el aviso de updateStatus de abajo.
   $$('#thumbnails .thumb').forEach((thumb, index) =>
     thumb.classList.toggle(
       'active',

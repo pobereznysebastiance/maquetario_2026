@@ -322,6 +322,11 @@ function finishEditing(): void {
   el.classList.remove('editing');
   checkOverflow();
 }
+/**
+ * Empieza a mover o a redimensionar un objeto del papel (pointerdown, desde #spread). Lo arma
+ * frame-handles.ts (extend.replace), que conoce los ocho controladores: elige el objeto, guarda el
+ * arrastre en drag y captura el puntero en el nodo del objeto.
+ */
 const objectDown = extensible(
   'objectDown',
   function (
@@ -330,64 +335,13 @@ const objectDown = extensible(
     i: number,
     el: HTMLElement,
     resize: boolean | string = false,
-  ): void {
-    if (preview || busy || e.button !== 0) return;
-    if (editing === el && !resize) return;
-    e.stopPropagation();
-    finishEditing();
-    active = i;
-    selected = o.id;
-    if (tool === 'image' && o.type === 'frame') {
-      chooseImage({ frame: o, page: i });
-      return;
-    }
-    tool = 'select';
-    snapshot();
-    drag = {
-      o,
-      el,
-      startX: e.clientX,
-      startY: e.clientY,
-      x: o.x,
-      y: o.y,
-      w: o.w,
-      h: o.h,
-      // Esta versión base la reemplaza frame-handles, que guarda la dirección en lugar de true.
-      resize: resize as string | false,
-      moved: false,
-    };
-    el.setPointerCapture(e.pointerId);
-    el.addEventListener('pointermove', moveObject);
-    el.addEventListener('pointerup', upObject, { once: true });
-    el.addEventListener('pointercancel', upObject, { once: true });
-    // La etiqueta, los controladores y las clases de selección los dibuja la capa de selección
-    // (components/canvas/SelectionLayer.tsx), que se entera con el aviso de abajo.
-    inspector();
-    updateStatus();
-  },
+  ): void {},
 );
-function moveObject(e: PointerEvent): void {
-  if (!drag) return;
-  let d = drag,
-    o = d.o,
-    dx = (e.clientX - d.startX) / scale,
-    dy = (e.clientY - d.startY) / scale;
-  d.moved = d.moved || Math.abs(dx) + Math.abs(dy) > 0.3;
-  if (d.resize) {
-    o.w = Math.max(3, Math.min(book.width - o.x, d.w + dx));
-    o.h = Math.max(3, Math.min(book.height - o.y, d.h + dy));
-  } else {
-    o.x = Math.max(0, Math.min(book.width - o.w, d.x + dx));
-    o.y = Math.max(0, Math.min(book.height - o.h, d.y + dy));
-  }
-  Object.assign(d.el.style, {
-    left: o.x * scale + 'px',
-    top: o.y * scale + 'px',
-    width: o.w * scale + 'px',
-    height: o.h * scale + 'px',
-  });
-  updateStatus();
-}
+/**
+ * Un movimiento del arrastre (pointermove en el nodo que tiene la captura). Lo arma frame-handles.ts
+ * (extend.replace); layout-tools.ts le suma el imán.
+ */
+function moveObject(e: PointerEvent): void {}
 function upObject(e: PointerEvent): void {
   if (!drag) return;
   const d = drag;
