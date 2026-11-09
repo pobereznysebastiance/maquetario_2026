@@ -102,8 +102,18 @@ registerIntegrationTest(function (result) {
   const fitBox = selectObject(),
     handleAt = () =>
       $(`#spread .paper-object[data-id="${fitBox.id}"] > .frame-handle[data-handle="s"]`),
-    doubleClick = () =>
-      handleAt().dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }));
+    // Como con el mouse: el pointerdown cae en el tirador y empieza un arrastre que captura el
+    // puntero en la caja; por eso el doble clic le llega a la caja, no al tirador.
+    doubleClick = () => {
+      const handle = handleAt(),
+        el = handle.parentElement,
+        pointer = { bubbles: true, cancelable: true, button: 0, pointerId: 1 };
+      el.setPointerCapture = el.releasePointerCapture = () => {};
+      el.hasPointerCapture = () => false;
+      handle.dispatchEvent(new PointerEvent('pointerdown', pointer));
+      el.dispatchEvent(new PointerEvent('pointerup', pointer));
+      el.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }));
+    };
   Object.assign(fitBox, { x: 20, y: 20, w: 80, h: 150, text: 'Una línea corta.' });
   renderPages();
   doubleClick();

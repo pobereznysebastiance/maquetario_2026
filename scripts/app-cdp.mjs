@@ -8,6 +8,7 @@
 //      node scripts/app-cdp.mjs evalfile scripts/style-snapshot.js
 //      node scripts/app-cdp.mjs shot salida.png [x y ancho alto]
 //      node scripts/app-cdp.mjs click x y
+//      node scripts/app-cdp.mjs dblclick x y       (dos clics seguidos, como el mouse)
 //      node scripts/app-cdp.mjs key Escape
 //      node scripts/app-cdp.mjs reload          (recarga sin caché)
 //
@@ -88,6 +89,12 @@ else if (cmd === 'shot') {
   for (const type of ['mousePressed', 'mouseReleased'])
     await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 });
   console.log('clic', x, y);
+} else if (cmd === 'dblclick') {
+  const [x, y] = args.map(Number);
+  for (const clickCount of [1, 2])
+    for (const type of ['mousePressed', 'mouseReleased'])
+      await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount });
+  console.log('doble clic', x, y);
 } else if (cmd === 'key') {
   for (const type of ['keyDown', 'keyUp'])
     await send('Input.dispatchKeyEvent', {
@@ -102,6 +109,6 @@ else if (cmd === 'shot') {
   await send('Page.reload', { ignoreCache: true });
   console.log('recargada sin caché');
 } else {
-  console.log('Comandos: eval, evalfile, shot, click, key, reload');
+  console.log('Comandos: eval, evalfile, shot, click, dblclick, key, reload');
 }
 ws.close();

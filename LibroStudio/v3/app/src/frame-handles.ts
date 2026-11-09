@@ -167,8 +167,10 @@ window.addEventListener(
 function fitTextFrame(o: BookObject, el: HTMLElement): boolean {
   const content = el.querySelector<HTMLElement>('.text-content');
   if (!content || o.locked || !o.h) return false;
+  // La escala sale del ancho: el alto dibujado puede ser menor que o.h (las notas al pie achican la
+  // caja en el dibujo, footnotes.ts).
   const box = el.getBoundingClientRect(),
-    pxPerMm = box.height / o.h;
+    pxPerMm = o.w ? box.width / o.w : 0;
   if (!pxPerMm) return false;
   // El texto suelto (sin párrafos con formato) se mide con un rango; los párrafos, con su margen.
   const range = document.createRange();
@@ -191,12 +193,26 @@ globalThis.fitTextFrame = fitTextFrame;
 
 // Doble clic en el borde inferior de una caja de texto: la caja se ajusta al texto (como en
 // InDesign). Va en la captura para ganarle al doble clic del lienzo, que entra a editar la caja.
+// El clic y el doble clic no llegan al tirador: el pointerdown empieza un arrastre que captura el
+// puntero en la caja, y Chromium les da la caja como destino. Por eso se mira dónde fue el último
+// pointerdown.
+let lastHandleDown: { handle: string; id: string } | null = null;
+document.addEventListener(
+  'pointerdown',
+  (e) => {
+    const handle = (e.target as Element).closest?.<HTMLElement>('.frame-handle'),
+      id = handle?.closest<HTMLElement>('.paper-object')?.dataset.id;
+    lastHandleDown = handle && id ? { handle: handle.dataset.handle!, id } : null;
+  },
+  true,
+);
 document.addEventListener(
   'dblclick',
   (e) => {
-    const handle = (e.target as Element).closest?.<HTMLElement>('.frame-handle[data-handle="s"]');
-    const el = handle?.closest<HTMLElement>('.paper-object.text');
-    if (!el) return;
+    const target = (e.target as Element).closest?.<HTMLElement>('.paper-object.text');
+    if (!target || lastHandleDown?.handle !== 's' || lastHandleDown.id !== target.dataset.id)
+      return;
+    const el = target;
     const o = book.pages.flatMap((p) => p.objects).find((x) => x.id === el.dataset.id);
     if (!o || o.type !== 'text') return;
     e.preventDefault();
