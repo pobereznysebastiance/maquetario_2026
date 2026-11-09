@@ -456,32 +456,8 @@ function alignSelection(axis: string): void {
   toast(rw().done);
 }
 globalThis.alignSelection = alignSelection;
+// La alineación de objetos está en el panel del objeto (ObjectPanel.tsx).
 decorateInspector(() => {
-  const w = rw();
-  if (tab === 'text' || tab === 'layers') {
-    const block = document.createElement('section');
-    block.className = 'section';
-    block.innerHTML = `<div class="section-heading">${icon('frame')} ${w.alignObjects}</div><div class="field-row"><label>${w.relative}</label><select id="alignReference"><option value="margins">${w.margins}</option><option value="page">${w.page}</option><option value="selection">${w.selection}</option></select></div><div class="object-alignment">${[
-      ['left', w.xLeft],
-      ['hcenter', w.xCenter],
-      ['right', w.xRight],
-      ['top', w.yTop],
-      ['vcenter', w.yCenter],
-      ['bottom', w.yBottom],
-    ]
-      .map(
-        ([axis, label]) =>
-          `<button data-object-align="${axis}" ${!selectObject() ? 'disabled' : ''}>${label}</button>`,
-      )
-      .join('')}</div><p class="help">${w.tip}</p>`;
-    $('#inspectorContent').append(block);
-    $('#alignReference').value = objectAlignReference;
-    $('#alignReference').onchange = (e: Event) =>
-      (objectAlignReference = (e.target as HTMLSelectElement).value);
-    block
-      .querySelectorAll<HTMLElement>('[data-object-align]')
-      .forEach((b) => (b.onclick = () => alignSelection(b.dataset.objectAlign!)));
-  }
   updateActivePage();
 }, 'review-workspace');
 extend.after(

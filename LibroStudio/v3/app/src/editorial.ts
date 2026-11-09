@@ -51,7 +51,6 @@ extend.around(
     function () {
       if (tab !== 'index') {
         draw();
-        if (tab === 'design') extraGuideControls();
         return;
       }
       const host = $('#inspectorContent'),
@@ -174,43 +173,27 @@ extend.instead(
   },
   'editorial',
 );
-function extraGuideControls(): void {
-  // En Libro, la estructura va primero: las guías acompañan a la grilla.
-  const host = $('#inspectorContent'),
-    first = host.querySelector('.section[data-key="grid"]') || host.querySelector('.section');
-  if (!first) return;
-  const box = document.createElement('div'),
-    // La Grilla la dibuja React y el traductor del DOM no entra ahí: los textos van traducidos.
-    // (Este módulo carga antes que i18n.ts y dibuja una vez al cargar.)
-    tr = (text: string) => globalThis.LibroI18n?.tr(text) ?? text;
-  box.innerHTML = `<details class="guide-controls"><summary>${tr('Guías individuales')}</summary><p class="help">${tr('Guías horizontales y verticales en todas las páginas. No se imprimen.')}</p>${UI.button({ id: 'addGuide', label: tr('Agregar guía'), wide: true })}<div class="guide-list">${(book.guides || []).map((g: BookGuide, i: number) => `<div class="field-row"><span>${g.axis === 'v' ? 'Vertical' : 'Horizontal'} · ${displayMeasure(g.position)} ${documentUnit()}</span>${UI.iconButton({ icon: 'close', label: tr('Quitar guía'), data: { removeGuide: i } })}</div>`).join('')}</div></details>`;
-  first.append(box);
-  $('#addGuide').onclick = () => {
-    modal.sheet(
-      'Nueva guía',
-      guideForm(),
-      () => {
-        const axis = $('#guideAxis').value,
-          n = Number($('#guidePosition').value);
-        if (!Number.isFinite(n) || n < 0 || n > (axis === 'v' ? book.width : book.height))
-          throw Error(LibroI18n.tr('La guía debe estar dentro de la página.'));
-        commit(() => {
-          if (!book.guides) book.guides = [];
-          book.guides.push({ axis, position: n });
-        }, false);
-      },
-      'Agregar guía',
-      { size: 'sm' },
-    );
-  };
-  $$('[data-remove-guide]').forEach(
-    (el) =>
-      (el.onclick = () =>
-        commit(() => book.guides.splice(Number(el.dataset.removeGuide), 1), false)),
+/** "Agregar guía": la Hoja con orientación y posición (la abre el panel de Grilla). */
+export function openGuideDialog(): void {
+  modal.sheet(
+    'Nueva guía',
+    guideForm(),
+    () => {
+      const axis = $('#guideAxis').value,
+        n = Number($('#guidePosition').value);
+      if (!Number.isFinite(n) || n < 0 || n > (axis === 'v' ? book.width : book.height))
+        throw Error(LibroI18n.tr('La guía debe estar dentro de la página.'));
+      commit(() => {
+        if (!book.guides) book.guides = [];
+        book.guides.push({ axis, position: n });
+      }, false);
+    },
+    'Agregar guía',
+    { size: 'sm' },
   );
 }
 /** Guía propia del libro: vertical (v) u horizontal (h), a position mm del borde. */
-interface BookGuide {
+export interface BookGuide {
   axis: 'v' | 'h';
   position: number;
 }

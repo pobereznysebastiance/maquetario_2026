@@ -301,53 +301,22 @@ const folioPositions = [
 ];
 // Cornisa, titulillo y folio: "Personalizar pares, impares y posición" está en
 // src/components/inspector/fields.tsx (MasterDetails), con sus paneles de React.
-function textControls(compact = false): string {
-  const o = selectObject();
-  let disabled = !o || o.type !== 'text';
-  let fake =
-    o?.type === 'text'
-      ? o
-      : {
-          font: 'Georgia',
-          size: 12,
-          leading: 16,
-          align: 'left',
-          bold: false,
-          italic: false,
-          color: '#202125',
-        };
-  return `${!compact ? (disabled ? '<div class="empty-selection">Seleccioná un cuadro de texto en la página.<br>Hacé doble clic para escribir.</div>' : `<div class="selection-chip">${icon('box')} Cuadro de texto seleccionado</div>`) : ''}${row('Tipo de letra', `<select data-object="font" ${disabled ? 'disabled' : ''}>${fontList.map((f) => `<option ${fake.font === f ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select>`)}${row('Tamaño', `<span class="unit-wrap"><input data-object="size" aria-label="Cuerpo del texto" type="number" min="4" max="150" step=".5" value="${fake.size}" ${disabled ? 'disabled' : ''}><span class="unit">pt</span></span>`)}${row('Interlineado', `<span class="unit-wrap"><input data-object="leading" aria-label="Interlineado" type="number" min="4" max="220" step=".5" value="${fake.leading}" ${disabled ? 'disabled' : ''}><span class="unit">pt</span></span>`)}${row('Alineación', `<div class="alignment">${['left', 'center', 'right', 'justify'].map((a) => UI.textButton({ icon: a, title: a, data: { align: a }, active: fake.align === a, disabled })).join('')}</div>`)}${!compact ? `<div class="segmented"><button data-style="bold" class="${fake.bold ? 'active' : ''}" ${disabled ? 'disabled' : ''}><b>Negrita</b></button><button data-style="italic" class="${fake.italic ? 'active' : ''}" ${disabled ? 'disabled' : ''}><i>Cursiva</i></button></div>${row('Color', `<input data-object="color" type="color" value="${fake.color}" ${disabled ? 'disabled' : ''}>`)}${UI.button({ icon: 'text', label: 'Editar contenido', wide: true, data: { command: 'editText' }, disabled })}` : ''}`;
-}
 function inspector(): void {
   const host = $('#inspectorContent');
   // Libro: Grilla, Foliado, Cornisa y Titulillo son paneles de React (src/components/inspector/);
-  // acá queda su lugar, en orden, entre las secciones en HTML.
+  // acá queda su lugar, en orden.
   if (tab === 'design')
     host.innerHTML =
       inspectorSlot('grid', 'Grilla', 'grid') +
-      section('Texto', 'text', textControls(true)) +
       inspectorSlot('folio', 'Foliado', 'folio') +
       inspectorSlot('header', 'Cornisa', 'header') +
       inspectorSlot('titulillo', 'Titulillo', 'text');
   if (tab === 'text') {
-    const o = selectObject();
     // Selección de una caja de texto: "Párrafo y estilos", "Tipografía" y "Carácter y párrafo" son
     // paneles de React (src/components/inspector/TextPanels.tsx); acá queda su lugar, en orden.
     host.innerHTML =
       '<section class="section paragraph-panel" data-inspector-slot="paragraph"></section>' +
       '<section class="section" data-section="Tipografía" data-key="text" data-inspector-slot="typography"></section>' +
-      section(
-        'Transformar objeto',
-        'box',
-        o
-          ? `<div class="pair">${['x', 'y', 'w', 'h'].map((p, i) => `<div><div class="unit-wrap"><input data-object="${p}" aria-label="${p}" type="number" value="${o[p].toFixed(1)}" step=".5" min="${p === 'w' || p === 'h' ? 3 : 0}" max="${p === 'x' || p === 'w' ? book.width : book.height}"><span class="unit">mm</span></div><label>${['Posición X', 'Posición Y', 'Ancho', 'Alto'][i]}</label></div>`).join('')}</div><div class="page-action">${UI.button({ label: 'Al frente', data: { command: 'front' } })}${UI.button({ label: 'Al fondo', data: { command: 'back' } })}</div>${UI.button({ icon: 'trash', label: 'Eliminar objeto', variant: 'danger', wide: true, data: { command: 'deleteObject' } })}`
-          : '<p class="help">Seleccioná un objeto para ajustar sus medidas.</p>',
-      ) +
-      section(
-        'Edición',
-        'info',
-        '<p class="help">Doble clic en el texto para escribir. Arrastrá para mover una caja, imagen o marco. Usá su esquina inferior derecha para cambiar el tamaño.<br><br>Cada caja conserva su propio texto. El símbolo rojo + indica desbordamiento: ampliá la caja o reducí el cuerpo.</p>',
-      ) +
       // "Carácter y párrafo" va al final, dentro de un <div> (no se reordena ni se pliega).
       '<div data-inspector-slot="character"></div>';
   }

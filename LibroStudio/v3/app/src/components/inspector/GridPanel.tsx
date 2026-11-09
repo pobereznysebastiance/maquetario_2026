@@ -1,12 +1,15 @@
 // Inspector · Libro · Grilla en React (etapa 3, D2): columnas, filas, medianiles, ajuste a los
 // márgenes o al borde y márgenes de la página. Mismo marcado que en HTML (section(), row(), pair()
 // y los botones de ajuste de studio.ts); la validación de grilla y márgenes la hace
-// commitBinding(), como antes.
+// commitBinding(), como antes. Al final, las guías individuales (antes las agregaba editorial.ts
+// después de dibujar el inspector).
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
+import { openGuideDialog, type BookGuide } from '../../editorial.ts';
 import { NumberField, Row, SwitchHeading, tt } from './fields.tsx';
+import { Icon } from '../Icon.tsx';
 
 /** Dos medidas lado a lado con su etiqueta debajo (pair() de studio.ts). */
 const Pair = ({
@@ -48,6 +51,40 @@ const FitButton = ({ fit, label }: { fit: 'margins' | 'page'; label: string }) =
   </button>
 );
 
+/** Guías horizontales y verticales del libro: agregar y quitar. */
+const GuideControls = () => (
+  <div>
+    <details className="guide-controls">
+      <summary>{tt('Guías individuales')}</summary>
+      <p className="help">
+        {tt('Guías horizontales y verticales en todas las páginas. No se imprimen.')}
+      </p>
+      <button type="button" id="addGuide" className="btn wide" onClick={openGuideDialog}>
+        {tt('Agregar guía')}
+      </button>
+      <div className="guide-list">
+        {((book.guides || []) as BookGuide[]).map((g, i) => (
+          <div className="field-row" key={i}>
+            <span>
+              {`${g.axis === 'v' ? 'Vertical' : 'Horizontal'} · ${displayMeasure(g.position)} ${documentUnit()}`}
+            </span>
+            <button
+              type="button"
+              className="icon-btn"
+              title={tt('Quitar guía')}
+              aria-label={tt('Quitar guía')}
+              data-remove-guide={i}
+              onClick={() => commit(() => book.guides.splice(i, 1), false)}
+            >
+              <Icon name="close" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </details>
+  </div>
+);
+
 export const GridPanel = () => {
   useEditorState();
   useLanguage();
@@ -76,6 +113,7 @@ export const GridPanel = () => {
         labels={['Superior', 'Inferior']}
       />
       <Pair paths={['margins.inside', 'margins.outside']} labels={['Interior', 'Exterior']} />
+      <GuideControls />
     </>
   );
 };

@@ -57,6 +57,10 @@ function objectInspector(): void {
       bw('Objeto seleccionado', 'Selected object', 'Objeto selecionado'),
       'select',
     ) +
+    // Figura · relleno y trazo (marcos e imágenes): ShapePanel.tsx, después del objeto.
+    (['frame', 'image'].includes(selectObject()?.type ?? '')
+      ? '<section class="section shape-appearance" data-inspector-slot="shape"></section>'
+      : '') +
     inspectorSlot('box', bw('Posición y tamaño', 'Position and size', 'Posição e tamanho'), 'box') +
     inspectorSlot('align', rw().alignObjects, 'frame') +
     inspectorSlot(
@@ -79,19 +83,7 @@ registerInspectorPanel('object', objectInspector, 'inspector-organization');
 decorateInspector(() => {
   if (tab === 'object') return;
   const host = $('#inspectorContent');
-  if (tab === 'design') {
-    host.querySelector('[data-object="font"]')?.closest('.section')?.remove();
-  }
-  if (tab === 'text') {
-    host.querySelector('[data-section="Transformar objeto"]')?.remove();
-    host.querySelector('#alignReference')?.closest('.section')?.remove();
-    // La ayuda de edición sobra: medidas y alineación están arriba, en la misma pestaña Selección.
-    host.querySelector('[data-section="Edición"]')?.remove();
-  }
-  if (tab === 'layers') {
-    host.querySelector('#alignReference')?.closest('.section')?.remove();
-    host.querySelector('#layerWidth')?.closest('.pair')?.remove();
-  }
+  if (tab === 'layers') host.querySelector('#layerWidth')?.closest('.pair')?.remove();
 }, 'inspector-organization');
 // Los atajos de herramientas buscan su sección por nombre, no por una posición numérica frágil.
 extend.instead(

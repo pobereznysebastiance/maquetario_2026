@@ -254,6 +254,44 @@ También Estructura del libro (paso 6, `src/components/inspector/StructurePanel.
 
 **Hecho (paso 7):** Selección del objeto (`ObjectPanel.tsx`): Objeto seleccionado, Posición y tamaño, Alinear, Distribuir, Orden y bloqueo, y el estado vacío "Nada seleccionado" (también con selección múltiple). La pasada `object` reemplaza al contenido base (`registerInspectorPanel('object', …)`), así que la pasada de montaje del registro no corre: `objectInspector` deja los cinco lugares y los monta con `mountInspectorSlot`; el estado vacío lo deja `inspector-views.ts`. El nombre de la figura en la etiqueta del objeto (antes lo escribía `shapes.ts` en el nodo) pasó al panel; la sección de la figura sigue en HTML. Los campos de posición y tamaño ahora siguen al objeto mientras se arrastra o se estira (antes quedaban quietos hasta soltar). Comparado en Chrome sin ventana contra la versión en HTML (marco, figura, caja de texto, bloqueado, selección múltiple, nada seleccionado, inglés y centímetros): marcado igual salvo el orden de los atributos y `value`; las mismas acciones dan el mismo resultado.
 
+**Hecho (restos):**
+- **Figura · relleno y trazo** pasó a `ShapePanel.tsx`. `objectInspector` le deja el lugar (`section.shape-appearance`) cuando lo elegido es un marco o una imagen. La unidad va dentro del campo, como la dejaba `unitsInsideFields`.
+- **Guías individuales** (`<details class="guide-controls">`) pasaron al final de `GridPanel.tsx`. `openGuideDialog()` de `editorial.ts` abre la Hoja. Antes las agregaba la envoltura de `editorial.ts` después de dibujar, y con el inspector en pausa se repetían: había dos o tres cajas iguales.
+- **Secciones que se dibujaban y se borraban enseguida:**
+  - en Libro, "Texto" (`textControls`, ya borrada);
+  - en la pasada `text`, "Transformar objeto" y "Edición";
+  - la alineación que `review-workspace.ts` agregaba en el texto y en Capas.
+
+  Las sacaba `inspector-organization.ts`, del que queda sólo quitar el par de medidas en Capas. Ahora ni se dibujan.
+- Comparado en Chrome sin ventana contra la versión anterior: Libro, Página, Foliado, texto, figura (polígono, redonda, marco común), imagen, imagen bloqueada, varios, guías, Capas, Índice e inglés. Todo igual, salvo las guías repetidas.
+
+**Qué queda del HTML del inspector (para el paso 10):**
+- **Vistas del riel:** Índice (`tocPanel` en la envoltura de `editorial.ts`) y Capas (`layersPanel` en `layout-tools.ts`, registrado como `'layers'`). Las está sacando otro agente.
+- **El estado vacío "Nada seleccionado":** lo escribe `emptySelection()` en `inspector-views.ts`.
+- **Helpers de `studio.ts`:** `section()`, `row()`, `number()`, `options()`, `toggle()` y `bindInspector()`. Hoy los usan sólo las vistas del riel. `bindInspector()` no encuentra nada que ligar en las pestañas.
+
+**Qué hace hoy la cadena de `inspector()`**, de afuera hacia adentro:
+1. **Envolturas (`extend.around`):**
+   - `inspector-views.ts`: vista del riel. Dibuja la pestaña del riel con la misma cadena y la pasa a `#railView`.
+   - `editorial.ts`: dibuja el Índice en lugar de la cadena.
+   - `inspector-registry.ts`: pausa (`pauseInspectorWhile`), scroll y `<details>` abiertos.
+2. **`inspector-views.ts` (`extend`):** arma la pestaña visible juntando pasadas.
+   - Libro: `structure` y `design`. Página: `pages`. Selección: `object` (más `text` si es una caja de texto). Sin nada elegido: el estado vacío.
+   - Marca `data-pass` y aplica `unitsInsideFields`, que hoy no encuentra etiquetas con unidad.
+3. **Paneles registrados (`extend.instead`):**
+   - `structure` (`book-workflow.ts`) y `object` (`inspector-organization.ts`): dejan lugares y los montan.
+   - `layers` (`layout-tools.ts`): HTML.
+4. **Base (`studio.ts`):** deja los lugares de `design`, `text` y `pages`.
+5. **Decoradores (`extend.after`, en orden de carga):**
+   - montaje de los lugares (`inspector-registry.ts`, primero);
+   - los que agregan su propio lugar y lo montan: Misceláneas (`book-workflow.ts`) y Fuentes (`fonts.ts`), en `design`;
+   - `inspector-organization.ts` (el par de medidas en Capas);
+   - `review-workspace.ts` (`updateActivePage`) y `layout-tools.ts` (`updateSnapButton`): actualizan otras partes de la interfaz;
+   - `document-units.ts` (centímetros), `editorial-learning.ts` (ayuda de términos) y `font-browser.tsx` (selector visual de fuente): tocan nodos de React;
+   - `tutorial.ts`: deshabilita campos con el objeto bloqueado y marca el objetivo del tutorial.
+
+Para el paso 10 hay que pasar a los paneles lo que todavía hace un decorador sobre nodos de React (centímetros, ayuda de términos, selector visual de fuente, deshabilitar con bloqueo y objetivo del tutorial). También hay que sacar del inspector lo que actualiza otras partes de la interfaz (página activa, imán) y llevarlo a `useEditorState`. Recién ahí la cadena se puede reemplazar por un componente con las tres pestañas.
+
 **Orden para los demás paneles**, de menos a más acoplado:
 
 | Paso | Panel | Qué hay que absorber o cuidar |
@@ -261,10 +299,10 @@ También Estructura del libro (paso 6, `src/components/inspector/StructurePanel.
 | 1 ✓ | Titulillo (Libro) | `master-refinement.ts` agrega "Lectura lateral" después de la posición y oculta "Rotar texto 90°" (lo comparte con Cornisa: el decorador queda para el que siga en HTML) |
 | 2 ✓ | Cornisa (Libro) | lo mismo, más título del libro y sección general (`data-bind="title"`/`"chapter"`) |
 | 3 ✓ | Grilla (Libro) | botones `data-fit`, validación de márgenes (`commitBinding` ya la tiene) y las plantillas, que redibujan aparte |
-| 4 | Misceláneas y líneas, Biblioteca de fuentes (Libro) | secciones que hoy agregan decoradores (`book-workflow.ts`, `fonts.ts`): pasan a paneles registrados con su propio lugar |
-| 5 | Página (pestaña Página) | `page-exceptions.ts` y `reshapePagePass` en `inspector-views.ts` mueven nodos entre secciones |
-| 6 | Estructura (Libro) | `book-workflow.ts` dibuja la pasada `structure` entera con `registerInspectorPanel`; `addBookSettings` le inserta un botón |
-| 7 | Selección: objeto | `inspector-organization.ts` (alinear, distribuir, capas), `shapes.ts`, `placed-artwork.ts` |
+| 4 ✓ | Misceláneas y líneas, Biblioteca de fuentes (Libro) | secciones que hoy agregan decoradores (`book-workflow.ts`, `fonts.ts`): pasan a paneles registrados con su propio lugar |
+| 5 ✓ | Página (pestaña Página) | `page-exceptions.ts` y `reshapePagePass` en `inspector-views.ts` mueven nodos entre secciones |
+| 6 ✓ | Estructura (Libro) | `book-workflow.ts` dibuja la pasada `structure` entera con `registerInspectorPanel`; `addBookSettings` le inserta un botón |
+| 7 ✓ | Selección: objeto | `inspector-organization.ts` (alinear, distribuir, capas), `shapes.ts`, `placed-artwork.ts` |
 | 8 ✓ | Selección: texto y párrafo | lo más acoplado: `paragraphs.ts` (escucha `change` en el documento y envuelve `commit`), `hyphenation-controls.ts`, `font-glyphs.ts`, `editorial.ts` (controles extra) y la vista de variantes de `fonts.ts` |
 | 9 | Vistas del riel (Índice, Capas) | se arman con la misma cadena y se mueven a `#railView`: van como pestaña entera de React |
 | 10 | La cadena | con todo en React, `inspector-views.ts` pasa a ser un componente con las tres pestañas, y `decorateInspector` queda sólo para lo que no es del inspector |
