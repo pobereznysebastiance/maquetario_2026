@@ -11,6 +11,7 @@ import '../fonts.ts';
 import '../frame-handles.ts';
 import '../layout-tools.ts';
 import '../components/welcome/welcome-service.tsx';
+import '../help-center.ts';
 import '../tutorial.ts';
 import '../review-workspace.ts';
 import '../hyphenation-controls.ts';

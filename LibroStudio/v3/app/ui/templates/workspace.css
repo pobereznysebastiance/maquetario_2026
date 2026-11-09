@@ -178,9 +178,6 @@ body[data-rulers='hidden'] #spreadStage {
 .focused :is(.templates, .resize-templates) {
   display: none !important;
 }
-.focused .book-route {
-  justify-content: center;
-}
 .focused .document-title {
   flex: 1 1 0%;
 }

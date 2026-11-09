@@ -12,6 +12,8 @@
 //   dos). Por eso closeTutorial y showTutorialStep se llaman acá por su nombre global, no por uno
 //   local: así también pasan por esas extensiones, como antes.
 //
+// También registra la sección "Tutorial guiado" del centro de Ayuda (help-center.ts).
+//
 // Fuente TypeScript: se compila a build/tutorial.js (desktop/scripts/build.mjs).
 
 /** Una lección del tutorial (title, body y task: castellano, inglés y portugués). */
@@ -565,7 +567,7 @@ const tutorialUI = {
     note: 'Tus cambios se hacen en el libro actual. Podés deshacerlos con Ctrl+Z.',
     exercise: 'Probalo en tu libro',
     contents: 'Elegir capítulo',
-    done: 'Recorrido completado. Podés volver a cualquier sección desde Tutorial.',
+    done: 'Recorrido completado. Podés volver a cualquier capítulo desde Ayuda.',
   },
   en: {
     label: 'Maquetario guide',
@@ -577,7 +579,7 @@ const tutorialUI = {
     note: 'Edits apply to your current book. Undo with Ctrl+Z.',
     exercise: 'Try it in your book',
     contents: 'Choose a chapter',
-    done: 'Tour complete. Revisit any chapter from Tutorial.',
+    done: 'Tour complete. Revisit any chapter from Help.',
   },
   pt: {
     label: 'Guia do Maquetario',
@@ -589,7 +591,7 @@ const tutorialUI = {
     note: 'As alterações afetam seu livro atual. Desfaça com Ctrl+Z.',
     exercise: 'Experimente no seu livro',
     contents: 'Escolher capítulo',
-    done: 'Percurso concluído. Volte a qualquer capítulo pelo Tutorial.',
+    done: 'Percurso concluído. Volte a qualquer capítulo pela Ajuda.',
   },
 };
 globalThis.tutorialIndex = 0;
@@ -661,6 +663,31 @@ globalThis.showTutorialStep = function (index: number) {
   };
 };
 globalThis.startTutorial = startTutorial;
+// Centro de Ayuda: el tutorial se empieza (o se retoma) desde ahí, o directo en un capítulo.
+// Se llama a startTutorial por globalThis: review-workspace.ts la extiende (pide un libro antes).
+registerHelpSection({
+  id: 'tutorial',
+  label: 'Tutorial guiado',
+  order: 1,
+  render(host) {
+    const { index: lang } = tutorialLocale(),
+      saved = Number(localStorage.getItem('maquetario-tutorial-step')) || 0;
+    host.innerHTML = `<h2 class="help-heading">Tutorial guiado</h2><p class="help-lead">Un recorrido por todas las secciones de Maquetario, sobre tu libro actual. Abre los paneles y señala los controles; vos decidís qué cambiar.</p><div class="help-actions">${UI.button({ id: 'helpTutorialStart', label: 'Empezar desde el principio', variant: 'primary' })}${saved > 0 ? UI.button({ id: 'helpTutorialResume', label: 'Seguir donde quedé' }) : ''}</div><h3 class="help-subheading">Capítulos</h3><ol class="help-chapters">${guideLessons
+      .map(
+        (s, i) =>
+          `<li>${UI.textButton({ label: s.title[lang], data: { tutorialChapter: i }, aria: { current: saved > 0 && i === saved ? 'step' : undefined } })}</li>`,
+      )
+      .join('')}</ol>`;
+    $('#helpTutorialStart').onclick = () => globalThis.startTutorial(0);
+    if ($('#helpTutorialResume'))
+      $('#helpTutorialResume').onclick = () => globalThis.startTutorial();
+    host
+      .querySelectorAll<HTMLElement>('[data-tutorial-chapter]')
+      .forEach(
+        (b) => (b.onclick = () => globalThis.startTutorial(Number(b.dataset.tutorialChapter))),
+      );
+  },
+});
 document.addEventListener('maquetario:language', () => {
   if (!tutorialCard.hidden) showTutorialStep(tutorialIndex);
 });

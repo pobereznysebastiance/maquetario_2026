@@ -375,6 +375,47 @@ const labels: TranslationRow[] = [
     'Editorial studio of pages and grids',
     'Ateliê editorial de páginas e grades',
   ],
+  // Centro de Ayuda (help-center.ts) y sus secciones.
+  ['Secciones de la ayuda', 'Help sections', 'Seções da ajuda'],
+  ['Glosario', 'Glossary', 'Glossário'],
+  ['Atajos', 'Shortcuts', 'Atalhos'],
+  ['Recorrido del libro', 'Book workflow', 'Percurso do livro'],
+  [
+    'Un recorrido por todas las secciones de Maquetario, sobre tu libro actual. Abre los paneles y señala los controles; vos decidís qué cambiar.',
+    'A tour of every section of Maquetario, on your current book. It opens panels and highlights controls; you decide what to change.',
+    'Um percurso por todas as seções do Maquetario, no seu livro atual. Ele abre os painéis e destaca os controles; você decide o que mudar.',
+  ],
+  ['Empezar desde el principio', 'Start from the beginning', 'Começar do início'],
+  ['Seguir donde quedé', 'Continue where I left off', 'Continuar de onde parei'],
+  ['Capítulos', 'Chapters', 'Capítulos'],
+  [
+    'Los pasos para llevar un manuscrito a un PDF listo para imprimir. Cada paso abre su herramienta.',
+    'The steps to take a manuscript to a print-ready PDF. Each step opens its tool.',
+    'Os passos para levar um manuscrito a um PDF pronto para impressão. Cada passo abre sua ferramenta.',
+  ],
+  ['Armar libro', 'Build book', 'Montar livro'],
+  ['Estructura', 'Structure', 'Estrutura'],
+  ['Cubierta', 'Cover', 'Capa'],
+  ['Revisar libro', 'Check book', 'Revisar livro'],
+  ['PDF / Imprimir', 'PDF / Print', 'PDF / Imprimir'],
+  [
+    'Desde un manuscrito, con partes, índice y estilos.',
+    'From a manuscript, with parts, contents and styles.',
+    'A partir de um manuscrito, com partes, sumário e estilos.',
+  ],
+  ['Ir al comienzo de cada parte.', 'Go to the start of each part.', 'Ir ao início de cada parte.'],
+  [
+    'Tapa, lomo, contratapa y solapas.',
+    'Front, spine, back and flaps.',
+    'Capa, lombada, contracapa e orelhas.',
+  ],
+  [
+    'Texto que no entra y objetos fuera de página.',
+    'Overset text and objects outside the page.',
+    'Texto que não cabe e objetos fora da página.',
+  ],
+  ['Vista previa y salida final.', 'Preview and final output.', 'Prévia e saída final.'],
+  ['Estás acá', 'You are here', 'Você está aqui'],
 ];
 labels.push(...extraTranslations);
 const map = new Map(

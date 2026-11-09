@@ -1,6 +1,5 @@
 // Bienvenida: servicio de la pantalla (estado, acciones y API global) y montaje del componente
-// React (WelcomeScreen.tsx). También el botón de tutorial de la barra del documento, el logo como
-// "Inicio" y el punto de enganche de la Ayuda (openHelp).
+// React (WelcomeScreen.tsx). También el logo como "Inicio".
 //
 // API global (la misma que tenía src/welcome.ts):
 // - showWelcome y hideWelcome: otros módulos las extienden por nombre (book-workflow,
@@ -8,8 +7,7 @@
 //   llaman siempre por globalThis: así corren con sus extensiones.
 // - welcomeVisible (lo leen canvas-navigation, readability y el proceso principal), welcome (el
 //   elemento #welcomeScreen: lo observa review-workspace) y ww (textos; tests/welcome-tests.js).
-// - openHelp: la única entrada a la Ayuda desde la bienvenida. Mientras no exista el centro de
-//   Ayuda ofrece el tutorial y el glosario; el centro de Ayuda la reemplaza con extend.replace.
+// - La entrada "Ayuda" abre el centro de Ayuda (openHelp, de src/help-center.ts).
 //
 // Cada showWelcome vuelve a montar el contenido (como cuando se rehacía con innerHTML) y lo
 // dibuja antes de terminar (flushSync): las extensiones de showWelcome que esperan su promesa
@@ -42,8 +40,6 @@ declare global {
   var welcome: HTMLElement;
   var hideWelcome: () => void;
   var showWelcome: () => Promise<void>;
-  /** Abre la Ayuda (tutorial, glosario…). */
-  var openHelp: () => Promise<void>;
 }
 
 /** Textos de la bienvenida: el castellano es el texto fuente; la traducción está en src/i18n.ts. */
@@ -58,8 +54,6 @@ const WELCOME_TEXT: Record<string, string> = {
   demoHelp: 'Abrí una novela ya maquetada para ver cómo está hecha.',
   help: 'Ayuda',
   helpHelp: 'Tutorial guiado y glosario editorial.',
-  learn: 'Tutorial guiado',
-  glossary: 'Glosario editorial',
   resume: 'Volver al libro',
   created: 'Creado por Sebastián Poberezny',
   missing: 'Archivo no disponible',
@@ -68,10 +62,7 @@ const WELCOME_TEXT: Record<string, string> = {
   discard: 'Descartar',
   discardTitle: 'Descartar la copia de recuperación',
   discardMessage: 'La copia se borra de este equipo. Tus archivos guardados no cambian.',
-  helpTitle: 'Ayuda',
-  helpMessage: 'Elegí por dónde empezar.',
   home: 'Inicio',
-  tutorial: 'Tutorial',
   language: 'Idioma',
   art: 'Atelier editorial de páginas y grillas',
 };
@@ -207,22 +198,6 @@ async function openRecentProject(record: RecentProject): Promise<void> {
     confirmChanges(run);
   } else await run();
 }
-/** Ayuda: hasta que exista el centro de Ayuda, elegir entre el tutorial y el glosario. */
-async function openHelp(): Promise<void> {
-  const t = ww();
-  const choice = await askChoice({
-    title: t.helpTitle,
-    message: t.helpMessage,
-    actions: [
-      { id: 'tutorial', label: t.learn, variant: 'primary' },
-      { id: 'glossary', label: t.glossary, variant: 'secondary' },
-    ],
-  });
-  if (!choice) return;
-  globalThis.hideWelcome();
-  if (choice === 'tutorial') startTutorial();
-  else showGlossary();
-}
 
 // ── Componente ──
 const WelcomeRoot = () => {
@@ -248,7 +223,7 @@ const WelcomeRoot = () => {
         openBook();
       }}
       onDemo={startDemo}
-      onHelp={() => void globalThis.openHelp()}
+      onHelp={() => globalThis.openHelp()}
       onResume={() => globalThis.hideWelcome()}
       onRecover={recover}
       onDiscardRecovery={() => void discardRecovery()}
@@ -287,14 +262,8 @@ const brandHome = $('.brand');
 brandHome.style.cursor = 'pointer';
 brandHome.title = ww().home;
 brandHome.onclick = () => globalThis.showWelcome();
-const helpButton = UI.element(
-  UI.quietButton({ id: 'tutorialButton', icon: 'help', label: ww().tutorial }),
-);
-helpButton.onclick = () => startTutorial();
-$('.documentbar').append(helpButton);
-document.addEventListener('maquetario:language', () => {
-  helpButton.querySelector('span')!.textContent = ww().tutorial;
-});
+// La ayuda tiene una sola puerta: "Ayuda" en la barra superior (help-center.ts). El botón
+// "Tutorial" de la barra del documento ya no existe; el tutorial se empieza desde la Ayuda.
 document.addEventListener(
   'keydown',
   (e) => {
@@ -307,7 +276,6 @@ document.addEventListener(
 );
 globalThis.showWelcome = showWelcome;
 globalThis.hideWelcome = hideWelcome;
-globalThis.openHelp = openHelp;
 extend.result(
   'saveProject',
   async function (pending: Promise<unknown>) {

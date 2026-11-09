@@ -1,0 +1,107 @@
+/* Organismo: centro de Ayuda (help-center.ts). Una Ventana de trabajo con la navegación a la
+   izquierda (Tutorial guiado, Glosario, Atajos, Recorrido del libro) y la sección elegida a la
+   derecha. La sección actual lleva el fondo de selección (verde agua = selección); el dorado queda
+   para "estás acá" (el capítulo y el paso actuales). */
+.help-center {
+  --help-nav-width: 220px;
+  --help-text-max: 70ch;
+  display: grid;
+  grid-template-columns: var(--help-nav-width) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-2xl);
+  min-height: 100%;
+}
+.help-nav {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+.help-nav button {
+  padding: var(--space-xs) var(--space-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--type-body);
+  text-align: left;
+}
+.help-nav button:hover {
+  background: var(--surface-control-hover);
+  color: var(--text-primary);
+}
+.help-nav button[aria-current='page'] {
+  background: var(--surface-selected);
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+}
+.help-pane {
+  min-width: 0;
+}
+.help-heading {
+  margin: 0 0 var(--space-sm);
+  color: var(--text-primary);
+  font-size: var(--type-title2);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+}
+.help-lead {
+  max-width: var(--help-text-max);
+  margin: 0 0 var(--space-lg);
+  color: var(--text-secondary);
+  font-size: var(--type-body);
+  line-height: var(--leading-text);
+}
+.help-subheading {
+  margin: var(--space-xl) 0 var(--space-sm);
+  color: var(--text-primary);
+  font-size: var(--type-headline);
+  font-weight: var(--weight-semibold);
+}
+.help-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+/* Capítulos del tutorial: una lista numerada en dos columnas; cada nombre empieza ahí. */
+.help-chapters {
+  margin: 0;
+  padding-left: var(--space-xl);
+  columns: 2;
+  column-gap: var(--space-2xl);
+  color: var(--text-tertiary);
+}
+.help-chapters li {
+  padding-block: var(--space-3xs);
+  break-inside: avoid;
+}
+.help-chapters button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--type-body);
+  text-align: left;
+}
+.help-chapters button:hover {
+  color: var(--text-primary);
+}
+.help-chapters button[aria-current='step'] {
+  color: var(--text-mark);
+}
+
+@media (max-width: 1100px) {
+  .help-center {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .help-nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .help-chapters {
+    columns: 1;
+  }
+}

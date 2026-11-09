@@ -1,13 +1,13 @@
-// Ruta del libro y armador de novelas. Pone la barra "Tu libro, paso a paso" bajo la barra del
-// documento, el panel de estructura de la pestaña Libro (ir al comienzo de cada parte), los
-// controles de misceláneas y líneas, el armador de novelas (manuscrito con # por capítulo → libro A5
-// con preliminares, índice y estilos, medido con el mismo motor de párrafos que el editor y el PDF)
+// Recorrido del libro y armador de novelas. Registra la sección "Recorrido del libro" del centro
+// de Ayuda (los cinco pasos, con el actual marcado), el panel de estructura de la pestaña Libro
+// (ir al comienzo de cada parte), los controles de misceláneas y líneas, el armador de novelas
+// (manuscrito con # por capítulo → libro A5 con preliminares, índice y estilos, medido con el mismo
+// motor de párrafos que el editor y el PDF)
 // y la revisión del libro completo. También define bw(es, en, pt), el texto en el idioma de la
 // interfaz que usa casi toda la app: por eso este archivo carga antes que los que lo llaman.
 //
-// renderBookRoute es global y otros archivos la extienden por nombre (publications.js,
-// editorial-learning.js): dentro de este archivo se llama por globalThis, para que corra con sus
-// extensiones como cuando este archivo era un script común.
+// renderBookRoute es global (la llama tests/learning-tests.js) y dentro de este archivo se llama
+// por globalThis, para que corra con las extensiones que pueda tener.
 //
 // Fuente TypeScript: se compila a build/book-workflow.js (desktop/scripts/build.mjs).
 import type { Book, BookObject, Page } from './model.ts';
@@ -44,17 +44,61 @@ const bw = (es: string, en: string, pt: string): string =>
 globalThis.bw = bw;
 const titleOfPart = (p: Page): string =>
   p.partName || p.section || bw('Página sin título', 'Untitled page', 'Página sem título');
-const workflowRoute = document.createElement('nav');
-workflowRoute.className = 'book-route';
-workflowRoute.setAttribute('aria-label', 'Libro');
-$('.documentbar').after(workflowRoute);
+/** Paso del recorrido del libro: id, nombre, qué hace y la herramienta que abre. */
+type RouteStep = [id: string, label: string, description: string, open: () => unknown];
+const routeSteps: RouteStep[] = [
+  [
+    'build',
+    'Armar libro',
+    'Desde un manuscrito, con partes, índice y estilos.',
+    () => globalThis.bookBuilder(),
+  ],
+  ['structure', 'Estructura', 'Ir al comienzo de cada parte.', () => showTab('structure')],
+  ['cover', 'Cubierta', 'Tapa, lomo, contratapa y solapas.', () => coverEditor()],
+  [
+    'review',
+    'Revisar libro',
+    'Texto que no entra y objetos fuera de página.',
+    () => preflightDialog(),
+  ],
+  ['output', 'PDF / Imprimir', 'Vista previa y salida final.', () => outputDialog('pdf')],
+];
+/** Último paso abierto desde el recorrido (en esta sesión). */
+let routeStep: string | null = null;
+/** "Estás acá": sin libro, armarlo; si no, el último paso que se abrió (o Estructura). */
+const currentRouteStep = (): string => (!hasDocument ? 'build' : routeStep || 'structure');
+// El recorrido vive en el centro de Ayuda (help-center.ts): una lista sobria con el paso actual
+// marcado, en lugar de la barra fija sobre el lienzo. renderBookRoute la vuelve a dibujar (si la
+// Ayuda está abierta) y sigue siendo global porque la llama tests/learning-tests.js.
 function renderBookRoute(): void {
-  workflowRoute.innerHTML = `<strong>${bw('TU LIBRO, PASO A PASO', 'YOUR BOOK, STEP BY STEP', 'SEU LIVRO, PASSO A PASSO')}</strong><span class="route-spacer"></span>${UI.textButton({ id: 'buildBook', label: '① ' + bw('Armar libro', 'Build book', 'Montar livro') })}${UI.textButton({ id: 'structureBook', label: '② ' + bw('Estructura', 'Structure', 'Estrutura') })}${UI.textButton({ id: 'reviewBook', label: '③ ' + bw('Revisar libro', 'Check book', 'Revisar livro') })}${UI.textButton({ id: 'outputBook', label: '④ PDF / ' + bw('Imprimir', 'Print', 'Imprimir') })}`;
-  $('#buildBook').onclick = () => bookBuilder();
-  $('#structureBook').onclick = () => showTab('structure');
-  $('#reviewBook').onclick = () => preflightDialog();
-  $('#outputBook').onclick = () => outputDialog('pdf');
+  const route = document.getElementById('helpRoute');
+  if (!route) return;
+  const here = currentRouteStep();
+  route.innerHTML = routeSteps
+    .map(
+      ([id, label, description]) =>
+        `<li${id === here ? ' aria-current="step"' : ''}>${UI.textButton({ data: { routeStep: id }, disabled: !hasDocument && id !== 'build', label })}<p class="help">${description}</p>${id === here ? '<span class="route-here">Estás acá</span>' : ''}</li>`,
+    )
+    .join('');
+  route.querySelectorAll<HTMLElement>('[data-route-step]').forEach(
+    (b) =>
+      (b.onclick = () => {
+        const step = routeSteps.find(([id]) => id === b.dataset.routeStep)!;
+        routeStep = step[0];
+        $('#modal').close();
+        setTimeout(step[3], 30);
+      }),
+  );
 }
+registerHelpSection({
+  id: 'route',
+  label: 'Recorrido del libro',
+  order: 4,
+  render(host) {
+    host.innerHTML = `<h2 class="help-heading">Recorrido del libro</h2><p class="help-lead">Los pasos para llevar un manuscrito a un PDF listo para imprimir. Cada paso abre su herramienta.</p><ol id="helpRoute" class="book-route"></ol>`;
+    globalThis.renderBookRoute();
+  },
+});
 function structurePanel(): void {
   const h = $('#inspectorContent'),
     items = book.pages
@@ -674,8 +718,8 @@ document.addEventListener('maquetario:language', () => {
       'Montar a partir de um manuscrito',
     );
 });
-// Publicado a propósito. bw: casi toda la interfaz. renderBookRoute: la extienden publications.js
-// y editorial-learning.js, y la llama tests/learning-tests.js. goToBookPage: editorial-assistant,
+// Publicado a propósito. bw: casi toda la interfaz. renderBookRoute: la llama
+// tests/learning-tests.js. goToBookPage: editorial-assistant,
 // book-proof y cover-measurements. composeNovel, installNovel y preflightBook: book-proof y sus
 // pruebas (installNovel también scripts/style-snapshot.js). bookBuilder: cover-measurements.
 // manuscriptParts: tests/book-proof-tests.js.

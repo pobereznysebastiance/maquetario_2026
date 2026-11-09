@@ -2,7 +2,6 @@
 registerIntegrationTest(function (r) {
   const prior = M.clone(book),
     grids = showGridStrip,
-    workflow = showWorkflow,
     check = (ok, label) => {
       if (!ok) throw Error(label);
       r.checks.push(label);
@@ -49,28 +48,20 @@ registerIntegrationTest(function (r) {
       'Dirección de cornisa persiste en proyecto',
     );
     showGridStrip = true;
-    showWorkflow = true;
     applyPagePriority();
     const before = $('#workarea').getBoundingClientRect().height;
     showGridStrip = false;
-    showWorkflow = false;
     applyPagePriority();
     const after = $('#workarea').getBoundingClientRect().height;
-    check(after > before + 100, 'Plegar plantillas y recorrido gana más de 100 px para páginas');
+    check(after > before + 100, 'Plegar plantillas gana más de 100 px para páginas');
     check(
-      getComputedStyle($('.book-route')).display === 'none' &&
-        getComputedStyle($('#templates')).display === 'none',
-      'Vista inicial prioriza páginas',
-    );
-    check(
-      getComputedStyle($('.route-step-number')).borderRadius === '50%',
-      'Números con contenedor circular',
+      !$('.center .book-route') && getComputedStyle($('#templates')).display === 'none',
+      'Vista inicial prioriza páginas (el recorrido está en la Ayuda)',
     );
   } finally {
     liveMasterAdjustment = false;
     book = prior;
     showGridStrip = grids;
-    showWorkflow = workflow;
     applyPagePriority();
     render(true);
   }

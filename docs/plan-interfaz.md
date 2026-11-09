@@ -77,6 +77,10 @@ Se elige el tipo con la función, nunca con una clase de tamaño. Todos usan `#m
 
 `variant` (en las opciones) pone una clase para el contenido de esa pantalla, no para su tamaño; `cancelLabel` cambia el texto de Cancelar ("Ahora no"). Nada de diálogo sobre diálogo: una Hoja o una Ventana reemplaza a la que esté abierta, y el explorador de fuentes abierto desde una Hoja ocupa su lugar. Sólo una Confirmación puede quedar encima de una Hoja (por ejemplo, "Cerrar sesión" desde Configuración).
 
+## Ayuda: una sola puerta (D8)
+
+El centro de Ayuda (`src/help-center.ts`) es una Ventana de trabajo con navegación lateral: Tutorial guiado, Glosario, Atajos y Recorrido del libro. Se abre con "Ayuda" en la barra superior (o F1) y desde código con `openHelp(sección?, arg?)` (`'tutorial' | 'glossary' | 'shortcuts' | 'route'`; acepta también `glosario`, `atajos`, `recorrido`). Cada sección la registra su módulo con `registerHelpSection`. Los "?" de términos abren el término en el glosario (`showGlossary(término)` = `openHelp('glossary', término)`) y el "?" del zoom abre Atajos. El recorrido del libro (cinco pasos, el actual con el dorado de "estás acá") vive en la Ayuda: ya no hay barra fija sobre el lienzo ni botones "Tutorial", "Aprender" o "Recorrido" en la barra del documento.
+
 ## Orden de trabajo
 
 1. **Base**: tokens, capas, `base.css`, control automático. Botón, campo e ícono como primeros átomos. Translucidez real de la ventana en Electron.

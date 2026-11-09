@@ -1,6 +1,6 @@
-// Aprender: glosario editorial (diálogo con búsqueda y categorías), botón "Aprender" en la barra
-// del documento, ayudas "?" junto a los términos del inspector y "Glosario editorial" en la
-// bienvenida. También numera los pasos del recorrido y suma la orientación del lomo a la cubierta.
+// Aprender: glosario editorial (la sección "Glosario" del centro de Ayuda, con búsqueda y
+// categorías), ayudas "?" junto a los términos del inspector (abren el término en la Ayuda) y
+// "Glosario editorial" en la bienvenida. También suma la orientación del lomo a la cubierta.
 //
 // editorialTerms, glossaryMatches, renderGlossary y showGlossary son globales: los usan
 // tests/learning-tests.js y scripts/style-snapshot.js. foldEditorial lo usa font-browser.js.
@@ -438,23 +438,28 @@ const foldEditorial = (s: string): string =>
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 globalThis.foldEditorial = foldEditorial;
-function showGlossary(term = 'grid'): void {
-  if (!editorialTerms.some((t) => t[0] === term)) term = 'grid';
-  glossaryTerm = term;
-  modal.workspace(
-    bw('Aprender diseño editorial', 'Learn editorial design', 'Aprender design editorial'),
-    `<p class="builder-intro">${bw('Un diccionario para entender lo que estás diseñando. Buscá un término o explorá una categoría.', 'A dictionary to understand what you are designing. Search a term or explore a category.', 'Um dicionário para entender o que você está criando. Busque um termo ou explore uma categoria.')}</p><div class="glossary-filters"><input id="glossarySearch" type="search" aria-label="${bw('Buscar término', 'Search term', 'Buscar termo')}" placeholder="${bw('Buscar: medianil, sangrado, lomo…', 'Search: gutter, bleed, spine…', 'Buscar: sangria, lombada, grade…')}"><select id="glossaryCategory"><option value="all">${bw('Todas las categorías', 'All categories', 'Todas as categorias')}</option>${Object.entries(
+/** Sección "Glosario" del centro de Ayuda: el término pedido (o el último visto) y su definición. */
+registerHelpSection({
+  id: 'glossary',
+  label: 'Glosario',
+  order: 2,
+  render(host, term) {
+    if (term) glossaryTerm = editorialTerms.some((t) => t[0] === term) ? term : 'grid';
+    host.innerHTML = `<h2 class="help-heading">Glosario</h2><p class="builder-intro">${bw('Un diccionario para entender lo que estás diseñando. Buscá un término o explorá una categoría.', 'A dictionary to understand what you are designing. Search a term or explore a category.', 'Um dicionário para entender o que você está criando. Busque um termo ou explore uma categoria.')}</p><div class="glossary-filters"><input id="glossarySearch" type="search" aria-label="${bw('Buscar término', 'Search term', 'Buscar termo')}" placeholder="${bw('Buscar: medianil, sangrado, lomo…', 'Search: gutter, bleed, spine…', 'Buscar: sangria, lombada, grade…')}"><select id="glossaryCategory"><option value="all">${bw('Todas las categorías', 'All categories', 'Todas as categorias')}</option>${Object.entries(
       glossaryCategory,
     )
       .map(([k, v]) => `<option value="${k}">${bw(...v)}</option>`)
       .join(
         '',
-      )}</select></div><div class="glossary-layout"><nav id="glossaryList" aria-label="${bw('Términos', 'Terms', 'Termos')}"></nav><article id="glossaryDefinition"></article></div><p class="help glossary-note">${bw('Glosario educativo. Las convenciones pueden variar según el país y la imprenta. Aprender un concepto no significa que exista una corrección automática para él.', 'Educational glossary. Conventions can vary by country and printer. Learning a concept does not imply automatic correction support.', 'Glossário educativo. Convenções podem variar conforme país e gráfica. Aprender um conceito não implica correção automática.')}</p>`,
-    { variant: 'glossary-modal' },
-  );
-  $('#glossarySearch').oninput = renderGlossary;
-  $('#glossaryCategory').onchange = renderGlossary;
-  renderGlossary();
+      )}</select></div><div class="glossary-layout"><nav id="glossaryList" aria-label="${bw('Términos', 'Terms', 'Termos')}"></nav><article id="glossaryDefinition"></article></div><p class="help glossary-note">${bw('Glosario educativo. Las convenciones pueden variar según el país y la imprenta. Aprender un concepto no significa que exista una corrección automática para él.', 'Educational glossary. Conventions can vary by country and printer. Learning a concept does not imply automatic correction support.', 'Glossário educativo. Convenções podem variar conforme país e gráfica. Aprender um conceito não implica correção automática.')}</p>`;
+    $('#glossarySearch').oninput = renderGlossary;
+    $('#glossaryCategory').onchange = renderGlossary;
+    renderGlossary();
+  },
+});
+/** Abre el glosario del centro de Ayuda en un término (si no existe, en "grid"). */
+function showGlossary(term = 'grid'): void {
+  openHelp('glossary', term);
 }
 globalThis.showGlossary = showGlossary;
 function glossaryMatches(query: string, category: string): EditorialTerm[] {
@@ -510,11 +515,6 @@ function renderGlossary(): void {
     };
 }
 globalThis.renderGlossary = renderGlossary;
-const learnButton = document.createElement('button');
-learnButton.id = 'learnEditorial';
-learnButton.className = 'quiet';
-learnButton.onclick = () => showGlossary();
-$('.documentbar').append(learnButton);
 /** Rótulo del inspector → término del glosario. */
 const termMap: Record<string, string> = {
   Grilla: 'grid',
@@ -560,35 +560,7 @@ decorateInspector(() => {
 extend.after(
   'render',
   function (full = true) {
-    learnButton.innerHTML =
-      '<span aria-hidden="true">◇</span> ' + bw('Aprender', 'Learn', 'Aprender');
     decorateGlossaryHints();
-  },
-  'editorial-learning',
-);
-extend.after(
-  'renderBookRoute',
-  function () {
-    const steps = [
-      ['buildBook', '1'],
-      ['structureBook', '2'],
-      ['routeCover', '3'],
-      ['reviewBook', '4'],
-      ['outputBook', '5'],
-    ];
-    for (const [id, n] of steps) {
-      const b = $('#' + id);
-      if (b) {
-        const text = b.textContent.replace(/^[①②③④⑤]\s*/, '');
-        b.replaceChildren();
-        const badge = document.createElement('span');
-        badge.className = 'route-step-number';
-        badge.textContent = n;
-        const label = document.createElement('span');
-        label.textContent = text;
-        b.append(badge, label);
-      }
-    }
   },
   'editorial-learning',
 );
@@ -653,6 +625,4 @@ extend.after(
   },
   'editorial-learning',
 );
-renderBookRoute();
-learnButton.textContent = bw('Aprender', 'Learn', 'Aprender');
 decorateGlossaryHints();

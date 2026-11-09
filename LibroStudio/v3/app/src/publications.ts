@@ -635,19 +635,10 @@ coverButton.id = 'coverTool';
 coverButton.innerHTML = icon('pages') + '<span>' + bw('Cubierta', 'Cover', 'Capa') + '</span>';
 coverButton.onclick = coverEditor;
 $('#tools').append(coverButton);
-extend.after(
-  'renderBookRoute',
-  function () {
-    const b = document.createElement('button');
-    b.id = 'routeCover';
-    b.textContent = bw('Cubierta', 'Cover', 'Capa');
-    b.onclick = coverEditor;
-    $('#structureBook').after(b);
-    coverButton.querySelector('span')!.textContent = bw('Cubierta', 'Cover', 'Capa');
-  },
-  'publications',
-);
-renderBookRoute();
+// La cubierta es un paso del recorrido del libro (book-workflow.ts); acá sólo se traduce su botón.
+document.addEventListener('maquetario:language', () => {
+  coverButton.querySelector('span')!.textContent = bw('Cubierta', 'Cover', 'Capa');
+});
 
 globalThis.coverOverflow = function (c: CoverDesign): boolean {
   const art = coverArtwork(c, 96 / 25.4, false);

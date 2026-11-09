@@ -123,13 +123,13 @@
     [
       'plegado',
       () => {
-        document.body.classList.add('templates-collapsed', 'workflow-collapsed');
+        document.body.classList.add('templates-collapsed');
       },
     ],
     [
       'desplegado',
       () => {
-        document.body.classList.remove('templates-collapsed', 'workflow-collapsed');
+        document.body.classList.remove('templates-collapsed');
       },
     ],
     // Abiertos con sus propios botones (la app los arranca plegados: sin estos estados no se ve su CSS).
@@ -138,13 +138,6 @@
       () => {
         for (let i = 0; i < 2 && document.body.classList.contains('templates-collapsed'); i++)
           $('#toggleGridStrip')?.click();
-      },
-    ],
-    [
-      'recorrido abierto',
-      () => {
-        for (let i = 0; i < 2 && document.body.classList.contains('workflow-collapsed'); i++)
-          $('#toggleWorkflow')?.click();
       },
     ],
     [
@@ -182,6 +175,13 @@
         close();
         showGlossary();
         await wait(400);
+      },
+    ],
+    [
+      'ayuda: recorrido del libro',
+      () => {
+        close();
+        openHelp('route');
       },
     ],
     [

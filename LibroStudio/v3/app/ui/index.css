@@ -48,6 +48,7 @@
 @import url('organisms/font-browser.css') layer(organisms);
 @import url('organisms/tutorial.css') layer(organisms);
 @import url('organisms/glossary.css') layer(organisms);
+@import url('organisms/help-center.css') layer(organisms);
 @import url('organisms/menu.css') layer(organisms);
 @import url('organisms/tool-rail.css') layer(organisms);
 @import url('organisms/page-strip.css') layer(organisms);

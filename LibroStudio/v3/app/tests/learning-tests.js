@@ -60,8 +60,14 @@ registerIntegrationTest(function (r) {
     $('#modal').close();
     showTab('design');
     check(!!$('.term-help'), 'Ayuda contextual en categorías');
-    renderBookRoute();
-    check($$('.route-step-number').length === 5, 'Cinco pasos con números destacados');
+    openHelp('route');
+    check(
+      $$('#helpRoute > li').length === 5 && $$('#helpRoute [aria-current="step"]').length === 1,
+      'Recorrido del libro en la Ayuda: cinco pasos y el actual marcado',
+    );
+    openHelp('shortcuts');
+    check(!!$('#helpPane .canvas-shortcut-table'), 'Atajos en el centro de Ayuda');
+    $('#modal').close();
     for (const big of [false, true]) {
       document.body.classList.toggle('ui-large', big);
       for (const height of [165, 210]) {

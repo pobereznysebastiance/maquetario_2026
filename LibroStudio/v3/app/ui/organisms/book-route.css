@@ -1,41 +1,69 @@
-/* Organismo: ruta del libro y barra del documento.
-   La ruta (Manuscrito → Páginas → … → Salida) va arriba del lienzo; la barra del documento
-   muestra la página activa y el estado de guardado. Material de barra, sin vidrio extra. */
+/* Organismo: recorrido del libro y barra del documento.
+   El recorrido (Armar libro → Estructura → Cubierta → Revisar → PDF) ya no es una barra sobre el
+   lienzo: es una lista sobria en el centro de Ayuda (book-workflow.ts). Número en texto, el paso
+   como acción y su explicación debajo; el paso actual lleva sólo la marca dorada de "estás acá".
+   La barra del documento muestra el nombre, el formato y la página activa. */
 .book-route {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
+  --route-number-width: 3ch;
+  display: grid;
   gap: var(--space-2xs);
-  padding: var(--space-xs) var(--space-md);
-  border-bottom: var(--border-width) solid var(--line-subtle);
-  background: var(--material-bar);
+  max-width: var(--help-text-max);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: route-step;
 }
-.book-route button {
-  padding: var(--space-2xs) var(--space-sm);
-  border: 0;
+.book-route li {
+  display: grid;
+  grid-template-columns: var(--route-number-width) minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-md);
-  background: none;
-  color: var(--text-secondary);
-  font-size: var(--type-sm);
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
+  counter-increment: route-step;
 }
-.book-route button:hover {
+.book-route li::before {
+  grid-row: 1 / span 2;
+  grid-column: 1;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  content: counter(route-step) '.';
+}
+.book-route li[aria-current='step'] {
   background: var(--surface-control);
+}
+.book-route li[aria-current='step']::before,
+.book-route .route-here {
   color: var(--text-mark);
 }
-.book-route .route-spacer {
-  flex: 1;
+.book-route button {
+  grid-row: 1;
+  grid-column: 2;
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  font-size: var(--type-body);
+  font-weight: var(--weight-medium);
+  text-align: left;
 }
-/* El paso actual ya se ve marcado en la ruta: el rótulo de texto no se muestra. */
-.book-route strong {
-  display: none;
+.book-route button:hover:not(:disabled) {
+  color: var(--text-accent);
 }
-/* Sin documento sólo se puede empezar (primer paso). */
-.no-document .book-route button:not(:first-child) {
+/* Sin libro sólo se puede empezar (primer paso). */
+.book-route button:disabled {
   opacity: var(--opacity-disabled);
-  pointer-events: none;
+}
+.book-route .help {
+  grid-row: 2;
+  grid-column: 2;
+  margin: 0;
+}
+.book-route .route-here {
+  grid-row: 1;
+  grid-column: 3;
+  font-size: var(--type-footnote);
 }
 
 .page-priority .documentbar {
@@ -81,36 +109,7 @@
   white-space: nowrap;
 }
 
-/* ── Migrado de editorial-learning.css y page-priority.css: ruta del libro y barra del documento ── */
-.book-route {
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-.book-route button {
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-}
-.book-route .route-spacer {
-  display: none;
-}
-.route-step-number {
-  display: inline-grid;
-  place-items: center;
-  background: var(--text-mark);
-  color: var(--text-on-accent);
-  font-weight: var(--weight-bold);
-  line-height: 1;
-  box-shadow: var(--material-edge);
-}
-.book-route button:hover .route-step-number {
-  background: var(--action);
-}
-.workflow-collapsed .book-route {
-  display: none !important;
-}
-#toggleWorkflow,
-#learnEditorial,
+/* ── Migrado de editorial-learning.css y page-priority.css: barra del documento ── */
 #documentSettings {
   white-space: nowrap;
 }
@@ -139,20 +138,7 @@
   }
 }
 
-/* ── Migrado de master-refinement.css: número de paso redondo ── */
-.route-step-number {
-  --route-step-size: 23px;
-  flex: 0 0 var(--route-step-size);
-  width: var(--route-step-size);
-  min-width: var(--route-step-size);
-  height: var(--route-step-size);
-  border-radius: 50%;
-  font-size: var(--type-md);
-}
-.book-route button {
-  gap: var(--space-xs);
-  min-height: var(--control-md);
-}
+/* ── Migrado de master-refinement.css: página activa en la barra del documento ── */
 #activePageStatus {
   margin-right: var(--space-xs);
   font-size: var(--type-xs);
