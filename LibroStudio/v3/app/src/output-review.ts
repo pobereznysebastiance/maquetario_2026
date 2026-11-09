@@ -3,19 +3,12 @@
 // ventana de React (components/output/OutputWindow.tsx); acá se escala la hoja dentro de
 // #outputPreview después de cada outputPreview.
 //
-// setOutputReviewScale es global: la llama output.ts cuando cambia el zoom o se amplía la revisión.
+// El zoom elegido vive en output-review-scale.ts (sin efectos): lo cambia output.ts cuando cambia
+// el selector o se amplía la revisión.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
+import { reviewScale, setOutputReviewScale } from './output-review-scale.ts';
 
-declare global {
-  /** Zoom de la revisión: 'fit' (ajustar a ventana) o un factor ('1', '1.5', '2', '3'). */
-  var setOutputReviewScale: (scale: string) => void;
-}
-
-let outputReviewScale = 'fit';
-globalThis.setOutputReviewScale = (scale) => {
-  outputReviewScale = scale;
-};
 extend.after(
   'outputPreview',
   function () {
@@ -29,7 +22,7 @@ extend.after(
         (box.clientWidth - 36) / (geometry.width * px),
         (box.clientHeight - 36) / (geometry.height * px),
       ),
-      k = outputReviewScale === 'fit' ? fit : Number(outputReviewScale),
+      k = reviewScale() === 'fit' ? fit : Number(reviewScale()),
       w = geometry.width * px * k,
       h = geometry.height * px * k;
     const canvas = document.createElement('div');
@@ -48,7 +41,7 @@ extend.after(
     });
     canvas.append(sheet);
     box.replaceChildren(canvas);
-    if ($('#outputReviewZoom')) $('#outputReviewZoom').value = outputReviewScale;
+    if ($('#outputReviewZoom')) $('#outputReviewZoom').value = reviewScale();
     if ($('#outputReviewFactor')) $('#outputReviewFactor').textContent = Math.round(k * 100) + '%';
   },
   'output-review',
@@ -57,7 +50,7 @@ extend.after(
 extend.before(
   'outputDialog',
   function () {
-    outputReviewScale = 'fit';
+    setOutputReviewScale('fit');
   },
   'output-review',
 );

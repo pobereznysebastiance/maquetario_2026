@@ -27,6 +27,8 @@ import { bookTitle } from '../../react/no-book.ts';
 import { bw, i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
 import { saveProjectAs } from '../../save-as.ts';
+import { packageDialog } from '../../project-package.tsx';
+import { openHelp } from '../help/help-center.tsx';
 
 const tr = (text: string) => i18n.tr(text);
 

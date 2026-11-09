@@ -21,7 +21,12 @@ import { Select } from './components/form/Form.tsx';
 import { Icon } from './components/Icon.tsx';
 import { bw } from './i18n/language.ts';
 import { editor } from './core-api.ts';
-import { currentParagraph, paragraphFormat, paragraphMeta } from './paragraph-format.ts';
+import {
+  currentParagraph,
+  paragraphFormat,
+  paragraphMeta,
+  asParagraphOperation,
+} from './paragraph-format.ts';
 import { chooseDefaultFace, selectedFace, variations } from './font-catalog.ts';
 
 declare global {
@@ -136,8 +141,7 @@ function insertGlyph(): void {
       editor.paragraphScope.id === target.id && editor.paragraphScope.index >= 0
         ? Math.min(editor.paragraphScope.index, lines.length - 1)
         : lines.length - 1;
-  paragraphOperation = true;
-  try {
+  asParagraphOperation(() => {
     commit(() => {
       lines[index] += String.fromCodePoint(glyphSelected!);
       target.text = lines.join('\n');
@@ -152,9 +156,7 @@ function insertGlyph(): void {
         fontAxes: variations(glyphFace!),
       };
     }, false);
-  } finally {
-    paragraphOperation = false;
-  }
+  });
   toast(bw('Carácter insertado.', 'Character inserted.', 'Caractere inserido.'));
 }
 

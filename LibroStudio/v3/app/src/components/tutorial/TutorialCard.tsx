@@ -21,6 +21,7 @@ import type { Root } from 'react-dom/client';
 import { mount, useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
 import type { GuideLesson } from '../../tutorial.ts';
+import { guideLessons, tutorialIndex } from '../../tutorial-lessons.ts';
 
 const words = {
   es: {

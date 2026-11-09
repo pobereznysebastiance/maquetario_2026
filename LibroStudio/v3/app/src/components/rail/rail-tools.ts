@@ -14,68 +14,24 @@
 // - after: la clave (tool o id) de la herramienta tras la cual va; sin after, al final.
 // - onSelect: qué hace el clic; si falta, setTool(tool).
 //
-// Este módulo carga primero (src/entries/app.ts), antes que los módulos que registran; las
-// herramientas del núcleo (Seleccionar, Crear texto, Imagen…) se registran acá mismo.
+// El registro (sin efectos al cargar, se importa) está en rail-registry.ts. Este módulo carga
+// primero (src/entries/app.ts), antes que los módulos que registran; las herramientas del núcleo
+// (Seleccionar, Crear texto, Imagen…) se registran acá mismo, y publica registerTool para los
+// archivos del lienzo.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
-import { flushSync } from 'react-dom';
 import { bw, i18n } from '../../i18n/language.ts';
+import { registerTool, type RailTool } from './rail-registry.ts';
 
-export interface RailTool {
-  tool?: string;
-  id?: string;
-  icon: string;
-  label: () => string;
-  title?: () => string;
-  shortcut?: string | null;
-  after?: string;
-  onSelect?: () => void;
-}
+export type { RailTool } from './rail-registry.ts';
 
 declare global {
-  /** Suma una herramienta al riel izquierdo (ver src/components/rail/rail-tools.ts). */
+  /** Suma una herramienta al riel izquierdo (ver src/components/rail/rail-registry.ts). */
   var registerTool: (spec: RailTool) => void;
-  /** Vuelve a dibujar el riel (por ejemplo, cuando cambia el set de íconos). */
-  var refreshRail: () => void;
 }
 
-const keyOf = (spec: RailTool): string => spec.tool ?? spec.id ?? '';
-
-let tools: readonly RailTool[] = [];
-let mounted = false;
-const listeners = new Set<() => void>();
-
-export const railToolsSnapshot = (): readonly RailTool[] => tools;
-export const subscribeRailTools = (listener: () => void): (() => void) => {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-};
-/** Lo llama Rail.tsx al montarse: desde ahí, cada cambio se dibuja en el acto. */
-export function railMounted(): void {
-  mounted = true;
-}
-const emit = (): void => {
-  const notify = () => listeners.forEach((listener) => listener());
-  // Como un módulo que agregaba su botón: al volver, el botón ya está en la página.
-  if (mounted) flushSync(notify);
-  else notify();
-};
-
-export function registerTool(spec: RailTool): void {
-  const list = tools.filter((t) => keyOf(t) !== keyOf(spec));
-  const index = spec.after ? list.findIndex((t) => keyOf(t) === spec.after) : -1;
-  if (index >= 0) list.splice(index + 1, 0, spec);
-  else list.push(spec);
-  tools = list;
-  emit();
-}
-export function refreshRail(): void {
-  tools = [...tools];
-  emit();
-}
 globalThis.registerTool = registerTool;
-globalThis.refreshRail = refreshRail;
 
 // Herramientas del núcleo (studio.ts: setTool). Los nombres van en castellano y se traducen al
 // dibujar (src/i18n.ts); "Crear texto" y "Caja de texto" tienen su texto propio.

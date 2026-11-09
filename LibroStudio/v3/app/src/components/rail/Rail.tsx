@@ -20,7 +20,7 @@ import { useLayoutEffect, useSyncExternalStore, type KeyboardEvent } from 'react
 import { Icon } from '../Icon.tsx';
 import { mount, useLanguage } from '../../react/mount.tsx';
 import { notifyEditorState, useEditorState } from '../../react/editor-state.ts';
-import { railMounted, railToolsSnapshot, subscribeRailTools } from './rail-tools.ts';
+import { railMounted, railToolsSnapshot, subscribeRailTools } from './rail-registry.ts';
 import { noBookReason } from '../../react/no-book.ts';
 import { i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';

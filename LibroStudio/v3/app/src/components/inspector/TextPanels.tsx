@@ -35,7 +35,13 @@ import { bw } from '../../i18n/language.ts';
 import { editor, M } from '../../core-api.ts';
 import { readHyphenationFields } from '../../hyphenation.ts';
 import { registerInspectorPanel } from '../../inspector-registry.ts';
-import { currentParagraph, paragraphFormat, paragraphMeta, pw } from '../../paragraph-format.ts';
+import {
+  currentParagraph,
+  paragraphFormat,
+  paragraphMeta,
+  pw,
+  asParagraphOperation,
+} from '../../paragraph-format.ts';
 import {
   chooseDefaultFace,
   familyFaces,
@@ -66,16 +72,6 @@ const paragraphNumber = onNativeChange<HTMLInputElement>((input) => {
     paragraphPatch({ [input.dataset.paragraph!]: value });
   else inspector();
 });
-
-/** Hace algo sin que commit copie los cambios del objeto a los párrafos. */
-const asParagraphOperation = (fn: () => void) => {
-  paragraphOperation = true;
-  try {
-    fn();
-  } finally {
-    paragraphOperation = false;
-  }
-};
 
 /** Separación silábica e idioma (hyphenationFields de hyphenation-controls.ts), ligados al párrafo. */
 const Hyphenation = ({

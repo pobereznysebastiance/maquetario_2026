@@ -8,6 +8,7 @@
 //
 // Fuente TypeScript: se compila a build/inspector-organization.js (desktop/scripts/build.mjs).
 import type { BookObject } from './model.ts';
+import { guideLessons } from './tutorial-lessons.ts';
 
 declare global {
   /** Iguala los espacios entre tres o más objetos seleccionados, conservando los extremos. */

@@ -10,6 +10,7 @@ import { useLanguage } from '../../react/mount.tsx';
 import type { HelpSection } from './help-center.tsx';
 import { bw, i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
+import { guideLessons } from '../../tutorial-lessons.ts';
 
 const tr = (text: string) => i18n.tr(text);
 

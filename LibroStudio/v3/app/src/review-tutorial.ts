@@ -5,6 +5,8 @@
 //
 // Fuente TypeScript: se compila a build/review-tutorial.js (desktop/scripts/build.mjs).
 
+import { guideLessons, lesson } from './tutorial-lessons.ts';
+
 lesson(
   'paragraph-styles',
   'text',

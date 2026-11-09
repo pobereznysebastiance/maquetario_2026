@@ -8,6 +8,7 @@
 
 import { bw } from './i18n/language.ts';
 import { UI } from './core-api.ts';
+import { refreshRail } from './components/rail/rail-registry.ts';
 
 declare global {
   /** Muestra las pestañas que entran y pasa el resto al menú "Más categorías". */

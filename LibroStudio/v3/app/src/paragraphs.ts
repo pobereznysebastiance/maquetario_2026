@@ -5,7 +5,8 @@
 // El formato (paragraphFormat, paragraphMeta, currentParagraph, paragraphIndices, pw…) está en
 // paragraph-format.ts, sin efectos al cargar: se importa. Siguen globales los que usan las pruebas
 // o studio.ts: paragraphFormat, paragraphPatch, applyParagraphStyle y syncParagraphMap.
-// paragraphScope y paragraphOperation viven en globalThis porque otros archivos los asignan.
+// paragraphScope vive en el estado del editor; el cambio de párrafos en curso
+// (asParagraphOperation), en paragraph-format.ts.
 //
 // Fuente TypeScript: se compila a build/paragraphs.js (desktop/scripts/build.mjs).
 'use strict';
@@ -14,7 +15,9 @@ import { paragraphStyleForm } from './components/paragraph-style/ParagraphStyleF
 import { i18n } from './i18n/language.ts';
 import { M } from './core-api.ts';
 import {
+  asParagraphOperation,
   currentParagraph,
+  inParagraphOperation,
   paragraphFormat,
   paragraphKeys,
   paragraphIndices,
@@ -33,7 +36,7 @@ export type {
 } from './paragraph-format.ts';
 export { paragraphIndices } from './paragraph-format.ts';
 import { readHyphenationFields, setHyphenatedText } from './hyphenation.ts';
-import { variations, chooseDefaultFace } from './font-catalog.ts';
+import { variations, chooseDefaultFace, selectedFace } from './font-catalog.ts';
 
 globalThis.paragraphFormat = paragraphFormat;
 
@@ -64,8 +67,6 @@ interface CatalogFace {
 declare global {
   /** Párrafo elegido en el inspector (index -1: todo el cuadro). */
   var paragraphScope: { id: string | null; index: number };
-  /** Mientras es true, commit no copia los cambios del objeto a los párrafos. */
-  var paragraphOperation: boolean;
   /** Formato efectivo de un párrafo: base del objeto + estilo + ajustes locales. */
   var paragraphFormat: (b: Book, o: BookObject, index: number) => ParagraphFormat;
   /** Ajustes locales sobre los párrafos elegidos de la caja seleccionada. */
@@ -81,7 +82,6 @@ declare global {
 }
 
 globalThis.paragraphScope = { id: null, index: -1 };
-globalThis.paragraphOperation = false;
 /** Último cambio de un control del inspector sobre la caja (lo aplica el próximo commit). */
 let directParagraphChange: {
   id: string;
@@ -92,17 +92,14 @@ let directParagraphChange: {
 function paragraphPatch(values: ParagraphFormat): void {
   const o = selectObject();
   if (!o || o.type !== 'text' || o.toc || o.locked) return;
-  paragraphOperation = true;
-  try {
+  asParagraphOperation(() => {
     commit(() => {
       for (const index of paragraphIndices(o)) {
         const meta = paragraphMeta(o, index);
         meta.overrides = { ...(meta.overrides || {}), ...M.clone(values) };
       }
     }, false);
-  } finally {
-    paragraphOperation = false;
-  }
+  });
 }
 globalThis.paragraphPatch = paragraphPatch;
 extend(
@@ -116,7 +113,8 @@ extend(
       directParagraphChange = null;
       paragraphCommit(() => {
         fn();
-        if (paragraphOperation || !before || !book.pages.some((p) => p.objects.includes(o))) return;
+        if (inParagraphOperation() || !before || !book.pages.some((p) => p.objects.includes(o)))
+          return;
         const values: ParagraphFormat = {};
         for (const key of paragraphKeys) {
           if (JSON.stringify(before[key]) !== JSON.stringify(o[key]) && o[key] !== undefined)
@@ -164,8 +162,7 @@ document.addEventListener(
 function applyParagraphStyle(id: string | null): void {
   const o = selectObject();
   if (!o || o.type !== 'text' || o.locked || o.toc) return;
-  paragraphOperation = true;
-  try {
+  asParagraphOperation(() => {
     commit(() => {
       for (const i of paragraphIndices(o)) {
         const m = paragraphMeta(o, i);
@@ -178,9 +175,7 @@ function applyParagraphStyle(id: string | null): void {
         }
       }
     }, false);
-  } finally {
-    paragraphOperation = false;
-  }
+  });
 }
 globalThis.applyParagraphStyle = applyParagraphStyle;
 export function styleDialog(existing: ParagraphStyle | null | undefined): void {
@@ -239,8 +234,7 @@ export function styleDialog(existing: ParagraphStyle | null | undefined): void {
             fontAxes: variations(face),
           });
       }
-      paragraphOperation = true;
-      try {
+      asParagraphOperation(() => {
         commit(() => {
           if (!book.paragraphStyles) book.paragraphStyles = [];
           if (existing) {
@@ -256,9 +250,7 @@ export function styleDialog(existing: ParagraphStyle | null | undefined): void {
             }
           }
         }, false);
-      } finally {
-        paragraphOperation = false;
-      }
+      });
       return true;
     },
     existing ? w.edit : w.new,

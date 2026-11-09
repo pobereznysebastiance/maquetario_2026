@@ -15,6 +15,9 @@
 // todavía no pasó, dibuja HTML en host (el glosario). Lo que dibuja React no lo traduce el DOM:
 // los textos van con i18n.tr() o bw(), y el HTML de una sección tiene que llegar traducido.
 //
+// Este archivo no tiene efectos al cargar: se importa. Los globales (openHelp, registerHelpSection)
+// y la tecla F1 están en help-center-wiring.ts.
+//
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 import { useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
@@ -46,8 +49,6 @@ declare global {
   var registerHelpSection: (section: HelpSection) => void;
   /** Abre el centro de Ayuda en una sección (y, si la sección lo usa, en un término o paso). */
   var openHelp: (section?: HelpSectionId | string, arg?: string) => void;
-  /** Vuelve a dibujar la sección abierta (si el centro de Ayuda está abierto). */
-  var refreshHelp: () => void;
 }
 
 const sections = new Map<string, HelpSection>();
@@ -137,7 +138,8 @@ export const HelpCenter = () => {
   );
 };
 
-function openHelp(section?: HelpSectionId | string, arg?: string): void {
+/** Abre el centro de Ayuda en una sección (y, si la sección lo usa, en un término o paso). */
+export function openHelp(section?: HelpSectionId | string, arg?: string): void {
   const wanted = section ? aliases[section] || section : request.section;
   const id = sections.has(wanted) ? wanted : ordered()[0]?.id;
   if (!id) return;
@@ -151,20 +153,14 @@ function openHelp(section?: HelpSectionId | string, arg?: string): void {
   void openWorkWindow(helpElement, { title: 'Ayuda' });
 }
 
-globalThis.registerHelpSection = (section) => {
+/** Suma una sección al centro de Ayuda. */
+export function registerHelpSection(section: HelpSection): void {
   sections.set(section.id, section);
-};
-globalThis.openHelp = openHelp;
-globalThis.refreshHelp = () => {
+}
+/** Vuelve a dibujar la sección abierta (si el centro de Ayuda está abierto). */
+export function refreshHelp(): void {
   request = { ...request, nonce: request.nonce + 1 };
   notify();
-};
-
-// La entrada fija ("Ayuda", #helpCenter) está en la barra superior (components/topbar/Topbar.tsx).
-document.addEventListener('keydown', (e) => {
-  if (e.key !== 'F1') return;
-  e.preventDefault();
-  // Con otro diálogo abierto no se lo reemplaza (se perdería lo que tenga sin aplicar).
-  const other = !helpOpen() && openSheetContent() !== null;
-  if (!other) openHelp();
-});
+}
+/** El centro de Ayuda está abierto (y es la Ventana que se ve). */
+export const helpIsOpen = (): boolean => helpOpen();

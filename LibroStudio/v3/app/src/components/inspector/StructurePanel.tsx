@@ -20,7 +20,13 @@ import { bw, i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
 import { goToBookPage } from '../../book-navigation.ts';
 
-const StructurePanel = ({ titleOf }: { titleOf: (page: Page) => string }) => {
+const StructurePanel = ({
+  titleOf,
+  build,
+}: {
+  titleOf: (page: Page) => string;
+  build: () => void;
+}) => {
   useLanguage();
   const parts = editor.book.pages
     .map((p, i) => ({ p, i }))
@@ -36,7 +42,7 @@ const StructurePanel = ({ titleOf }: { titleOf: (page: Page) => string }) => {
       <p className="structure-summary">
         {`${editor.book.pages.length} ${bw('páginas. Elegí una parte para ir a su comienzo.', 'pages. Choose a part to go to its start.', 'páginas. Escolha uma parte para ir ao início.')}`}
       </p>
-      <button id="structureBuild" className="btn wide" onClick={() => bookBuilder()}>
+      <button id="structureBuild" className="btn wide" onClick={() => build()}>
         {bw('Armar otro libro…', 'Build another book…', 'Montar outro livro…')}
       </button>
       <button
@@ -87,6 +93,6 @@ const StructurePanel = ({ titleOf }: { titleOf: (page: Page) => string }) => {
 };
 
 /** El panel, con el nombre de cada parte como lo arma book-workflow.ts. */
-export const structurePanelFor = (titleOf: (page: Page) => string) => () => (
-  <StructurePanel titleOf={titleOf} />
+export const structurePanelFor = (titleOf: (page: Page) => string, build: () => void) => () => (
+  <StructurePanel titleOf={titleOf} build={build} />
 );

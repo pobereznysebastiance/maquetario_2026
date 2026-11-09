@@ -203,3 +203,17 @@ export function currentParagraph(o: BookObject): number {
     ? Math.min(paragraphScope.index, o.text.split('\n').length - 1)
     : 0;
 }
+
+/** Mientras es true, commit no copia los cambios del objeto a los párrafos (paragraphs.ts). */
+let paragraphOperation = false;
+/** Hay un cambio de párrafos en curso (asParagraphOperation). */
+export const inParagraphOperation = (): boolean => paragraphOperation;
+/** Hace algo sin que commit copie los cambios del objeto a los párrafos. */
+export function asParagraphOperation(fn: () => void): void {
+  paragraphOperation = true;
+  try {
+    fn();
+  } finally {
+    paragraphOperation = false;
+  }
+}

@@ -17,6 +17,7 @@ import { M, UI } from './core-api.ts';
 import { closeSheet } from './components/dialog/dialogs.tsx';
 import { bw } from './i18n/language.ts';
 import { registerInspectorPanel } from './inspector-registry.ts';
+import { refreshHelp, registerHelpSection } from './components/help/help-center.tsx';
 
 /** Datos del armador de novelas: título, autoría y manuscrito; lo demás es opcional. */
 export type NovelData = Pick<NovelSample, 'title' | 'author' | 'source'> & Partial<NovelSample>;
@@ -54,7 +55,7 @@ const routeSteps: RouteStep[] = [
     'build',
     'Armar libro',
     'Desde un manuscrito, con partes, índice y estilos.',
-    () => globalThis.bookBuilder(),
+    () => bookBuilder(),
   ],
   ['structure', 'Estructura', 'Ir al comienzo de cada parte.', () => showTab('structure')],
   ['cover', 'Cubierta', 'Tapa, lomo, contratapa y solapas.', () => coverEditor()],
@@ -93,7 +94,11 @@ registerHelpSection(
   }),
 );
 // Estructura del libro: la sección de la pestaña Libro (components/inspector/StructurePanel.tsx).
-registerInspectorPanel('structure:structure', structurePanelFor(titleOfPart), 'book-workflow');
+registerInspectorPanel(
+  'structure:structure',
+  structurePanelFor(titleOfPart, () => bookBuilder()),
+  'book-workflow',
+);
 extend.after(
   'render',
   function (full = true) {
@@ -555,7 +560,7 @@ document.addEventListener('maquetario:language', () => {
     );
 });
 // Publicado a propósito. bw: casi toda la interfaz. composeNovel, installNovel y preflightBook: book-proof y sus
-// pruebas (installNovel también scripts/style-snapshot.js). bookBuilder: cover-measurements.
+// pruebas (installNovel también scripts/style-snapshot.js).
 // preflightDialog: la barra del documento (DocumentBar.tsx).
 // manuscriptParts: tests/book-proof-tests.js.
 declare global {
@@ -565,7 +570,6 @@ declare global {
   var installNovel: (b: Book) => void;
   /** Revisión del libro: objetos fuera de la página y cajas de texto desbordadas. */
   var preflightBook: () => PreflightIssue[];
-  var bookBuilder: (sample?: boolean) => void;
   /** "Revisar libro": texto sobrante y objetos fuera de página (Hoja de React). */
   var preflightDialog: () => void;
   var manuscriptParts: (source: string) => ManuscriptPart[];
@@ -573,7 +577,6 @@ declare global {
 globalThis.composeNovel = composeNovel;
 globalThis.installNovel = installNovel;
 globalThis.preflightBook = preflightBook;
-globalThis.bookBuilder = bookBuilder;
 globalThis.preflightDialog = preflightDialog;
 globalThis.manuscriptParts = manuscriptParts;
 globalThis.showWelcome = showWelcome;

@@ -32,8 +32,6 @@ declare global {
   var gridPresets: GridPreset[];
   /** Aplica una retícula de la biblioteca (sin mover objetos). */
   var applyGridPreset: (id: string) => void;
-  /** Guarda una copia con otro nombre (Ctrl+Mayús+S y la barra superior). */
-  var saveProjectAs: () => Promise<boolean>;
 }
 
 document.addEventListener(

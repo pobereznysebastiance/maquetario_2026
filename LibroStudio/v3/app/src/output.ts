@@ -21,6 +21,8 @@ import { i18n } from './i18n/language.ts';
 import { M } from './core-api.ts';
 import { notifyEditorState } from './react/editor-state.ts';
 import { cropSvg, outputPaperDimensions, ow } from './output-words.ts';
+import { setOutputReviewScale } from './output-review-scale.ts';
+import { installedPrinters, readPrinters, sendOutput } from './output-send.ts';
 
 /** Opciones de una salida. El diálogo las trae todas; la autoprueba y la cubierta (kind = 'cover') piden sólo algunas. */
 export interface OutputConfig {
@@ -108,14 +110,7 @@ declare global {
   /** Arma las hojas de salida en #printRoot. */
   var prepareOutput: (config: OutputConfig) => OutputInfo;
   var outputPreview: () => void;
-  var readPrinters: () => Promise<void>;
   var outputDialog: (destination: string) => Promise<void>;
-  /** Manda la salida al anfitrión. Con report, el error también se le pasa a quien llamó. */
-  var sendOutput: (
-    destination: string,
-    config: OutputJob,
-    report?: (message: string) => void,
-  ) => Promise<void>;
   /** Las imágenes de la salida terminaron de cargar (lo espera el anfitrión antes de imprimir). */
   var outputReady: boolean;
   /** Habilita o deshabilita la acción de la ventana de salida abierta (#outputApply). */
@@ -124,7 +119,6 @@ declare global {
   var closeOutputWindow: () => void;
 }
 
-let installedPrinters: InstalledPrinter[] = [];
 globalThis.setOutputApplyDisabled = function (disabled) {
   const button = document.querySelector<HTMLButtonElement>('#outputApply');
   if (button) button.disabled = disabled;
@@ -317,23 +311,6 @@ globalThis.outputPreview = function () {
 };
 // Las impresoras las dibuja el selector de la ventana (PrinterSelect) a partir de esta lista: queda
 // elegida la que estaba elegida o, si no había, la predeterminada.
-globalThis.readPrinters = async function () {
-  const selectedPrinter = $('#outPrinter')?.value;
-  try {
-    const result: InstalledPrinter[] = await nativeCall('printers');
-    installedPrinters = result;
-    if (!$('#outPrinter')) return;
-    setPrinters({
-      list: result,
-      selected:
-        result.find((p) => p.name === selectedPrinter)?.name ||
-        (!selectedPrinter && result.find((p) => p.defaultPrinter)?.name) ||
-        '',
-    });
-  } catch (error) {
-    if ($('#outputError')) $('#outputError').textContent = (error as Error).message;
-  }
-};
 globalThis.outputDialog = async function (destination) {
   const w = ow(),
     print = destination === 'print';
@@ -419,46 +396,6 @@ globalThis.outputDialog = async function (destination) {
   if (!$('#outputPreview')) return;
   if (print) readPrinters();
   outputPreview();
-};
-globalThis.sendOutput = async function (destination, config, report) {
-  const w = ow();
-  if (busy) return;
-  busy = true;
-  document.querySelector('main')!.inert = true;
-  // La barra superior (React) deshabilita Imprimir, Vista previa y Exportar mientras dura.
-  notifyEditorState();
-  toast(w.wait, 'info');
-  try {
-    if (!native) throw Error('Esta función requiere la app de escritorio de Maquetario.');
-    const result = await nativeCall(destination === 'print' ? 'print' : 'outputPdf', config);
-    if (destination === 'print') toast(w.done);
-    else {
-      const saved = await nativeCall('savePdf', {
-        base64: result.base64,
-        name:
-          book.title +
-          (config.options.kind === 'cover'
-            ? ' - Cubierta'
-            : config.options.mode === 'booklet'
-              ? ' - booklet'
-              : ' - Interior') +
-          (result.pdfx ? ' - PDFX4' : ''),
-      });
-      toast(
-        saved.saved ? i18n.tr('PDF guardado correctamente.') : i18n.tr('Exportación cancelada.'),
-        saved.saved ? 'success' : 'info',
-      );
-    }
-  } catch (error) {
-    const message = w.error + (error as Error).message;
-    // Quien llamó también lo muestra (la ventana de salida, en #outputError).
-    report?.(message);
-    toast(message, 'error');
-  } finally {
-    busy = false;
-    document.querySelector('main')!.inert = false;
-    notifyEditorState();
-  }
 };
 // Imprimir y Exportar PDF están en la barra superior (components/topbar/Topbar.tsx).
 document.addEventListener('keydown', (e) => {

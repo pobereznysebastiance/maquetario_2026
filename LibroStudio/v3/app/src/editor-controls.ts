@@ -8,6 +8,7 @@
 // Fuente TypeScript: se compila a build/editor-controls.js (desktop/scripts/build.mjs).
 
 import { inspectorTabFor } from './inspector-tabs.ts';
+import { guideLessons, tutorialCard, tutorialIndex } from './tutorial-lessons.ts';
 
 declare global {
   /** Capa que oscurece la ventana y deja a la vista el objetivo del tutorial. */

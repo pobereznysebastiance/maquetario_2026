@@ -3,7 +3,8 @@
 // fuentes que se pueden compartir. Al abrir un proyecto desde un paquete, sus fuentes se suman al
 // catálogo antes de cargarlo.
 //
-// loadOpenedProject es global: lo llaman studio.js (Abrir) y welcome.js (recientes).
+// No tiene efectos al cargar: se importa. loadOpenedProject es global (lo llaman studio.ts y el
+// proceso principal); lo publica project-package-wiring.ts.
 //
 // La Hoja es React (modal.sheet): mientras se arma el paquete, sus botones quedan
 // deshabilitados y no se cierra (lo hace la Hoja con una acción en curso, Sheet.tsx).
@@ -26,17 +27,14 @@ interface OpenedProject {
 declare global {
   /** Valida el proyecto abierto, suma las fuentes de su paquete al catálogo y lo carga. */
   var loadOpenedProject: (result: OpenedProject) => void;
-  /** "Empaquetar proyecto": carpeta con el .mqt, las imágenes, las fuentes que se pueden compartir y el PDF. */
-  var packageDialog: () => void;
 }
 
-function loadOpenedProject(result: OpenedProject): void {
+export function loadOpenedProject(result: OpenedProject): void {
   M.validate(JSON.parse(result.content.replace(/^\uFEFF/, '')));
   portableFontFaces = result.packageFaces || [];
   updatePortableFontCatalog();
   loadProject(result.content);
 }
-globalThis.loadOpenedProject = loadOpenedProject;
 
 /** Fuentes que usa el libro: id de la cara (o "missing:…") → nombre legible. */
 function packageFontUsage(): Record<string, string> {
@@ -92,7 +90,7 @@ const PackageSheet = () => (
   </>
 );
 
-function packageDialog(): void {
+export function packageDialog(): void {
   if (!editor.hasDocument || editor.busy) return;
   const title = bw('Empaquetar proyecto', 'Package project', 'Empacotar projeto');
   modal.sheet(
@@ -135,6 +133,5 @@ function packageDialog(): void {
 }
 
 // "Empaquetar" está en la barra superior (components/topbar/Topbar.tsx).
-globalThis.packageDialog = packageDialog;
 
 export {};

@@ -13,10 +13,9 @@ import { setPrinters } from './components/output/printers.ts';
 import { bw } from './i18n/language.ts';
 import { chooseDefaultFace } from './font-catalog.ts';
 import { ow } from './output-words.ts';
+import { readPrinters, sendOutput } from './output-send.ts';
 
 declare global {
-  /** Familia CSS por defecto para los textos de la cubierta (Georgia o su cara más cercana). */
-  var coverFontFamily: () => string;
   /** Diálogo para imprimir o exportar la cubierta sobre una hoja. */
   var coverSheetDialog: (destination: string) => void;
 }

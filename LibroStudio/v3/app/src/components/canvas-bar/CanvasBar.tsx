@@ -29,6 +29,7 @@ import { gridSize } from '../../readability.ts';
 import { useCanvasBar } from './canvas-bar-state.ts';
 import { bw, i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
+import { openHelp } from '../help/help-center.tsx';
 
 /** Porcentaje real del lienzo (antes de que cargue canvas-navigation, 100). */
 const canvasPercent = (): number =>

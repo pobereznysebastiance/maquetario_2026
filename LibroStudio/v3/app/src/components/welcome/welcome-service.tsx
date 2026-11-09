@@ -24,6 +24,8 @@ import type { Book } from '../../model.ts';
 import { i18n } from '../../i18n/language.ts';
 import { editor, M } from '../../core-api.ts';
 import { confirmAction } from '../dialog/dialogs.tsx';
+import { loadOpenedProject } from '../../project-package.tsx';
+import { openHelp } from '../help/help-center.tsx';
 
 export type { RecentProject } from './WelcomeScreen.tsx';
 
@@ -232,7 +234,7 @@ const WelcomeRoot = () => {
         openBook();
       }}
       onDemo={startDemo}
-      onHelp={() => globalThis.openHelp()}
+      onHelp={() => openHelp()}
       onResume={() => globalThis.hideWelcome()}
       onRecover={recover}
       onDiscardRecovery={() => void discardRecovery()}

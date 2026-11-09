@@ -12,6 +12,7 @@ import { glossaryHelpSection, renderGlossary } from './components/help/Glossary.
 import { bw } from './i18n/language.ts';
 import { closeSheet } from './components/dialog/dialogs.tsx';
 import { foldEditorial } from './text-fold.ts';
+import { openHelp, registerHelpSection } from './components/help/help-center.tsx';
 
 /** Texto en castellano, inglés y portugués. */
 type Words = [string, string, string];
@@ -31,8 +32,6 @@ export type EditorialTerm = [
 declare global {
   /** Los términos del glosario. */
   var editorialTerms: EditorialTerm[];
-  /** Texto sin tildes y en minúsculas, para buscar. */
-  var foldEditorial: (s: string) => string;
   /** Abre el glosario en un término (si no existe, en "grid"). */
   var showGlossary: (term?: string) => void;
   /** Términos que coinciden con la búsqueda, en una categoría o en todas ('all'). */

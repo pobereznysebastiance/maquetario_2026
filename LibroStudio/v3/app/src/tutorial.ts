@@ -4,11 +4,9 @@
 // React (components/tutorial/TutorialCard.tsx); acá se elige el paso, se abre su pestaña y se
 // señala el control.
 //
+// Las lecciones, el paso actual y la tarjeta viven en tutorial-lessons.ts (sin efectos al cargar,
+// se importa). guideLessons sigue global porque lo revisan las pruebas (welcome-tests).
 // Son globales:
-// - guideLessons y lesson: review-tutorial.ts suma lecciones, inspector-organization.js y
-//   editor-controls.ts las leen; las pruebas (welcome-tests) las revisan.
-// - tutorialIndex y tutorialCard: los usa el foco del tutorial (editor-controls.ts). El índice
-//   vive en globalThis porque lo leen otros archivos.
 // - startTutorial, closeTutorial y showTutorialStep: los llaman welcome.js, la autoprueba y las
 //   pruebas, y los extienden review-workspace.js (startTutorial) y editor-controls.ts (los otros
 //   dos). Por eso closeTutorial y showTutorialStep se llaman acá por su nombre global, no por uno
@@ -21,35 +19,21 @@
 import { tutorialHelpSection } from './components/help/sections.tsx';
 import { renderTutorialCard } from './components/tutorial/TutorialCard.tsx';
 import { closeSheet } from './components/dialog/dialogs.tsx';
+import {
+  guideLessons,
+  lesson,
+  setTutorialCard,
+  setTutorialIndex,
+  tutorialIndex,
+  type GuideLesson,
+} from './tutorial-lessons.ts';
+import { registerHelpSection } from './components/help/help-center.tsx';
 
-/** Una lección del tutorial (title, body y task: castellano, inglés y portugués). */
-export interface GuideLesson {
-  id: string;
-  tab: string;
-  target: string;
-  title: string[];
-  body: string[];
-  task: string[];
-  action: string;
-}
+export type { GuideLesson } from './tutorial-lessons.ts';
 
 declare global {
   /** Lecciones en orden de recorrido. */
   var guideLessons: GuideLesson[];
-  /** Suma una lección al final del recorrido. */
-  var lesson: (
-    id: string,
-    tab: string,
-    target: string,
-    title: string[],
-    body: string[],
-    task: string[],
-    action?: string,
-  ) => void;
-  /** Índice de la lección que muestra la tarjeta. */
-  var tutorialIndex: number;
-  /** Tarjeta flotante del tutorial. */
-  var tutorialCard: HTMLElement;
   /** Abre el tutorial en la lección index (o en la última vista). */
   var startTutorial: (index?: number) => void;
   /** Pausa el tutorial: esconde la tarjeta y saca el resaltado. */
@@ -58,20 +42,7 @@ declare global {
   var showTutorialStep: (index: number) => void;
 }
 
-const guideLessons: GuideLesson[] = [];
-function lesson(
-  id: string,
-  tab: string,
-  target: string,
-  title: string[],
-  body: string[],
-  task: string[],
-  action = '',
-): void {
-  guideLessons.push({ id, tab, target, title, body, task, action });
-}
 globalThis.guideLessons = guideLessons;
-globalThis.lesson = lesson;
 lesson(
   'intro',
   'design',
@@ -562,22 +533,21 @@ lesson(
   ],
   'print',
 );
-globalThis.tutorialIndex = 0;
 const tutorialCard = document.createElement('aside');
 tutorialCard.className = 'tutorial-card';
 tutorialCard.id = 'tutorialCard';
 tutorialCard.hidden = true;
 tutorialCard.setAttribute('aria-live', 'polite');
 document.body.append(tutorialCard);
-globalThis.tutorialCard = tutorialCard;
+setTutorialCard(tutorialCard);
 function startTutorial(index?: number): void {
   hideWelcome();
   // Desde el centro de Ayuda (u otra Hoja o Ventana de React): se cierra antes de mostrar la tarjeta.
   closeSheet();
   let saved = Number(localStorage.getItem('maquetario-tutorial-step')) || 0;
-  tutorialIndex = Number.isInteger(index)
-    ? (index as number)
-    : Math.min(saved, guideLessons.length - 1);
+  setTutorialIndex(
+    Number.isInteger(index) ? (index as number) : Math.min(saved, guideLessons.length - 1),
+  );
   tutorialCard.hidden = false;
   showTutorialStep(tutorialIndex);
 }
@@ -587,7 +557,7 @@ globalThis.closeTutorial = function () {
 };
 globalThis.showTutorialStep = function (index: number) {
   finishEditing();
-  tutorialIndex = Math.max(0, Math.min(guideLessons.length - 1, index));
+  setTutorialIndex(Math.max(0, Math.min(guideLessons.length - 1, index)));
   localStorage.setItem('maquetario-tutorial-step', String(tutorialIndex));
   const step = guideLessons[tutorialIndex];
   showTab(step.tab);

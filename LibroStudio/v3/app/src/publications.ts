@@ -13,6 +13,7 @@ import { bw } from './i18n/language.ts';
 import { M } from './core-api.ts';
 import { cropSvg } from './output-words.ts';
 import { coverFontFamily } from './font-catalog.ts';
+import { registerTool } from './components/rail/rail-registry.ts';
 
 /** Una zona de la cubierta (texto, tipografía e imagen). */
 export interface CoverDesignPart {
