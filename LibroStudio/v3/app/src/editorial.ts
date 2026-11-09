@@ -32,12 +32,12 @@ function tocPanel(): string {
     section(
       'Índice del libro',
       'pages',
-      `<p class="help">Generá una tabla de contenidos con secciones, títulos marcados y entradas propias. Los folios se actualizan automáticamente.</p><div class="sub-label" id="tocTitleLabel">Título del índice</div><input id="tocTitle" aria-labelledby="tocTitleLabel" class="field-full" maxlength="250" value="${esc(config.title)}"><label class="check-line"><input id="tocSections" type="checkbox" ${config.includeSections ? 'checked' : ''}> Incluir comienzos de sección</label><label class="check-line"><input id="tocHeadings" type="checkbox" ${config.includeHeadings ? 'checked' : ''}> Incluir títulos marcados</label><button class="btn wide" id="markHeading" ${!o || o.type !== 'text' || o.toc ? 'disabled' : ''}>${o?.heading ? 'Quitar título del índice' : 'Marcar texto como título'}</button><button class="btn wide primary" id="insertToc">${icon('plus')} Colocar índice en página activa</button><p class="help">La tabla se actualiza también en el PDF. Si el contenido no entra, ampliá la caja o reducí el cuerpo.</p>`,
+      `<p class="help">Generá una tabla de contenidos con secciones, títulos marcados y entradas propias. Los folios se actualizan automáticamente.</p><div class="sub-label" id="tocTitleLabel">Título del índice</div><input id="tocTitle" aria-labelledby="tocTitleLabel" class="field-full" maxlength="250" value="${esc(config.title)}"><label class="check-line"><input id="tocSections" type="checkbox" ${config.includeSections ? 'checked' : ''}> Incluir comienzos de sección</label><label class="check-line"><input id="tocHeadings" type="checkbox" ${config.includeHeadings ? 'checked' : ''}> Incluir títulos marcados</label>${UI.button({ id: 'markHeading', label: o?.heading ? 'Quitar título del índice' : 'Marcar texto como título', wide: true, disabled: !o || o.type !== 'text' || !!o.toc })}${UI.button({ id: 'insertToc', icon: 'plus', label: 'Colocar índice en página activa', variant: 'primary', wide: true })}<p class="help">La tabla se actualiza también en el PDF. Si el contenido no entra, ampliá la caja o reducí el cuerpo.</p>`,
     ) +
     section(
       'Entradas del índice',
       'pages',
-      `<div class="toc-list">${entries.length ? entries.map((e) => `<div class="toc-entry"><span class="user-content">${esc(e.label)}</span><strong>${esc(e.folio)}</strong>${e.source === 'manual' ? `<button class="icon-btn" data-remove-entry="${e.id}" aria-label="Quitar entrada">${icon('close')}</button>` : ''}</div>`).join('') : '<p class="help">Todavía no hay entradas. Marcá un título o definí una sección.</p>'}</div><button class="btn wide" id="addTocEntry">${icon('plus')} Agregar entrada manual</button>`,
+      `<div class="toc-list">${entries.length ? entries.map((e) => `<div class="toc-entry"><span class="user-content">${esc(e.label)}</span><strong>${esc(e.folio)}</strong>${e.source === 'manual' ? `${UI.iconButton({ icon: 'close', label: 'Quitar entrada', data: { removeEntry: e.id } })}` : ''}</div>`).join('') : '<p class="help">Todavía no hay entradas. Marcá un título o definí una sección.</p>'}</div>${UI.button({ id: 'addTocEntry', icon: 'plus', label: 'Agregar entrada manual', wide: true })}`,
     )
   );
 }
@@ -192,7 +192,7 @@ function extraTextControls(): void {
         'Espacio entre párrafos',
         `<span class="unit-wrap"><input data-extra="spaceAfter" type="number" min="0" max="30" step=".5" value="${o?.spaceAfter || 0}" ${!o || o.type !== 'text' || o.toc ? 'disabled' : ''}><span class="unit">mm</span></span>`,
       ) +
-      `<button class="btn wide" id="glyphPanel" ${!o || o.type !== 'text' || o.toc ? 'disabled' : ''}>Glifos y caracteres especiales</button><button class="btn wide" id="openIndexFromText">Abrir Índice</button>`,
+      `${UI.button({ id: 'glyphPanel', label: 'Glifos y caracteres especiales', wide: true, disabled: !o || o.type !== 'text' || !!o.toc })}${UI.button({ id: 'openIndexFromText', label: 'Abrir Índice', wide: true })}`,
   );
   h.append(extra);
   extra.querySelectorAll<HTMLInputElement>('[data-extra]').forEach(
@@ -228,7 +228,7 @@ function extraGuideControls(): void {
     first = host.querySelector('.section[data-key="grid"]') || host.querySelector('.section');
   if (!first) return;
   const box = document.createElement('div');
-  box.innerHTML = `<details class="guide-controls"><summary>Guías individuales</summary><p class="help">Guías horizontales y verticales en todas las páginas. No se imprimen.</p><button class="btn wide" id="addGuide">Agregar guía</button><div class="guide-list">${(book.guides || []).map((g: BookGuide, i: number) => `<div class="field-row"><span>${g.axis === 'v' ? 'Vertical' : 'Horizontal'} · ${displayMeasure(g.position)} ${documentUnit()}</span><button class="icon-btn" data-remove-guide="${i}" aria-label="Quitar guía">${icon('close')}</button></div>`).join('')}</div></details>`;
+  box.innerHTML = `<details class="guide-controls"><summary>Guías individuales</summary><p class="help">Guías horizontales y verticales en todas las páginas. No se imprimen.</p>${UI.button({ id: 'addGuide', label: 'Agregar guía', wide: true })}<div class="guide-list">${(book.guides || []).map((g: BookGuide, i: number) => `<div class="field-row"><span>${g.axis === 'v' ? 'Vertical' : 'Horizontal'} · ${displayMeasure(g.position)} ${documentUnit()}</span>${UI.iconButton({ icon: 'close', label: 'Quitar guía', data: { removeGuide: i } })}</div>`).join('')}</div></details>`;
   first.append(box);
   $('#addGuide').onclick = () => {
     modal.sheet(
@@ -277,10 +277,9 @@ extend.result(
   },
   'editorial',
 );
-const indexButton = document.createElement('button');
-indexButton.className = 'tool';
-indexButton.id = 'indexTool';
-indexButton.innerHTML = icon('toc') + '<span>Índice</span>';
+const indexButton = UI.element(
+  UI.tool({ id: 'indexTool', icon: 'toc', label: 'Índice', shortcut: null }),
+);
 indexButton.onclick = () => {
   finishEditing();
   showTab('index');

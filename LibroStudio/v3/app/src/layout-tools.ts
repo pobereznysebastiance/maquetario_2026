@@ -313,7 +313,7 @@ function layersPanel(): void {
             `<div class="layer-row ${o.id === selected ? 'active' : ''} ${o.hidden ? 'is-hidden' : ''}" draggable="true" data-layer="${o.id}"><span class="layer-grip">⠿</span><span class="layer-type">${icon(o.type === 'text' ? 'text' : o.type === 'image' ? 'image' : 'frame')}</span><span class="layer-name user-content">${esc(o.name || o.text?.trim().split('\n')[0]?.slice(0, 36) || (o.type === 'frame' ? 'Marco' : 'Objeto'))}</span><button class="icon-btn" data-eye="${o.id}" title="${w.show}">${o.hidden ? '○' : '◉'}</button><button class="icon-btn" data-lock="${o.id}" title="${w.lock}">${o.locked ? '▣' : '□'}</button></div>`,
         )
         .join('') || `<p class="help">${w.empty}</p>`
-    }</div>${selectObject() ? `<label class="field-label">${w.rename}</label><input id="layerName" class="field-full" maxlength="100" value="${esc(selectObject()!.name || '')}"><div class="page-action"><button id="layerUp" class="btn">↑ ${w.up}</button><button id="layerDown" class="btn">↓ ${w.down}</button></div><div class="pair"><div class="control"><label>${w.width} · mm</label><input id="layerWidth" type="number" min="3" max="${book.width}" step=".5" value="${selectObject()!.w.toFixed(1)}"></div><div class="control"><label>${w.height} · mm</label><input id="layerHeight" type="number" min="3" max="${book.height}" step=".5" value="${selectObject()!.h.toFixed(1)}"></div></div>` : ''}`,
+    }</div>${selectObject() ? `<label class="field-label">${w.rename}</label><input id="layerName" class="field-full" maxlength="100" value="${esc(selectObject()!.name || '')}"><div class="page-action">${UI.button({ id: 'layerUp', label: '↑ ' + w.up })}${UI.button({ id: 'layerDown', label: '↓ ' + w.down })}</div><div class="pair"><div class="control"><label>${w.width} · mm</label><input id="layerWidth" type="number" min="3" max="${book.width}" step=".5" value="${selectObject()!.w.toFixed(1)}"></div><div class="control"><label>${w.height} · mm</label><input id="layerHeight" type="number" min="3" max="${book.height}" step=".5" value="${selectObject()!.h.toFixed(1)}"></div></div>` : ''}`,
   );
   host.querySelectorAll<HTMLElement>('[data-layer]').forEach((row) => {
     row.onclick = (e) => {
@@ -398,10 +398,9 @@ function moveLayer(direction: number): void {
     [list[index], list[next]] = [list[next], list[index]];
   }, false);
 }
-const layerButton = document.createElement('button');
-layerButton.id = 'layersTool';
-layerButton.className = 'tool';
-layerButton.innerHTML = icon('layers') + '<span>' + lw().layers + '</span>';
+const layerButton = UI.element(
+  UI.tool({ id: 'layersTool', icon: 'layers', label: lw().layers, shortcut: null }),
+);
 layerButton.onclick = () => {
   finishEditing();
   showTab('layers');

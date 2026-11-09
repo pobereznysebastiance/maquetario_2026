@@ -33,7 +33,7 @@ decorateInspector(() => {
     )
     .join(
       '',
-    )}<div class="page-action"><button type="button" class="btn" id="pageHideAutomatic">${bw('Ocultar los tres', 'Hide all three', 'Ocultar os três')}</button><button type="button" class="btn" id="pageShowAutomatic">${bw('Mostrar los tres', 'Show all three', 'Mostrar os três')}</button></div><p class="help">${bw('Ocultar un número no elimina la página ni reinicia la numeración. Para ver un elemento, también tiene que estar activado en la pestaña Libro.', 'Hiding a number does not remove the page or restart numbering. To display an element, it must also be enabled in the Book tab.', 'Ocultar um número não remove a página nem reinicia a numeração. Para mostrar um elemento, ele também deve estar ativado na aba Livro.')}</p>`;
+    )}<div class="page-action">${UI.button({ id: 'pageHideAutomatic', label: bw('Ocultar los tres', 'Hide all three', 'Ocultar os três') })}${UI.button({ id: 'pageShowAutomatic', label: bw('Mostrar los tres', 'Show all three', 'Mostrar os três') })}</div><p class="help">${bw('Ocultar un número no elimina la página ni reinicia la numeración. Para ver un elemento, también tiene que estar activado en la pestaña Libro.', 'Hiding a number does not remove the page or restart numbering. To display an element, it must also be enabled in the Book tab.', 'Ocultar um número não remove a página nem reinicia a numeração. Para mostrar um elemento, ele também deve estar ativado na aba Livro.')}</p>`;
   host.prepend(section);
   section
     .querySelectorAll<HTMLInputElement>('[data-page-visible]')

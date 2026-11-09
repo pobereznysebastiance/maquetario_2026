@@ -87,12 +87,7 @@ const clearIndicators = () =>
 function addGrip(section: HTMLElement): void {
   const heading = section.querySelector(':scope > .section-heading');
   if (!heading || heading.querySelector('.section-grip')) return;
-  const grip = document.createElement('button');
-  grip.type = 'button';
-  grip.className = 'section-grip';
-  grip.draggable = true;
-  grip.title = grip.ariaLabel = label();
-  grip.innerHTML = icon('grip');
+  const grip = UI.element(UI.sectionGrip({ label: label() }));
   grip.addEventListener('dragstart', (event) => {
     dragging = section;
     section.classList.add('is-dragging');
@@ -167,10 +162,7 @@ function setCollapsed(section: HTMLElement, collapsed: boolean): void {
 function addToggle(section: HTMLElement, collapsedKeys: Set<string>): void {
   const heading = section.querySelector(':scope > .section-heading');
   if (!heading || heading.querySelector('.section-toggle')) return;
-  const toggle = document.createElement('button');
-  toggle.type = 'button';
-  toggle.className = 'section-toggle';
-  toggle.innerHTML = icon('chevron');
+  const toggle = UI.element(UI.sectionToggle());
   toggle.addEventListener('click', () =>
     setCollapsed(section, !section.classList.contains('is-collapsed')),
   );

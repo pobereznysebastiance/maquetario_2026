@@ -486,9 +486,13 @@ function paragraphControls(): void {
     ['right', w.r],
     ['justify', w.j],
   ]
-    .map(
-      ([align, label]) =>
-        `<button data-paragraph-align="${align}" class="${props.align === align ? 'active' : ''}" title="${label}">${icon(align)}</button>`,
+    .map(([align, label]) =>
+      UI.textButton({
+        icon: align,
+        title: label,
+        data: { paragraphAlign: align },
+        active: props.align === align,
+      }),
     )
     .join('')}</div>${[
     ['indentLeft', w.left, 0, 80],
@@ -514,7 +518,7 @@ function paragraphControls(): void {
     )
     .join(
       '',
-    )}</select></div>${hyphenationFields(props, 'paragraphHyphen', formats)}<button class="btn wide" id="newParagraphStyle">+ ${w.new}</button><div class="page-action"><button class="btn" id="editParagraphStyle" ${style ? '' : 'disabled'}>${w.edit}</button><button class="btn" id="redefineParagraphStyle" ${style ? '' : 'disabled'} title="${bw('Redefinir el estilo con la selección', 'Redefine style from selection', 'Redefinir o estilo com a seleção')}">${icon('refresh')}</button></div><button class="quiet wide" id="clearParagraphOverrides">${w.reset}</button><button class="quiet wide" id="detachParagraphStyle" ${singleStyle && singleStyle !== 'mixed' ? '' : 'disabled'}>${w.detach}</button><p class="help">${w.hint}</p>`;
+    )}</select></div>${hyphenationFields(props, 'paragraphHyphen', formats)}${UI.button({ id: 'newParagraphStyle', label: '+ ' + w.new, wide: true })}<div class="page-action">${UI.button({ id: 'editParagraphStyle', label: w.edit, disabled: !style })}${UI.button({ id: 'redefineParagraphStyle', icon: 'refresh', label: '', title: bw('Redefinir el estilo con la selección', 'Redefine style from selection', 'Redefinir o estilo com a seleção'), disabled: !style })}</div>${UI.quietButton({ id: 'clearParagraphOverrides', label: w.reset, wide: true })}${UI.quietButton({ id: 'detachParagraphStyle', label: w.detach, wide: true, disabled: !(singleStyle && singleStyle !== 'mixed') })}<p class="help">${w.hint}</p>`;
   host.prepend(sectionNode);
   bindParagraphHyphenation(o, formats);
   $('#paragraphScope').value = paragraphScope.index;

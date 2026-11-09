@@ -142,20 +142,35 @@ const UI = {
 
   /**
    * Molécula: herramienta del riel izquierdo (.tool): ícono, nombre y atajo de teclado.
-   * - tool: el nombre de la herramienta (data-tool), que usa setTool().
-   * - shortcut: la tecla; el lugar del atajo va siempre (vacío si no tiene).
+   * - tool: el nombre de la herramienta (data-tool), que usa setTool(). Sin tool es una vista o
+   *   una acción del riel (Índice, Capas), no una herramienta de dibujo.
+   * - shortcut: la tecla; el lugar del atajo va siempre (vacío si no tiene), salvo con null.
    * - active: la herramienta elegida.
    */
   tool(
     o: ButtonBase & {
-      tool: string;
+      tool?: string;
       label: string;
       icon: string;
-      shortcut?: string;
+      shortcut?: string | null;
       active?: boolean;
     },
   ): string {
-    return `<button${buttonAttrs({ ...o, data: { tool: o.tool, ...o.data } }, cls('tool', { active: o.active }))}>${icon(o.icon)}<span>${html(o.label)}</span><span class="shortcut">${html(o.shortcut)}</span></button>`;
+    const shortcut = o.shortcut === null ? '' : `<span class="shortcut">${html(o.shortcut)}</span>`;
+    return `<button${buttonAttrs({ ...o, data: { tool: o.tool, ...o.data } }, cls('tool', { active: o.active }))}>${icon(o.icon)}<span>${html(o.label)}</span>${shortcut}</button>`;
+  },
+
+  /**
+   * Molécula: agarrador para reordenar una sección del inspector (.section-grip): se arrastra.
+   * label es el nombre accesible (title y aria-label).
+   */
+  sectionGrip(o: ButtonBase & { label: string }): string {
+    return `<button${attrs({ type: 'button', id: o.id, class: 'section-grip', draggable: 'true', title: o.label, 'aria-label': o.label, ...dataAttrs(o.data) })}>${icon('grip')}</button>`;
+  },
+
+  /** Molécula: botón para plegar y desplegar una sección del inspector (.section-toggle). */
+  sectionToggle(o: ButtonBase = {}): string {
+    return `<button${buttonAttrs(o, 'section-toggle')}>${icon('chevron')}</button>`;
   },
 
   /**

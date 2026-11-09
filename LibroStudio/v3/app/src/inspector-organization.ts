@@ -52,7 +52,7 @@ function objectInspector(): void {
       bw('Objeto seleccionado', 'Selected object', 'Objeto selecionado'),
       'select',
       o
-        ? `<div class="selection-chip">${icon(o.type === 'text' ? 'text' : o.type === 'image' ? 'image' : 'frame')} ${bw(o.type === 'text' ? 'Caja de texto' : o.type === 'image' ? 'Imagen' : 'Marco', o.type === 'text' ? 'Text frame' : o.type === 'image' ? 'Image' : 'Frame', o.type === 'text' ? 'Caixa de texto' : o.type === 'image' ? 'Imagem' : 'Quadro')}</div>${o.type === 'text' ? `<button class="btn wide" id="objectGoText">${bw('Editar tipografía y párrafos →', 'Edit type and paragraphs →', 'Editar tipografia e parágrafos →')}</button>` : ''}<p class="help">${bw('Estos controles modifican el elemento completo. La alineación del texto dentro de la caja está más abajo, en Párrafo y estilos.', 'These controls modify the whole element. Text alignment within the frame is further down, under Paragraphs and styles.', 'Estes controles alteram o elemento inteiro. O alinhamento do texto dentro da caixa fica mais abaixo, em Parágrafos e estilos.')}</p>`
+        ? `<div class="selection-chip">${icon(o.type === 'text' ? 'text' : o.type === 'image' ? 'image' : 'frame')} ${bw(o.type === 'text' ? 'Caja de texto' : o.type === 'image' ? 'Imagen' : 'Marco', o.type === 'text' ? 'Text frame' : o.type === 'image' ? 'Image' : 'Frame', o.type === 'text' ? 'Caixa de texto' : o.type === 'image' ? 'Imagem' : 'Quadro')}</div>${o.type === 'text' ? `${UI.button({ id: 'objectGoText', label: bw('Editar tipografía y párrafos →', 'Edit type and paragraphs →', 'Editar tipografia e parágrafos →'), wide: true })}` : ''}<p class="help">${bw('Estos controles modifican el elemento completo. La alineación del texto dentro de la caja está más abajo, en Párrafo y estilos.', 'These controls modify the whole element. Text alignment within the frame is further down, under Paragraphs and styles.', 'Estes controles alteram o elemento inteiro. O alinhamento do texto dentro da caixa fica mais abaixo, em Parágrafos e estilos.')}</p>`
         : `<p class="help">${bw('Seleccioná una caja, una imagen o un marco en la página.', 'Select a frame or image on the page.', 'Selecione uma caixa ou imagem na página.')}</p>`,
     ) +
     section(
@@ -87,22 +87,21 @@ function objectInspector(): void {
         ['vcenter', w.yCenter],
         ['bottom', w.yBottom],
       ]
-        .map(
-          ([key, label]) =>
-            `<button type="button" data-object-align="${key}" ${objects.length ? '' : 'disabled'}>${label}</button>`,
+        .map(([key, label]) =>
+          UI.textButton({ label, data: { objectAlign: key }, disabled: !objects.length }),
         )
         .join('')}</div><p class="help">${w.tip}</p>`,
     ) +
     section(
       bw('Distribuir objetos', 'Distribute objects', 'Distribuir objetos'),
       'grid',
-      `<div class="page-action"><button class="btn" data-distribute="x" ${objects.length < 3 ? 'disabled' : ''}>${bw('Espacios horizontales', 'Horizontal gaps', 'Espaços horizontais')}</button><button class="btn" data-distribute="y" ${objects.length < 3 ? 'disabled' : ''}>${bw('Espacios verticales', 'Vertical gaps', 'Espaços verticais')}</button></div><p class="help">${bw('Seleccioná al menos tres elementos con Shift + clic. Iguala los espacios entre ellos conservando los extremos.', 'Shift-click at least three elements. Equalizes gaps while retaining the outer positions.', 'Selecione pelo menos três elementos com Shift + clique. Iguala os espaços mantendo os extremos.')}</p>`,
+      `<div class="page-action">${UI.button({ label: bw('Espacios horizontales', 'Horizontal gaps', 'Espaços horizontais'), data: { distribute: 'x' }, disabled: objects.length < 3 })}${UI.button({ label: bw('Espacios verticales', 'Vertical gaps', 'Espaços verticais'), data: { distribute: 'y' }, disabled: objects.length < 3 })}</div><p class="help">${bw('Seleccioná al menos tres elementos con Shift + clic. Iguala los espacios entre ellos conservando los extremos.', 'Shift-click at least three elements. Equalizes gaps while retaining the outer positions.', 'Selecione pelo menos três elementos com Shift + clique. Iguala os espaços mantendo os extremos.')}</p>`,
     ) +
     section(
       bw('Orden y bloqueo', 'Order and locking', 'Ordem e bloqueio'),
       'layers',
       o
-        ? `<div class="page-action"><button class="btn" data-object-command="front" ${locked ? 'disabled' : ''}>${bw('Al frente', 'To front', 'Para frente')}</button><button class="btn" data-object-command="back" ${locked ? 'disabled' : ''}>${bw('Al fondo', 'To back', 'Para trás')}</button></div><label class="check-line"><input type="checkbox" id="objectLocked" ${o.locked ? 'checked' : ''}>${bw('Bloquear objeto', 'Lock object', 'Bloquear objeto')}</label><label class="check-line"><input type="checkbox" id="objectHidden" ${o.hidden ? 'checked' : ''}>${bw('Ocultar objeto', 'Hide object', 'Ocultar objeto')}</label><button class="btn wide danger" data-object-command="deleteObject" ${locked ? 'disabled' : ''}>${bw('Eliminar objeto', 'Delete object', 'Excluir objeto')}</button>`
+        ? `<div class="page-action">${UI.button({ label: bw('Al frente', 'To front', 'Para frente'), data: { objectCommand: 'front' }, disabled: locked })}${UI.button({ label: bw('Al fondo', 'To back', 'Para trás'), data: { objectCommand: 'back' }, disabled: locked })}</div><label class="check-line"><input type="checkbox" id="objectLocked" ${o.locked ? 'checked' : ''}>${bw('Bloquear objeto', 'Lock object', 'Bloquear objeto')}</label><label class="check-line"><input type="checkbox" id="objectHidden" ${o.hidden ? 'checked' : ''}>${bw('Ocultar objeto', 'Hide object', 'Ocultar objeto')}</label>${UI.button({ label: bw('Eliminar objeto', 'Delete object', 'Excluir objeto'), variant: 'danger', wide: true, data: { objectCommand: 'deleteObject' }, disabled: locked })}`
         : '',
     );
   host.scrollTop = scroll;

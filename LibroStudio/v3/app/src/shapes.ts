@@ -159,13 +159,16 @@ function shapeChooser(): void {
       }),
   );
 }
-const shapeTool = document.createElement('button');
-shapeTool.type = 'button';
-shapeTool.className = 'tool';
-shapeTool.id = 'shapeTool';
-shapeTool.dataset.tool = 'shape';
-shapeTool.innerHTML = icon('frame') + '<span>' + bw('Figuras', 'Shapes', 'Figuras') + '</span>';
-shapeTool.title = bw('Figuras y contenedores', 'Shapes and containers', 'Figuras e contêineres');
+const shapeTool = UI.element(
+  UI.tool({
+    id: 'shapeTool',
+    tool: 'shape',
+    icon: 'frame',
+    label: bw('Figuras', 'Shapes', 'Figuras'),
+    title: bw('Figuras y contenedores', 'Shapes and containers', 'Figuras e contêineres'),
+    shortcut: null,
+  }),
+);
 shapeTool.onclick = shapeChooser;
 $('[data-tool="frame"]').after(shapeTool);
 function newShape(x: number, y: number, w: number, h: number): BookObject {
@@ -295,7 +298,7 @@ function shapeAppearance(): void {
           `<option value="${key}" ${o.strokeStyle === key ? 'selected' : ''}>${label}</option>`,
       )
       .join('')}</select>`,
-  )}${row(bw('Opacidad · %', 'Opacity · %', 'Opacidade · %'), `<input type="number" min="0" max="100" step="1" data-shape-prop="opacity" value="${o.opacity ?? 100}">`)}${o.shape === 'round' ? row(bw('Radio · mm', 'Radius · mm', 'Raio · mm'), `<input type="number" min="0" max="100" step="0.5" data-shape-prop="cornerRadius" value="${o.cornerRadius ?? 5}">`) : ''}${o.shape === 'polygon' ? row(bw('Lados', 'Sides', 'Lados'), `<input type="number" min="3" max="12" step="1" data-shape-prop="sides" value="${o.sides ?? 6}">`) : ''}<div class="page-action"><button type="button" class="btn" id="shapeSwapColors">⇄ ${bw('Intercambiar', 'Swap', 'Trocar')}</button><button type="button" class="btn" id="shapePlaceImage">${bw('Colocar imagen…', 'Place image…', 'Inserir imagem…')}</button></div><p class="help">${bw('La figura puede ser fondo o contenedor de una imagen. Usá Al fondo para ubicarla detrás de un texto.', 'The shape can be a background or an image container. Use To back to put it behind text.', 'A figura pode ser fundo ou contêiner de imagem. Use Para trás para colocá-la atrás do texto.')}</p>`;
+  )}${row(bw('Opacidad · %', 'Opacity · %', 'Opacidade · %'), `<input type="number" min="0" max="100" step="1" data-shape-prop="opacity" value="${o.opacity ?? 100}">`)}${o.shape === 'round' ? row(bw('Radio · mm', 'Radius · mm', 'Raio · mm'), `<input type="number" min="0" max="100" step="0.5" data-shape-prop="cornerRadius" value="${o.cornerRadius ?? 5}">`) : ''}${o.shape === 'polygon' ? row(bw('Lados', 'Sides', 'Lados'), `<input type="number" min="3" max="12" step="1" data-shape-prop="sides" value="${o.sides ?? 6}">`) : ''}<div class="page-action">${UI.button({ id: 'shapeSwapColors', label: '⇄ ' + bw('Intercambiar', 'Swap', 'Trocar') })}${UI.button({ id: 'shapePlaceImage', label: bw('Colocar imagen…', 'Place image…', 'Inserir imagem…') })}</div><p class="help">${bw('La figura puede ser fondo o contenedor de una imagen. Usá Al fondo para ubicarla detrás de un texto.', 'The shape can be a background or an image container. Use To back to put it behind text.', 'A figura pode ser fundo ou contêiner de imagem. Use Para trás para colocá-la atrás do texto.')}</p>`;
   host.querySelector('.section')?.after(box);
   box
     .querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLButtonElement>(
