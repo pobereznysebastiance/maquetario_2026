@@ -690,6 +690,21 @@ Cada grupo es una entrega con la autoprueba en verde, los PDF idénticos y el in
      - los recorridos y las suites de `tests/` salen idénticos.
 3. **Deshacer y recuperación:** `src/core/history.ts` (`snapshot`, `changed`, `commit`, `undo`, `redo`) y `src/core/recovery.ts` (`recoveryDb`, `storeRecovery`, `recoveryTimer`). `changed` programa la copia de recuperación, así que van juntos. `commit` pasa a `extensible`.
 4. **Medidas, rutas y la fachada del inspector:** `src/core/book-paths.ts` (`get`, `set`, `selectObject`, `documentUnit`, `displayMeasure`, `displayDimensions`, `positions`, `folioPositions`) y `src/core/inspector.ts` (`inspector`, `commitBinding`, `commitObjectField`). Los ayudantes de marcado (`section`, `toggle`, `row`, `number`, `options`) quedan privados del módulo que todavía los use. Si sólo los usa código que ya no se llama, se borran.
+
+   **Pasos 3 y 4 hechos (09-nov).**
+   - Módulos nuevos sin efectos:
+     - `src/core/history.ts`: `snapshot`, `changed`, `undo` y `redo`, más `commit`, que se publica con `extensible`;
+     - `src/core/recovery.ts`: `recoveryDb` y la copia programada; `storeRecovery` y `recoveryTimer` quedan privados;
+     - `src/core/book-paths.ts`: `get`, `set`, `selectObject`, la unidad, las medidas y las posiciones;
+     - `src/core/inspector.ts`: `inspector()` con `extensible`, más `commitBinding` y `commitObjectField`.
+   - Lo que llaman del resto del núcleo (`render`, `updateStatus`, `finishEditing`, `inspector`, `commit`) va por el nombre global, así pasa por las extensiones.
+   - `section`, `toggle`, `row`, `number` y `options` se borraron: nadie los llamaba desde que el inspector es React.
+   - Resultados:
+     - globales del núcleo 63 → 39 y globales en total 283 → 276;
+     - el orden de los módulos con efectos en `app.js` y `core.js` no cambia;
+     - la lista de extensiones sale idéntica (`commit`: `paragraphs`; `inspector`: cuatro);
+     - los recorridos y las suites salen idénticos;
+     - la copia de recuperación se probó en Chrome con un anfitrión simulado: guardar, ofrecer al arrancar, recuperar y descartar dan lo mismo que antes.
 5. **Diálogos, archivo, formato, salida y recuperación de cambios:**
    - `modal()` va a `app` (`components/dialog/modal.ts`), porque lo que llama (`openSheet`, `openWorkWindow`, `openConfirmSheet`) está en `app`. Se publica para `studio.ts`, que lo usa sólo al llamarse.
    - En `core`: `src/core/project-file.ts` (`confirmChanges`, `saveProject`, `download`, `openBook`, `loadProject`), `src/core/book-settings.ts` (`settings`, `applyBookSettings`) y `src/core/print.ts` (`preparePrint`, `clearPrint`).

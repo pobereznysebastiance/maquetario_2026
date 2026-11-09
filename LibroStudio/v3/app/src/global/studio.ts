@@ -35,188 +35,14 @@ interface ObjectDrag {
 // El estado del editor (book, active, spread, selected, tool, tab, zoom, scale, preview, dirty,
 // busy, fontList, native, undoStack, redoStack, editing, drag) vive en src/state/editor.ts: acá
 // se lo sigue usando por su nombre, que es un accesor sobre ese objeto.
-let recoveryTimer: number | undefined,
-  /** Cajas de texto con texto sobrante en el pliego visible (la cuenta checkOverflow). */
-  overflowCount = 0;
-const selectObject = () => book.pages[active]?.objects.find((o) => o.id === selected);
-// $, $$, esc, M, los íconos (icon, icons, paths), nativeCall, toast y syncNative están en
-// src/core/ (utils.ts, icons.ts, host-bridge.ts): los publica core-wiring.ts, que carga antes.
-/** Guarda el estado para deshacer. */
-function snapshot(): void {
-  undoStack.push(JSON.stringify(book));
-  let sum = undoStack.reduce((a, b) => a + b.length, 0);
-  while (undoStack.length > 1 && (sum > 40000000 || undoStack.length > 40))
-    sum -= undoStack.shift()!.length;
-  redoStack = [];
-}
-/** Marca cambios sin guardar y programa la copia de recuperación. */
-function changed(): void {
-  dirty = true;
-  syncNative();
-  clearTimeout(recoveryTimer);
-  recoveryTimer = setTimeout(() => storeRecovery(), 900);
-  updateStatus();
-}
-function commit(fn: () => void, full = true): void {
-  if (busy) return;
-  snapshot();
-  try {
-    fn();
-    changed();
-    render(full);
-  } catch (error) {
-    book = JSON.parse(undoStack.pop()!);
-    toast((error as Error).message, 'error');
-    render(true);
-  }
-}
-function undo(): void {
-  if (busy || !undoStack.length) return;
-  finishEditing();
-  redoStack.push(JSON.stringify(book));
-  book = JSON.parse(undoStack.pop()!);
-  selected = null;
-  active = Math.min(active, book.pages.length - 1);
-  spread = Math.floor(active / (book.facing ? 2 : 1)) * (book.facing ? 2 : 1);
-  changed();
-  render(true);
-}
-function redo(): void {
-  if (busy || !redoStack.length) return;
-  finishEditing();
-  undoStack.push(JSON.stringify(book));
-  book = JSON.parse(redoStack.pop()!);
-  selected = null;
-  active = Math.min(active, book.pages.length - 1);
-  spread = Math.floor(active / (book.facing ? 2 : 1)) * (book.facing ? 2 : 1);
-  changed();
-  render(true);
-}
-/** Sección del inspector; enabled es la ruta del interruptor, si tiene. */
-function section(
-  title: string,
-  key: string,
-  body: string,
-  enabled: string | null = null,
-  badge = '',
-): string {
-  return `<section class="section" data-section="${esc(title)}" data-key="${key}"><div class="section-heading">${icon(key)}<span${enabled !== null ? ` id="switchLabel-${enabled}"` : ''}>${title}</span>${badge ? `<span class="tiny">${badge}</span>` : ''}${enabled !== null ? toggle(enabled) : ''}</div>${body}</section>`;
-}
-function toggle(path: string): string {
-  return `<label class="switch"><input type="checkbox" data-bind="${path}" ${get(path) ? 'checked' : ''} aria-labelledby="switchLabel-${path}"><span></span></label>`;
-}
-function documentUnit(): 'mm' | 'cm' {
-  return book.measurementUnit === 'cm' ? 'cm' : 'mm';
-}
-function displayMeasure(value: number): string {
-  return Number((Number(value) / (documentUnit() === 'cm' ? 10 : 1)).toFixed(4)).toString();
-}
-function displayDimensions(width: number, height: number): string {
-  return `${displayMeasure(width)} × ${displayMeasure(height)} ${documentUnit()}`;
-}
-
-function row(label: string, content: string): string {
-  return `<div class="field-row"><label>${label}</label>${content}</div>`;
-}
-function number(path: string, min = 0, max = 100, step = 0.5, unit = 'mm'): string {
-  return `<span class="unit-wrap"><input aria-label="${esc(path)}" data-bind="${path}" type="number" min="${min}" max="${max}" step="${step}" value="${get(path)}">${unit ? `<span class="unit">${unit}</span>` : ''}</span>`;
-}
-function options(path: string, items: string[][]): string {
-  return `<select aria-label="${esc(path)}" data-bind="${path}">${items.map(([v, l]) => `<option value="${v}" ${get(path) === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
-}
-/** Valor del libro en una ruta con puntos ('header.font'…). */
-function get(path: string): any {
-  return path.split('.').reduce((a: any, k) => a?.[k], book);
-}
-/** Escribe un valor del libro por ruta con puntos ('header.rule', 'folio.ruleWidth'…). */
-function set(path: string, value: unknown): void {
-  let keys = path.split('.'),
-    last = keys.pop()!,
-    obj = keys.reduce((a: any, k) => a[k], book);
-  obj[last] = value;
-}
-const positions = [
-  ['top', 'Margen superior'],
-  ['bottom', 'Margen inferior'],
-  ['outer', 'Lateral exterior'],
-  ['inner', 'Lateral interior'],
-  ['left', 'Lateral izquierdo'],
-  ['right', 'Lateral derecho'],
-];
-const folioPositions = [
-  ['bottom-outer', 'Inferior exterior'],
-  ['bottom-center', 'Inferior centrado'],
-  ['bottom-inner', 'Inferior interior'],
-  ['top-outer', 'Superior exterior'],
-  ['top-center', 'Superior centrado'],
-  ['top-inner', 'Superior interior'],
-  ['outer', 'Lateral exterior'],
-  ['inner', 'Lateral interior'],
-];
-/**
- * Redibuja el inspector. Es una fachada: el inspector es un componente de React
- * (src/components/inspector/Inspector.tsx, montado por inspector-views.tsx) que se entera por el
- * aviso del estado del editor y cambia sólo lo que cambió. Extensible: inspector-registry.ts la
- * pausa (pauseInspectorWhile) y otros módulos hacen algo después (extend.after).
- */
-const inspector = extensible('inspector', function (): void {
-  // Antes de que cargue la entrada de la app (editor-state.ts) no hay nada que avisar.
-  globalThis.notifyEditorState?.();
-});
-/**
- * Graba en el libro el valor de un control con data-bind (casilla, número o texto), con la misma
- * validación para todos. La usan los paneles de React del inspector.
- */
-function commitBinding(el: UIElement): void {
-  let value =
-    el.type === 'checkbox' ? el.checked : el.type === 'number' ? Number(el.value) : el.value;
-  const key = el.dataset.bind!;
-  if (
-    el.type === 'number' &&
-    (!Number.isFinite(value) || value < Number(el.min) || value > Number(el.max))
-  ) {
-    toast('Revisá el valor ingresado.', 'warning');
-    inspector();
-    return;
-  }
-  commit(() => {
-    set(key, value);
-    if (key.startsWith('grid.') || key.startsWith('margins.')) {
-      if (
-        !M.validateGrid(book) ||
-        book.margins.inside + book.margins.outside > book.width - 10 ||
-        book.margins.top + book.margins.bottom > book.height - 10
-      )
-        throw Error('La grilla no cabe: reducí márgenes, medianiles o cantidad de módulos.');
-    }
-  }, false);
-}
-/**
- * Graba en el objeto seleccionado el valor de un control con data-object (medidas, cuerpo,
- * interlineado, color…), con el aviso de rango. La usan los paneles de React.
- */
-function commitObjectField(el: UIElement): void {
-  const o = selectObject();
-  if (!o) return;
-  let value = el.type === 'number' ? Number(el.value) : el.value;
-  if (
-    el.type === 'number' &&
-    (!Number.isFinite(value) || value < Number(el.min) || value > Number(el.max))
-  ) {
-    toast('El valor está fuera del rango permitido.', 'warning');
-    inspector();
-    return;
-  }
-  commit(() => {
-    o[el.dataset.object!] = value;
-    if (['x', 'y', 'w', 'h'].includes(el.dataset.object!)) {
-      o.x = Math.max(0, Math.min(o.x, book.width - 3));
-      o.y = Math.max(0, Math.min(o.y, book.height - 3));
-      o.w = Math.min(o.w, book.width - o.x);
-      o.h = Math.min(o.h, book.height - o.y);
-    }
-  }, false);
-}
+/** Cajas de texto con texto sobrante en el pliego visible (la cuenta checkOverflow). */
+let overflowCount = 0;
+// En src/core/, publicados por core-wiring.ts (que carga antes):
+// - utils.ts: $, $$, esc, M · icons.ts: paths, icon, icons
+// - host-bridge.ts: nativeCall, toast, syncNative
+// - history.ts: snapshot, changed, commit, undo, redo · recovery.ts: recoveryDb
+// - book-paths.ts: get, set, selectObject, documentUnit, displayMeasure, displayDimensions,
+//   positions, folioPositions · inspector.ts: inspector, commitBinding, commitObjectField
 function templateMini(cols: number, lines = false): string {
   return Array.from(
     { length: 2 },
@@ -1144,22 +970,6 @@ function clearPrint(): void {
 }
 window.preparePrint = preparePrint;
 window.clearPrint = clearPrint;
-async function recoveryDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open('LibroStudioRecovery', 1);
-    req.onupgradeneeded = () => req.result.createObjectStore('books');
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-async function storeRecovery(): Promise<void> {
-  try {
-    const db = await recoveryDb(),
-      tx = db.transaction('books', 'readwrite');
-    tx.objectStore('books').put(JSON.stringify(book), 'last');
-    tx.oncomplete = () => db.close();
-  } catch {}
-}
 /**
  * Íconos de lo que quedó en HTML. La barra superior (components/topbar/Topbar.tsx) y las
  * herramientas del riel (components/rail/: registerTool) las dibuja React.
