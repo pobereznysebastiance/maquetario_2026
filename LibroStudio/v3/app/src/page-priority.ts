@@ -7,28 +7,28 @@
 //
 // Fuente TypeScript: se compila a build/page-priority.js (desktop/scripts/build.mjs).
 
+import { refreshCanvasBar } from './components/canvas-bar/canvas-bar-state.ts';
+
 declare global {
   /** Plantillas desplegadas. */
   var showGridStrip: boolean;
   /** Aplica el estado de las plantillas a la interfaz y redibuja las páginas. */
   var applyPagePriority: () => void;
+  /** Abre o pliega las plantillas y lo recuerda (el botón #toggleGridStrip de la barra). */
+  var toggleGridStrip: () => void;
 }
 
 globalThis.showGridStrip = localStorage.getItem('maquetario-grid-strip') === 'open';
-const templateToggle = UI.element(UI.quietButton({ id: 'toggleGridStrip' }));
-const templateLabel = $('.template-heading>span');
-templateLabel.firstChild?.remove();
-templateLabel.prepend(templateToggle);
+// El botón (#toggleGridStrip) lo dibuja la barra del lienzo (React, components/canvas-bar/) a
+// partir de showGridStrip: acá se aplica el estado y se le avisa.
 function applyPagePriority(): void {
   document.body.classList.add('page-priority');
   document.body.classList.toggle('templates-collapsed', !showGridStrip);
-  templateToggle.textContent =
-    (showGridStrip ? '▾ ' : '▸ ') + bw('Plantillas', 'Templates', 'Grades');
-  templateToggle.setAttribute('aria-expanded', String(showGridStrip));
+  refreshCanvasBar(true);
   requestAnimationFrame(renderPages);
 }
 globalThis.applyPagePriority = applyPagePriority;
-templateToggle.onclick = () => {
+globalThis.toggleGridStrip = () => {
   showGridStrip = !showGridStrip;
   localStorage.setItem('maquetario-grid-strip', showGridStrip ? 'open' : 'closed');
   applyPagePriority();

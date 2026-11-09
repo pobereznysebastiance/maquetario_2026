@@ -16,8 +16,8 @@ declare global {
   var gridGallery: () => void;
 }
 
-/** Dos páginas con la grilla de la retícula. */
-const GridMini = ({ preset }: { preset: GridPreset }) => (
+/** Dos páginas con la grilla de la retícula (también en la franja de plantillas). */
+export const GridMini = ({ preset }: { preset: GridPreset }) => (
   <>
     {[0, 1].map((page) => (
       <span key={page} className="grid-mini-page" data-cols={preset.c} data-rows={preset.r}>

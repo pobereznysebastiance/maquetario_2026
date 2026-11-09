@@ -29,6 +29,7 @@ import '../publications.ts';
 import '../components/cover/CoverEditor.tsx';
 import '../readability.ts';
 import '../components/grid-gallery/GridGallery.tsx';
+import '../components/canvas-bar/CanvasBar.tsx';
 import '../cover-actions.ts';
 import '../panel-resize.ts';
 import '../cover-measurements.ts';

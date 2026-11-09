@@ -1589,25 +1589,13 @@ function togglePreview(): void {
   document.body.classList.toggle('preview-mode', preview);
 }
 $('#addPage').onclick = () => command('addPage');
-$('#zoom').oninput = (e: Event) => {
-  zoom = Number((e.target as HTMLInputElement).value) / 100;
-  $('#fitZoom').textContent = Math.round(zoom * 100) + '%';
-  finishEditing();
-  renderPages();
-};
+// La barra del zoom (−, deslizador, +, Ajustar, Ampliar área) es React
+// (src/components/canvas-bar/CanvasBar.tsx); el zoom real lo lleva canvas-navigation.ts, que
+// reemplaza setZoom.
 function setZoom(z: number): void {
   zoom = Math.max(0.4, Math.min(1.6, z));
-  $('#zoom').value = zoom * 100;
-  $('#fitZoom').textContent = Math.round(zoom * 100) + '%';
   renderPages();
 }
-$('#zoomOut').onclick = () => setZoom(zoom - 0.1);
-$('#zoomIn').onclick = () => setZoom(zoom + 0.1);
-$('#fitZoom').onclick = () => setZoom(1);
-$('#fullscreen').onclick = () => {
-  document.body.classList.toggle('focused');
-  requestAnimationFrame(() => renderPages());
-};
 document.addEventListener('keydown', (e) => {
   if ($('#modal').open) return;
   const input = (e.target as Element).closest?.('input,textarea,select,[contenteditable="true"]');

@@ -11,6 +11,7 @@
 //
 // Fuente TypeScript: se compila a build/canvas-navigation.js (desktop/scripts/build.mjs).
 import { shortcutsHelpSection } from './components/help/sections.tsx';
+import { refreshCanvasBar } from './components/canvas-bar/canvas-bar-state.ts';
 
 /** Punto del lienzo: posición en el pliego (sin escala) y en la mesa (relativa al visor). */
 export interface CanvasAnchor {
@@ -149,20 +150,9 @@ function actualCanvasPercent(): number {
   return (scale / (96 / 25.4)) * 100;
 }
 globalThis.actualCanvasPercent = actualCanvasPercent;
+/** El porcentaje y el deslizador de la barra (React: components/canvas-bar/) se ponen al día. */
 function updateCanvasZoomDisplay(): void {
-  const percent = Math.max(10, Math.min(800, actualCanvasPercent()));
-  $('#zoom').value = percent;
-  $('#canvasZoomValue').textContent = Math.round(actualCanvasPercent()) + '%';
-  $('#fitZoom').textContent = bw('Ajustar', 'Fit', 'Ajustar');
-  $('#fitZoom').title = bw(
-    'Ajustar pliego · Ctrl+0',
-    'Fit spread · Ctrl+0',
-    'Ajustar páginas · Ctrl+0',
-  );
-  $('#zoom').setAttribute(
-    'aria-label',
-    bw('Zoom del lienzo · %', 'Canvas zoom · %', 'Zoom da tela · %'),
-  );
+  refreshCanvasBar();
 }
 globalThis.updateCanvasZoomDisplay = updateCanvasZoomDisplay;
 function zoomCanvasTo(percent: number, point: { x: number; y: number } | null = null): void {
@@ -190,17 +180,8 @@ function fitCanvas(): void {
   renderPages();
 }
 globalThis.fitCanvas = fitCanvas;
-const zoomValue = document.createElement('span');
-zoomValue.id = 'canvasZoomValue';
-zoomValue.setAttribute('aria-live', 'polite');
-$('#fitZoom').before(zoomValue);
-$('#zoom').min = 10;
-$('#zoom').max = 800;
-$('#zoom').step = 1;
-$('#zoom').oninput = (e: Event) => zoomCanvasTo(Number((e.target as HTMLInputElement).value));
-$('#zoomIn').onclick = () => zoomCanvasTo(actualCanvasPercent() * 1.2);
-$('#zoomOut').onclick = () => zoomCanvasTo(actualCanvasPercent() / 1.2);
-$('#fitZoom').onclick = fitCanvas;
+// Los botones del zoom (−, +, Ajustar, el deslizador y el "?" de atajos) los dibuja la barra
+// del lienzo (src/components/canvas-bar/CanvasBar.tsx) y llaman a estas funciones.
 extend.replace(
   'setZoom',
   function (value: number) {
@@ -375,17 +356,8 @@ document.addEventListener('visibilitychange', () => {
     updateCanvasCursor();
   }
 });
-const shortcutButton = UI.element(
-  UI.iconButton({
-    id: 'canvasShortcuts',
-    icon: 'help',
-    label: bw('Atajos de navegación', 'Navigation shortcuts', 'Atalhos de navegação'),
-  }),
-);
-$('#fullscreen').before(shortcutButton);
 // Atajos: sección del centro de Ayuda (React, components/help/sections.tsx); el "?" de la barra
-// del zoom la abre directo.
-shortcutButton.onclick = () => openHelp('shortcuts');
+// del zoom (#canvasShortcuts, components/canvas-bar/) la abre directo.
 registerHelpSection(shortcutsHelpSection);
 extend.after(
   'updateStatus',

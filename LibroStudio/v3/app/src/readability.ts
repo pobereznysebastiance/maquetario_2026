@@ -7,7 +7,8 @@
 // src/components/grid-gallery/GridGallery.tsx (usa gridSize de acá).
 //
 // Fuente TypeScript: se compila a build/readability.js (desktop/scripts/build.mjs).
-'use strict';
+import { refreshCanvasBar } from './components/canvas-bar/canvas-bar-state.ts';
+('use strict');
 
 /** Retícula de la biblioteca: columnas (c), filas (r) y medianiles (gx, gy) en mm. */
 export interface GridPreset {
@@ -190,13 +191,6 @@ const gridPresets: GridPreset[] = [
   },
 ];
 globalThis.gridPresets = gridPresets;
-function gridPresetMini(p: GridPreset): string {
-  return Array.from(
-    { length: 2 },
-    () =>
-      `<span class="grid-mini-page" style="grid-template-columns:repeat(${p.c},1fr);grid-template-rows:repeat(${p.r},1fr)">${'<i></i>'.repeat(p.c * p.r)}</span>`,
-  ).join('');
-}
 function applyGridPreset(id: string): void {
   const p = gridPresets.find((p) => p.id === id);
   if (!p) return;
@@ -230,38 +224,13 @@ globalThis.applyGridPreset = applyGridPreset;
 export const gridSize = (c: number, r: number): string =>
   `${c} ${c === 1 ? bw('columna', 'column', 'coluna') : bw('columnas', 'columns', 'colunas')} · ` +
   `${r} ${r === 1 ? bw('fila', 'row', 'linha') : bw('filas', 'rows', 'linhas')}`;
+// La franja de plantillas (gridPresets, la activa marcada) y "Ver todas…" los dibuja la barra
+// del lienzo (React, components/canvas-bar/CanvasBar.tsx). renderTemplates sólo le avisa que
+// vuelva a leer la grilla del libro (la llaman render y las pruebas).
 extend.replace(
   'renderTemplates',
   function () {
-    const host = $('#templates');
-    host.innerHTML = gridPresets
-      .map((p) =>
-        UI.templateCard({
-          active: book.grid.cols === p.c && book.grid.rows === p.r,
-          data: { gridPreset: p.id },
-          title: bw(...p.use),
-          art: gridPresetMini(p),
-          label: bw(...p.name),
-          detail: gridSize(p.c, p.r),
-        }),
-      )
-      .join('');
-    $$('[data-grid-preset]').forEach(
-      (b) => (b.onclick = () => applyGridPreset(b.dataset.gridPreset!)),
-    );
-    let library = $('#gridLibrary');
-    if (!library) {
-      library = UI.element(UI.quietButton({ id: 'gridLibrary' }));
-      $('.template-heading>span').append(library);
-    }
-    library.textContent = bw('Ver todas…', 'View all…', 'Ver todas…');
-    // La biblioteca es una Hoja en React (src/components/grid-gallery/GridGallery.tsx).
-    library.onclick = () => gridGallery();
+    refreshCanvasBar(true);
   },
   'readability',
 );
-// Los nombres de Guardar y Guardar como… (con su atajo) los pone la barra superior (React).
-document.addEventListener('maquetario:language', () => {
-  renderTemplates();
-});
-renderTemplates();

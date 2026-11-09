@@ -6,25 +6,19 @@
 //
 // Fuente TypeScript: se compila a build/focus-layout.js (desktop/scripts/build.mjs).
 
+import { refreshCanvasBar } from './components/canvas-bar/canvas-bar-state.ts';
+
 declare global {
-  /** Actualiza texto, título y estado del botón según el modo ampliado. */
+  /** Pone al día el botón Ampliar área (texto, título y estado) según el modo ampliado. */
   var updateFocusControl: () => void;
+  /** Entra o sale del modo ampliado (el botón #fullscreen de la barra del lienzo). */
+  var toggleFocusLayout: () => void;
 }
 
+// El botón (#fullscreen) lo dibuja la barra del lienzo (React, components/canvas-bar/) a partir
+// de la clase focused del body: acá sólo se le avisa que cambió.
 function updateFocusControl(): void {
-  const focused = document.body.classList.contains('focused'),
-    b = $('#fullscreen'),
-    text = bw(
-      focused ? 'Restaurar paneles' : 'Ampliar área',
-      focused ? 'Restore panels' : 'Expand workspace',
-      focused ? 'Restaurar painéis' : 'Ampliar área',
-    );
-  b.innerHTML = icon('expand') + '<span>' + text + '</span>';
-  b.title = focused
-    ? bw('Restaurar paneles · Escape', 'Restore panels · Escape', 'Restaurar painéis · Escape')
-    : text;
-  b.setAttribute('aria-label', b.title);
-  b.setAttribute('aria-pressed', String(focused));
+  refreshCanvasBar(true);
 }
 globalThis.updateFocusControl = updateFocusControl;
 extend.after(
@@ -36,7 +30,7 @@ extend.after(
   },
   'focus-layout',
 );
-$('#fullscreen').onclick = () => {
+globalThis.toggleFocusLayout = () => {
   finishEditing();
   document.body.classList.toggle('focused');
   applyPanelSizes();

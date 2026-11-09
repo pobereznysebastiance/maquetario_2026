@@ -6,6 +6,7 @@
 // tests/document-view-tests.js los lee y los asigna.
 //
 // Fuente TypeScript: se compila a build/continuous-canvas.js (desktop/scripts/build.mjs).
+import { refreshCanvasBar } from './components/canvas-bar/canvas-bar-state.ts';
 
 /** Una fila de la vista continua: un pliego (una o dos páginas) con su posición en el lienzo. */
 export interface ContinuousRow {
@@ -38,6 +39,8 @@ declare global {
   var continuousRows: ContinuousRow[];
   /** Clave del último armado; vacía obliga a volver a centrar en el pliego actual. */
   var continuousKey: string;
+  /** Entra o sale de la vista continua y lo recuerda (el botón #continuousCanvas de la barra). */
+  var toggleContinuousCanvas: () => void;
 }
 
 globalThis.continuousCanvas = localStorage.getItem('maquetario-continuous') === 'true';
@@ -69,26 +72,19 @@ extend(
     },
   'continuous-canvas',
 );
-const continuousButton = UI.element(UI.quietButton({ id: 'continuousCanvas' }));
-$('#fitZoom').before(continuousButton);
-
+// El botón Continuo (#continuousCanvas) está en la barra del lienzo (React,
+// components/canvas-bar/): muestra continuousCanvas y llama a toggleContinuousCanvas.
 function labelContinuousCanvas(): void {
-  continuousButton.textContent = bw('Continuo', 'Continuous', 'Contínuo');
-  continuousButton.title = bw(
-    'Recorrer todas las páginas con la rueda',
-    'Scroll through all pages',
-    'Rolar por todas as páginas',
-  );
-  continuousButton.setAttribute('aria-pressed', String(continuousCanvas));
+  refreshCanvasBar();
 }
-continuousButton.onclick = () => {
+globalThis.toggleContinuousCanvas = function () {
   if (canvasUnavailable()) return;
   finishEditing();
   continuousCanvas = !continuousCanvas;
   localStorage.setItem('maquetario-continuous', String(continuousCanvas));
   canvasSpreadKey = continuousKey = '';
   renderPages();
-  labelContinuousCanvas();
+  refreshCanvasBar(true);
 };
 
 function paintContinuousRows(): void {
