@@ -156,6 +156,28 @@ extend(
   'inspector-views',
 );
 
+// ── El inspector sigue a lo que se toca en el lienzo ──
+// Elegir un objeto lleva a Selección (sus controles). Tocar el vacío de la página, estando en
+// Selección, lleva a Página: ya no hay nada elegido y lo útil es la página. Desde Libro no salta:
+// ahí se ajusta el libro entero y un clic en la página no debería sacar de eso.
+extend.after(
+  'objectDown',
+  function () {
+    if (editor.selected && view !== 'selection') showTab('selection');
+  },
+  'inspector-views',
+);
+extend.after(
+  'pageDown',
+  function (e: PointerEvent) {
+    if (e.button !== 0 || (e.target as Element).closest('.paper-object')) return;
+    if (editor.selected) {
+      if (view !== 'selection') showTab('selection'); // la herramienta creó un objeto
+    } else if (view === 'selection') showTab('page');
+  },
+  'inspector-views',
+);
+
 // Flechas entre pestañas (patrón de pestañas de ARIA).
 tabs.addEventListener('keydown', (event: KeyboardEvent) => {
   if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;

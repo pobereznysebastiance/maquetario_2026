@@ -62,26 +62,18 @@ export const SelectedObjectPanel = () => {
               </>
             )}
           </div>
-          {o.type === 'text' ? (
-            <button
-              type="button"
-              id="objectGoText"
-              className="btn wide"
-              onClick={() => showTab('text')}
-            >
-              {bw(
-                'Editar tipografía y párrafos',
-                'Edit type and paragraphs',
-                'Editar tipografia e parágrafos',
-              )}
-            </button>
-          ) : null}
           <p className="help">
-            {bw(
-              'Estos controles modifican el elemento completo. La alineación del texto dentro de la caja está más abajo, en Párrafo y estilos.',
-              'These controls modify the whole element. Text alignment within the frame is further down, under Paragraphs and styles.',
-              'Estes controles alteram o elemento inteiro. O alinhamento do texto dentro da caixa fica mais abaixo, em Parágrafos e estilos.',
-            )}
+            {o.type === 'text'
+              ? bw(
+                  'Estos controles mueven, alinean y ordenan la caja completa. La letra y los párrafos están arriba, en Tipografía y Párrafo y estilos.',
+                  'These controls move, align and order the whole frame. Type and paragraphs are above, under Typography and Paragraphs and styles.',
+                  'Estes controles movem, alinham e ordenam a caixa inteira. A letra e os parágrafos ficam acima, em Tipografia e Parágrafos e estilos.',
+                )
+              : bw(
+                  'Estos controles modifican el elemento completo.',
+                  'These controls modify the whole element.',
+                  'Estes controles alteram o elemento inteiro.',
+                )}
           </p>
         </>
       ) : (

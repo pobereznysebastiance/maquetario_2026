@@ -107,8 +107,9 @@ function sectionsOf(pass: string): Slot[] {
       ];
     case 'text':
       return [
-        { name: 'paragraph', className: 'paragraph-panel' },
+        // Lo más usado con una caja de texto va primero: la letra, después el párrafo.
         { name: 'typography', title: 'Tipografía', key: 'text' },
+        { name: 'paragraph', className: 'paragraph-panel' },
         // "Carácter y párrafo" va al final, dentro de un <div> (no se reordena ni se pliega).
         { name: 'character', tag: 'div' },
       ];
@@ -128,7 +129,8 @@ export function planFor(view: InspectorView): { passes: string[]; primary: strin
   if (editor.multiSelection.size > 1) return { passes: ['object'], primary: 'object' };
   if (!o) return { passes: ['selection'], primary: 'selection' };
   // Primero el objeto, después el texto y el párrafo.
-  if (o.type === 'text') return { passes: ['object', 'text'], primary: 'text' };
+  // Caja de texto: primero tipografía y párrafo, después posición, alineación y orden de la caja.
+  if (o.type === 'text') return { passes: ['text', 'object'], primary: 'text' };
   return { passes: ['object'], primary: 'object' };
 }
 
