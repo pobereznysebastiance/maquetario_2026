@@ -65,10 +65,12 @@
   gap: var(--space-sm);
 }
 
-/* Capítulos del tutorial: una lista numerada en dos columnas; cada nombre empieza ahí. */
+/* Capítulos del tutorial: una lista en dos columnas. Sin numeración de la lista: los títulos de
+   los capítulos ya traen su número (si no, se leía "2. 1. Crear el formato del libro"). */
 .help-chapters {
   margin: 0;
-  padding-left: var(--space-xl);
+  padding-left: 0;
+  list-style: none;
   columns: 2;
   column-gap: var(--space-2xl);
   color: var(--text-tertiary);

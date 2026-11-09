@@ -417,6 +417,8 @@ const labels: TranslationRow[] = [
   ],
   ['Vista previa y salida final.', 'Preview and final output.', 'Prévia e saída final.'],
   ['Estás acá', 'You are here', 'Você está aqui'],
+  ['Revisar el libro completo', 'Check the whole book', 'Revisar o livro completo'],
+  ['Revisar salida PDF', 'Review PDF output', 'Revisar saída PDF'],
 ];
 labels.push(...extraTranslations);
 const map = new Map(

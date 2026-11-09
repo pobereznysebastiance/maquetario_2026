@@ -28,7 +28,7 @@ registerIntegrationTest(function (r) {
       !$('#glossaryDefinition').textContent,
       'Búsqueda sin resultados no conserva definición anterior',
     );
-    $('#modal').close();
+    closeSheet();
     check(JSON.stringify(book) === content, 'Glosario no altera el libro');
     book.cover = defaultCover();
     book.cover.parts.spine.direction = 'up';
@@ -67,7 +67,13 @@ registerIntegrationTest(function (r) {
     );
     openHelp('shortcuts');
     check(!!$('#helpPane .canvas-shortcut-table'), 'Atajos en el centro de Ayuda');
-    $('#modal').close();
+    closeSheet();
+    check(!!$('.documentbar #reviewBook'), 'Revisar libro en la barra del documento');
+    if (hasDocument) {
+      preflightDialog();
+      check(!!$('#dialogLayer .preflight-item'), 'Revisar libro abre su Hoja');
+      closeSheet();
+    }
     for (const big of [false, true]) {
       document.body.classList.toggle('ui-large', big);
       for (const height of [165, 210]) {

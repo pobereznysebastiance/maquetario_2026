@@ -16,6 +16,8 @@
 //
 // Fuente TypeScript: se compila a build/tutorial.js (desktop/scripts/build.mjs).
 
+import { tutorialHelpSection } from './components/help/sections.tsx';
+
 /** Una lección del tutorial (title, body y task: castellano, inglés y portugués). */
 export interface GuideLesson {
   id: string;
@@ -608,6 +610,8 @@ function tutorialLocale() {
 function startTutorial(index?: number): void {
   hideWelcome();
   if ($('#modal').open) $('#modal').close();
+  // Desde el centro de Ayuda (u otra Hoja o Ventana de React): se cierra antes de mostrar la tarjeta.
+  globalThis.closeSheet?.();
   let saved = Number(localStorage.getItem('maquetario-tutorial-step')) || 0;
   tutorialIndex = Number.isInteger(index)
     ? (index as number)
@@ -663,31 +667,8 @@ globalThis.showTutorialStep = function (index: number) {
   };
 };
 globalThis.startTutorial = startTutorial;
-// Centro de Ayuda: el tutorial se empieza (o se retoma) desde ahí, o directo en un capítulo.
-// Se llama a startTutorial por globalThis: review-workspace.ts la extiende (pide un libro antes).
-registerHelpSection({
-  id: 'tutorial',
-  label: 'Tutorial guiado',
-  order: 1,
-  render(host) {
-    const { index: lang } = tutorialLocale(),
-      saved = Number(localStorage.getItem('maquetario-tutorial-step')) || 0;
-    host.innerHTML = `<h2 class="help-heading">Tutorial guiado</h2><p class="help-lead">Un recorrido por todas las secciones de Maquetario, sobre tu libro actual. Abre los paneles y señala los controles; vos decidís qué cambiar.</p><div class="help-actions">${UI.button({ id: 'helpTutorialStart', label: 'Empezar desde el principio', variant: 'primary' })}${saved > 0 ? UI.button({ id: 'helpTutorialResume', label: 'Seguir donde quedé' }) : ''}</div><h3 class="help-subheading">Capítulos</h3><ol class="help-chapters">${guideLessons
-      .map(
-        (s, i) =>
-          `<li>${UI.textButton({ label: s.title[lang], data: { tutorialChapter: i }, aria: { current: saved > 0 && i === saved ? 'step' : undefined } })}</li>`,
-      )
-      .join('')}</ol>`;
-    $('#helpTutorialStart').onclick = () => globalThis.startTutorial(0);
-    if ($('#helpTutorialResume'))
-      $('#helpTutorialResume').onclick = () => globalThis.startTutorial();
-    host
-      .querySelectorAll<HTMLElement>('[data-tutorial-chapter]')
-      .forEach(
-        (b) => (b.onclick = () => globalThis.startTutorial(Number(b.dataset.tutorialChapter))),
-      );
-  },
-});
+// Centro de Ayuda: la sección "Tutorial guiado" (React, components/help/sections.tsx).
+registerHelpSection(tutorialHelpSection);
 document.addEventListener('maquetario:language', () => {
   if (!tutorialCard.hidden) showTutorialStep(tutorialIndex);
 });

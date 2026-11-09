@@ -10,6 +10,7 @@
 //   extiende por nombre y las llamadas de acá tienen que pasar por esa versión extendida.
 //
 // Fuente TypeScript: se compila a build/canvas-navigation.js (desktop/scripts/build.mjs).
+import { shortcutsHelpSection } from './components/help/sections.tsx';
 
 /** Punto del lienzo: posición en el pliego (sin escala) y en la mesa (relativa al visor). */
 export interface CanvasAnchor {
@@ -388,70 +389,10 @@ const shortcutButton = UI.element(
   }),
 );
 $('#fullscreen').before(shortcutButton);
-// Atajos: sección del centro de Ayuda; el "?" de la barra del zoom la abre directo.
+// Atajos: sección del centro de Ayuda (React, components/help/sections.tsx); el "?" de la barra
+// del zoom la abre directo.
 shortcutButton.onclick = () => openHelp('shortcuts');
-registerHelpSection({
-  id: 'shortcuts',
-  label: 'Atajos',
-  order: 3,
-  render(host) {
-    host.innerHTML = `<h2 class="help-heading">${bw('Moverse por la maqueta', 'Navigate the layout', 'Navegar pela diagramação')}</h2><table class="canvas-shortcut-table">${[
-      [
-        'Espacio + arrastrar',
-        'Space + drag',
-        'Espaço + arrastar',
-        bw(
-          'Mano temporal · soltá Espacio para volver a tu herramienta.',
-          'Temporary hand · release Space to return to your tool.',
-          'Mão temporária · solte Espaço para voltar à ferramenta.',
-        ),
-      ],
-      [
-        'Botón central + arrastrar',
-        'Middle button + drag',
-        'Botão central + arrastar',
-        bw('Desplazar el lienzo.', 'Pan the canvas.', 'Deslocar a área de trabalho.'),
-      ],
-      [
-        'Ctrl + rueda',
-        'Ctrl + wheel',
-        'Ctrl + roda',
-        bw('Zoom alrededor del puntero.', 'Zoom around the pointer.', 'Zoom em torno do ponteiro.'),
-      ],
-      [
-        'Ctrl + / Ctrl −',
-        'Ctrl + / Ctrl −',
-        'Ctrl + / Ctrl −',
-        bw('Acercar / alejar.', 'Zoom in / out.', 'Aproximar / afastar.'),
-      ],
-      [
-        'Ctrl + 0',
-        'Ctrl + 0',
-        'Ctrl + 0',
-        bw(
-          'Ajustar el pliego a la ventana.',
-          'Fit the spread to the window.',
-          'Ajustar as páginas à janela.',
-        ),
-      ],
-      ['Ctrl + 1', 'Ctrl + 1', 'Ctrl + 1', bw('Zoom al 100%.', 'Zoom to 100%.', 'Zoom em 100%.')],
-      ['H / V', 'H / V', 'H / V', bw('Mano / Seleccionar.', 'Hand / Select.', 'Mão / Selecionar.')],
-      [
-        'Shift + rueda',
-        'Shift + wheel',
-        'Shift + roda',
-        bw('Desplazamiento horizontal.', 'Horizontal scrolling.', 'Deslocamento horizontal.'),
-      ],
-    ]
-      .map(
-        (row) =>
-          `<tr><th>${esc(bw(...(row.slice(0, 3) as [string, string, string])))}</th><td>${row[3]}</td></tr>`,
-      )
-      .join(
-        '',
-      )}</table><p class="help">${bw('Los atajos de navegación no se activan mientras escribís en un campo o editás texto. El 100% usa píxeles de pantalla y no calibra el tamaño físico de tu monitor.', 'Navigation shortcuts do not activate while typing in fields or editing text. 100% uses screen pixels and does not calibrate physical monitor size.', 'Atalhos de navegação não ativam ao digitar em campos ou editar texto. 100% usa pixels de tela e não calibra o tamanho físico do monitor.')}</p>`;
-  },
-});
+registerHelpSection(shortcutsHelpSection);
 extend.after(
   'updateStatus',
   function () {

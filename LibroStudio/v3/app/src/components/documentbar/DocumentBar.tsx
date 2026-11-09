@@ -53,6 +53,17 @@ export const DocumentBar = () => {
         </span>
       </div>
       <SnapButton />
+      {/* "Revisar libro": también es el paso 4 del recorrido (centro de Ayuda). */}
+      <button
+        type="button"
+        className="quiet"
+        id="reviewBook"
+        title={tr('Texto que no entra y objetos fuera de página.')}
+        onClick={() => preflightDialog()}
+      >
+        <Icon name="check" />
+        <span>{tr('Revisar libro')}</span>
+      </button>
       <button type="button" className="quiet" id="documentSettings" ref={bindSettings}>
         <Icon name="settings" />
         <span>{tr('Configurar libro')}</span>

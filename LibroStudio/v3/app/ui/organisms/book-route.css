@@ -110,6 +110,7 @@
 }
 
 /* ── Migrado de editorial-learning.css y page-priority.css: barra del documento ── */
+#reviewBook,
 #documentSettings {
   white-space: nowrap;
 }
@@ -122,7 +123,8 @@
   --document-name-max: 150px;
   max-width: var(--document-name-max);
 }
-.documentbar #documentSettings {
+/* "Revisar libro" y "Configurar libro" van juntos a la derecha. */
+.documentbar #reviewBook {
   margin-left: auto;
 }
 .doc-format {

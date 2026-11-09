@@ -12,6 +12,8 @@
 // Fuente TypeScript: se compila a build/book-workflow.js (desktop/scripts/build.mjs).
 import type { Book, BookObject, Page } from './model.ts';
 import type { NovelSample } from './novel-sample.ts';
+import { routeHelpSection } from './components/help/sections.tsx';
+import { openPreflight } from './components/preflight/PreflightSheet.tsx';
 
 /** Datos del armador de novelas: título, autoría y manuscrito; lo demás es opcional. */
 export type NovelData = Pick<NovelSample, 'title' | 'author' | 'source'> & Partial<NovelSample>;
@@ -67,38 +69,28 @@ const routeSteps: RouteStep[] = [
 let routeStep: string | null = null;
 /** "Estás acá": sin libro, armarlo; si no, el último paso que se abrió (o Estructura). */
 const currentRouteStep = (): string => (!hasDocument ? 'build' : routeStep || 'structure');
-// El recorrido vive en el centro de Ayuda (help-center.ts): una lista sobria con el paso actual
-// marcado, en lugar de la barra fija sobre el lienzo. renderBookRoute la vuelve a dibujar (si la
-// Ayuda está abierta) y sigue siendo global porque la llama tests/learning-tests.js.
+// El recorrido vive en el centro de Ayuda (sección de React, components/help/sections.tsx): una
+// lista sobria con el paso actual marcado. renderBookRoute la vuelve a dibujar si la Ayuda está
+// abierta (la llaman render y las pruebas).
 function renderBookRoute(): void {
-  const route = document.getElementById('helpRoute');
-  if (!route) return;
-  const here = currentRouteStep();
-  route.innerHTML = routeSteps
-    .map(
-      ([id, label, description]) =>
-        `<li${id === here ? ' aria-current="step"' : ''}>${UI.textButton({ data: { routeStep: id }, disabled: !hasDocument && id !== 'build', label })}<p class="help">${description}</p>${id === here ? '<span class="route-here">Estás acá</span>' : ''}</li>`,
-    )
-    .join('');
-  route.querySelectorAll<HTMLElement>('[data-route-step]').forEach(
-    (b) =>
-      (b.onclick = () => {
-        const step = routeSteps.find(([id]) => id === b.dataset.routeStep)!;
-        routeStep = step[0];
-        $('#modal').close();
-        setTimeout(step[3], 30);
-      }),
-  );
+  refreshHelp();
 }
-registerHelpSection({
-  id: 'route',
-  label: 'Recorrido del libro',
-  order: 4,
-  render(host) {
-    host.innerHTML = `<h2 class="help-heading">Recorrido del libro</h2><p class="help-lead">Los pasos para llevar un manuscrito a un PDF listo para imprimir. Cada paso abre su herramienta.</p><ol id="helpRoute" class="book-route"></ol>`;
-    globalThis.renderBookRoute();
-  },
-});
+registerHelpSection(
+  routeHelpSection({
+    steps: routeSteps.map(([id, label, description]): [string, string, string] => [
+      id,
+      label,
+      description,
+    ]),
+    current: currentRouteStep,
+    open: (id) => {
+      const step = routeSteps.find(([stepId]) => stepId === id)!;
+      routeStep = step[0];
+      closeSheet();
+      setTimeout(step[3], 30);
+    },
+  }),
+);
 function structurePanel(): void {
   const h = $('#inspectorContent'),
     items = book.pages
@@ -663,28 +655,9 @@ function preflightBook(): PreflightIssue[] {
   }
   return issues;
 }
+/** "Revisar libro": la Hoja de React con lo que revisa preflightBook (components/preflight/). */
 function preflightDialog(): void {
-  if (!hasDocument) {
-    settings(true);
-    return;
-  }
-  const issues = preflightBook();
-  modal.sheet(
-    bw('Revisar el libro completo', 'Check the whole book', 'Revisar o livro completo'),
-    `<p class="builder-intro">${book.pages.length} ${bw('páginas revisadas. Este control comprueba texto sobrante y objetos fuera de página.', 'pages checked. This checks overset text and objects outside the page.', 'páginas revisadas. Este controle verifica texto excedente e objetos fora da página.')}</p>${issues.length ? issues.map((issue) => `<div class="preflight-item warn">${bw('Página', 'Page', 'Página')} ${issue.page + 1} · ${issue.kind === 'overflow' ? bw('Texto sobrante', 'Overset text', 'Texto excedente') : bw('Objeto fuera de página', 'Object outside page', 'Objeto fora da página')}<button type="button" class="preflight-link" data-issue-page="${issue.page}">${bw('Ir a la página', 'Go to page', 'Ir à página')}</button></div>`).join('') : `<div class="preflight-item ok">✓ ${bw('Sin desbordamientos ni objetos fuera de página.', 'No overset text or objects outside the page.', 'Sem texto excedente nem objetos fora da página.')}</div>`}<p class="help">${bw('Revisá también ortografía, cortes de párrafo y calidad de imágenes. Cambiar un estilo puede hacer que sobre texto: repetí este control antes de exportar.', 'Also review spelling, paragraph breaks and image quality. Style changes may cause overset text: repeat this check before exporting.', 'Revise também ortografia, quebras de parágrafo e qualidade de imagens. Alterar um estilo pode causar excesso: repita este controle antes de exportar.')}</p>`,
-    () => {
-      setTimeout(() => outputDialog('pdf'), 30);
-    },
-    bw('Revisar salida PDF', 'Review PDF output', 'Revisar saída PDF'),
-  );
-  $$('[data-issue-page]').forEach(
-    (b) =>
-      (b.onclick = () => {
-        $('#modal').close();
-        goToBookPage(Number(b.dataset.issuePage));
-        showTab('text');
-      }),
-  );
+  openPreflight();
 }
 extend.result(
   'showWelcome',
@@ -722,6 +695,7 @@ document.addEventListener('maquetario:language', () => {
 // tests/learning-tests.js. goToBookPage: editorial-assistant,
 // book-proof y cover-measurements. composeNovel, installNovel y preflightBook: book-proof y sus
 // pruebas (installNovel también scripts/style-snapshot.js). bookBuilder: cover-measurements.
+// preflightDialog: la barra del documento (DocumentBar.tsx).
 // manuscriptParts: tests/book-proof-tests.js.
 declare global {
   /** Texto en el idioma de la interfaz (castellano, inglés, portugués). */
@@ -733,6 +707,8 @@ declare global {
   /** Revisión del libro: objetos fuera de la página y cajas de texto desbordadas. */
   var preflightBook: () => PreflightIssue[];
   var bookBuilder: (sample?: boolean) => void;
+  /** "Revisar libro": texto sobrante y objetos fuera de página (Hoja de React). */
+  var preflightDialog: () => void;
   var manuscriptParts: (source: string) => ManuscriptPart[];
 }
 globalThis.renderBookRoute = renderBookRoute;
@@ -741,6 +717,7 @@ globalThis.composeNovel = composeNovel;
 globalThis.installNovel = installNovel;
 globalThis.preflightBook = preflightBook;
 globalThis.bookBuilder = bookBuilder;
+globalThis.preflightDialog = preflightDialog;
 globalThis.manuscriptParts = manuscriptParts;
 globalThis.showWelcome = showWelcome;
 globalThis.renderBookRoute();

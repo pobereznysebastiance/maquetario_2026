@@ -495,7 +495,8 @@ function renderGlossary(): void {
     : '';
   if (t)
     $('#glossaryOpenTool').onclick = () => {
-      $('#modal').close();
+      // El glosario está en el centro de Ayuda (Ventana de React): se cierra antes de ir.
+      closeSheet();
       if (!hasDocument) {
         toast(
           bw(

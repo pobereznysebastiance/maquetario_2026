@@ -79,7 +79,7 @@ Se elige el tipo con la función, nunca con una clase de tamaño. Todos usan `#m
 
 ## Ayuda: una sola puerta (D8)
 
-El centro de Ayuda (`src/help-center.ts`) es una Ventana de trabajo con navegación lateral: Tutorial guiado, Glosario, Atajos y Recorrido del libro. Se abre con "Ayuda" en la barra superior (o F1) y desde código con `openHelp(sección?, arg?)` (`'tutorial' | 'glossary' | 'shortcuts' | 'route'`; acepta también `glosario`, `atajos`, `recorrido`). Cada sección la registra su módulo con `registerHelpSection`. Los "?" de términos abren el término en el glosario (`showGlossary(término)` = `openHelp('glossary', término)`) y el "?" del zoom abre Atajos. El recorrido del libro (cinco pasos, el actual con el dorado de "estás acá") vive en la Ayuda: ya no hay barra fija sobre el lienzo ni botones "Tutorial", "Aprender" o "Recorrido" en la barra del documento.
+El centro de Ayuda (`src/components/help/help-center.tsx`, en React con `openWorkWindow`; las secciones de React en `sections.tsx`, el glosario todavía en HTML) es una Ventana de trabajo con navegación lateral: Tutorial guiado, Glosario, Atajos y Recorrido del libro. Se abre con "Ayuda" en la barra superior (o F1) y desde código con `openHelp(sección?, arg?)` (`'tutorial' | 'glossary' | 'shortcuts' | 'route'`; acepta también `glosario`, `atajos`, `recorrido`). Cada sección la registra su módulo con `registerHelpSection`. Los "?" de términos abren el término en el glosario (`showGlossary(término)` = `openHelp('glossary', término)`) y el "?" del zoom abre Atajos. El recorrido del libro (cinco pasos, el actual con el dorado de "estás acá") vive en la Ayuda: ya no hay barra fija sobre el lienzo ni botones "Tutorial", "Aprender" o "Recorrido" en la barra del documento.
 
 ## Orden de trabajo
 

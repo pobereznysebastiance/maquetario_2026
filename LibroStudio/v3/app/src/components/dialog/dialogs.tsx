@@ -33,6 +33,8 @@ declare global {
   var openWorkWindow: (content: ReactNode, options: WorkWindowOptions) => Promise<void>;
   /** Cierra la Hoja o Ventana de React abierta (si hay una). */
   var closeSheet: () => void;
+  /** Contenido de la Hoja o Ventana de React abierta, o null (al instante, aunque React no haya redibujado). */
+  var openSheetContent: () => ReactNode | null;
 }
 
 interface ConfirmRequest {
@@ -194,3 +196,5 @@ globalThis.confirmAction = confirmAction;
 globalThis.openSheet = openSheet;
 globalThis.openWorkWindow = openWorkWindow;
 globalThis.closeSheet = closeSheet;
+// El centro de Ayuda (components/help/) lo usa para saber si su Ventana sigue abierta.
+globalThis.openSheetContent = () => sheetRequest?.content ?? null;

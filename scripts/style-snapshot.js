@@ -70,7 +70,8 @@
       $('#modal')?.open && $('#modal').close();
     } catch {}
     try {
-      closeOutputWindow();
+      globalThis.closeSheet?.();
+      globalThis.closeOutputWindow?.();
     } catch {}
     try {
       $('#fontBrowser')?.open && $('#fontBrowser').close();
