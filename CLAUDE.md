@@ -15,6 +15,7 @@ Leer `docs/proximos-pasos.md` (hoja de ruta), `docs/arquitectura.md` (estructura
 - TypeScript de la interfaz en `LibroStudio/v3/app/src/` (estricto): `src/entries/` son los puntos de entrada (core y app, importan los módulos en orden de carga), `src/global/studio.ts` es el núcleo como script global, `src/ui/` los componentes, `src/modules/` módulos ES que se cargan a pedido con `import()` (hoy, el motor de composición de `packages/compose`, detrás de la llave `localStorage['maquetario-compose']`). Se compila a `app/build/` (no se commitea) con `npm run build`/`dev`. Un módulo nuevo se agrega con su `import` en el lugar que le toca de `src/entries/app.ts`.
 - Pruebas de la interfaz en `LibroStudio/v3/app/tests/` (las carga `test-loader.js` sólo en la autoprueba; no van en el instalador). Nada de pruebas dentro de los módulos de la app.
 - No reemplazar funciones globales a mano: usar `extend()`, `decorateInspector()` o `registerInspectorPanel()`.
+- Pantallas nuevas o que pasan a React: `src/components/`, con la convención de `docs/arquitectura.md` → "Pasar una pantalla a React" (textos traducidos en el componente, `change` nativo, `useEditorState()`, registros en vez de nodos sueltos).
 - No tocar lo que dibuja el libro (página, impresión, miniaturas) al cambiar la interfaz: vive en `ui/book/` (capa `book`, la más baja) con sus colores en `ui/tokens/book.css`. Si se toca, los PDF de `npm run self-test` tienen que salir idénticos (`node scripts/compare-outputs.mjs <antes> <después>`).
 - Ningún `.css` fuera de `ui/` (`lint:design` falla).
 
@@ -22,7 +23,7 @@ Leer `docs/proximos-pasos.md` (hoja de ruta), `docs/arquitectura.md` (estructura
 
 ```bash
 npm install          # una vez
-npm run dev          # app en modo desarrollo (Ctrl+R recarga la interfaz, F12 herramientas)
+npm run dev          # app en modo desarrollo (Ctrl+R recarga la interfaz; lo del proceso principal, como la CSP, pide reiniciar; F12 herramientas)
 npm test             # pruebas + control de diseño + deuda + formato
 npm run format       # prettier sobre todo el código propio
 npm run self-test    # autoprueba completa sobre la app real

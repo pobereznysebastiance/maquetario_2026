@@ -5,24 +5,27 @@
 // página no cambia. React y Radix viajan dentro de build/app.js (desktop/scripts/build.mjs), no
 // como scripts aparte.
 //
-// Convención de componentes (src/components/):
-// - Una carpeta por componente (src/components/toast/) con el componente (.tsx, nombre en
-//   PascalCase: Toaster) y, si hace falta, su servicio: las funciones que llama el resto de la
-//   app (showToast). Lo que tiene que seguir siendo global (toast()) se publica desde ahí.
-// - Comportamiento y accesibilidad con Radix sin estilos (import { Toast } from 'radix-ui').
-// - Estilos sólo con las clases y tokens de ui/ (className="toast", data-type…): nada de estilos
-//   en línea, Tailwind ni CSS-in-JS. El CSS vive en ui/ (átomos, moléculas, organismos).
-// - Los textos fijos van con bw(es, en, pt) y se vuelven a dibujar con useLanguage(); los textos
-//   que llegan en castellano desde el resto de la app se traducen con LibroI18n.tr() antes de
-//   dibujarlos (Radix anuncia el texto apenas se monta, antes de que pase el traductor del DOM).
-// - Íconos con <Icon name="…" /> (src/components/Icon.tsx), el mismo set que icon() de studio.ts.
-// - Estado del editor: el componente lee los globales del núcleo (book, active, dirty…) y se
-//   redibuja con useEditorState() (src/react/editor-state.ts), que avisa el núcleo.
-// - mount() marca el contenedor con data-react: el traductor del DOM (src/i18n.ts) no entra ahí,
-//   porque React traduce sus textos (bw / LibroI18n.tr) y no hay que tocarle los nodos.
-// - Con { sync: true } el primer dibujo es inmediato: para barras fijas de la pantalla, que otros
-//   módulos o pruebas buscan apenas carga build/app.js. Montar después de book-workflow.ts (bw).
-// - Nada de React toca lo que dibuja el libro (#spread, #printRoot, miniaturas).
+// Cómo pasar una pantalla a React (detalle y motivos: docs/arquitectura.md → "Pasar una pantalla
+// a React"):
+// - Carpeta en src/components/ con el componente (PascalCase.tsx) y, si hace falta, su servicio;
+//   lo que sigue siendo global se publica desde ahí (con extend.replace si otros lo extienden).
+// - Mismo marcado que el HTML de antes (clases, ids, data-*, aria-*). Estilos sólo con clases y
+//   tokens de ui/; comportamiento con Radix sin estilos; íconos con <Icon name>.
+// - Textos: el traductor del DOM no entra en data-react. bw() o LibroI18n.tr() (con su fila en
+//   i18n.ts) y useLanguage(); lo que otro módulo agrega adentro llega ya traducido.
+// - Campos no controlados. El onChange de React no recibe un new Event('change') (no sube):
+//   Select / useNativeChange o useFieldEvents (Form.tsx). En casillas, onChange sí (va con click).
+// - Diálogos: openSheet / openWorkWindow (o modal.sheet/info/workspace con un elemento), uno a la
+//   vez salvo keepModal; closeSheet() cierra en el acto. Los efectos de los hijos corren antes de
+//   que la ref abra el <dialog>: si no hay alto, medir en el cuadro siguiente. El foco va al
+//   diálogo.
+// - Estado: leer los globales del núcleo y redibujar con useEditorState(); quien cambia estado
+//   avisa con notifyEditorState() (flushSync: nunca desde un render ni un efecto).
+// - Registros en vez de nodos sueltos: registerTool, registerInspectorPanel + inspectorSlot /
+//   mountInspectorSlot, registerHelpSection.
+// - Con { sync: true } el primer dibujo es inmediato (barras que otros buscan al cargar); montar
+//   después de book-workflow.ts (bw). Nada de React toca lo que dibuja el libro.
+// - Un cambio del proceso principal (CSP, protocolo) pide reiniciar la app: Ctrl+R no alcanza.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 

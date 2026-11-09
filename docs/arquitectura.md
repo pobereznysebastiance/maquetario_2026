@@ -274,12 +274,58 @@ También Estructura del libro (paso 6, `src/components/inspector/StructurePanel.
 - **Volver a montar en cada dibujo:** mientras la cadena siga, cada `render(true)` vuelve a montar los paneles. Es barato con pocos paneles; con muchos conviene que la cadena deje de reemplazar todo (paso 10).
 - **`flushSync` desde un efecto de React:** si `inspector()` se llama dentro de un efecto de React, el montaje sincrónico no se cumple (React avisa y dibuja después).
 
+## Pasar una pantalla a React (etapa 3)
+
+Convención única: la resume el comentario de `src/react/mount.tsx`. Cada regla salió de algo que falló al integrar.
+
+**Dónde y cómo se monta**
+- Una carpeta por pantalla en `src/components/`: el componente (`PascalCase.tsx`) y, si hace falta, su servicio (lo que llama el resto de la app). Lo que tiene que seguir siendo global se publica desde el servicio, y si otros lo extienden por nombre, con `extend.replace`.
+- `mount(nodo, <X />)` en un nodo que ya existe. Las barras fijas van con `{ sync: true }`, montadas después de `book-workflow.ts` (`bw`).
+- Mismo marcado que el HTML de antes: clases, ids, `data-*`, `aria-*`. Así no cambian los estilos, las pruebas, la autoprueba ni el tutorial. Estilos sólo con las clases y tokens de `ui/`.
+- Nada de React toca lo que dibuja el libro (`#spread`, `#printRoot`, miniaturas, `ui/book/`).
+
+**Textos.** El traductor del DOM no entra en lo que dibuja React (`mount` lo marca con `data-react`).
+- Textos fijos con `bw(es, en, pt)` o `LibroI18n.tr('castellano')` (con su fila en `src/i18n.ts`), más `useLanguage()` para redibujar al cambiar de idioma.
+- Lo que otro módulo agrega dentro de un nodo de React tiene que llegar ya traducido.
+
+**Campos y eventos**
+- Los campos no son controlados (`defaultValue`/`defaultChecked`): las pruebas y otros módulos escriben `.value` y llaman a la función que lee el formulario.
+- El `onChange` de React no recibe un `new Event('change')`, porque no sube:
+  - en selectores, `Select` de `Form.tsx` (usa `useNativeChange`);
+  - para un formulario entero, `useFieldEvents` (`change`/`input` en captura).
+- En casillas sí sirve el `onChange` de React: viaja con el `click`.
+
+**Diálogos** (`src/components/dialog/dialogs.tsx`)
+- Hoja (`openSheet`, o `modal.sheet`/`modal.info` con un elemento de React) y Ventana de trabajo (`openWorkWindow` o `modal.workspace`). Hay una sola a la vez y abrir una cierra `#modal`.
+- La única que se aloja encima de otra es la Ventana con `keepModal` (el explorador de fuentes desde el estilo de párrafo).
+- `closeSheet()` cierra en el acto. Las pruebas y la autoprueba usan eso, no `#modal`.
+- Los efectos de los hijos corren antes de que la ref del `<dialog>` lo abra con `showModal()`. Si un hijo mide o desplaza y no hay alto, lo hace en el cuadro siguiente (`requestAnimationFrame`).
+- Al abrir, el foco va al `<dialog>` y el primer Tab lleva al primer control. Las confirmaciones destructivas arrancan en Cancelar.
+
+**Estado del editor** (`src/react/editor-state.ts`)
+- El componente lee los globales del núcleo (`book`, `active`, `tool`…) y se redibuja con `useEditorState()`.
+- Quien cambia estado fuera de `render`/`updateStatus` llama a `notifyEditorState()`, que redibuja en el acto con `flushSync`. Por eso nunca se llama desde el render de un componente ni desde sus efectos.
+- Si algo cambia muy seguido, conviene un aviso propio que redibuje sólo lo suyo. Ejemplo: `refreshCanvasBar()` del zoom, que se avisa en cada `renderPages`.
+
+**Registros** (en lugar de agregar nodos al DOM)
+- Riel: `registerTool({ tool, id, icon, label, after, onSelect })`, en `components/rail/rail-tools.ts`.
+- Inspector:
+  - `registerInspectorPanel('pestaña:nombre', () => <Panel />)` con su lugar `inspectorSlot(…)` en la pestaña;
+  - `mountInspectorSlot(lugar)` si el lugar aparece después de la pasada;
+  - reglas en "Paneles de React en el inspector".
+- Ayuda: `registerHelpSection({ id, label, order, render })`, en `components/help/help-center.tsx`.
+
+**Proceso principal.** Los cambios del proceso principal (CSP, protocolo `maquetario://`, manejadores) piden reiniciar la app. Ctrl+R sólo recarga la interfaz.
+
 ## Etapas
 
 1. **Electron con la interfaz actual** (cerrada el 08-nov). Funciona en macOS y Linux además de Windows; la versión C#/WebView2 (`Host*.cs`, `Build*.ps1`, `Maquetario.iss`) y su rama en la interfaz se retiraron. Pendiente, porque depende de Motiova o de la venta: URLs y clave pública de producción, `licenseMode: "enforce"` y la firma de código (ver "Licencias y conexión con Motiova").
 2. **TypeScript + módulos** (cerrada el 08-nov, salvo la parte B): pruebas fuera del build de producción (`app/tests/`), prettier, reemplazos de funciones globales por `extend`, toda la interfaz en `.ts` estricto con dos puntos de entrada (`src/entries/`) y migraciones del `.mqt` (ver "Formato del proyecto y migraciones"). Queda la **parte B** (cambiar los globales por `import` reales: objeto de estado y un `extend` que no dependa de `window`), que va con la etapa 3. Detalle en `docs/proximos-pasos.md` → "Etapa 2".
-3. **Interfaz con componentes** (atomic design, React + Radix, tokens de diseño compartidos con Motiova), revisada con impeccable. Dirección visual: "glass" de macOS, sin que parezca un panel genérico de IA. Decisiones tomadas el 08-nov: `docs/INTERFAZ_08-nov_decisiones-etapa3.md` (Radix sin estilos + CSS propio; inspector en 3 pestañas; tres tipos de diálogo; tokens con los nombres de Motiova).
-4. **Motor de composición propio** (HarfBuzz/WASM, justificación Knuth-Plass) y PDF de imprenta (CMYK, PDF/X, TrimBox/BleedBox exactas). Prototipo del motor y plan para conectarlo: `docs/MOTOR_09-nov_composicion.md`.
+3. **Interfaz con componentes** (atomic design, React + Radix, tokens de diseño compartidos con Motiova), revisada con impeccable. Dirección visual: "glass" de macOS, sin que parezca un panel genérico de IA. Decisiones tomadas el 08-nov: `docs/INTERFAZ_08-nov_decisiones-etapa3.md` (Radix sin estilos + CSS propio; inspector en 3 pestañas; tres tipos de diálogo; tokens con los nombres de Motiova). En curso: cómo se pasa una pantalla, en "Pasar una pantalla a React"; qué falta, en `docs/proximos-pasos.md`.
+4. **Motor de composición propio** (HarfBuzz/WASM, justificación Knuth-Plass) y PDF de imprenta (CMYK, PDF/X, TrimBox/BleedBox exactas). Hecho:
+   - el motor cargado en la app detrás de una llave apagada (todavía no dibuja), en `docs/MOTOR_09-nov_composicion.md`;
+   - cajas exactas;
+   - PDF/X-4 con RGB etiquetado y FOGRA39 (sin CMYK), en `docs/IMPRENTA_09-nov_pdfx.md`.
 
 ## Problemas conocidos
 

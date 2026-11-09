@@ -105,7 +105,42 @@ Verificado al mudar: `style-snapshot` idéntico con las hojas viejas y con `book
 - **Base de diálogos y confirmaciones en React (hecho, 9-nov).** `src/components/dialog/`: `ConfirmDialog` (Radix AlertDialog), `Sheet` y `WorkWindow` (Radix Dialog), con el mismo marcado y clases que `#modal` (`ui/organisms/dialog.css`). Se dibujan sobre un `<dialog>` nativo abierto con `showModal()` (`native.ts`): así quedan en la capa superior, por encima de `#modal` (una confirmación desde una Hoja), con su `::backdrop` y el resto inerte; Radix pone role, `aria-labelledby`/`describedby`, foco y `aria-hidden` sobre el resto. `dialogs.tsx` es el servicio: `confirmAction` y `askChoice` (antes `confirm.ts`) mantienen la firma global y el comportamiento (`#confirmDialog` con `data-kind="confirm"`, se abre al instante, Escape cancela, foco en Cancelar si es destructiva, teclado y clics aislados de los atajos, sin espera en la autoprueba); `openSheet(<Contenido />, opciones)` y `openWorkWindow(<Contenido />, opciones)` abren una Hoja o Ventana de React (una a la vez; cierran `#modal`), y `modal.sheet`/`modal.info`/`modal.workspace` las usan si reciben un elemento de React en lugar de HTML. Las pantallas que arman HTML siguen con `modal()` hasta que pasen una por una.
 - **Hojas de configuración en React (hecho, 9-nov).** Configurar libro (`settingsNew`, `src/components/book-setup/BookSetup.tsx`), Configuración (`openSettings`, `src/components/settings/settings-panel.tsx`) y la biblioteca de grillas (`gridGallery`, `src/components/grid-gallery/GridGallery.tsx`) se abren con `openSheet`. Mismo contenido, mismos ids y mismas filas de `i18n.ts` (los textos se traducen en el componente). La validación y el cambio del libro quedaron en `applyBookSettings(isNew, valores)` (studio.ts), que extienden por nombre review-workspace (ya hay documento), publications (grilla del producto editorial) y `tests/welcome-tests.js`; ya nadie envuelve `#modalApply`. `settings(isNew)` y `settingsNew` devuelven la promesa de la Hoja (el tutorial sin documento sigue cuando se cierra). Componentes de formulario reutilizables en `src/components/form/Form.tsx`: `Control`, `Field`, `Select`, `SettingRow`, `CheckItem` (mismo marcado que `control()`, `UI.settingRow` y `UI.checkItem`; campos no controlados, así las pruebas y los módulos pueden escribir `.value`). La Hoja tiene `#sheetApply` y `#sheetCancel`, y `closeSheet()` la cierra en el acto: las pruebas y la autoprueba usan eso en lugar de `#modal` para estas tres pantallas.
 - **Cubierta como vista de trabajo en React (hecho, 9-nov).** `coverEditor()` abre `src/components/cover/CoverEditor.tsx` con `openWorkWindow`: el mismo marcado, ids y clases que armaban entre publications, cover-actions, panel-resize, cover-measurements, editorial-learning, binding-estimate y print-proof (esos módulos ya no inyectan HTML al abrirla; `binding-estimate.ts` pasó al componente). El dibujo no cambió: `updateCoverPreview` sigue pintando `#coverPreview` y escribiendo las medidas, la zona y sus campos, y sus extensiones siguen marcando solapas, pestañas, la tabla de medidas y la zona de la imagen; React deja vacíos esos elementos y los campos no son controlados (el borrador `coverDraft` es la única fuente). Los cambios se atienden con `useFieldEvents` (Form.tsx: "change"/"input" nativos en captura, así llegan los `new Event('change')` de las pruebas). La salida (`#printRoot` de la cubierta) es idéntica a la anterior. Exportar e imprimir van en la barra del título (`extraActions` de la Ventana).
-- **Sigue:** pantallas a React una por una (con `modal.sheet(título, <Contenido />…)`) → bienvenida → diálogos grandes → barras → inspector → riel (D2, tiempo 2).
+- **Cómo se pasa una pantalla:** convención única en `docs/arquitectura.md` → "Pasar una pantalla a React", resumida en el comentario de `src/react/mount.tsx`.
+
+**Estado al 09-nov**
+
+En React (`src/components/`):
+- **Barras:** avisos, barra superior, barra del documento, barra de estado, riel (herramientas con `registerTool`, y vistas Páginas · Índice · Capas) y barra del lienzo (zoom y franja de plantillas).
+- **Pantallas:** bienvenida y centro de Ayuda (tutorial, glosario, atajos, recorrido, "Revisar libro").
+- **Diálogos:**
+  - confirmaciones;
+  - Configurar libro, Configuración, biblioteca de grillas;
+  - asistente editorial, cubierta (vista de trabajo), salida (PDF, imprimir, cubierta sobre hoja, PDF/X-4);
+  - glifos, explorador de fuentes;
+  - los que abre el inspector: guía, entrada de índice, estilo de párrafo, figuras, aula;
+  - pauta tipográfica, armador "Dale estructura a tu libro", empaquetar y el aviso al cerrar. `modal()` es una fachada de los componentes de React y `#modal` ya no se abre.
+- **Inspector**, pestaña Libro: entera (Estructura, Grilla, Misceláneas y líneas, Foliado, Cornisa, Titulillo, Fuentes de tu equipo).
+- **Inspector**, pestaña Página: entera. Selección: el objeto (posición, medidas, alinear, distribuir, orden y bloqueo) y el estado vacío.
+
+Falta:
+- **Inspector:** Selección de texto y párrafo (lo más acoplado, en curso), las vistas Índice y Capas del riel, y después la cadena (pasos 8 a 10 en `docs/arquitectura.md` → "Paneles de React en el inspector").
+- **Retirar `#modal`:** ya nadie lo abre (`exportDialog` y `offerRecovery` se borraron); quedan el `<dialog>` de `index.html`, chequeos `$('#modal').open`, reglas de CSS con `#modalBody` y pruebas que lo cierran.
+- **Al final:**
+  - retirar `#modal` y la API de cadenas de `src/ui/components.ts` cuando no quede HTML;
+  - la parte B de la etapa 2 (`import` reales, objeto de estado y un `extend` que no dependa de `window`).
+
+## Etapa 4: motor de composición y PDF de imprenta
+
+- **Cajas exactas (hecho):** MediaBox, TrimBox y BleedBox en cada página (`desktop/src/main/print-boxes.ts`).
+- **PDF/X-4 (hecho):** con RGB etiquetado (sRGB) y FOGRA39. La opción "PDF para imprenta (PDF/X-4)" está en Preparar PDF; se recuerda en el programa y el error se muestra en la ventana.
+  - No hay conversión a CMYK: una imprenta que pida PDF/X-1a lo rechaza.
+  - Falta validarlo con un preflight externo y con una imprenta real.
+  - Detalle y contrato en `docs/IMPRENTA_09-nov_pdfx.md`.
+- **Motor (`packages/compose`, HarfBuzz en WASM y Knuth-Plass):** cargado en la app detrás de una llave apagada (`localStorage maquetario-compose = 1`).
+  - Todavía no dibuja: `composeReport()` mide la paridad con los cortes de Chromium.
+  - Ya maneja ejes variables, interletraje, colecciones y reglas del castellano.
+  - Sigue el dibujo con llave en `paper()` (paso 4 del plan en `docs/MOTOR_09-nov_composicion.md`).
+  - La autoprueba compara con la llave apagada.
 
 ## 3. Experiencia de uso
 
