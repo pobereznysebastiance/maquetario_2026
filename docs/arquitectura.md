@@ -560,6 +560,18 @@ Pedido de la cátedra de Tipografía I: cada texto tiene un rol con los nombres 
 - La lista de estilos de Párrafo y estilos muestra el rol de cada estilo. Pruebas: `tests/roles-tests.js`.
 - Para la tabla de pautas (lo próximo): por rol, el estilo da tipografía, cuerpo, interlineado, alineación y ancho de caja; las excepciones son los textos con `roleDeviation`.
 
+## Pauta de uso tipográfico (hecho el 09-nov)
+
+Punto 3 del pedido de la cátedra: "la tabla es donde se decide". `src/editorial-rules.tsx` (la Hoja que abre "Pauta tipográfica" en la vista Estructura y "Ver la pauta del libro" en Selección → Rol). Creció sobre la "Pauta de uso tipográfico" de la 3.24, que ya tenía las columnas de la planilla.
+
+- **Una fila por rol** (`collectRoleRows`), en el orden de la planilla, con las columnas de la cátedra: tipografía y cuerpo; variable (escritura sale del texto, peso y rendimiento de la cara y sus ejes, inclinación); alineación; ancho de caja (columnas del rol); interlineado con su clase; operación tipográfica; zonas activas de la grilla en hasta tres dobles páginas (la primera, una del medio y la última donde aparece el rol); excepciones. **Otros** lleva folio, cornisa y titulillo.
+- **Se edita:** tipografía, cuerpo, alineación, ancho de caja, interlineado (valor y clase) y operación. Al aplicar cambia el estilo del rol, o sea todo el libro; el ancho de caja ajusta todas las cajas del rol (`fitBox` de `roles.ts`). La clase de interlineado y la operación se guardan en `book.editorialPautas[styleId]` (el mismo lugar que en la 3.24).
+- **Excepciones:** párrafos del rol con un formato distinto del rol, y cajas del rol con otro ancho; con las páginas para ir.
+- **Amplio / Normal / Ajustado:** por la razón interlineado ÷ cuerpo, con los cortes de `LEADING_LIMITS` (1,2 y 1,4). **Provisorio** hasta que conteste la cátedra; también se puede elegir a mano.
+- **Leyenda** de la cátedra (`GUIDE_LEGEND`) en la vista y en las dos descargas: HTML para imprimir (`renderToStaticMarkup`, A4 apaisado) y CSV para planilla (punto y coma, con BOM para Excel).
+- Los textos sin rol aparecen abajo, agrupados por formato (`collectEditorialRules`, como antes). Ya no está la "función editorial" en texto libre (`book.editorialRoles`): la reemplazan los roles; los datos viejos quedan en el archivo sin usarse.
+- Pruebas: `tests/guide-tests.js` (asíncrona; reemplaza `download` para leer lo que se descarga).
+
 ## Partes del libro, Interior | Cubierta y Aprender (hecho el 09-nov)
 
 Punto 4 del pedido de la cátedra.

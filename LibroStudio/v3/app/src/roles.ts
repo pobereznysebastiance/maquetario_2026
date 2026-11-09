@@ -190,9 +190,9 @@ export function backToRole(): void {
 
 // ── Ancho de caja en columnas de la grilla ──
 
-/** Columnas de la grilla en la página activa: inicio, ancho de una columna y medianil. */
-function gridColumns() {
-  const area = M.gridRect(editor.book, editor.active),
+/** Columnas de la grilla en una página (la activa, si no se dice): inicio, ancho y medianil. */
+function gridColumns(page = editor.active) {
+  const area = M.gridRect(editor.book, page),
     { cols, gapX } = editor.book.grid;
   return { area, cols, gap: gapX, width: (area.w - gapX * (cols - 1)) / cols };
 }
@@ -201,14 +201,14 @@ function gridColumns() {
 export const gridColumnCount = (): number => editor.book.grid.cols;
 
 /** Cuántas columnas de la grilla ocupa la caja (redondeado). */
-export function boxColumns(o: BookObject): number {
-  const c = gridColumns();
+export function boxColumns(o: BookObject, page = editor.active): number {
+  const c = gridColumns(page);
   return Math.max(1, Math.min(c.cols, Math.round((o.w + c.gap) / (c.width + c.gap))));
 }
 
 /** Lleva la caja a n columnas, desde la columna más cercana a donde empieza. */
-function fitBox(o: BookObject, n: number): void {
-  const c = gridColumns(),
+export function fitBox(o: BookObject, n: number, page = editor.active): void {
+  const c = gridColumns(page),
     span = Math.min(n, c.cols),
     step = c.width + c.gap,
     column = Math.max(0, Math.min(c.cols - span, Math.round((o.x - c.area.x) / step)));

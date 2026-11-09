@@ -48,6 +48,7 @@
     'footnotes-tests.js',
     'roles-tests.js',
     'book-parts-tests.js',
+    'guide-tests.js',
   ].map((name) => 'tests/' + name);
   // Lo que llama la autoprueba (desktop/src/main/selftest.ts). Tiene que coincidir con
   // MaquetarioTestsApi (src/contract/page-contract.ts): lo controla scripts/globals-report.mjs.

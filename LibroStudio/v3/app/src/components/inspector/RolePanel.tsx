@@ -78,6 +78,13 @@ export const RolePanel = () => {
             '. Mudar o formato de uma função muda todos os textos que a têm.',
           )}
       </p>
+      <Btn
+        id="openTypeGuide"
+        label={bw('Ver la pauta del libro', 'See the book guide', 'Ver a pauta do livro')}
+        quiet
+        wide
+        onClick={() => editorialRulesDialog()}
+      />
       {deviation ? (
         <div className="role-deviation" data-role-deviation>
           <p className="help">

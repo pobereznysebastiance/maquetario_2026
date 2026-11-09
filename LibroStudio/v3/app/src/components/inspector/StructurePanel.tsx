@@ -5,7 +5,7 @@
 // libro…", las partes del libro (ir al comienzo de cada una) y la ayuda. Suma lo que antes le
 // agregaban dos decoradores desde afuera:
 // - "Formato y configuración" (#structureSettings), que insertaba inspector-views.tsx;
-// - "Reglas internas" (#editorialRules, con un libro abierto), que editorial-rules.ts ponía arriba
+// - "Pauta tipográfica" (#editorialRules, con un libro abierto), que editorial-rules.ts ponía arriba
 //   de todo el inspector, pegado a sus bordes: ahora va dentro de la sección, con los otros botones.
 //
 // Los textos van con bw() o LibroI18n.tr (el traductor del DOM no entra en lo que dibuja React) y
@@ -126,7 +126,7 @@ const StructurePanel = ({
           className="btn wide"
           onClick={() => editorialRulesDialog()}
         >
-          {bw('Reglas internas', 'Editorial rules', 'Regras internas')}
+          {bw('Pauta tipográfica', 'Type guide', 'Pauta tipográfica')}
         </button>
       ) : null}
       <PartsChecklist />

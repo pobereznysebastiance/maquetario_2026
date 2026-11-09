@@ -111,12 +111,9 @@ registerNavigationTest(async function (report) {
     );
     showTab('structure');
     $('#editorialRules').click();
-    $('[data-editorial-role="titulo"]').value = 'Título principal';
-    $('#sheetApply').click();
-    await new Promise((r) => setTimeout(r, 30));
     check(
-      maquetarioEditor.book.editorialRoles.titulo === 'Título principal',
-      'La función editorial se guarda en el proyecto',
+      !!$('.guide-legend') && $('.guide-unassigned')?.textContent.includes('Título'),
+      'La pauta muestra la leyenda de la cátedra y los textos todavía sin rol',
     );
     return report;
   } finally {

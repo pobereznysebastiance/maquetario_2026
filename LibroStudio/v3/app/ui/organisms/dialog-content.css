@@ -750,6 +750,74 @@ dialog.output-modal .dialog-frame .dialog-body {
   --rules-last-min: 105px;
   min-width: var(--rules-last-min);
 }
+/* Pauta por rol (editorial-rules.tsx): campos chicos dentro de las celdas, dobles páginas con las
+   zonas activas, páginas de las excepciones y la leyenda de la cátedra. */
+.guide-table {
+  --guide-field-min: 72px;
+  --guide-number: 64px;
+  --guide-spread-width: 56px;
+}
+.guide-table td {
+  vertical-align: top;
+}
+.guide-table :is(select, input[type='text']) {
+  width: 100%;
+  min-width: var(--guide-field-min);
+}
+.guide-table td > select + .guide-unit,
+.guide-table .guide-unit + select {
+  margin-top: var(--space-2xs);
+}
+.guide-unit {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+}
+.guide-unit input {
+  width: var(--guide-number);
+}
+.guide-zones {
+  display: flex;
+  gap: var(--space-xs);
+}
+.guide-zones figure {
+  margin: 0;
+  text-align: center;
+}
+.guide-zones figcaption {
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  font-variant-numeric: tabular-nums;
+}
+.guide-spread {
+  display: block;
+  width: var(--guide-spread-width);
+  height: auto;
+}
+.guide-page {
+  margin-right: var(--space-2xs);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-accent);
+  font-size: var(--type-xs);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.guide-unassigned ul {
+  margin: var(--space-xs) 0 0;
+  padding-left: var(--space-lg);
+  color: var(--text-secondary);
+  font-size: var(--type-callout);
+}
+.guide-legend {
+  margin: var(--space-lg) 0 var(--space-sm);
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  line-height: var(--leading-text);
+}
 .rule-grid-examples {
   display: flex;
   align-items: flex-start;
