@@ -515,7 +515,6 @@ function translate(): void {
     $('.template-panel'),
     $('.statusbar'),
     $('.inspector'),
-    $('#modal'),
     $('#toast'),
   ];
   for (const root of roots) {

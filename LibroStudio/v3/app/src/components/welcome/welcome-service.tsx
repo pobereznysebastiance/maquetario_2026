@@ -118,7 +118,6 @@ function hideWelcome(): void {
 async function showWelcome(): Promise<void> {
   if (busy) return;
   finishEditing();
-  if ($('#modal').open) $('#modal').close();
   if (globalThis.closeTutorial) globalThis.closeTutorial();
   if (native)
     try {

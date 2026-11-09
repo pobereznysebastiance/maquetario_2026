@@ -224,8 +224,8 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     await capture('selector-abierto.png');
     session.win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
     await delay(150);
-    // Configuración es una Hoja en React (closeSheet); #modal por si quedó otro diálogo.
-    await exec(session, "closeSheet(); document.querySelector('#modal').close()");
+    // Configuración es una Hoja en React.
+    await exec(session, 'closeSheet()');
     // void: executeJavaScript esperaría la promesa, que sólo se resuelve al contestar el diálogo.
     await exec(
       session,
@@ -379,21 +379,13 @@ export async function runSelfTest(session: Session): Promise<boolean> {
         "document.querySelector('#fontBrowser')?.close()",
       ],
       ['panel-cubierta.png', 'window.prepareCoverProof()', 'closeSheet()'],
-      [
-        'panel-asistente.png',
-        'window.prepareAssistantPreview()',
-        "window.closeSheet();document.querySelector('#modal').close()",
-      ],
+      ['panel-asistente.png', 'window.prepareAssistantPreview()', 'window.closeSheet()'],
       [
         'panel-tutorial.png',
         'window.startTutorial(3)',
         "document.querySelector('#pauseTutorial')?.click()",
       ],
-      [
-        'panel-glosario.png',
-        'window.prepareGlossaryPreview()',
-        "document.querySelector('#modal').close()",
-      ],
+      ['panel-glosario.png', 'window.prepareGlossaryPreview()', 'window.closeSheet()'],
     ];
     const done: string[] = [];
     for (const [file, open, close] of shots) {

@@ -404,13 +404,12 @@ function openFontBrowser(select: HTMLSelectElement): void {
   listScroll = Math.max(0, index * ROW_HEIGHT - 100);
   listHeight = 0;
   // Nada de diálogo sobre diálogo: abierto desde una Hoja (por ejemplo, el estilo de párrafo),
-  // ocupa su lugar en vez de apilarse. #modal toma el tamaño de una Ventana y esconde su contenido;
+  // ocupa su lugar en vez de apilarse. La Hoja toma el tamaño de una Ventana y esconde su contenido;
   // el explorador queda encima, sin velo propio. Al cerrarlo vuelve el contenido de la Hoja.
-  // La Hoja que lo aloja: #modal (HTML) o una Hoja de React (dialogs.tsx la deja montada debajo).
-  const modalHost = document.getElementById('modal') as HTMLDialogElement;
-  const host = modalHost.open
-    ? modalHost
-    : document.querySelector<HTMLDialogElement>('#dialogLayer dialog[data-kind="sheet"][open]');
+  // La Hoja que lo aloja (dialogs.tsx la deja montada debajo mientras tanto).
+  const host = document.querySelector<HTMLDialogElement>(
+    '#dialogLayer dialog[data-kind="sheet"][open]',
+  );
   const hosted = !!host;
   void openWorkWindow(<FontBrowser hosted={hosted} />, {
     id: 'fontBrowser',
@@ -429,8 +428,7 @@ function openFontBrowser(select: HTMLSelectElement): void {
   dialog.addEventListener('beforetoggle', (event) => {
     if ((event as ToggleEvent).newState === 'closed') delete host.dataset.hosting;
   });
-  // Si la Hoja se cierra por su cuenta, el explorador se va con ella (la de React: dialogs.tsx).
-  if (host === modalHost) onDialogClose(() => fontBrowser.close());
+  // Si la Hoja se cierra por su cuenta, el explorador se va con ella (lo hace dialogs.tsx).
 }
 globalThis.openFontBrowser = openFontBrowser;
 
@@ -509,13 +507,6 @@ globalThis.decorateFontBrowsers = function (root: ParentNode = document) {
 decorateInspector(() => {
   decorateFontBrowsers($('#inspectorContent'));
 }, 'font-browser');
-extend.after(
-  'modal',
-  function (...args) {
-    decorateFontBrowsers($('#modal'));
-  },
-  'font-browser',
-);
 extend.result(
   'autoElement',
   function (el, i, type, px, print = false) {

@@ -40,12 +40,7 @@ globalThis.toggleFocusLayout = () => {
 document.addEventListener(
   'keydown',
   (e) => {
-    if (
-      e.key === 'Escape' &&
-      document.body.classList.contains('focused') &&
-      !$('#modal').open &&
-      !fontBrowser.open
-    ) {
+    if (e.key === 'Escape' && document.body.classList.contains('focused') && !fontBrowser.open) {
       e.preventDefault();
       document.body.classList.remove('focused');
       applyPanelSizes();

@@ -12,13 +12,13 @@
 // confirmación está abierta, ni el teclado ni los clics llegan a los atajos de la app. Durante la
 // autoprueba (maquetarioSelfTest) no esperan: eligen la primera acción.
 //
-// Hojas y Ventanas: una sola a la vez. Abrir una cierra #modal y reemplaza la que esté abierta
+// Hojas y Ventanas: una sola a la vez. Abrir una reemplaza a la que esté abierta
 // (nada de diálogo sobre diálogo); sólo una confirmación puede quedar por encima. La excepción es
 // keepModal (el explorador de fuentes abierto desde el estilo de párrafo): la Ventana queda
-// "alojada" encima de la Hoja, sea #modal o una Hoja de React, que sigue montada debajo con lo que
+// "alojada" encima de la Hoja, que sigue montada debajo con lo que
 // se escribió; al cerrar la Ventana vuelve la Hoja, y si se cierra la Hoja se va la Ventana.
 // modal(), modal.sheet, modal.info, modal.workspace y modal.confirm (studio.ts) son la fachada de
-// estas funciones: ya no queda ninguna pantalla en HTML dentro de #modal.
+// estas funciones.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
@@ -182,9 +182,7 @@ function openDialog(
   content: ReactNode,
   options: SheetRequest['options'],
 ): Promise<void> {
-  const modal = document.getElementById('modal') as HTMLDialogElement | null;
   const keep = kind === 'workspace' && !!(options as WorkWindowOptions).keepModal;
-  if (modal?.open && !keep) modal.close();
   // Alojada sobre una Hoja de React: la Hoja sigue abierta debajo.
   if (keep && sheetRequest?.kind === 'sheet') {
     if (hostedRequest) hostedRequest.done();

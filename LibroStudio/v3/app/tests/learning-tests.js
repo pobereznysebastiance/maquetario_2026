@@ -101,6 +101,6 @@ registerIntegrationTest(function (r) {
 }, 'learning-tests');
 window.prepareGlossaryPreview = function () {
   hideWelcome();
-  if ($('#modal').open) $('#modal').close();
+  closeSheet();
   showGlossary('gutter');
 };

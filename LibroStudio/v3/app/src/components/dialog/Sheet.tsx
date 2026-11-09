@@ -1,5 +1,5 @@
 // Hoja y Ventana de trabajo (D4) en React: Radix Dialog sobre un <dialog> nativo (ver native.ts),
-// con el mismo marcado y las mismas clases que #modal (ui/organisms/dialog.css):
+// con el marcado y las clases de ui/organisms/dialog.css:
 //   <dialog data-kind="sheet|workspace" data-size> .dialog-frame
 //     .modal-header (título + cruz) · .dialog-body (contenido) · .modal-actions (botones)
 // - Hoja: formulario corto con Cancelar y el verbo (o un solo botón si sólo informa: single).
@@ -66,7 +66,7 @@ export interface WorkWindowOptions {
   /** id del <dialog> (para las pruebas y la autoprueba). */
   id?: string;
   /**
-   * No cerrar la Hoja abierta (#modal o una Hoja de React): la Ventana queda alojada encima y ocupa
+   * No cerrar la Hoja abierta: la Ventana queda alojada encima y ocupa
    * su lugar (el explorador de fuentes abierto desde el estilo de párrafo). Quien abre se ocupa de
    * esconder el contenido de la Hoja mientras tanto (data-hosting en su <dialog>).
    */

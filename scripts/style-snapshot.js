@@ -67,7 +67,7 @@
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const close = () => {
     try {
-      $('#modal')?.open && $('#modal').close();
+      closeSheet();
     } catch {}
     try {
       globalThis.closeSheet?.();

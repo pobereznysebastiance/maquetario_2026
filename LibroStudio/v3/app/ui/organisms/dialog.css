@@ -92,7 +92,7 @@ dialog[data-kind='workspace'] .dialog-body {
   overflow: auto;
 }
 
-/* ── Confirmación dentro de #modal (aviso de cierre): misma forma que #confirmDialog ── */
+/* ── Confirmación con contenido propio (aviso de cierre): misma forma que #confirmDialog ── */
 dialog[data-kind='confirm'] .modal-header {
   padding: var(--space-xl) var(--space-xl) 0;
   border-bottom: 0;
@@ -100,7 +100,7 @@ dialog[data-kind='confirm'] .modal-header {
 dialog[data-kind='confirm'] .modal-header h1 {
   font-size: var(--type-title3);
 }
-dialog[data-kind='confirm'] :is(#modalBody, .dialog-body) {
+dialog[data-kind='confirm'] .dialog-body {
   padding: var(--space-sm) var(--space-xl) 0;
 }
 dialog[data-kind='confirm'] .modal-actions {
@@ -137,8 +137,7 @@ dialog .modal-header .icon-btn:hover {
   color: var(--text-primary);
 }
 
-/* #modal y los diálogos de React (Sheet.tsx) comparten el cuerpo .dialog-body. */
-#modalBody,
+/* Cuerpo de las Hojas, Ventanas y confirmaciones (Sheet.tsx). */
 .dialog-body {
   padding: var(--space-xl);
   color: var(--text-secondary);

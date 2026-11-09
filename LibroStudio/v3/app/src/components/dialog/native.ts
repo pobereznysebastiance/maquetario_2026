@@ -1,5 +1,5 @@
 // Los diálogos de React se dibujan sobre un <dialog> nativo abierto con showModal(): así quedan en
-// la capa superior del navegador, por encima de #modal si está abierto (una confirmación desde
+// la capa superior del navegador, por encima de la Hoja abierta (una confirmación desde
 // dentro de una Hoja), y el resto de la página queda inerte como hasta ahora. Radix pone la
 // semántica (role, aria-labelledby/describedby), el foco al abrir y al cerrar y la marca de
 // "aria-hidden" sobre el resto; el <dialog> pone el fondo (::backdrop), la capa y Escape.

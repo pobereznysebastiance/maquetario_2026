@@ -571,7 +571,6 @@ document.body.append(tutorialCard);
 globalThis.tutorialCard = tutorialCard;
 function startTutorial(index?: number): void {
   hideWelcome();
-  if ($('#modal').open) $('#modal').close();
   // Desde el centro de Ayuda (u otra Hoja o Ventana de React): se cierra antes de mostrar la tarjeta.
   globalThis.closeSheet?.();
   let saved = Number(localStorage.getItem('maquetario-tutorial-step')) || 0;

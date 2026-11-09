@@ -2,7 +2,7 @@
    Alcance acotado a las zonas de interfaz: nunca toca el contenido del libro
    (#spread, #printRoot) ni controles especiales (rango, color, casillas). */
 /* El filtro de tipos va en :where: sin peso propio, así la regla del selector (flecha con aire) le gana. */
-:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .tutorial-card)
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #dialogLayer, dialog, .tutorial-card)
   :is(input:where(:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file'])), select, textarea) {
   min-height: var(--control-sm);
   padding: 0 var(--space-sm);
@@ -15,33 +15,33 @@
   transition: border-color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
 }
 
-:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .tutorial-card) textarea {
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #dialogLayer, dialog, .tutorial-card) textarea {
   padding: var(--space-xs) var(--space-sm);
   line-height: var(--leading-text);
 }
 
-:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .tutorial-card)
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #dialogLayer, dialog, .tutorial-card)
   :is(input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']), select, textarea):hover:not(:disabled) {
   border-color: var(--line-strong);
   background-color: var(--surface-field-hover);
 }
 
-:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .tutorial-card)
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #dialogLayer, dialog, .tutorial-card)
   :is(input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']), select, textarea):focus-visible {
   border-color: var(--action);
   outline-offset: 0;
 }
 
-:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .tutorial-card) ::placeholder {
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #dialogLayer, dialog, .tutorial-card) ::placeholder {
   color: var(--text-tertiary);
 }
 
-:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .tutorial-card) :is(input, select, textarea):disabled {
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #dialogLayer, dialog, .tutorial-card) :is(input, select, textarea):disabled {
   opacity: var(--opacity-disabled);
 }
 
 /* Selector: flecha propia con aire a la derecha (la del sistema queda pegada al borde). */
-:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer, .tutorial-card) select {
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #dialogLayer, dialog, .welcome-footer, .tutorial-card) select {
   appearance: none;
   padding-right: calc(var(--space-sm) * 2 + var(--icon-sm));
   background-image: var(--select-chevron);
@@ -58,16 +58,16 @@
 /* Lista desplegable propia (selector personalizable de Chromium): mismo comportamiento,
    teclado y accesibilidad que el control nativo; el aspecto sale de los tokens
    (antes, la lista era la del sistema, con selección celeste). */
-:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer, .tutorial-card) select,
-:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer, .tutorial-card) select::picker(select) {
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #dialogLayer, dialog, .welcome-footer, .tutorial-card) select,
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #dialogLayer, dialog, .welcome-footer, .tutorial-card) select::picker(select) {
   appearance: base-select;
 }
-:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer, .tutorial-card) select {
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #dialogLayer, dialog, .welcome-footer, .tutorial-card) select {
   display: inline-flex;
   align-items: center;
   line-height: var(--leading-tight);
 }
-:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer, .tutorial-card) select::picker-icon {
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #dialogLayer, dialog, .welcome-footer, .tutorial-card) select::picker-icon {
   display: none;
 }
 select::picker(select) {
@@ -182,7 +182,7 @@ textarea {
 
 /* Selector en una fila: un valor largo se corta con puntos suspensivos antes de la flecha, en vez de
    pasar por debajo. El botón con <selectedcontent> lo agrega src/ui/select.ts. */
-:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer, .tutorial-card) select > button {
+:is(.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #dialogLayer, dialog, .welcome-footer, .tutorial-card) select > button {
   display: block;
   flex: 1;
   min-width: 0;

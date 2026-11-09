@@ -73,7 +73,7 @@ window.runAssistantTests = async function () {
 };
 window.prepareAssistantPreview = async function () {
   hideWelcome();
-  if ($('#modal').open) $('#modal').close();
+  closeSheet();
   if (fontBrowser.open) fontBrowser.close();
   window.prepareNovelProof();
   const target = book.pages[8].objects.find((o) => o.paragraphMap?.[0]?.styleId === 'body');

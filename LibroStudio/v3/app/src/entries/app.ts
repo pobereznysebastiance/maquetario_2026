@@ -66,7 +66,6 @@ import '../components/inspector/TextPanels.tsx';
 import '../category-design.ts';
 import '../ui/focus.ts';
 import '../ui/select.ts';
-import '../ui/dialog.ts';
 import '../components/dialog/dialogs.tsx';
 import '../components/book-setup/BookSetup.tsx';
 import '../components/settings/settings-panel.tsx';

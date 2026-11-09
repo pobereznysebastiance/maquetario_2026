@@ -45,7 +45,7 @@ registerFontTest(async function (r) {
 }, 'font-browser-tests');
 window.prepareFontBrowserPreview = function () {
   hideWelcome();
-  if ($('#modal').open) $('#modal').close();
+  closeSheet();
   showTab('design');
   openFontBrowser($('[data-bind="header.font"]'));
 };

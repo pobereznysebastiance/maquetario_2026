@@ -70,7 +70,7 @@ registerNavigationTest(async function (report) {
     return report;
   } finally {
     closeOutputWindow();
-    if ($('#modal').open) $('#modal').close();
+    closeSheet();
     clearPrint();
     ({ book, active, spread, selected, dirty } = previous);
     render(true);

@@ -624,6 +624,6 @@ globalThis.sendOutput = async function (destination, config, report) {
 document.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.key.toLowerCase() === 'p') {
     e.preventDefault();
-    if (!document.querySelector('#modal[open], #dialogLayer dialog[open]')) outputDialog('print');
+    if (!document.querySelector('#dialogLayer dialog[open]')) outputDialog('print');
   }
 });

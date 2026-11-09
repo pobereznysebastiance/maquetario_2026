@@ -137,7 +137,7 @@ registerNavigationTest(async function (result) {
     return result;
   } finally {
     closeTutorial();
-    if ($('#modal').open) $('#modal').close();
+    closeSheet();
     clearPrint();
     ({ book, active, spread, selected, zoom, tab, dirty, tool } = prior);
     setReadability(wasLarge ? 'large' : 'standard');

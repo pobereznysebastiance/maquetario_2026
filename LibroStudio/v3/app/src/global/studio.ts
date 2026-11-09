@@ -995,7 +995,7 @@ function setTool(name: string): void {
 //   confirmAction / askChoice (components/dialog/dialogs.tsx)       Confirmación simple
 //
 // Todas son React: modal() es la fachada de openSheet / openWorkWindow / openConfirmSheet
-// (components/dialog/), así se llaman igual que cuando armaban HTML en #modal. Nada de diálogo
+// (components/dialog/), así se llaman igual que cuando armaban HTML. Nada de diálogo
 // sobre diálogo: abrir una reemplaza a la que esté abierta. modal(título, cuerpo, aplicar,
 // etiqueta) sin más es una Hoja mediana con Cancelar.
 
@@ -1416,7 +1416,9 @@ function setZoom(z: number): void {
   renderPages();
 }
 document.addEventListener('keydown', (e) => {
-  if ($('#modal').open) return;
+  // Con un diálogo abierto (todos viven en #dialogLayer), los atajos del editor no corren: Ctrl+S,
+  // Ctrl+Z o Supr no tienen que tocar el libro por detrás de una Hoja.
+  if (document.querySelector('#dialogLayer dialog[open]')) return;
   const input = (e.target as Element).closest?.('input,textarea,select,[contenteditable="true"]');
   if (e.ctrlKey && e.key.toLowerCase() === 's') {
     e.preventDefault();

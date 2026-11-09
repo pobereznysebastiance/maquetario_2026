@@ -29,7 +29,6 @@ declare global {
 globalThis.prepareNovelProof = function () {
   hideWelcome();
   closeTutorial();
-  if ($('#modal').open) $('#modal').close();
   installNovel(composeNovel(novelSample()));
   const report: NovelProofReport = {
     title: book.title,

@@ -162,7 +162,6 @@ document.addEventListener('keydown', (e) => {
   if (e.key !== 'F1') return;
   e.preventDefault();
   // Con otro diálogo abierto no se lo reemplaza (se perdería lo que tenga sin aplicar).
-  const other =
-    ($('#modal') as HTMLDialogElement).open || (!helpOpen() && openSheetContent() !== null);
+  const other = !helpOpen() && openSheetContent() !== null;
   if (!other) openHelp();
 });

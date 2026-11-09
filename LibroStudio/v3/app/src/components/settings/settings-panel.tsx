@@ -487,7 +487,7 @@ async function openSettings(focusSection?: string): Promise<void> {
       nativeCall('motiovaStatus').catch(() => null),
     ]);
   }
-  // Abrir una Hoja cierra #modal y reemplaza la Hoja abierta (también esta misma, al rearmarla).
+  // Abrir una Hoja reemplaza la Hoja abierta (también esta misma, al rearmarla).
   void openSheet(<SettingsPanel info={info} account={account} focusSection={focusSection} />, {
     title: t('title'),
     single: true,

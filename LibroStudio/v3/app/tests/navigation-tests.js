@@ -10,7 +10,7 @@ window.runNavigationTests = async function () {
     priorTool = tool;
   try {
     hideWelcome();
-    if ($('#modal').open) $('#modal').close();
+    closeSheet();
     if (fontBrowser.open) fontBrowser.close();
     hasDocument = true;
     book = M.create();
@@ -126,7 +126,7 @@ window.runNavigationTests = async function () {
       !!M.auto(book, 1, 'header') && !!M.auto(book, 1, 'folio'),
       'Volver a mostrar elementos individuales',
     );
-    $('#modal').close();
+    closeSheet();
     return { ok: true, checks };
   } finally {
     spaceHand = false;

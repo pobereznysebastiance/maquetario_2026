@@ -69,13 +69,6 @@ decorateInspector(() => {
   adaptLengthControls($('#inspectorContent'));
 }, 'document-units');
 extend.after(
-  'modal',
-  function () {
-    if ($('#modal').open && !$('#pageUnits')) adaptLengthControls($('#modalBody'));
-  },
-  'document-units',
-);
-extend.after(
   'coverEditor',
   function () {
     // La cubierta es una Ventana de React: sus medidas están en su .dialog-body.

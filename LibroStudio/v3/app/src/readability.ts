@@ -73,7 +73,7 @@ document.addEventListener(
     if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
       e.preventDefault();
       e.stopImmediatePropagation();
-      if (!welcomeVisible && !$('#modal').open) saveProjectAs();
+      if (!welcomeVisible && !document.querySelector('#dialogLayer dialog[open]')) saveProjectAs();
     }
   },
   true,
