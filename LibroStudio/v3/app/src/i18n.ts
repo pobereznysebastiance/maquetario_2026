@@ -248,6 +248,7 @@ const labels: TranslationRow[] = [
   ],
   ['Guardar y continuar', 'Save and continue', 'Salvar e continuar'],
   ['Continuar sin guardar', 'Continue without saving', 'Continuar sem salvar'],
+  ['Asistente editorial', 'Editorial assistant', 'Assistente editorial'],
   ['Retomá tu último libro', 'Resume your last book', 'Retome seu último livro'],
   ['Recuperar libro', 'Recover book', 'Recuperar livro'],
   ['Diseñá con intención', 'Design with intention', 'Crie com intenção'],

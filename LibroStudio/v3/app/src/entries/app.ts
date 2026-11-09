@@ -37,6 +37,7 @@ import '../page-priority.ts';
 import '../inspector-organization.ts';
 import '../shapes.ts';
 import '../editorial-assistant.ts';
+import '../components/assistant/EditorialAssistant.tsx';
 import '../canvas-navigation.ts';
 import '../page-exceptions.ts';
 import '../app-notices.ts';

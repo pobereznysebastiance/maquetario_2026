@@ -58,7 +58,7 @@ window.runAssistantTests = async function () {
     check(target.text === 'Un texto', 'Corrección de espacios es individual y explícita');
     undo();
     check(JSON.stringify(book) === stamp, 'Corrección del asistente permite deshacer');
-    $('#modal').close();
+    closeSheet();
     return { ok: true, checks };
   } finally {
     book = prior;

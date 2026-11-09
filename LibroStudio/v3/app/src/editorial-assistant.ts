@@ -4,9 +4,15 @@
 // cajas de texto superpuestas y texto sobrante en la cubierta). La consulta a la IA del aula manda
 // texto y medidas al servicio del docente por el anfitrión (nativeCall), sólo con autorización.
 // Los hallazgos no cambian el libro: sólo la corrección de espacios, explícita y con deshacer.
-// Fuente TypeScript: se compila a build/editorial-assistant.js (desktop/scripts/build.mjs).
+//
+// Este archivo es la lógica (revisión, consulta, estado del informe). La Ventana de trabajo es
+// React: src/components/assistant/EditorialAssistant.tsx, que lee el estado de `assistant` y
+// se redibuja con notifyEditorState() (src/react/editor-state.ts).
+//
+// Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 import type { BookObject } from './model.ts';
+import { notifyEditorState } from './react/editor-state.ts';
 
 export type FindingSeverity = 'error' | 'warning' | 'tip';
 
@@ -27,18 +33,35 @@ export interface EditorialFinding {
 }
 
 /** Estado de la conexión con el servicio de IA del aula (lo devuelve el anfitrión). */
-interface ClassServiceInfo {
+export interface ClassServiceInfo {
   configured: boolean;
   serviceUrl: string;
 }
 
 type ImageSize = { w: number; h: number };
 
-let editorialReport: EditorialFinding[] = [],
-  editorialBusy = false,
-  editorialSummary = '',
-  editorialReportStamp = '',
-  classServiceInfo: ClassServiceInfo = { configured: false, serviceUrl: '' };
+/**
+ * Estado del asistente. Lo lee la Ventana de trabajo al dibujarse; quien lo cambie llama a
+ * notifyEditorState() para que se redibuje.
+ */
+export const assistant = {
+  /** Hallazgos del último informe. */
+  report: [] as EditorialFinding[],
+  /** Huella del libro cuando se hizo el informe ('' si no hay informe). */
+  stamp: '',
+  /** Resumen del informe. */
+  summary: '',
+  /** Hay una revisión en curso (automática o con IA): no se larga otra. */
+  busy: false,
+  /** Cuál corre, para deshabilitar su botón. */
+  running: null as 'auto' | 'ai' | null,
+  /** Texto mientras corre una revisión (va en el lugar del resumen). */
+  progress: '',
+  /** Error de la última revisión o consulta. */
+  error: '',
+  /** Conexión con el servicio del aula. */
+  service: { configured: false, serviceUrl: '' } as ClassServiceInfo,
+};
 const imageSizeCache = new Map<string, Promise<ImageSize | null>>();
 const assistantSpark =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 2.7 7.3L22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7Z"/><path d="m20 2 .6 1.4L22 4l-1.4.6L20 6l-.6-1.4L18 4l1.4-.6Z"/></svg>';
@@ -53,7 +76,7 @@ assistantButton.innerHTML =
   '</span>';
 assistantButton.title = bw('Revisar mi libro', 'Review my book', 'Revisar meu livro');
 $('#printButton').before(assistantButton);
-assistantButton.onclick = () => openEditorialAssistant();
+assistantButton.onclick = () => globalThis.openEditorialAssistant();
 function reviewStamp(): string {
   let hash = 2166136261;
   const text = JSON.stringify([
@@ -348,137 +371,6 @@ async function automaticEditorialReview(): Promise<EditorialFinding[]> {
     });
   return issues;
 }
-function renderEditorialResults(): void {
-  const host = $('#assistantFindings');
-  if (!host) return;
-  const visible = editorialReport.filter((x) => !x.ignored);
-  host.innerHTML = visible.length
-    ? visible
-        .map((item) => {
-          const index = book.pages.findIndex((p) => p.id === item.pageId);
-          return `<article class="assistant-finding ${item.severity}"><div class="assistant-finding-heading"><span class="assistant-status" aria-hidden="true"></span><h3>${esc(item.title)}</h3><small>${item.source === 'ai' ? 'IA' : bw('Automática', 'Automatic', 'Automática')}${index >= 0 ? ' · ' + bw('Página', 'Page', 'Página') + ' ' + (index + 1) : ''}</small></div><p>${esc(item.detail)}</p><div class="assistant-suggestion">${esc(item.suggestion)}</div><div class="assistant-finding-actions"><button type="button" class="btn" data-finding-go="${item.id}">${bw('Ver en el libro', 'View in the book', 'Ver no livro')}</button>${item.fix === 'spaces' ? `<button type="button" class="btn" data-finding-fix="${item.id}">${bw('Quitar espacios repetidos', 'Remove repeated spaces', 'Remover espaços repetidos')}</button>` : ''}<button type="button" class="quiet" data-finding-ignore="${item.id}">${bw('Ignorar', 'Ignore', 'Ignorar')}</button></div></article>`;
-        })
-        .join('')
-    : `<div class="assistant-empty"><span>✦</span><h3>${editorialReportStamp ? bw('Sin hallazgos pendientes', 'No pending findings', 'Sem observações pendentes') : bw('Una mirada más antes de publicar', 'One more look before publishing', 'Mais uma revisão antes de publicar')}</h3><p>${bw('La revisión automática comprueba texto sobrante, límites de página, fuentes, resolución y algunas coincidencias geométricas. No sustituye la revisión editorial completa.', 'Automatic review checks overset text, page bounds, fonts, resolution and selected geometric issues. It does not replace a complete editorial review.', 'A revisão automática verifica excesso de texto, limites, fontes, resolução e algumas relações geométricas. Não substitui a revisão editorial completa.')}</p></div>`;
-  $('#assistantSummary').textContent =
-    editorialSummary ||
-    bw(
-      'Elegí una revisión para comenzar.',
-      'Choose a review to start.',
-      'Escolha uma revisão para começar.',
-    );
-  $('#assistantStale').hidden = !editorialReportStamp || editorialReportStamp === reviewStamp();
-  host.querySelectorAll<HTMLElement>('[data-finding-go]').forEach(
-    (b) =>
-      (b.onclick = () => {
-        const item = editorialReport.find((x) => x.id === b.dataset.findingGo)!;
-        $('#modal').close();
-        if (item.kind === 'cover') {
-          setTimeout(coverEditor, 30);
-          return;
-        }
-        const index = book.pages.findIndex((p) => p.id === item.pageId);
-        if (index < 0) return;
-        goToBookPage(index);
-        selected = book.pages[index].objects.some((o) => o.id === item.objectId)
-          ? item.objectId
-          : null;
-        showTab(selectObject()?.type === 'text' ? 'text' : 'object');
-        render(true);
-      }),
-  );
-  host.querySelectorAll<HTMLElement>('[data-finding-ignore]').forEach(
-    (b) =>
-      (b.onclick = () => {
-        editorialReport.find((x) => x.id === b.dataset.findingIgnore)!.ignored = true;
-        renderEditorialResults();
-      }),
-  );
-  host.querySelectorAll<HTMLElement>('[data-finding-fix]').forEach(
-    (b) =>
-      (b.onclick = () => {
-        const item = editorialReport.find((x) => x.id === b.dataset.findingFix)!,
-          target = book.pages
-            .find((p) => p.id === item.pageId)
-            ?.objects.find((o) => o.id === item.objectId);
-        if (!target || target.locked) return;
-        commit(() => (target.text = target.text.replace(/(\S) {2,}(?=\S)/g, '$1 ')), false);
-        item.ignored = true;
-        renderEditorialResults();
-        toast(
-          bw(
-            'Espacios corregidos. Podés deshacer el cambio.',
-            'Spaces corrected. You can undo this change.',
-            'Espaços corrigidos. Você pode desfazer.',
-          ),
-        );
-      }),
-  );
-}
-async function openEditorialAssistant(): Promise<void> {
-  if (!hasDocument) {
-    toast(
-      bw(
-        'Creá o abrí un libro para revisarlo.',
-        'Create or open a book to review it.',
-        'Crie ou abra um livro para revisá-lo.',
-      ),
-      'info',
-    );
-    return;
-  }
-  try {
-    classServiceInfo = await nativeCall('assistantStatus');
-  } catch {}
-  modal.workspace(
-    bw('Asistente editorial', 'Editorial assistant', 'Assistente editorial'),
-    `<div class="assistant-hero"><div><h2>${bw('Revisar mi libro', 'Review my book', 'Revisar meu livro')}</h2><p>${bw('Encontrá detalles, entendé el motivo y decidí qué cambiar.', 'Find details, understand why and decide what to change.', 'Encontre detalhes, entenda o motivo e decida o que mudar.')}</p></div></div><div class="assistant-workspace"><aside><button type="button" class="btn assistant-run" id="runAutomaticReview">${bw('Revisión automática', 'Automatic review', 'Revisão automática')}</button><p class="help">${bw('Sin conexión. No envía contenido.', 'Offline. Sends no content.', 'Sem conexão. Não envia conteúdo.')}</p><hr><h3>${bw('IA del aula', 'Classroom AI', 'IA da turma')}</h3><p class="help" id="assistantConnection">${classServiceInfo.configured ? bw('Aula conectada', 'Classroom connected', 'Turma conectada') : bw('Pendiente de conectar al servicio del docente.', 'Waiting for the teacher service connection.', 'Aguardando conexão ao serviço do docente.')}</p><button type="button" class="btn wide" id="assistantConnect">${bw('Conectar aula', 'Connect classroom', 'Conectar turma')}</button><label class="builder-label" for="assistantScope">${bw('Consulta con IA', 'AI review scope', 'Consulta com IA')}</label><select id="assistantScope"><option value="page">${bw('Página activa', 'Active page', 'Página ativa')}</option><option value="structure">${bw('Estructura del libro', 'Book structure', 'Estrutura do livro')}</option></select><p class="help">${bw('Página activa: envía texto y medidas, hasta 20.000 caracteres. Estructura: solo títulos de partes y medidas, sin el cuerpo del manuscrito. No envía imágenes ni archivos.', 'Active page: sends text and dimensions, up to 20,000 characters. Structure: only part titles and dimensions, without manuscript body text. Sends no images or files.', 'Página ativa: envia texto e medidas, até 20.000 caracteres. Estrutura: apenas títulos das partes e medidas, sem o corpo do manuscrito. Não envia imagens nem arquivos.')}</p><label class="check-line assistant-consent"><input type="checkbox" id="assistantConsent">${bw('Autorizo enviar esta consulta al servicio de IA del aula.', 'I authorize sending this query to the classroom AI service.', 'Autorizo enviar esta consulta ao serviço de IA da turma.')}</label><button type="button" class="btn wide" id="runClassroomAI" ${classServiceInfo.configured ? '' : 'disabled'}>${bw('Consultar IA', 'Ask AI', 'Consultar IA')}</button><p class="help">${bw('Las sugerencias de IA pueden equivocarse. No cambian el libro automáticamente.', 'AI suggestions can be wrong. They do not change the book automatically.', 'Sugestões da IA podem estar erradas. Não alteram o livro automaticamente.')}</p></aside><section><div id="assistantSummary"></div><p class="notice" id="assistantStale" hidden>${bw('El libro cambió. Repetí la revisión para actualizar los hallazgos.', 'The book changed. Run the review again to refresh findings.', 'O livro mudou. Repita a revisão para atualizar as observações.')}</p><div id="assistantFindings"></div><p id="assistantError" class="inline-error"></p></section></div>`,
-    { variant: 'assistant-modal' },
-  );
-  $('#runAutomaticReview').onclick = runAutomaticReview;
-  $('#assistantConnect').onclick = configureClassroom;
-  $('#runClassroomAI').onclick = runClassroomReview;
-  renderEditorialResults();
-}
-async function runAutomaticReview(): Promise<void> {
-  if (editorialBusy) return;
-  editorialBusy = true;
-  $('#runAutomaticReview').disabled = true;
-  $('#assistantError').textContent = '';
-  const stamp = reviewStamp();
-  try {
-    $('#assistantSummary').textContent = bw(
-      'Revisando todas las páginas…',
-      'Reviewing all pages…',
-      'Revisando todas as páginas…',
-    );
-    const issues = await automaticEditorialReview();
-    editorialReport = issues;
-    editorialReportStamp = stamp;
-    editorialSummary = `${book.pages.length} ${bw('páginas revisadas', 'pages reviewed', 'páginas revisadas')} · ${issues.length} ${bw('hallazgos para comprobar', 'findings to check', 'observações para conferir')}`;
-    renderEditorialResults();
-  } catch (e) {
-    if ($('#assistantError')) $('#assistantError').textContent = (e as Error).message;
-  } finally {
-    editorialBusy = false;
-    if ($('#runAutomaticReview')) $('#runAutomaticReview').disabled = false;
-  }
-}
-function configureClassroom(): void {
-  modal.sheet(
-    bw('Conectar el aula', 'Connect classroom', 'Conectar turma'),
-    `<p class="builder-intro">${bw('Tu docente te entrega un código. La clave del proveedor de IA nunca se instala en los equipos de estudiantes.', 'Your teacher provides a code. The AI provider key is never installed on student computers.', 'Seu docente fornece um código. A chave do provedor de IA nunca é instalada nos computadores dos alunos.')}</p><label class="builder-label" for="classCode">${bw('Código de aula', 'Classroom code', 'Código da turma')}</label><input id="classCode" type="password" autocomplete="off" maxlength="200" placeholder="${classServiceInfo.configured ? bw('Dejar vacío para conservar', 'Leave blank to keep', 'Deixar vazio para manter') : ''}"><details ${classServiceInfo.serviceUrl ? '' : 'open'}><summary>${bw('Configuración del docente', 'Teacher setup', 'Configuração do docente')}</summary><label class="builder-label" for="classUrl">${bw('Dirección del servicio del aula', 'Classroom service address', 'Endereço do serviço da turma')}</label><input id="classUrl" type="url" value="${esc(classServiceInfo.serviceUrl || '')}" placeholder="https://…"><p class="help">${bw('Podés distribuir maquetario-aula.json junto al ejecutable con esta dirección. Los estudiantes solo ingresan el código. El servicio central se publica por separado.', 'Distribute maquetario-aula.json next to the executable with this address. Students only enter the code. Publish the central service separately.', 'Distribua maquetario-aula.json junto ao executável com este endereço. Alunos só informam o código. O serviço central é publicado separadamente.')}</p></details>`,
-    async () => {
-      await nativeCall('assistantConfigure', {
-        url: $('#classUrl').value.trim(),
-        code: $('#classCode').value.trim(),
-      });
-      setTimeout(openEditorialAssistant, 30);
-    },
-    bw('Guardar conexión', 'Save connection', 'Salvar conexão'),
-    { size: 'sm' },
-  );
-}
 function classroomPayload(scope: string) {
   const pages =
     scope === 'page'
@@ -527,66 +419,6 @@ function classroomPayload(scope: string) {
     truncated: truncated,
   };
 }
-async function runClassroomReview(): Promise<void> {
-  if (editorialBusy) return;
-  if (!$('#assistantConsent').checked) {
-    $('#assistantError').textContent = bw(
-      'Marcá la autorización antes de enviar.',
-      'Authorize the query before sending.',
-      'Autorize a consulta antes de enviar.',
-    );
-    return;
-  }
-  const payload = classroomPayload($('#assistantScope').value);
-  const stamp = reviewStamp();
-  editorialBusy = true;
-  $('#runClassroomAI').disabled = true;
-  $('#assistantError').textContent = '';
-  try {
-    $('#assistantSummary').textContent = bw(
-      'Consultando la IA del aula…',
-      'Asking the classroom AI…',
-      'Consultando a IA da turma…',
-    );
-    const result = await nativeCall('assistantReview', { consent: true, document: payload });
-    if (!result || typeof result.summary !== 'string' || !Array.isArray(result.issues))
-      throw Error(
-        bw(
-          'El servicio devolvió una respuesta no válida.',
-          'The service returned an invalid response.',
-          'O serviço retornou uma resposta inválida.',
-        ),
-      );
-    const allowedPages = new Set(payload.pages.map((p) => p.id));
-    // La respuesta del servicio es JSON sin tipo: estos filtros son su validación.
-    const suggestions: EditorialFinding[] = (result.issues as any[])
-      .slice(0, 30)
-      .filter(
-        (i) =>
-          allowedPages.has(i.pageId) &&
-          ['warning', 'tip'].includes(i.severity) &&
-          [i.title, i.detail, i.suggestion].every((v) => typeof v === 'string' && v.length < 3000),
-      )
-      .map((i) => ({ ...i, id: M.uid(), source: 'ai', kind: 'ai', fix: null }));
-    editorialReport = editorialReport.filter((i) => i.source !== 'ai').concat(suggestions);
-    editorialReportStamp = stamp;
-    editorialSummary =
-      result.summary.slice(0, 3000) +
-      (payload.truncated
-        ? bw(
-            ' · El texto enviado fue recortado al límite.',
-            ' · Submitted text was truncated to the limit.',
-            ' · O texto enviado foi limitado.',
-          )
-        : '');
-    renderEditorialResults();
-  } catch (e) {
-    if ($('#assistantError')) $('#assistantError').textContent = (e as Error).message;
-  } finally {
-    editorialBusy = false;
-    if ($('#runClassroomAI')) $('#runClassroomAI').disabled = false;
-  }
-}
 
 extend.after(
   'render',
@@ -601,12 +433,11 @@ extend.after(
 );
 
 // Publicado a propósito: las pruebas (tests/assistant-tests.js, paso "asistente editorial" de la
-// autoprueba) llaman a estas funciones, y scripts/style-snapshot.js abre el diálogo.
+// autoprueba) llaman a estas funciones. openEditorialAssistant y runAutomaticReview los publica
+// la pantalla (EditorialAssistant.tsx).
 type ClassroomPayload = ReturnType<typeof classroomPayload>;
 type FindingFactory = typeof finding;
 declare global {
-  var openEditorialAssistant: () => Promise<void>;
-  var runAutomaticReview: () => Promise<void>;
   var automaticEditorialReview: () => Promise<EditorialFinding[]>;
   var classroomPayload: (scope: string) => ClassroomPayload;
   var finding: FindingFactory;
@@ -618,28 +449,22 @@ declare global {
   /** Resumen que muestra el diálogo sobre los hallazgos. */
   var editorialSummary: string;
 }
-globalThis.openEditorialAssistant = openEditorialAssistant;
-globalThis.runAutomaticReview = runAutomaticReview;
 globalThis.automaticEditorialReview = automaticEditorialReview;
 globalThis.classroomPayload = classroomPayload;
 globalThis.finding = finding;
 globalThis.reviewStamp = reviewStamp;
 // El estado del informe sigue siendo de este archivo; las pruebas lo leen y lo reemplazan por
-// estos accesores (antes eran `let` globales que se asignaban directamente).
+// estos accesores (y la Ventana, si está abierta, se redibuja).
+const field = <K extends 'report' | 'stamp' | 'summary'>(key: K) => ({
+  get: () => assistant[key],
+  set: (value: (typeof assistant)[K]) => {
+    assistant[key] = value;
+    notifyEditorState();
+  },
+  configurable: true,
+});
 Object.defineProperties(globalThis, {
-  editorialReport: {
-    get: () => editorialReport,
-    set: (value: EditorialFinding[]) => (editorialReport = value),
-    configurable: true,
-  },
-  editorialReportStamp: {
-    get: () => editorialReportStamp,
-    set: (value: string) => (editorialReportStamp = value),
-    configurable: true,
-  },
-  editorialSummary: {
-    get: () => editorialSummary,
-    set: (value: string) => (editorialSummary = value),
-    configurable: true,
-  },
+  editorialReport: field('report'),
+  editorialReportStamp: field('stamp'),
+  editorialSummary: field('summary'),
 });

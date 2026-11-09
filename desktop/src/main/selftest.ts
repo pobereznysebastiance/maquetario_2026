@@ -364,7 +364,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
       [
         'panel-asistente.png',
         'window.prepareAssistantPreview()',
-        "document.querySelector('#modal').close()",
+        "window.closeSheet();document.querySelector('#modal').close()",
       ],
       [
         'panel-tutorial.png',

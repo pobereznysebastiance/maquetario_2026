@@ -45,7 +45,8 @@
   background: transparent;
   box-shadow: none;
 }
-#modalBody :is(h3, .section-heading) {
+/* También en el cuerpo de las Hojas y Ventanas de React (.dialog-body), con el mismo peso. */
+:is(#modalBody, .dialog-body) :is(h3, .section-heading) {
   color: var(--text-primary);
   font-size: var(--type-title3);
   font-weight: var(--weight-semibold);
