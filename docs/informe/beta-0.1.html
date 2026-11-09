@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Maquetario BETA 0.1 · Qué cambió y qué probar</title>
+<style>
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-400.ttf'); font-weight: 400; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-500.ttf'); font-weight: 500; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-600.ttf'); font-weight: 600; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-700.ttf'); font-weight: 700; }
+
+@page { size: A4; margin: 22mm 20mm 20mm 22mm; }
+
+:root {
+  --ink: #1d2a2f;
+  --ink-soft: #4b5b60;
+  --ink-faint: #7a8a8d;
+  --rule: #d5dcdc;
+  --petrol: #17272d;
+  --teal: #1f9e8d;
+  --gold: #b9823e;
+  --shade: #f2f4f2;
+}
+
+* { box-sizing: border-box; }
+html { font-family: 'DM Sans', 'Segoe UI', sans-serif; color: var(--ink); font-size: 10.2pt; line-height: 1.52; }
+body { margin: 0; }
+h1, h2, h3 { font-weight: 600; color: var(--petrol); line-height: 1.2; break-after: avoid; }
+h1 { font-size: 22pt; margin: 0 0 4mm; letter-spacing: -0.015em; }
+h2 { font-size: 13.5pt; margin: 9mm 0 3mm; padding-top: 3mm; border-top: 0.6pt solid var(--rule); }
+h3 { font-size: 10.8pt; margin: 5mm 0 1.5mm; }
+p { margin: 0 0 2.6mm; text-wrap: pretty; }
+ul, ol { margin: 0 0 2.6mm; padding-left: 5mm; }
+li { margin-bottom: 1.2mm; text-wrap: pretty; }
+strong { font-weight: 600; }
+
+.cover { height: 247mm; display: flex; flex-direction: column; break-after: page; }
+.cover-brand { display: flex; align-items: center; gap: 3.5mm; font-weight: 600; font-size: 13pt; color: var(--petrol); }
+.cover-brand img { width: 12mm; height: 12mm; }
+.cover-title { margin-top: 52mm; }
+.cover-title h1 { font-size: 30pt; max-width: 150mm; }
+.cover-title p { font-size: 12pt; color: var(--ink-soft); max-width: 140mm; }
+.cover-rule { width: 22mm; height: 0.9mm; background: var(--gold); margin: 7mm 0; }
+.cover-meta { margin-top: auto; display: grid; grid-template-columns: 38mm 1fr; row-gap: 1.6mm; font-size: 9.4pt; }
+.cover-meta dt { color: var(--ink-faint); }
+.cover-meta dd { margin: 0; }
+
+.lead { font-size: 11pt; color: var(--ink-soft); }
+.group { break-inside: avoid; margin-bottom: 4mm; }
+
+figure { margin: 3mm 0 5mm; break-inside: avoid; }
+figure .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+figure img { width: 100%; border: 0.5pt solid var(--rule); display: block; }
+figcaption { font-size: 8.6pt; color: var(--ink-faint); margin-top: 1.6mm; }
+.label { font-size: 8.4pt; color: var(--ink-soft); margin-bottom: 1mm; }
+
+ol.checks { counter-reset: check; list-style: none; padding-left: 0; }
+ol.checks > li { counter-increment: check; position: relative; padding-left: 8mm; margin-bottom: 2.4mm; break-inside: avoid; }
+ol.checks > li::before { content: counter(check); position: absolute; left: 0; top: 0.2mm; width: 5mm; height: 5mm; border-radius: 50%; background: var(--teal); color: #fff; font-size: 7.6pt; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+ol.checks .how { display: block; color: var(--ink-soft); font-size: 9.3pt; }
+
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9pt; break-inside: avoid; }
+th, td { text-align: left; vertical-align: top; padding: 1.6mm 2mm; border-bottom: 0.5pt solid var(--rule); }
+th { font-weight: 600; color: var(--petrol); border-bottom: 0.9pt solid var(--petrol); }
+
+.note { font-size: 9.2pt; color: var(--ink-soft); }
+.page-break { break-before: page; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="cover-brand"><img src="../../LibroStudio/v3/app/maquetario.svg" alt=""> Maquetario</div>
+  <div class="cover-title">
+    <h1>Maquetario BETA 0.1</h1>
+    <div class="cover-rule"></div>
+    <p>Qué cambió respecto de la versión 3.24 publicada, qué conviene probar y qué devolución nos sirve para seguir.</p>
+  </div>
+  <dl class="cover-meta">
+    <dt>Para</dt><dd>Sebastián Poberezny</dd>
+    <dt>De</dt><dd>Juan Cruz Canteros · Tiny Studio</dd>
+    <dt>Fecha</dt><dd>9 de noviembre de 2026</dd>
+    <dt>Versión a probar</dt><dd>BETA 0.1 (instalador <em>Maquetario BETA 0.1.exe</em>)</dd>
+    <dt>Comparada con</dt><dd>Maquetario 3.24, la versión publicada (rama <em>main</em>)</dd>
+  </dl>
+</section>
+
+<h2 style="border-top:0;padding-top:0;margin-top:0">En pocas palabras</h2>
+<p class="lead">BETA 0.1 es Maquetario 3.24 hecho de nuevo por dentro, con una interfaz más ordenada y funciones nuevas para trabajar sobre la página. <strong>Todo lo que hacía la 3.24 sigue estando</strong>: nada se quitó, se reorganizó y se sumó.</p>
+<ul>
+  <li><strong>Es un programa nuevo para la computadora:</strong> se instala con un clic, sin pedir permisos de administrador y sin instalar nada aparte.</li>
+  <li><strong>La interfaz es nueva:</strong> mismos colores de la marca (petróleo y verde agua), más sobria, con cada cosa donde se espera encontrarla.</li>
+  <li><strong>Hay funciones nuevas</strong> para la página, la cubierta y la salida a imprenta.</li>
+  <li><strong>Está lista para venderse desde Motiova:</strong> la conexión con la cuenta y la licencia por equipo ya están, todavía apagadas hasta que exista el lanzador.</li>
+</ul>
+
+<figure>
+  <div class="pair">
+    <div><div class="label">Versión 3.24</div><img src="img/editor-antes.png" alt=""></div>
+    <div><div class="label">BETA 0.1</div><img src="img/beta-editor.png" alt=""></div>
+  </div>
+  <figcaption>El mismo libro en las dos versiones. En BETA 0.1: a la izquierda, sólo las herramientas que actúan sobre la página; a la derecha, el panel que sigue a lo que se toca.</figcaption>
+</figure>
+
+<h2>Qué mejoró</h2>
+
+<div class="group">
+<h3>El programa</h3>
+<ul>
+  <li>Instalación de un clic, por usuario, sin permisos de administrador y sin depender de WebView2 ni de .NET.</li>
+  <li>Los archivos <em>.mqt</em> se abren con doble clic.</li>
+  <li>La ventana se adapta a las notebooks (desde 1366 × 768) y a monitores grandes.</li>
+  <li>Guardar dice la verdad: un solo aviso de cambios sin guardar y recuperación del trabajo si el programa se cierra de golpe.</li>
+  <li>La base queda lista para macOS y Linux, además de Windows.</li>
+  <li>Conexión con la cuenta de Motiova, licencia por equipo y aviso de versión nueva (preparado, todavía apagado).</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>La interfaz</h3>
+<ul>
+  <li>Un sistema de diseño propio: mismos colores, tamaños y controles en toda la app, con la tipografía ordenada como en macOS. Menos dorado, sin degradés ni etiquetas en mayúsculas.</li>
+  <li><strong>Herramientas a la izquierda, sólo las de la página:</strong> Seleccionar, Mano, Texto, Imagen, Marco y Figuras. Antes había atajos mezclados con herramientas y algunas repetidas (dos para crear texto).</li>
+  <li><strong>Un selector debajo:</strong> Páginas, Estructura del libro, Índice y Capas, cada uno en su vista.</li>
+  <li><strong>El panel derecho tiene tres pestañas:</strong>
+    <ul>
+      <li><strong>Libro:</strong> formato y márgenes, grilla, foliado, cornisa, titulillo y fuentes.</li>
+      <li><strong>Página:</strong> la página activa y sus excepciones.</li>
+      <li><strong>Selección:</strong> lo que esté elegido.</li>
+    </ul>
+    Antes eran siete pestañas.</li>
+  <li><strong>El panel sigue a lo que se toca:</strong> elegir una caja abre Selección, y con una caja de texto aparece primero la tipografía. Tocar el vacío de la página lleva a Página.</li>
+  <li>Cubierta, Revisar libro y Configurar libro están juntos en la barra del documento.</li>
+  <li>Los avisos del sistema aparecen siempre en el mismo lugar, arriba al centro, en verde agua, y se distinguen por tipo: éxito, información, advertencia o error.</li>
+  <li>Una sola puerta de Ayuda: tutorial guiado y glosario editorial.</li>
+  <li>Tres espacios de trabajo: Inicial (lo esencial, para el aula), Predeterminado y Personalizado.</li>
+  <li>Castellano, inglés y portugués completos.</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>Trabajar sobre la página</h3>
+<ul>
+  <li><strong>Guías desde las reglas:</strong> arrastrar desde la regla de arriba saca una guía horizontal, y desde la de la izquierda, una vertical. Con Seleccionar se agarra una guía para moverla, y soltándola fuera de la página se quita.</li>
+  <li><strong>La caja de texto se ajusta a su texto:</strong> doble clic en el tirador de abajo (al medio) y la caja termina donde termina el último renglón, como en InDesign.</li>
+  <li>Escape a mitad de un arrastre devuelve la caja a su lugar.</li>
+  <li>Mover y cambiar el tamaño es más fluido: barras y panel se actualizan una vez por cuadro.</li>
+  <li>El texto seleccionado sobre el papel se lee bien.</li>
+  <li>Los campos con unidad (mm, pt) ya no tapan la unidad con las flechitas.</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>Cubierta</h3>
+<ul>
+  <li>Vista apaisada: la pieza desplegada a la izquierda, las medidas a la derecha.</li>
+  <li>La cubierta nueva arranca en papel blanco con texto oscuro.</li>
+  <li>Un solo par de botones para poner o quitar la imagen de cada zona.</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>Salida e imprenta</h3>
+<ul>
+  <li>PDF con la medida exacta de la hoja y las cajas de corte y de sangrado que leen las imprentas.</li>
+  <li>Nueva opción <strong>"PDF para imprenta (PDF/X-4)"</strong>, el estándar que piden muchas imprentas.</li>
+  <li>Paquete para imprenta: proyecto, fuentes, imágenes y PDF en una carpeta.</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>En camino (todavía no para probar)</h3>
+<p>Un motor de composición propio, con justificación y partición de palabras de calidad de imprenta, igual en pantalla y en el PDF. Ya funciona, pero está apagado mientras se termina de ajustar. Más adelante te vamos a pedir que mires sus páginas y elijas los valores por defecto.</p>
+</div>
+
+<h2>Qué probar</h2>
+<p>Lo ideal es usarlo como de costumbre, con un libro real. Esta lista es una guía para no dejar nada afuera.</p>
+<ol class="checks">
+  <li><strong>Instalar.</strong> <span class="how">Abrir <em>Maquetario BETA 0.1.exe</em>. No tendría que pedir permisos de administrador. Al abrir, la bienvenida dice "BETA 0.1".</span></li>
+  <li><strong>Abrir un proyecto hecho con la 3.24.</strong> <span class="how">Que se vea igual que antes: páginas, textos, imágenes, folios y cubierta. Es lo más importante de verificar.</span></li>
+  <li><strong>Empezar un libro nuevo y explorar el ejemplo.</strong> <span class="how">Crear un libro desde cero, armar uno desde un manuscrito y abrir la novela de ejemplo.</span></li>
+  <li><strong>Encontrar cada cosa.</strong> <span class="how">Herramientas a la izquierda, panel a la derecha. ¿Lo que buscás está donde lo esperás? ¿El panel cambia solo cuando tiene que cambiar?</span></li>
+  <li><strong>Texto.</strong> <span class="how">Crear cajas, escribir y pegar texto, tipografía, párrafos, estilos y separación silábica. Doble clic en el tirador de abajo para ajustar la caja al texto.</span></li>
+  <li><strong>Guías.</strong> <span class="how">Sacar guías de las reglas, moverlas y quitarlas.</span></li>
+  <li><strong>Diseño del libro.</strong> <span class="how">Formato y márgenes, grilla y plantillas, foliado, cornisa y titulillo. Ocultar el folio en una página puntual desde la pestaña Página.</span></li>
+  <li><strong>Imágenes, marcos, figuras y capas.</strong> <span class="how">Poner, mover, ordenar, bloquear y ocultar.</span></li>
+  <li><strong>Índice y estructura.</strong> <span class="how">Armar el índice y moverse por las partes del libro desde la vista Estructura.</span></li>
+  <li><strong>Cubierta.</strong> <span class="how">Medidas, lomo, solapas e imágenes en cada zona.</span></li>
+  <li><strong>Revisar libro.</strong> <span class="how">Que avise texto que no entra y objetos fuera de la página.</span></li>
+  <li><strong>Salida.</strong> <span class="how">PDF común, PDF para imprenta (PDF/X-4), impresión y paquete para imprenta. Si se puede, mandar un PDF/X-4 a una imprenta real.</span></li>
+  <li><strong>Guardar y volver.</strong> <span class="how">Guardar, cerrar y reabrir. Probar también cerrar sin guardar y ver qué ofrece al volver a abrir.</span></li>
+  <li><strong>Ayuda e idiomas.</strong> <span class="how">Tutorial guiado, glosario, los tres espacios de trabajo y la interfaz en inglés y portugués.</span></li>
+</ol>
+
+<h2>Qué devolución nos sirve</h2>
+<p>Lo que más nos ayuda es saber dónde te trabás o dónde algo no responde como esperás. Algunas preguntas para guiarte:</p>
+<ul>
+  <li><strong>¿Hay algo que hacías en la 3.24 y ahora no encontrás o no funciona igual?</strong> Es la prioridad: la idea es no haber perdido nada.</li>
+  <li>¿Cada cosa está donde la buscarías? ¿Hay algo que pondrías en otro lugar o agruparías distinto?</li>
+  <li>¿Los nombres y textos se entienden, con el vocabulario del oficio? ¿Algún término raro o mal traducido?</li>
+  <li>Con un libro largo, ¿se siente ágil? ¿Hay momentos en que se pone lento?</li>
+  <li>¿Los PDF salen como esperás? ¿Una imprenta los aceptó sin pedir cambios?</li>
+  <li>Para alumnos en clase, ¿alcanza el espacio Inicial y el tutorial? ¿Qué sacarías o agregarías?</li>
+  <li>¿Qué función te gustaría ver primero en la próxima versión?</li>
+</ul>
+
+<h3>Cómo contarnos un problema</h3>
+<table>
+  <tr><th style="width:48mm">Qué incluir</th><th>Por qué ayuda</th></tr>
+  <tr><td>Qué estabas haciendo</td><td>Los pasos, en el orden en que los hiciste.</td></tr>
+  <tr><td>Qué esperabas y qué pasó</td><td>A veces el programa funciona, pero no como se espera.</td></tr>
+  <tr><td>Una captura de pantalla</td><td>Vale más que la descripción.</td></tr>
+  <tr><td>El archivo <em>.mqt</em>, si podés</td><td>Nos deja ver el problema con el mismo libro.</td></tr>
+</table>
+
+<h3>Decisiones que necesitamos tomar con vos</h3>
+<ul>
+  <li>Qué controla la licencia: la edición o plan, o la versión comprada.</li>
+  <li>Pago único o suscripción, y cuántos días puede funcionar sin conexión.</li>
+  <li>Los valores por defecto del motor de composición nuevo, cuando lo prendamos.</li>
+</ul>
+
+<p class="note" style="margin-top:8mm">Gracias por probarlo. Cualquier cosa, por el canal de siempre.</p>
+
+</body>
+</html>
