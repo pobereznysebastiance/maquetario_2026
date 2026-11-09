@@ -31,7 +31,7 @@ interface PdfPage {
   setTrimBox(x: number, y: number, width: number, height: number): void;
   setBleedBox(x: number, y: number, width: number, height: number): void;
 }
-interface PdfDocument {
+export interface PdfDocument {
   getPages(): PdfPage[];
   addPage(size: [number, number]): PdfPage;
   save(options?: {
@@ -48,6 +48,8 @@ interface PdfLib {
 // En el paquete (esbuild) el módulo viene con sus nombres; en Node, dentro de default.
 const ns = vendored as Partial<PdfLib> & { default?: PdfLib };
 export const pdfLib: PdfLib = (ns.PDFDocument ? ns : ns.default) as PdfLib;
+/** El módulo completo, para las piezas de bajo nivel (pdfx.ts las tipa por su cuenta). */
+export const pdfLibModule: unknown = pdfLib;
 
 export const POINTS_PER_MM = 72 / 25.4;
 
@@ -107,14 +109,8 @@ const toBox = (b: PdfBox): Box => [b.x, b.y, b.x + b.width, b.y + b.height];
 const set = (fn: (x: number, y: number, w: number, h: number) => void, b: Box) =>
   fn(b[0], b[1], b[2] - b[0], b[3] - b[1]);
 
-/** Reescribe las cajas de todas las páginas del PDF. Devuelve el PDF nuevo. */
-export async function fixPrintBoxes(
-  bytes: Uint8Array,
-  sheet: Size,
-  trim?: TrimSpec | null,
-): Promise<Uint8Array> {
-  // updateMetadata: false conserva Producer y fechas del PDF original.
-  const doc = await pdfLib.PDFDocument.load(bytes, { updateMetadata: false });
+/** Fija las cajas de todas las páginas de un documento ya abierto. */
+export function applyPrintBoxes(doc: PdfDocument, sheet: Size, trim?: TrimSpec | null): void {
   for (const page of doc.getPages()) {
     const boxes = boxesFor(toBox(page.getMediaBox()), sheet, trim);
     set(page.setMediaBox.bind(page), boxes.media);
@@ -122,8 +118,25 @@ export async function fixPrintBoxes(
     set(page.setTrimBox.bind(page), boxes.trim);
     set(page.setBleedBox.bind(page), boxes.bleed);
   }
-  // Sin flujos de objetos: más compatible con los flujos de preimpresión (PDF/X-1a es PDF 1.3).
-  return doc.save({ useObjectStreams: false });
+}
+
+/** Abre un PDF sin tocar sus metadatos (conserva Producer y fechas del original). */
+export const openPdf = (bytes: Uint8Array): Promise<PdfDocument> =>
+  pdfLib.PDFDocument.load(bytes, { updateMetadata: false });
+
+/** Guarda sin flujos de objetos: más compatible con los flujos de preimpresión. */
+export const savePdf = (doc: PdfDocument): Promise<Uint8Array> =>
+  doc.save({ useObjectStreams: false });
+
+/** Reescribe las cajas de todas las páginas del PDF. Devuelve el PDF nuevo. */
+export async function fixPrintBoxes(
+  bytes: Uint8Array,
+  sheet: Size,
+  trim?: TrimSpec | null,
+): Promise<Uint8Array> {
+  const doc = await openPdf(bytes);
+  applyPrintBoxes(doc, sheet, trim);
+  return savePdf(doc);
 }
 
 /** Lee las cajas de cada página (para las pruebas y para revisar una salida). */

@@ -1,6 +1,11 @@
 # Imprenta · CMYK y PDF/X (09-nov)
 
-Investigación para la etapa 4 ("PDF de imprenta"). Todavía no se implementa la conversión. Ya está hecha la primera pieza: cajas exactas (MediaBox, TrimBox, BleedBox) en `desktop/src/main/print-boxes.ts`.
+Investigación para la etapa 4 ("PDF de imprenta"). Hecho hasta ahora:
+
+- Cajas exactas (MediaBox, TrimBox, BleedBox) en `desktop/src/main/print-boxes.ts`.
+- **PDF/X-4 con RGB etiquetado** en `desktop/src/main/pdfx.ts`, sólo en el proceso principal. Ver "PDF/X-4 en Maquetario" más abajo.
+
+La conversión a CMYK todavía no está hecha.
 
 ## Dónde estamos
 
@@ -75,7 +80,10 @@ Maquetario ya resuelve sangrado y marcas en la cubierta, archivos separados, caj
 ### 5. Perfiles ICC
 - La ECI distribuye gratis **ISO Coated v2 (FOGRA39)** y **PSO Coated v3 (FOGRA51)**, y la familia PSO Uncoated.
 - Las condiciones que figuran en el empaquetado de Debian dicen que no se pueden modificar ni vender sin permiso. Incrustarlos en el PDF de salida es el uso normal.
-- **Para empaquetarlos con el instalador, conviene confirmar por escrito con la ECI.** Una alternativa es usar el identificador registrado (`FOGRA39`) en el OutputIntent, que en X-1a permite omitir el perfil.
+- **Revisado el 09-nov, con el perfil en la mano:** la etiqueta de copyright de PSO Coated v3 dice "may be used, embedded and exchanged without restriction. It may not be distributed, sold or altered without written permission of ECI". Se puede incrustar en un PDF, pero **no ponerlo en el instalador** sin permiso escrito.
+- **Adobe (Coated FOGRA39):** para redistribuirlo hace falta su Color Profile Bundling Agreement, con condiciones de licencia para el usuario final.
+- **Lo que usa Maquetario:** `FOGRA39L_coated.icc` (zlib/libpng, "free of known copyright restrictions") y `sRGB.icc` de ArgyllCMS (dominio público y licencia tipo MIT), los dos del paquete `colorprofiles` de CTAN. Se pueden redistribuir. Licencias y sumas en `desktop/assets/icc/LICENCIAS.md`.
+- En PDF/X-4 el perfil de salida va incrustado (DestOutputProfile). La variante PDF/X-4p, que lo referencia de afuera, no se usa.
 
 ## Recomendación
 
@@ -88,6 +96,57 @@ Maquetario ya resuelve sangrado y marcas en la cubierta, archivos separados, caj
    - O, si el volumen lo justifica, pdfToolbox Server (unos 5.000 € más mantenimiento), que aplana bien la transparencia.
    - No conviene meter Ghostscript en el instalador sin licencia comercial de Artifex. Además, con transparencia rasteriza páginas enteras.
 3. **Lo que no conviene:** escribir un convertidor CMYK propio de contenido vectorial y transparencia. Es un producto en sí mismo.
+
+## PDF/X-4 en Maquetario (hecho el 09-nov)
+
+### Contrato con la ventana de salida
+
+La acción `outputPdf` (`desktop/src/main/handlers/output.ts → outputDocument`) acepta, junto a `options`:
+
+```ts
+nativeCall('outputPdf', {
+  options,            // lo de siempre (OutputConfig: mode, paper, crop…)
+  pdfx: true,         // opcional: PDF/X-4 con RGB etiquetado
+  title: 'Mi libro',  // opcional: título del documento; si falta, book.title
+});
+// → { base64, pdfx: true }   (si falla, error "No se pudo armar el PDF/X-4: …";
+//                             con PDF/X pedido nunca devuelve un PDF común)
+```
+
+- Sólo vale para `outputPdf`. La impresión (`print`) y el paquete del proyecto no cambian.
+- La condición de impresión es **FOGRA39** (offset, papel estucado). Hoy no se puede elegir otra: no hay un perfil libre de FOGRA51 ni de papel no estucado. Si se suma uno, el contrato pasa a `pdfx: { condition: 'fogra39' | … }`.
+- Sugerencia para la ventana: una casilla "PDF para imprenta (PDF/X-4)" que sólo se active con marcas de corte o en la cubierta, y una nota que diga que el color lo convierte la imprenta.
+
+### Qué cumple
+
+| Requisito de PDF/X-4 (ISO 15930-7) | Estado |
+|---|---|
+| Encabezado `%PDF-1.6` o menor, sin `/Version` más nueva en el catálogo | Sí: se escribe `%PDF-1.6` y se quita `/Version` |
+| OutputIntent `/S /GTS_PDFX` con `OutputConditionIdentifier` (FOGRA39), `RegistryName` (color.org) y perfil CMYK incrustado (`DestOutputProfile`, N 4) | Sí |
+| Color dependiente del dispositivo compatible con el OutputIntent | RGB etiquetado: `DefaultRGB` sRGB en todos los recursos (páginas, Form, patrones, fuentes Type 3) y `/DeviceRGB` explícito en imágenes, sombreados, Indexed y grupos de transparencia pasado a `ICCBased` sRGB. El gris (DeviceGray) queda, que PDF/X admite. |
+| XMP con `pdfxid:GTS_PDFXVersion` = PDF/X-4, `dc:title`, `xmp:CreateDate`/`ModifyDate`/`MetadataDate`, `xmp:CreatorTool`, `pdf:Producer`, `pdf:Trapped` = False, `xmpMM:DocumentID`/`InstanceID`/`VersionID`/`RenditionClass` | Sí, y con los mismos valores que el Info |
+| Info: `Title`, `Creator`, `Producer`, `CreationDate`, `ModDate`, `Trapped` /False | Sí (Producer es el de Chromium, "Skia/PDF mNNN") |
+| `/ID` en el trailer | Sí (Chromium no lo escribe) |
+| TrimBox en cada página, dentro de BleedBox y MediaBox | Sí (print-boxes.ts) |
+| Fuentes incrustadas | Sí: Chromium las incrusta siempre (TrueType o Type 3) |
+| Transparencia | Permitida en X-4: queda viva |
+| Sin anotaciones en la página | Se quitan los enlaces |
+| Sin cifrado, JavaScript, acciones, contenido externo | Chromium no los genera |
+
+### Qué no cumple o no está comprobado
+
+- **No hay conversión a CMYK.** Es "PDF/X-4 con RGB etiquetado": válido en X-4, pero una imprenta que exige X-1a o CMYK puro lo va a rechazar.
+- **Sin validador externo todavía.** El control propio (`pdfxProblems`, lo usan la autoprueba y las pruebas) cubre las reglas de arriba, no la norma entera. Puntos a mirar con un validador de verdad:
+  - flujos de contenido con operadores de color de dispositivo dentro de patrones;
+  - grupos de transparencia sin `/CS` (Chromium no lo pone; con OutputIntent no debería hacer falta);
+  - la estructura etiquetada de Chromium.
+- **El Producer queda "Skia/PDF".** Es correcto (es quien escribió el contenido), pero alguna imprenta podría preguntar.
+
+### Cómo validarlo
+
+- **Gratis y libre:** no hay validador libre de PDF/X. veraPDF valida PDF/A y PDF/UA; PDFBox Preflight sólo PDF/A-1b. Para la estructura del archivo sirve `qpdf --check archivo.pdf` (Apache 2.0).
+- **Con prueba gratuita:** callas pdfToolbox Desktop (prueba de 14 días), perfil "PDF/X-4 compliance". El preflight de Acrobat Pro (prueba de 7 días), perfil "Verify compliance with PDF/X-4". Enfocus PitStop Pro también tiene prueba.
+- **Recomendado:** sacar `El atlas de las casas vacias - PDFX4.pdf` de la autoprueba, pasarlo por el preflight de pdfToolbox o Acrobat, y mandarlo a una imprenta digital y a una offset.
 
 ## Para decidir con Seba
 

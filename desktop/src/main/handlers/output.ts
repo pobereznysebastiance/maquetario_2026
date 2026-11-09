@@ -1,7 +1,15 @@
 // Salida: PDF, impresión y lista de impresoras.
 import { dialog, type WebContentsPrintOptions } from 'electron';
-import { writeFile } from 'node:fs/promises';
-import { fixPrintBoxes, type TrimSpec } from '../print-boxes.ts';
+import { readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { appVersion } from '../env.ts';
+import { applyPdfX, pdfxHeader } from '../pdfx.ts';
+import {
+  applyPrintBoxes,
+  openPdf,
+  savePdf as savePdfDocument,
+  type TrimSpec,
+} from '../print-boxes.ts';
 import { delay, exec, exclusive, waitFor, type Session } from '../session.ts';
 
 const MM_PER_INCH = 25.4;
@@ -24,23 +32,57 @@ export function pdf(session: Session, page: PageGeometry): Promise<Buffer> {
   });
 }
 
+/** Pedido de PDF/X-4 (pdfx.ts). El título va en el XMP y en el Info. */
+export interface PdfXRequest {
+  title: string;
+}
+
+/** Perfiles ICC de PDF/X (dist/icc, los copia scripts/build.mjs desde assets/icc). */
+async function iccProfiles(): Promise<{ outputProfile: Buffer; rgbProfile: Buffer }> {
+  const dir = join(__dirname, 'icc');
+  const [outputProfile, rgbProfile] = await Promise.all([
+    readFile(join(dir, 'FOGRA39L_coated.icc')),
+    readFile(join(dir, 'sRGB.icc')),
+  ]);
+  return { outputProfile, rgbProfile };
+}
+
 /**
  * PDF con las cajas de imprenta exactas (print-boxes.ts): MediaBox de la hoja pedida y, si se
  * conoce, TrimBox y BleedBox del corte. Sin corte, el corte es la hoja entera.
+ * Con `pdfx`, además PDF/X-4 con RGB etiquetado (pdfx.ts). Se abre y se guarda una sola vez.
  */
 export async function exactPdf(
   session: Session,
   page: PageGeometry,
   trim?: TrimSpec | null,
+  pdfx?: PdfXRequest | null,
 ): Promise<Buffer> {
   const raw = await pdf(session, page);
   try {
-    return Buffer.from(await fixPrintBoxes(raw, page, trim));
+    const doc = await openPdf(raw);
+    applyPrintBoxes(doc, page, trim);
+    if (pdfx)
+      applyPdfX(doc, {
+        ...(await iccProfiles()),
+        title: pdfx.title,
+        creator: `Maquetario ${appVersion()}`,
+      });
+    const saved = await savePdfDocument(doc);
+    return Buffer.from(pdfx ? pdfxHeader(saved) : saved);
   } catch (error) {
+    // Con PDF/X pedido no se entrega otra cosa: la persona lo pidió para la imprenta.
+    if (pdfx) throw new Error(`No se pudo armar el PDF/X-4: ${(error as Error).message}`);
     // Las cajas son una mejora: si pdf-lib no puede con el archivo, sale el PDF de Chromium.
     console.warn('[salida] no se pudieron fijar las cajas del PDF:', error);
     return raw;
   }
+}
+
+/** Título del libro abierto (para el PDF/X), si la ventana no lo manda. */
+export async function bookTitle(session: Session): Promise<string> {
+  const title = await exec<unknown>(session, 'book.title').catch(() => '');
+  return typeof title === 'string' && title.trim() ? title.trim() : 'Maquetario';
 }
 
 /**
@@ -125,6 +167,10 @@ interface OutputPayload {
   printer?: unknown;
   copies?: unknown;
   duplex?: unknown;
+  /** Sólo outputPdf: true pide PDF/X-4 (docs/IMPRENTA_09-nov_pdfx.md → "Contrato"). */
+  pdfx?: unknown;
+  /** Título del documento para el PDF/X (si falta, el del libro). */
+  title?: unknown;
 }
 
 /** outputPdf (physical=false) e print (physical=true). */
@@ -159,7 +205,19 @@ export function outputDocument(session: Session, payload: OutputPayload, physica
         return { printed: true, printer };
       }
       const trim = await printTrim(session, payload.options, page.scale);
-      return { base64: (await exactPdf(session, page, trim)).toString('base64') };
+      const pdfx =
+        payload.pdfx === true
+          ? {
+              title:
+                typeof payload.title === 'string' && payload.title.trim()
+                  ? payload.title.trim()
+                  : await bookTitle(session),
+            }
+          : null;
+      return {
+        base64: (await exactPdf(session, page, trim, pdfx)).toString('base64'),
+        pdfx: !!pdfx,
+      };
     } finally {
       await clearPrint(session);
     }

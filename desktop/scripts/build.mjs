@@ -90,6 +90,9 @@ await build({
 });
 await build({ ...uiOptions, entryPoints: tsIn(join(ui, 'src/global')), bundle: false });
 
+// Perfiles ICC de la salida PDF/X-4 (src/main/pdfx.ts; licencias en assets/icc/LICENCIAS.md).
+cpSync(join(root, 'assets/icc'), join(root, 'dist/icc'), { recursive: true });
+
 // Avisos de sistema: página estática + ilustración del instalador + DM Sans y tokens de la
 // interfaz (los mismos archivos de ui/tokens, en notice/ui/tokens: fonts.css apunta a
 // ../../fonts, que queda en notice/fonts). También los usa la página que ve el navegador al

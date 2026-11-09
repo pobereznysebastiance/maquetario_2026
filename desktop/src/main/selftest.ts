@@ -9,8 +9,9 @@ import { argValue, dataDir, rendererDir } from './env.ts';
 import { writeAtomic } from './files.ts';
 import { readFaces } from './fonts/opentype.ts';
 import { replacePackageFaces, setPackageFonts, getPackageFaces } from './fonts/catalog.ts';
-import { exactPdf, prepareOutput, printTrim } from './handlers/output.ts';
-import type { TrimSpec } from './print-boxes.ts';
+import { exactPdf, prepareOutput, printTrim, type PdfXRequest } from './handlers/output.ts';
+import { inspectPdfX, pdfxProblems } from './pdfx.ts';
+import { openPdf, type TrimSpec } from './print-boxes.ts';
 import { createProjectPackage, type PackageRequest } from './handlers/package.ts';
 import { readRecents, recordRecent, saveProject } from './handlers/project.ts';
 import { delay, exec, waitFor, type Session } from './session.ts';
@@ -89,10 +90,11 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     page = A5,
     wait = 350,
     trim: TrimSpec | null = null,
+    pdfx: PdfXRequest | null = null,
   ) => {
     await exec(session, prepare);
     await delay(wait);
-    const bytes = await exactPdf(session, page, trim);
+    const bytes = await exactPdf(session, page, trim, pdfx);
     await exec(session, 'window.clearPrint()');
     if (bytes.subarray(0, 5).toString('latin1') !== '%PDF-')
       throw new Error(`PDF inválido: ${file}`);
@@ -169,6 +171,22 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     await delay(250);
     await capture('novela.png');
     return writePdf('El atlas de las casas vacias.pdf', 'window.prepareNovelPdf()', A5, 350);
+  });
+  // La misma novela en PDF/X-4 (pdfx.ts): sólo del lado del proceso principal.
+  await step('PDF/X-4 de la novela', async () => {
+    const file = 'El atlas de las casas vacias - PDFX4.pdf';
+    await writePdf(file, 'window.prepareNovelPdf()', A5, 350, null, {
+      title: 'El atlas de las casas vacías',
+    });
+    const bytes = await readFile(join(out, file));
+    const report = inspectPdfX(await openPdf(bytes), bytes);
+    const problems = pdfxProblems(report);
+    await writeFile(
+      join(out, 'verificacion-pdfx.json'),
+      JSON.stringify({ ...report, metadata: report.metadata?.length ?? 0, problems }, null, 2),
+    );
+    if (problems.length) throw new Error(problems.join(' · '));
+    return { pages: report.pages.length, header: report.header };
   });
   await step('capturas de interfaz', async () => {
     await exec(session, 'showWelcome()');
