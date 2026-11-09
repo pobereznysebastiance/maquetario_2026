@@ -170,6 +170,20 @@
 .mqt-paragraph:empty:before {
   content: '\00a0';
 }
+/* Líneas que decide el motor de composición (sólo con su llave de desarrollo prendida,
+   src/modules/compose.ts): cada una es un bloque con su texto; el navegador no corta ni
+   justifica. La sangría de primera línea y la alineación de la última vienen del párrafo. */
+.mqt-line {
+  white-space: pre;
+  text-indent: 0;
+  text-align-last: auto;
+}
+.mqt-line:first-child {
+  text-indent: inherit;
+}
+.mqt-line:last-child {
+  text-align-last: inherit;
+}
 
 /* ── Figuras dibujadas sobre la página ── */
 .editorial-shape-svg {

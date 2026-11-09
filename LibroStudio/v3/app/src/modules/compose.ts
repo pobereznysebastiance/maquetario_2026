@@ -230,14 +230,59 @@ function tally(
   return equal;
 }
 
-/** Por qué un párrafo no se puede comparar todavía (null: se puede). */
+/** Por qué un párrafo no se puede componer todavía con el motor (null: se puede). */
 function unsupported(text: string): string | null {
   if (/[\t]|\s{2}|^\s|\s$/.test(text))
     return 'espacios múltiples, tabulaciones o blancos en los bordes';
   return null;
 }
 
-export async function composeReport(options: ComposeReportOptions = {}): Promise<ComposeReport> {
+/**
+ * La fuente con que el motor puede componer el párrafo (dirección y peso CSS), o por qué no. Con
+ * `fonts` (navegador sin catálogo) busca "familia|peso|estilo"; si no, la cara del catálogo que
+ * resuelve selectedFace, como la página. Lo que el navegador inventa (negrita o cursiva sintética)
+ * el motor no lo puede medir.
+ */
+function resolveFace(
+  f: Record<string, any>,
+  fonts?: Record<string, string>,
+): { url: string; weight: number } | string {
+  const italic = !!(f.fontItalic || f.italic);
+  if (fonts) {
+    const weight = f.fontWeight ?? (f.bold ? 700 : 400);
+    const url = fonts[`${f.font}|${weight}|${italic ? 'italic' : 'normal'}`];
+    return url ? { url, weight: f.fontAxes?.wght ?? weight } : 'sin archivo de fuente para medir';
+  }
+  const face = selectedFace(f);
+  if (!face) return 'sin cara del catálogo';
+  if (fontLoadErrors.has(face.id)) return 'la cara no se pudo cargar';
+  // El peso que pide el CSS de la página (paragraphs.ts).
+  const weight = f.fontAxes?.wght ?? f.fontWeight ?? (f.bold ? 700 : face.weight || 400);
+  const variableWeight = face.axes.some((axis) => axis.tag === 'wght');
+  if ((!variableWeight && Math.abs(weight - face.weight) >= 200) || (italic && !face.italic))
+    return 'negrita o cursiva inventada por el navegador';
+  return { url: MaquetarioHost.fontUrl(face.id), weight };
+}
+
+/** Opciones del motor para un párrafo con el formato f (las mismas que el DOM de la página). */
+function engineOptions(f: Record<string, any>) {
+  const language = (
+    ['es', 'en', 'pt'].includes(f.hyphenLanguage) ? f.hyphenLanguage : 'es'
+  ) as HyphenLanguage;
+  return {
+    size: f.size as number,
+    language,
+    hyphenate: !!f.hyphenate,
+    hyphenator: pageHyphenator(language),
+    // Los puntos de corte los decide el separador, como en la página.
+    leftMin: 1,
+    rightMin: 1,
+    // Interletraje del párrafo: milésimas de eme (paragraphs.ts → letter-spacing).
+    letterSpacing: ((f.tracking || 0) / 1000) * f.size,
+  };
+}
+
+async function measureParity(options: ComposeReportOptions): Promise<ComposeReport> {
   const started = performance.now();
   finishEditing();
   await ensureBookFonts();
@@ -298,54 +343,20 @@ export async function composeReport(options: ComposeReportOptions = {}): Promise
             continue;
           }
           const element = box.querySelector<HTMLElement>(`[data-paragraph-index="${index}"]`);
-          const reason = element ? unsupported(text) : 'sin párrafo en el DOM';
-          const italic = !!(f.fontItalic || f.italic);
-          let url: string | undefined;
-          let problem = reason;
-          // El peso que pide el CSS de la página (paragraphs.ts).
-          let weight = f.fontAxes?.wght ?? f.fontWeight ?? (f.bold ? 700 : 400);
-          if (!problem && options.fonts) {
-            url =
-              options.fonts[
-                `${f.font}|${f.fontWeight ?? (f.bold ? 700 : 400)}|${italic ? 'italic' : 'normal'}`
-              ];
-            if (!url) problem = 'sin archivo de fuente para medir';
-          } else if (!problem) {
-            const face = selectedFace(f);
-            weight = f.fontAxes?.wght ?? f.fontWeight ?? (f.bold ? 700 : face?.weight || 400);
-            const variableWeight = face?.axes.some((axis) => axis.tag === 'wght');
-            if (!face) problem = 'sin cara del catálogo';
-            else if (fontLoadErrors.has(face.id)) problem = 'la cara no se pudo cargar';
-            else if (
-              (!variableWeight && Math.abs(weight - face.weight) >= 200) ||
-              (italic && !face.italic)
-            )
-              problem = 'negrita o cursiva inventada por el navegador';
-            else url = MaquetarioHost.fontUrl(face.id);
-          }
-          const chromium = !problem && element ? chromiumLineStarts(element) : null;
-          if (problem || !url || !chromium) {
-            skip(problem ?? 'no se pudieron leer las líneas');
+          const resolved = element
+            ? (unsupported(text) ?? resolveFace(f, options.fonts))
+            : 'sin párrafo en el DOM';
+          const chromium =
+            typeof resolved !== 'string' && element ? chromiumLineStarts(element) : null;
+          if (typeof resolved === 'string' || !chromium) {
+            skip(typeof resolved === 'string' ? resolved : 'no se pudieron leer las líneas');
             boxMeasured = false;
             continue;
           }
-          const file = await fontFrom(url);
+          const file = await fontFrom(resolved.url);
           const sizePx = ((f.size * 25.4) / 72) * px;
-          const font = withVariations(file, cssVariations(f, weight, sizePx));
-          const language = (
-            ['es', 'en', 'pt'].includes(f.hyphenLanguage) ? f.hyphenLanguage : 'es'
-          ) as HyphenLanguage;
-          const paragraphOptions = {
-            size: f.size,
-            language,
-            hyphenate: !!f.hyphenate,
-            hyphenator: pageHyphenator(language),
-            // Los puntos de corte los decide el separador, como en la página.
-            leftMin: 1,
-            rightMin: 1,
-            // Interletraje del párrafo: milésimas de eme (paragraphs.ts → letter-spacing).
-            letterSpacing: ((f.tracking || 0) / 1000) * f.size,
-          };
+          const font = withVariations(file, cssVariations(f, resolved.weight, sizePx));
+          const paragraphOptions = engineOptions(f);
           const paragraph = createParagraph(font, text, paragraphOptions);
           // El cuerpo como lo usa Chromium: px truncado a centésimas, vuelto a puntos.
           const chromiumSize = ((Math.floor(sizePx * 100) / 100) * f.size) / sizePx;
@@ -436,4 +447,218 @@ export async function composeReport(options: ComposeReportOptions = {}): Promise
   }
   report.milliseconds = Math.round(performance.now() - started);
   return report;
+}
+
+/** Compara los cortes del motor con los de Chromium (no dibuja con el motor mientras mide). */
+export async function composeReport(options: ComposeReportOptions = {}): Promise<ComposeReport> {
+  suspended++;
+  try {
+    return await measureParity(options);
+  } finally {
+    suspended--;
+  }
+}
+
+// ── Dibujo con el motor (paso 4 del plan; sólo con la llave prendida) ──
+//
+// La página la sigue armando paper() con el DOM de siempre. Después, composePage (lo instala
+// src/compose-loader.ts con extend.result('paper', …)) reemplaza el texto de cada párrafo que el
+// motor puede componer por sus líneas: un bloque por línea con el texto que decidió el motor, el
+// guion si corta y el espacio entre palabras de la justificación (word-spacing). Chromium sigue
+// conformando las palabras con la misma fuente; ya no decide los cortes ni la justificación.
+// Pantalla, vista continua y PDF usan el mismo paper(), así que tienen los mismos cortes.
+//
+// Los cortes no dependen del zoom: el motor compone con el cuerpo como lo usa Chromium a la escala
+// de la salida (96/25,4 px por mm), igual en pantalla que en el PDF.
+//
+// El alto del párrafo queda fijo en líneas × interlineado, así que el desborde (checkOverflow y
+// preflightBook comparan el alto del contenido con el de la caja) sale de la cantidad de líneas
+// del motor.
+
+export type ComposeAlgorithm = 'knuth-plass' | 'greedy';
+
+export interface ComposeDrawOptions {
+  /** Como en composeReport: "familia|peso|estilo" → archivo, para el navegador sin catálogo. */
+  fonts?: Record<string, string>;
+}
+
+const ALGORITHM_KEY = 'maquetario-compose-algorithm';
+const OUTPUT_PX = 96 / 25.4;
+let suspended = 0;
+let drawFonts: Record<string, string> | undefined;
+
+/** Ajuste de desarrollo: localStorage['maquetario-compose-algorithm'] = 'greedy' para el voraz. */
+function algorithm(): ComposeAlgorithm {
+  try {
+    return localStorage.getItem(ALGORITHM_KEY) === 'greedy' ? 'greedy' : 'knuth-plass';
+  } catch {
+    return 'knuth-plass';
+  }
+}
+
+export function setComposeAlgorithm(name: ComposeAlgorithm): void {
+  try {
+    localStorage.setItem(ALGORITHM_KEY, name);
+  } catch {}
+  composed.clear();
+  redrawSoon();
+}
+
+export function configureDrawing(options: ComposeDrawOptions = {}): void {
+  drawFonts = options.fonts;
+  composed.clear();
+}
+
+// Fuentes ya cargadas, para usarlas sin esperar dentro de paper(); las que faltan se piden y,
+// cuando llegan, se redibuja.
+const readyFonts = new Map<string, ComposeFont>();
+const failedFonts = new Set<string>();
+function fontNow(url: string): ComposeFont | undefined {
+  const font = readyFonts.get(url);
+  if (!font && !failedFonts.has(url))
+    fontFrom(url)
+      .then((loaded) => {
+        if (readyFonts.has(url)) return;
+        readyFonts.set(url, loaded);
+        redrawSoon();
+      })
+      .catch(() => failedFonts.add(url));
+  return font;
+}
+
+let redrawTimer: number | undefined;
+function redrawSoon(): void {
+  if (redrawTimer !== undefined) return;
+  redrawTimer = window.setTimeout(() => {
+    redrawTimer = undefined;
+    // Mientras se edita no se redibuja: al terminar de editar la página se vuelve a armar.
+    if (!editing) render(true);
+  }, 0);
+}
+
+interface ComposedLine {
+  text: string;
+  /** Espacio que se suma a cada espacio entre palabras (justificación), en puntos. */
+  extra: number;
+}
+
+const composed = new Map<string, ComposedLine[]>();
+
+/** Las líneas del motor para un párrafo (en caché por texto, formato, fuente y ancho). */
+function composeParagraph(
+  o: BookObject,
+  text: string,
+  f: Record<string, any>,
+): ComposedLine[] | null {
+  if (unsupported(text)) return null;
+  const resolved = resolveFace(f, drawFonts);
+  if (typeof resolved === 'string') return null;
+  const file = fontNow(resolved.url);
+  if (!file) return null;
+  const sizePx = ((f.size * 25.4) / 72) * OUTPUT_PX;
+  const variations = cssVariations(f, resolved.weight, sizePx);
+  const width = (o.w - (f.indentLeft || 0) - (f.indentRight || 0)) * PT_PER_MM;
+  const indent = (f.firstIndent || 0) * PT_PER_MM;
+  const justify = f.align === 'justify';
+  const options = engineOptions(f);
+  // El cuerpo como lo usa Chromium (px truncado a centésimas): así el ancho de cada palabra en
+  // pantalla coincide con el del motor y el borde derecho queda parejo.
+  const size = ((Math.floor(sizePx * 100) / 100) * f.size) / sizePx;
+  const method = algorithm();
+  const key = JSON.stringify([
+    text,
+    resolved.url,
+    variations,
+    size,
+    width,
+    indent,
+    justify,
+    options.hyphenate,
+    options.language,
+    options.letterSpacing,
+    method,
+  ]);
+  let lines = composed.get(key);
+  if (!lines) {
+    const paragraph = createParagraph(withVariations(file, variations), text, { ...options, size });
+    lines = breakLines(paragraph, width, { algorithm: method, indent, justify }).lines.map(
+      (line) => ({ text: line.text, extra: line.spaceWidth - paragraph.spaceWidth }),
+    );
+    composed.set(key, lines);
+  }
+  return lines;
+}
+
+/** El objeto que se está editando: ése se queda con el texto de siempre. */
+const isEditing = (o: BookObject) => editing?.dataset.id === o.id;
+
+/** extend.result('paper', …): dibuja con el motor los párrafos que puede componer. */
+export function composePage(page: HTMLElement, pageIndex: number, px: number): HTMLElement {
+  if (suspended || !page) return page;
+  for (const o of book.pages[pageIndex]?.objects ?? []) {
+    if (o.type !== 'text' || o.toc || isEditing(o)) continue;
+    const box = page.querySelector<HTMLElement>(`[data-id="${o.id}"] .text-content`);
+    if (!box) continue;
+    o.text.split('\n').forEach((text: string, index: number) => {
+      if (!text.trim()) return;
+      const element = box.querySelector<HTMLElement>(`[data-paragraph-index="${index}"]`);
+      const f = paragraphFormat(book, o, index);
+      const lines = element && composeParagraph(o, text, f);
+      if (!element || !lines) return;
+      const pxPerPt = (px * 25.4) / 72;
+      element.classList.add('mqt-composed');
+      element.replaceChildren(
+        ...lines.map((line) => {
+          const row = document.createElement('div');
+          row.className = 'mqt-line';
+          row.textContent = line.text;
+          if (Math.abs(line.extra) > 1e-6) row.style.wordSpacing = line.extra * pxPerPt + 'px';
+          return row;
+        }),
+      );
+      // Alto fijo: líneas del motor × interlineado (de esto sale el desborde).
+      element.style.height = lines.length * ((f.leading * 25.4) / 72) * px + 'px';
+    });
+  }
+  return page;
+}
+
+/** extend.after('startEditing', …): el cuadro que se edita vuelve al texto de siempre (CSS). */
+export function restoreForEditing(element: HTMLElement): void {
+  if (editing !== element) return;
+  const o = selectObject();
+  if (!o || o.type !== 'text' || o.id !== element.dataset.id) return;
+  const lines = o.text.split('\n');
+  element.querySelectorAll<HTMLElement>('.mqt-composed').forEach((paragraph) => {
+    paragraph.classList.remove('mqt-composed');
+    paragraph.style.removeProperty('height');
+    paragraph.textContent = lines[Number(paragraph.dataset.paragraphIndex)] || ' ';
+  });
+}
+
+/**
+ * Carga las fuentes de todos los párrafos que el motor puede componer en el libro abierto y
+ * redibuja. Antes de sacar un PDF con el motor, esperar a que se cumpla.
+ */
+export async function composeReady(): Promise<void> {
+  const urls = new Set<string>();
+  for (const p of book.pages)
+    for (const o of p.objects as BookObject[]) {
+      if (o.type !== 'text' || o.toc) continue;
+      o.text.split('\n').forEach((text: string, index: number) => {
+        const resolved =
+          text.trim() &&
+          !unsupported(text) &&
+          resolveFace(paragraphFormat(book, o, index), drawFonts);
+        if (resolved && typeof resolved !== 'string') urls.add(resolved.url);
+      });
+    }
+  await Promise.all(
+    [...urls].map((url) =>
+      fontFrom(url)
+        .then((font) => readyFonts.set(url, font))
+        .catch(() => failedFonts.add(url)),
+    ),
+  );
+  if (!editing) render(true);
 }

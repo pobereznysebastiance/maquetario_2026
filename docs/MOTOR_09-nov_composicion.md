@@ -1,6 +1,6 @@
 # Motor de composición propio (etapa 4) · prototipo
 
-Estado al 09-nov: motor en `packages/compose` y **cargado en la app detrás de una llave apagada** (pasos 1 y 2 del plan). Todavía no dibuja: el libro se sigue dibujando con DOM/CSS y el PDF sale de Chromium, así que los PDF de la autoprueba no cambian. Con la llave prendida, `composeReport()` mide la paridad con los cortes de Chromium (números más abajo). En Electron, la carga del WASM y la CSP quedaron probadas (hay que reiniciar la app para que tome la CSP nueva).
+Estado al 09-nov: motor en `packages/compose`, **cargado en la app detrás de una llave apagada** y, con la llave prendida, **dibujando los párrafos** (pasos 1, 2 y 4 del plan; ver "Dibujo con el motor"). Con la llave apagada el libro se dibuja como siempre (DOM/CSS, PDF de Chromium) y los PDF de la autoprueba no cambian. `composeReport()` mide la paridad con los cortes de Chromium (números más abajo). En Electron, la carga del WASM y la CSP quedaron probadas (hay que reiniciar la app para que tome la CSP nueva).
 
 ## Qué hay
 
@@ -122,12 +122,46 @@ Es igual en las tres fuentes. No encontré en qué parte del código de Chromium
 
 **Resultado:** el voraz con ese cuerpo pasa de 80 a 83 de 85 en la novela, y los 2 que quedan son las rayas. Para el dibujo esto importa poco: el motor va a decidir los cortes con sus medidas exactas. Pero conviene usar el mismo cuerpo truncado si en el paso 1 Chromium sigue dibujando las palabras, para que no queden 0,1 px de diferencia por línea.
 
-## Qué falta para dibujar con el motor
+## Dibujo con el motor (paso 4, detrás de la llave)
+
+Con la llave prendida (`localStorage['maquetario-compose'] = '1'` y recargar), los párrafos que el motor puede componer se dibujan con sus líneas. Son los que resuelven a una cara del catálogo, sin negrita ni cursiva inventadas por el navegador y sin espacios múltiples. El resto sigue igual, con CSS.
+
+- **Dónde:** `src/compose-loader.ts` instala `extend.result('paper', …)` → `composePage` (`src/modules/compose.ts`). Corre después de `paragraphs.ts`, que ya armó cada `.mqt-paragraph` con su formato. `composePage` cambia el texto de cada párrafo por un bloque `.mqt-line` por línea, con:
+  - el texto que decidió el motor (con el guion si corta, y el guion repetido en las compuestas);
+  - el espacio de justificación como `word-spacing`.
+
+  La sangría de primera línea y la alineación de la última vienen del párrafo (`ui/book/page.css`). Chromium sigue conformando las palabras con la misma fuente; ya no corta ni justifica.
+- **Algoritmo:** Knuth-Plass por defecto. Ajuste de desarrollo: `composeAlgorithm('greedy')` (queda en `localStorage['maquetario-compose-algorithm']`).
+- **Pantalla, vista continua y PDF** salen del mismo `paper()`, así que tienen los mismos cortes. Los cortes no dependen del zoom: el motor compone con el cuerpo como lo usa Chromium a la escala de la salida (96/25,4 px por mm). Las miniaturas no dibujan texto.
+- **Desborde:** el alto de cada párrafo compuesto queda fijo en líneas × interlineado. `checkOverflow` y `preflightBook` siguen comparando el alto del contenido con el de la caja, pero ese alto ahora sale de la cantidad de líneas del motor.
+- **Edición:**
+  - Al empezar a editar un cuadro (`extend.after('startEditing', …)` → `restoreForEditing`), sus párrafos vuelven al texto de siempre, el mismo que muestra CSS. Mientras se edita, corta y justifica el navegador, como hoy con la separación silábica.
+  - Al terminar de editar, la página se vuelve a armar y el cuadro se recompone.
+  - Mientras se edita, `composePage` deja ese cuadro sin tocar y no se redibuja por fuentes que lleguen tarde.
+  - La selección de objetos no cambia.
+- **Fuentes:** en el primer dibujo, las caras que faltan se piden y la página se redibuja cuando llegan. Hasta entonces, esos párrafos se ven con CSS. **Antes de sacar un PDF con el motor hay que esperar `composeReady()`**: carga las fuentes de todo el libro y redibuja. Si se exporta antes, ese PDF puede salir con CSS en los párrafos cuya fuente no llegó.
+- **Autoprueba:** `npm run self-test -- --compose` suma, al final, la novela con el motor en `motor-de-composicion/`: el PDF, una captura y `paridad.json`. La carpeta queda fuera de la comparación de PDF. El motor se prende sólo por esa sesión (`composeActivate()`), sin dejar la llave guardada.
+- **Llave apagada:** no se instala ninguna extensión ni se pide ningún archivo. `scripts/compose-parity.mjs` lo comprueba: 0 extensiones del motor y ni el módulo ni el WASM en los recursos de la página. Las reglas nuevas de `page.css` sólo tocan `.mqt-line`, que sin la llave no existe.
+
+Revisión en Chrome sin ventana (`node scripts/compose-parity.mjs --draw --shot captura.png`, novela de la autoprueba con Georgia):
+
+| Qué | Resultado |
+|---|---|
+| Párrafos compuestos por el motor | 85 de 88 (los 3 restantes están vacíos) |
+| Líneas | 274; ninguna se parte en dos ni se pasa del ancho |
+| Justificadas | todas llegan al borde derecho (diferencia de 0 px) |
+| Alto | líneas × interlineado en todos los párrafos |
+| Pantalla y salida | mismos cortes en las páginas visibles |
+| Edición | al empezar, 0 líneas del motor y el texto igual al del libro; al terminar, recompuesto y el texto sin cambios |
+
+## Qué falta
 
 1. Tramos con distinto estilo dentro de un párrafo. Hoy el motor compone el párrafo con su formato; la app no tiene estilos de carácter, pero sí índices y figuras que conviene excluir.
-2. El dibujo en sí (paso 4 del plan): líneas posicionadas en `paper()` con `extend.result('paper', …)` detrás de la llave, el desborde por cuenta de líneas, y la autoprueba con la llave apagada (PDF idénticos) más una corrida con la llave prendida para revisar a ojo.
+2. Revisar a ojo el PDF de `npm run self-test -- --compose` con Seba y decidir los ajustes por defecto, antes de pensar en prender la llave para todos.
 3. Usar en la app el tope de guiones y el largo mínimo de la última línea: hoy son opciones del motor sin control en la interfaz. Hay que decidir los valores por defecto con Seba.
 4. Confirmar en macOS y Linux la regla del cuerpo truncado.
+5. Espacio duro (U+00A0): el navegador le suma el `word-spacing` de la justificación y el motor no lo trata como espacio; una línea justificada con un espacio duro se pasaría del borde por esa diferencia.
+6. Que `prepareOutput` espere solo a `composeReady()` (hoy hay que esperarlo antes).
 
 ## Cómo se enchufaría
 
@@ -165,7 +199,7 @@ La idea es que el motor decida **qué va en cada línea y dónde va cada palabra
 1. **(Hecho)** Prototipo y pruebas: `packages/compose`.
 2. **(Hecho y probado en Electron)** Carga en la app: módulo ES del motor detrás de una llave, CSP con `'wasm-unsafe-eval'` y `connect-src` acotado, bytes de fuente desde `/__fonts/<id>.ttf`, caché de `ComposeFont` por dirección, y `composeReport()` para medir la paridad. Ejes variables, interletraje y colecciones, también. Pendiente: la memoria con el catálogo completo.
 3. **Adaptador del modelo** (empezado en `composeReport`: cuerpo, sangrías, sangría de primera línea, alineación, separación silábica e idioma): de `BookObject` + `paragraphFormat` (cuerpo, interlineado, sangría, espacio antes y después, alineación, separación silábica e idioma) a párrafos del motor, con tramos de distinto estilo dentro del párrafo (extender `createParagraph` a varios tramos).
-4. **Dibujo con llave** (por libro, en beta): líneas posicionadas en `paper()` mediante `extend.result('paper', …)` sin tocar el camino de hoy. Desborde por cuenta de líneas. Autoprueba con la llave apagada (PDF idénticos) y una corrida aparte con la llave prendida para revisar.
+4. **(Hecho, detrás de la llave de desarrollo)** Dibujo con llave: líneas posicionadas en `paper()` mediante `extend.result('paper', …)` sin tocar el camino de hoy. Desborde por cuenta de líneas. Autoprueba con la llave apagada (PDF idénticos) y una corrida aparte con la llave prendida para revisar.
 5. **Calidad tipográfica:** reglas de corte del castellano, tope de guiones seguidos y largo mínimo de la última línea (hechos en el motor); falta bandera izquierda/centro/derecha, viudas y huérfanas al encadenar cuadros, márgenes ópticos, y después interletraje y escala de glifos dentro de un rango para justificar mejor.
 6. **PDF propio** con las mismas líneas (pdf-lib + subset de HarfBuzz), MediaBox/TrimBox/BleedBox exactas, y después CMYK y PDF/X.
 7. Con los PDF revisados con Seba, la llave pasa a prendida por defecto y el camino de Chromium queda para la vista mientras se edita.

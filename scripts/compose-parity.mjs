@@ -6,11 +6,12 @@
 //
 // Uso:  node desktop/scripts/build.mjs && node scripts/compose-parity.mjs [--details]
 //       node scripts/compose-parity.mjs --eval <archivo.js>   (diagnóstico: evalúa en la página)
+//       node scripts/compose-parity.mjs --draw [--shot captura.png]   (dibujo con el motor)
 // Chrome: CHROME=<ruta> si no está en el lugar de siempre. Fuentes: las del sistema
 // (FONTS_DIR=<carpeta>; las de FONT_FILES son de Windows); sin catálogo de escritorio, el motor
 // mide con los mismos archivos que usa el navegador para ese texto.
 import { spawn } from 'node:child_process';
-import { mkdtempSync, readFile, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFile, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { extname, join, normalize, resolve, sep } from 'node:path';
@@ -90,6 +91,90 @@ const browser = spawn(
 );
 
 const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
+
+/**
+ * Lo que revisa --draw en la página: los párrafos que dibuja el motor en pantalla y en el paper()
+ * de la salida, que cada línea entre en una sola línea del navegador y no se pase del ancho, que
+ * las justificadas lleguen al borde, que pantalla y salida tengan los mismos cortes, que el alto
+ * sea líneas × interlineado y que editar vuelva al texto de siempre y al salir se recomponga.
+ */
+const drawChecks = async function () {
+  const rowTexts = (root) =>
+    [...root.querySelectorAll('.mqt-composed')].map((p) =>
+      [...p.querySelectorAll('.mqt-line')].map((r) => r.textContent),
+    );
+  const out = { screenComposed: document.querySelectorAll('#spread .mqt-composed').length };
+  let paragraphs = 0;
+  let composedParagraphs = 0;
+  let rows = 0;
+  let wrappedRows = 0;
+  let overflowingRows = 0;
+  let worstJustifiedGap = 0;
+  let wrongHeights = 0;
+  let screenMatchesOutput = true;
+  const range = document.createRange();
+  for (let i = 0; i < book.pages.length; i++) {
+    const page = paper(i, 96 / 25.4, true);
+    Object.assign(page.style, { position: 'fixed', left: '-10000px', top: '0', display: 'block' });
+    document.body.append(page);
+    paragraphs += page.querySelectorAll('.mqt-paragraph').length;
+    for (const p of page.querySelectorAll('.mqt-composed')) {
+      composedParagraphs++;
+      const style = getComputedStyle(p);
+      const right = p.getBoundingClientRect().right - parseFloat(style.paddingRight);
+      const lineHeight = parseFloat(style.lineHeight);
+      const lines = [...p.querySelectorAll('.mqt-line')];
+      if (Math.abs(p.getBoundingClientRect().height - lines.length * lineHeight) > 0.5)
+        wrongHeights++;
+      lines.forEach((row, index) => {
+        rows++;
+        range.selectNodeContents(row);
+        const rects = [...range.getClientRects()].filter((r) => r.width > 0);
+        if (new Set(rects.map((r) => Math.round(r.top))).size > 1) wrappedRows++;
+        const end = Math.max(...rects.map((r) => r.right));
+        if (end > right + 1) overflowingRows++;
+        const justified = style.textAlign === 'justify' && index < lines.length - 1;
+        if (justified && rects.length) worstJustifiedGap = Math.max(worstJustifiedGap, right - end);
+      });
+    }
+    const spreadPage = document.querySelector(`#spread .page[data-page="${i}"]`);
+    if (spreadPage && JSON.stringify(rowTexts(spreadPage)) !== JSON.stringify(rowTexts(page)))
+      screenMatchesOutput = false;
+    page.remove();
+  }
+  Object.assign(out, {
+    paragraphs,
+    composedParagraphs,
+    rows,
+    wrappedRows,
+    overflowingRows,
+    worstJustifiedGapPx: Math.round(worstJustifiedGap * 1000) / 1000,
+    wrongHeights,
+    screenMatchesOutput,
+  });
+  // Edición: el cuadro vuelve al texto de siempre y al terminar se recompone, sin tocar el texto.
+  const composedOnScreen = document.querySelector('#spread .mqt-composed');
+  const element = composedOnScreen?.closest('.paper-object');
+  if (element) {
+    const object = book.pages.flatMap((p) => p.objects).find((o) => o.id === element.dataset.id);
+    const before = object.text;
+    selected = object.id;
+    startEditing(element);
+    out.whileEditing = {
+      composed: element.querySelectorAll('.mqt-composed').length,
+      lines: element.querySelectorAll('.mqt-line').length,
+      textMatches: element.querySelector('.text-content').innerText.replace(/\r/g, '') === before,
+    };
+    finishEditing();
+    await new Promise((done) => setTimeout(done, 200));
+    const again = document.querySelector(`#spread [data-id="${object.id}"]`);
+    out.afterEditing = {
+      composed: again?.querySelectorAll('.mqt-composed').length ?? 0,
+      textUnchanged: object.text === before,
+    };
+  }
+  return JSON.stringify(out);
+}.toString();
 async function pageSocket() {
   for (let attempt = 0; attempt < 100; attempt++) {
     try {
@@ -143,6 +228,10 @@ try {
   await waitFor("document.readyState === 'complete' && typeof composeReport === 'function'");
   // Con la llave apagada, la página no pide el motor.
   const withKeyOff = await evaluate(engineRequested);
+  // …ni instala sus extensiones (el dibujo de paper() queda como siempre).
+  const engineExtensions =
+    "Object.values(MaquetarioExtensions.list()).flat().filter((origin) => origin.startsWith('compose')).length";
+  const extensionsWithKeyOff = await evaluate(engineExtensions);
   await evaluate("localStorage.setItem('maquetario-compose', '1'); window.beforeReload = true");
   await send('Page.reload');
   // La marca desaparece con la página nueva: así no se mide la vieja mientras recarga.
@@ -159,6 +248,17 @@ try {
   if (process.argv.includes('--eval') && evalFile) {
     console.log(await evaluate(readFileSync(evalFile, 'utf8')));
     process.exitCode = 0;
+  } else if (process.argv.includes('--draw')) {
+    // Dibujo con el motor sobre la novela: pantalla, salida (paper de impresión), edición y alto.
+    await evaluate('prepareNovelProof()');
+    await evaluate(`composeActivate(${JSON.stringify({ fonts })})`);
+    await sleep(300);
+    console.log(JSON.stringify(JSON.parse(await evaluate(`(${drawChecks})()`)), null, 2));
+    const shot = process.argv[process.argv.indexOf('--shot') + 1];
+    if (process.argv.includes('--shot') && shot) {
+      const { data } = (await send('Page.captureScreenshot', { format: 'png' })).result;
+      writeFileSync(shot, Buffer.from(data, 'base64'));
+    }
   } else {
     const sample = await evaluate(`composeReport(${options})`);
     await evaluate('prepareNovelProof()');
@@ -185,7 +285,12 @@ try {
     const novelVariable = await evaluate(`composeReport(${options})`);
     await evaluate(everyText("{ font: 'Cambria', fontAxes: {} }"));
     const novelCollection = await evaluate(`composeReport(${options})`);
-    const engineLoaded = { withKeyOff, withKeyOn: await evaluate(engineRequested) };
+    const engineLoaded = {
+      withKeyOff,
+      withKeyOn: await evaluate(engineRequested),
+      extensionsWithKeyOff,
+      extensionsWithKeyOn: await evaluate(engineExtensions),
+    };
     console.log(
       JSON.stringify(
         {

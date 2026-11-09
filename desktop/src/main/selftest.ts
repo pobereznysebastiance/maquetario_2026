@@ -1,11 +1,12 @@
-// Autoprueba: `npm run self-test` (o Maquetario --self-test [--out=<carpeta>]).
+// Autoprueba: `npm run self-test` (o Maquetario --self-test [--out=<carpeta>] [--compose]).
+// Con --compose suma, al final y aparte, la novela dibujada con el motor de composición.
 // Pruebas de integración de la interfaz, PDF reales, guardado, recientes y paquete. Deja los
 // resultados en la carpeta de salida y un resumen.json; sale con código 1 si algo falla.
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { argValue, dataDir, rendererDir } from './env.ts';
+import { args, argValue, dataDir, rendererDir } from './env.ts';
 import { writeAtomic } from './files.ts';
 import { readFaces } from './fonts/opentype.ts';
 import { replacePackageFaces, setPackageFonts, getPackageFaces } from './fonts/catalog.ts';
@@ -408,6 +409,29 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     await capture('libro-nuevo.png');
     await exec(session, 'closeSheet()');
   });
+
+  // Opcional (--compose): la novela dibujada con el motor de composición, aparte, para revisarla
+  // a ojo. Va al final y en su carpeta, así no cambia ningún otro paso ni entra en la comparación
+  // de PDF (scripts/compare-outputs.mjs mira sólo la carpeta principal). El motor se prende sólo
+  // por esta sesión (composeActivate): no queda guardado para la próxima autoprueba.
+  if (args.includes('--compose'))
+    await step('novela con el motor de composición (aparte)', async () => {
+      const folder = 'motor-de-composicion';
+      await mkdir(join(out, folder), { recursive: true });
+      await exec(session, 'window.prepareNovelProof()');
+      await exec(session, 'composeActivate().then(() => true)');
+      await delay(300);
+      await capture(join(folder, 'novela.png'));
+      const report = await exec<unknown>(session, 'composeReport()');
+      await writeFile(join(out, folder, 'paridad.json'), JSON.stringify(report, null, 2));
+      await exec(session, 'composeReady().then(() => true)');
+      return writePdf(
+        join(folder, 'El atlas de las casas vacias.pdf'),
+        'window.prepareNovelPdf()',
+        A5,
+        350,
+      );
+    });
 
   const ok = results.every((r) => r.ok);
   await writeFile(
