@@ -346,11 +346,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
 
   await testStep('capturas de paneles', async () => {
     const shots: [string, string, string][] = [
-      [
-        'panel-salida.png',
-        'window.prepareOutputReviewPreview()',
-        "document.querySelector('#modal').close()",
-      ],
+      ['panel-salida.png', 'window.prepareOutputReviewPreview()', 'window.closeOutputWindow()'],
       [
         'panel-fuentes.png',
         'window.prepareFontBrowserPreview()',

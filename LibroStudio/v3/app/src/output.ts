@@ -9,8 +9,14 @@
 // sobre globalThis y adentro se llaman por el global: así cada llamada pasa por las extensiones,
 // igual que cuando eran funciones de un script clásico.
 //
-// Fuente TypeScript: se compila a build/output.js (desktop/scripts/build.mjs).
+// La ventana de salida es React (components/output/OutputWindow.tsx, Ventana de trabajo): acá se
+// abre (outputDialog), se escuchan sus campos y se arma la simulación (outputPreview).
+//
+// Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
+import { createElement } from 'react';
 import type { Language } from './i18n.ts';
+import { OutputWindow } from './components/output/OutputWindow.tsx';
+import { setPrinters, type InstalledPrinter } from './components/output/printers.ts';
 
 /** Opciones de una salida. El diálogo las trae todas; la autoprueba y la cubierta (kind = 'cover') piden sólo algunas. */
 export interface OutputConfig {
@@ -58,13 +64,6 @@ export interface OutputInfo {
   height: number;
   faces: number;
   scale: number;
-}
-
-/** Impresora tal como la informa el anfitrión. */
-interface InstalledPrinter {
-  name: string;
-  defaultPrinter: boolean;
-  duplex: boolean;
 }
 
 /** Pedido de salida al anfitrión (type y no interface: nativeCall pide un objeto indexable). */
@@ -222,10 +221,21 @@ declare global {
   var sendOutput: (destination: string, config: OutputJob) => Promise<void>;
   /** Las imágenes de la salida terminaron de cargar (lo espera el anfitrión antes de imprimir). */
   var outputReady: boolean;
+  /** Habilita o deshabilita la acción de la ventana de salida abierta (#outputApply). */
+  var setOutputApplyDisabled: (disabled: boolean) => void;
+  /** Cierra la ventana de salida abierta (interior o cubierta), al instante. */
+  var closeOutputWindow: () => void;
 }
 
 globalThis.ow = () => outputWords[(globalThis.LibroI18n?.language || 'es') as Language];
 let installedPrinters: InstalledPrinter[] = [];
+globalThis.setOutputApplyDisabled = function (disabled) {
+  const button = document.querySelector<HTMLButtonElement>('#outputApply');
+  if (button) button.disabled = disabled;
+};
+globalThis.closeOutputWindow = function () {
+  document.querySelector('#outputApply')?.closest('dialog')?.close();
+};
 globalThis.outputConfigFromDialog = function () {
   const config = {
     mode: $('#outMode').value,
@@ -429,37 +439,29 @@ globalThis.outputPreview = function () {
     $('#outputSummary').textContent =
       `${info.width.toFixed(1)} × ${info.height.toFixed(1)} mm · ${info.faces} ${ow().sheets} · ${Math.round(info.scale * 100)}%`;
     $('#outputError').textContent = '';
-    $('#modalApply').disabled = false;
+    setOutputApplyDisabled(false);
   } catch (error) {
     $('#outputError').textContent = (error as Error).message;
-    $('#modalApply').disabled = true;
+    setOutputApplyDisabled(true);
   } finally {
     clearPrint();
   }
 };
+// Las impresoras las dibuja el selector de la ventana (PrinterSelect) a partir de esta lista: queda
+// elegida la que estaba elegida o, si no había, la predeterminada.
 globalThis.readPrinters = async function () {
-  const w = ow(),
-    selectedPrinter = $('#outPrinter')?.value;
+  const selectedPrinter = $('#outPrinter')?.value;
   try {
     const result: InstalledPrinter[] = await nativeCall('printers');
     installedPrinters = result;
-    const select = $('#outPrinter');
-    if (!select) return;
-    select.replaceChildren();
-    for (const printer of result) {
-      const option = document.createElement('option');
-      option.value = printer.name;
-      option.textContent = printer.name;
-      option.selected =
-        selectedPrinter === printer.name || (!selectedPrinter && printer.defaultPrinter);
-      select.append(option);
-    }
-    if (!result.length) {
-      const option = document.createElement('option');
-      option.value = '';
-      option.textContent = w.none;
-      select.append(option);
-    }
+    if (!$('#outPrinter')) return;
+    setPrinters({
+      list: result,
+      selected:
+        result.find((p) => p.name === selectedPrinter)?.name ||
+        (!selectedPrinter && result.find((p) => p.defaultPrinter)?.name) ||
+        '',
+    });
   } catch (error) {
     if ($('#outputError')) $('#outputError').textContent = (error as Error).message;
   }
@@ -467,28 +469,38 @@ globalThis.readPrinters = async function () {
 globalThis.outputDialog = async function (destination) {
   const w = ow(),
     print = destination === 'print';
+  /** Los puntos de abrochado sólo valen para el cuadernillo. */
+  const syncStaples = () => {
+    const box = $('#outStaples');
+    box.disabled = $('#outMode').value !== 'booklet';
+    box.closest('label')!.hidden = box.disabled;
+  };
+  setPrinters({ list: null, selected: '' });
   modal.workspace(
     print ? w.title : w.pdf,
-    `${print ? `<div class="control"><label>${w.printer}</label><div class="printer-row"><select id="outPrinter"><option value="">${w.loading}</option></select><button type="button" id="refreshPrinters" class="btn" title="${bw('Volver a buscar', 'Refresh', 'Atualizar')}">${icon('refresh')}</button></div></div>` : ''}<div class="modal-grid output-grid"><div class="control"><label>${w.mode}</label><select id="outMode"><option value="reading">${w.reading}</option><option value="spreads">${bw('Pliegos en orden de lectura', 'Spreads in reading order', 'Duplas na ordem de leitura')}</option><option value="booklet">${w.booklet}</option></select></div><div class="control"><label>${w.paper}</label><select id="outPaper"><option value="book" ${!print ? 'selected' : ''}>${w.custom}</option><option value="A4" ${print ? 'selected' : ''}>A4</option><option value="A3">A3</option><option value="A5">A5</option><option value="Letter">Letter</option></select></div>${print ? `<div class="control"><label>${w.copies}</label><input id="outCopies" type="number" min="1" max="99" value="1"></div><div class="control"><label>${w.duplex}</label><select id="outDuplex"><option value="one">${w.one}</option><option value="short">${w.short}</option><option value="long">${w.long}</option></select></div>` : ''}</div><div class="output-options">${[
-      ['Crop', w.trim, false],
-      ['Staples', bw('Puntos de abrochado', 'Staple dots', 'Pontos de grampeamento'), false],
-      ['Grid', w.grid, false],
-      ['Guides', w.guides, false],
-      ['Margins', w.margins, false],
-      ['Headers', w.header, true],
-      ['Folios', w.folio, true],
-      ['Fit', w.fit, true],
-    ]
-      .map(
-        ([id, label, on]) =>
-          `<label class="check-line"><input id="out${id}" type="checkbox" ${on ? 'checked' : ''}>${label}</label>`,
-      )
-      .join(
-        '',
-      )}</div><p class="help">${w.guidesNote}</p><div class="output-preview-title">${w.preview}</div><div id="outputPreview"></div><p id="outputSummary" class="help"></p><p id="outputError" class="inline-error"></p><div class="notice">${w.note}${print ? '<br>' + w.safe : ''}</div>`,
+    createElement(OutputWindow, {
+      destination,
+      onFormChange: (target) => {
+        // El zoom de la revisión (output-review.ts).
+        if (target.id === 'outputReviewZoom') {
+          setOutputReviewScale((target as HTMLSelectElement).value);
+          outputPreview();
+          return;
+        }
+        // Las opciones de salida (no los controles de la revisión, que tienen los suyos).
+        if (!target.closest('.output-review-options')) return;
+        outputPreview();
+        if (target.id === 'outMode') syncStaples();
+      },
+      onExpand: () => {
+        setOutputReviewScale('fit');
+        outputPreview();
+      },
+    }),
     {
       variant: 'output-modal',
       action: {
+        id: 'outputApply',
         label: print ? w.send : w.save,
         run: () => {
           if (print && !$('#outPrinter').value) throw Error(w.unavailable);
@@ -504,27 +516,15 @@ globalThis.outputDialog = async function (destination) {
           )
             throw Error(w.noDuplex);
           outputGeometry(options);
-          $('#modal').close();
+          closeOutputWindow();
           sendOutput(destination, { options, printer, copies, duplex });
           return false;
         },
       },
     },
   );
-  $('#modalBody')
-    .querySelectorAll('select,input')
-    .forEach((input) => input.addEventListener('change', outputPreview));
-  const syncStaples = () => {
-    const box = $('#outStaples');
-    box.disabled = $('#outMode').value !== 'booklet';
-    box.closest('label')!.hidden = box.disabled;
-  };
-  $('#outMode').addEventListener('change', syncStaples);
-  syncStaples();
-  if (print) {
-    $('#refreshPrinters').onclick = readPrinters;
-    readPrinters();
-  }
+  if (!$('#outputPreview')) return;
+  if (print) readPrinters();
   outputPreview();
 };
 globalThis.sendOutput = async function (destination, config) {
@@ -575,6 +575,6 @@ $('#export').onclick = () => outputDialog('pdf');
 document.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.key.toLowerCase() === 'p') {
     e.preventDefault();
-    if (!$('#modal').open) outputDialog('print');
+    if (!document.querySelector('#modal[open], #dialogLayer dialog[open]')) outputDialog('print');
   }
 });

@@ -19,7 +19,9 @@
   background: transparent;
   color: var(--text-tertiary);
   box-shadow: none;
-  transition: border-color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 .format-option:hover {
   border-color: var(--line-strong);
@@ -32,7 +34,6 @@
   color: var(--text-primary);
   box-shadow: none;
 }
-
 
 /* Secciones dentro de diálogos (p. ej. "Solapas y forrado" en la cubierta): planas, separadas
    por una línea, con título en color de texto. Mismo criterio que el inspector. */
@@ -320,7 +321,7 @@
 
 /* ── Migrado de output-review.css y review.css: revisión de salida (opciones | vista previa) ── */
 /* Ventana de trabajo: opciones y vista previa ocupan todo el alto, cada una con su desplazamiento. */
-.output-modal #modalBody {
+dialog.output-modal .dialog-frame .dialog-body {
   display: flex;
   flex: 1 1 0%;
   min-height: 0;
@@ -404,13 +405,13 @@
 .output-review-pane .output-sheet {
   box-shadow: var(--elevation-page);
 }
-.output-modal.preview-expanded .output-review-layout {
+.output-review-layout.preview-expanded {
   grid-template-columns: 1fr;
 }
-.output-modal.preview-expanded .output-review-options {
+.output-review-layout.preview-expanded .output-review-options {
   display: none;
 }
-.output-modal.preview-expanded .output-review-pane {
+.output-review-layout.preview-expanded .output-review-pane {
   padding-right: var(--space-xl);
   padding-left: var(--space-xl);
 }

@@ -21,6 +21,8 @@ export type SheetSize = 'sm' | 'md' | 'lg';
 
 export interface DialogAction {
   label: string;
+  /** id del botón, para quien tenga que habilitarlo o deshabilitarlo (por ejemplo, #outputApply). */
+  id?: string;
   /** Devuelve false (o una promesa de false) para dejar el diálogo abierto. */
   run: () => unknown;
 }
@@ -142,6 +144,7 @@ export const Sheet = ({
           )}
           <button
             type="button"
+            id={action?.id}
             className="btn primary"
             onClick={() => (action ? run(action) : close())}
           >
@@ -173,7 +176,7 @@ export const WorkWindow = ({
       onClose={onClose}
       actions={(run) =>
         action ? (
-          <button type="button" className="btn primary" onClick={() => run(action)}>
+          <button type="button" id={action.id} className="btn primary" onClick={() => run(action)}>
             {LibroI18n.tr(action.label)}
           </button>
         ) : null

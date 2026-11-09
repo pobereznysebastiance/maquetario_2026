@@ -3,8 +3,13 @@
 // sobre una hoja (con marcas de corte y reducción).
 //
 // coverFontFamily y coverSheetDialog son globales: los usan publications.js y cover-actions.js.
+// La ventana de la cubierta sobre una hoja es React (components/output/OutputWindow.tsx,
+// CoverSheetWindow); acá se abre y se arma su simulación con el motor de salida.
 //
-// Fuente TypeScript: se compila a build/print-proof.js (desktop/scripts/build.mjs).
+// Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
+import { createElement } from 'react';
+import { CoverSheetWindow } from './components/output/OutputWindow.tsx';
+import { setPrinters } from './components/output/printers.ts';
 
 declare global {
   /** Familia CSS por defecto para los textos de la cubierta (Georgia o su cara más cercana). */
@@ -145,7 +150,7 @@ extend(
             'The simulation is scaled down. Enable shrinking or choose a larger sheet to export.',
             'A simulação está reduzida. Ative a redução ou escolha uma folha maior para exportar.',
           );
-          $('#modalApply').disabled = true;
+          setOutputApplyDisabled(true);
         }
       } catch {
         interiorPreviewBeforeStatus();
@@ -167,33 +172,19 @@ function coverSheetDialog(destination: string): void {
     crop: $('#coverSheetCrop').checked,
     fit: $('#coverSheetFit').checked,
   });
+  setPrinters({ list: null, selected: '' });
   modal.workspace(
     title,
-    `<div class="cover-sheet-layout"><aside>
-    ${
-      printing
-        ? `<label for="outPrinter">${w.printer}</label><div class="printer-row"><select id="outPrinter"></select><button id="refreshPrinters" type="button" class="btn" title="${bw('Volver a buscar', 'Refresh', 'Atualizar')}">${icon('refresh')}</button></div>
-      ${control(w.copies, 'coverSheetCopies', 1, 'number', 1, 99)}`
-        : ''
-    }
-    <div class="control"><label for="coverSheetPaper">${w.paper}</label>
-      <select id="coverSheetPaper">
-        <option value="actual">${bw('Tamaño de la pieza', 'Artwork size', 'Tamanho da peça')}</option>
-        ${['A3', 'A4', 'A5', 'Letter'].map((paper) => `<option value="${paper}" ${printing && paper === 'A3' ? 'selected' : ''}>${paper}</option>`).join('')}
-      </select>
-    </div>
-    <label class="check-line"><input id="coverSheetCrop" type="checkbox" checked>${w.trim}</label>
-    <label class="check-line"><input id="coverSheetFit" type="checkbox">${w.fit}</label>
-    <p class="help">${bw(
-      'La vista previa incluye el sangrado y la demasía. Si imprimís, revisá también el área imprimible del equipo.',
-      'The preview includes bleed and wrap. Check your printer’s printable area before printing.',
-      'A prévia inclui a sangria e a dobra. Antes de imprimir, confira a área imprimível do equipamento.',
-    )}</p>
-    <p id="outputError" class="inline-error"></p>
-    </aside><div><div id="coverSheetPreview"></div><p id="coverSheetSummary" class="help" aria-live="polite"></p></div></div>`,
+    createElement(CoverSheetWindow, {
+      printing,
+      onFormChange: (target) => {
+        if (['coverSheetPaper', 'coverSheetCrop', 'coverSheetFit'].includes(target.id)) refresh();
+      },
+    }),
     {
       variant: 'cover-sheet-dialog',
       action: {
+        id: 'outputApply',
         label: printing ? w.send : w.save,
         run: () => {
           const options = config(),
@@ -211,7 +202,7 @@ function coverSheetDialog(destination: string): void {
             );
           prepareOutput(options);
           clearPrint();
-          $('#modal').close();
+          closeOutputWindow();
           void sendOutput(destination, { options, copies, printer, duplex: 'one' });
           return false;
         },
@@ -251,21 +242,17 @@ function coverSheetDialog(destination: string): void {
           'The simulation is scaled down. Enable shrinking or select a larger sheet to export.',
           'A simulação está reduzida. Ative a redução ou escolha uma folha maior para exportar.',
         );
-      $('#modalApply').disabled = tooLarge;
+      setOutputApplyDisabled(tooLarge);
     } catch (error) {
       box.replaceChildren();
       $('#outputError').textContent = (error as Error).message;
-      $('#modalApply').disabled = true;
+      setOutputApplyDisabled(true);
     } finally {
       clearPrint();
     }
   }
-  for (const id of ['coverSheetPaper', 'coverSheetCrop', 'coverSheetFit'])
-    $('#' + id).onchange = refresh;
-  if (printing) {
-    $('#refreshPrinters').onclick = readPrinters;
-    void readPrinters();
-  }
+  if (!$('#coverSheetPreview')) return;
+  if (printing) void readPrinters();
   refresh();
 }
 globalThis.coverSheetDialog = coverSheetDialog;

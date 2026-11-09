@@ -297,10 +297,10 @@ extend(
           outputPreview();
         };
         $('#outputError').textContent = '';
-        $('#modalApply').disabled = false;
+        setOutputApplyDisabled(false);
       } catch (error) {
         $('#outputError').textContent = (error as Error).message;
-        $('#modalApply').disabled = true;
+        setOutputApplyDisabled(true);
       } finally {
         clearPrint();
       }

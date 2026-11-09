@@ -1070,7 +1070,7 @@ interface DialogOptions {
 }
 interface WorkspaceOptions extends Omit<DialogOptions, 'size' | 'cancelLabel'> {
   /** Acción principal de la ventana (Guardar PDF, Guardar cubierta…), en la barra del título. */
-  action?: { label: string; run: () => unknown };
+  action?: { label: string; run: () => unknown; id?: string };
 }
 /** Cuerpo de un diálogo: HTML (va a #modal) o un elemento de React (va a la Hoja o Ventana de React). */
 type DialogBody = string | import('react').ReactNode;

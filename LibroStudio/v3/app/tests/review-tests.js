@@ -124,7 +124,7 @@ registerIntegrationTest(function (result) {
   $('#outPaper').value = 'A4';
   outputPreview();
   check($('#reviewFaceInput').max === '4', 'Navegación de caras de cuadernillo');
-  $('#modal').close();
+  closeOutputWindow();
   book = original;
   active = priorActive;
   spread = priorSpread;

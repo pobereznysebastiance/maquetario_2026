@@ -1,10 +1,21 @@
-// Revisión de la salida: el diálogo de exportar o imprimir pasa a dos columnas (opciones a la
-// izquierda, vista previa a la derecha) con zoom (ajustar a ventana, 100–300 %) y un botón para
-// ampliar la revisión ocultando las opciones.
+// Revisión de la salida: zoom de la simulación (ajustar a ventana, 100–300 %). Las dos columnas
+// (opciones | revisión), el selector de zoom y el botón para ampliar la revisión los dibuja la
+// ventana de React (components/output/OutputWindow.tsx); acá se escala la hoja dentro de
+// #outputPreview después de cada outputPreview.
 //
-// Fuente TypeScript: se compila a build/output-review.js (desktop/scripts/build.mjs).
+// setOutputReviewScale es global: la llama output.ts cuando cambia el zoom o se amplía la revisión.
+//
+// Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
+
+declare global {
+  /** Zoom de la revisión: 'fit' (ajustar a ventana) o un factor ('1', '1.5', '2', '3'). */
+  var setOutputReviewScale: (scale: string) => void;
+}
 
 let outputReviewScale = 'fit';
+globalThis.setOutputReviewScale = (scale) => {
+  outputReviewScale = scale;
+};
 extend.after(
   'outputPreview',
   function () {
@@ -42,56 +53,23 @@ extend.after(
   },
   'output-review',
 );
-extend(
+// Cada ventana nueva arranca ajustada a la ventana; cuando ya tiene su tamaño, se vuelve a ajustar.
+extend.before(
   'outputDialog',
-  (beforeLargeOutputDialog) =>
-    function (destination: string) {
-      outputReviewScale = 'fit';
-      const result = beforeLargeOutputDialog(destination);
-      if (!$('#outputPreview') || $('#modal .output-review-layout')) return result;
-      const body = $('#modalBody'),
-        layout = document.createElement('div'),
-        options = document.createElement('aside'),
-        previewPane = document.createElement('section');
-      layout.className = 'output-review-layout';
-      options.className = 'output-review-options';
-      previewPane.className = 'output-review-pane';
-      const tools = document.createElement('div');
-      tools.className = 'output-review-toolbar';
-      tools.innerHTML = `<label for="outputReviewZoom">Zoom <select id="outputReviewZoom"><option value="fit">${bw('Ajustar a ventana', 'Fit to window', 'Ajustar à janela')}</option><option value="1">100%</option><option value="1.5">150%</option><option value="2">200%</option><option value="3">300%</option></select></label><span id="outputReviewFactor"></span><button type="button" class="btn" id="outputReviewExpand">${bw('Ampliar revisión', 'Expand preview', 'Ampliar revisão')}</button>`;
-      const previewNodes: Element[] = [
-        '.output-preview-title',
-        '#reviewFaces',
-        '#outputPreview',
-        '#outputSummary',
-      ]
-        .map((s) => $(s))
-        .filter(Boolean);
-      for (const node of [...body.children]) if (!previewNodes.includes(node)) options.append(node);
-      previewPane.append(tools, ...previewNodes);
-      layout.append(options, previewPane);
-      body.append(layout);
-      $('#outputReviewZoom').onchange = (e: Event) => {
-        outputReviewScale = (e.target as HTMLSelectElement).value;
-        outputPreview();
-      };
-      $('#outputReviewExpand').onclick = () => {
-        const expanded = $('#modal').classList.toggle('preview-expanded');
-        $('#outputReviewExpand').textContent = expanded
-          ? bw('Mostrar opciones', 'Show options', 'Mostrar opções')
-          : bw('Ampliar revisión', 'Expand preview', 'Ampliar revisão');
-        outputReviewScale = 'fit';
-        outputPreview();
-      };
-      onDialogClose(() => $('#modal').classList.remove('preview-expanded'));
-      outputPreview();
-      requestAnimationFrame(outputPreview);
-      return result;
-    },
+  function () {
+    outputReviewScale = 'fit';
+  },
+  'output-review',
+);
+extend.after(
+  'outputDialog',
+  function () {
+    if ($('#outputPreview')) requestAnimationFrame(outputPreview);
+  },
   'output-review',
 );
 window.addEventListener('resize', () => {
-  if ($('#modal').open && $('#outputPreview')) outputPreview();
+  if ($('#outputPreview')) outputPreview();
 });
 
 export {};

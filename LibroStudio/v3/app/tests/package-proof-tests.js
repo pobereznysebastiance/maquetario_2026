@@ -57,11 +57,11 @@ registerNavigationTest(async function (report) {
     $('#coverSheetPaper').value = 'A3';
     $('#coverSheetPaper').dispatchEvent(new Event('change'));
     verify(
-      !!$('#coverSheetPreview .print-page') && $('#modalApply').disabled,
+      !!$('#coverSheetPreview .print-page') && $('#outputApply').disabled,
       'La cubierta muestra una simulación y avisa si A3 no alcanza',
     );
     $('#coverSheetFit').click();
-    verify(!$('#modalApply').disabled, 'Aceptar reducción habilita salida de cubierta en A3');
+    verify(!$('#outputApply').disabled, 'Aceptar reducción habilita salida de cubierta en A3');
     const exact = prepareOutput({ kind: 'cover', paper: 'actual', crop: true });
     verify(
       exact.width === 462 && exact.height === 250,
@@ -69,6 +69,7 @@ registerNavigationTest(async function (report) {
     );
     return report;
   } finally {
+    closeOutputWindow();
     if ($('#modal').open) $('#modal').close();
     clearPrint();
     ({ book, active, spread, selected, dirty } = previous);

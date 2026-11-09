@@ -70,6 +70,9 @@
       $('#modal')?.open && $('#modal').close();
     } catch {}
     try {
+      closeOutputWindow();
+    } catch {}
+    try {
       $('#fontBrowser')?.open && $('#fontBrowser').close();
     } catch {}
     try {

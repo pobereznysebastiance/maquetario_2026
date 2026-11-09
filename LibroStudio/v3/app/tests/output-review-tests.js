@@ -19,9 +19,12 @@ registerIntegrationTest(function (r) {
     'Zoom 200% en revisión de salida',
   );
   $('#outputReviewExpand').click();
-  check($('#modal').classList.contains('preview-expanded'), 'Revisión ampliada oculta opciones');
+  check(
+    $('.output-review-layout').classList.contains('preview-expanded'),
+    'Revisión ampliada oculta opciones',
+  );
   $('#reviewNext').click();
   check($('#reviewFaceInput').value === '2', 'Navegación conserva zoom y revisión ampliada');
-  $('#modal').close();
+  closeOutputWindow();
   return r;
 }, 'output-review');
