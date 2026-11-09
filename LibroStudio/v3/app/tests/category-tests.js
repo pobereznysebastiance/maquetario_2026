@@ -4,25 +4,32 @@ registerNavigationTest(async function (result) {
     if (!value) throw Error(label);
     result.checks.push(label);
   };
-  const original = { book, active, spread, selected, tab, dirty };
+  const original = {
+    book: maquetarioEditor.book,
+    active: maquetarioEditor.active,
+    spread: maquetarioEditor.spread,
+    selected: maquetarioEditor.selected,
+    tab: maquetarioEditor.tab,
+    dirty: maquetarioEditor.dirty,
+  };
   try {
-    book = M.create();
-    active = spread = 0;
-    selected = null;
-    book.folio.enabled = true;
-    book.folio.pos = 'outer';
-    book.folio.offsetX = 45;
-    book.folio.offsetY = 10;
+    maquetarioEditor.book = M.create();
+    maquetarioEditor.active = maquetarioEditor.spread = 0;
+    maquetarioEditor.selected = null;
+    maquetarioEditor.book.folio.enabled = true;
+    maquetarioEditor.book.folio.pos = 'outer';
+    maquetarioEditor.book.folio.offsetX = 45;
+    maquetarioEditor.book.folio.offsetY = 10;
     render(true);
     for (const page of [0, 1]) {
       const folio = autoElement(page, 'folio', 1, true);
       const x = parseFloat(folio.style.left),
         half = parseFloat(folio.style.width) / 2;
-      const margins = M.margins(book, page);
+      const margins = M.margins(maquetarioEditor.book, page);
       check(
         page === 0
           ? x + half <= margins.left + 0.01
-          : x - half >= book.width - margins.right - 0.01,
+          : x - half >= maquetarioEditor.book.width - margins.right - 0.01,
         'El folio lateral queda fuera del área de texto en página ' + (page + 1),
       );
     }
@@ -31,12 +38,16 @@ registerNavigationTest(async function (result) {
     slider.value = '20';
     slider.dispatchEvent(new Event('input', { bubbles: true }));
     check(
-      book.folio.offsetY === 10 &&
-        parseFloat($('#spread .auto-folio').style.top) > scale * (book.height / 2 + 19.9),
+      maquetarioEditor.book.folio.offsetY === 10 &&
+        parseFloat($('#spread .auto-folio').style.top) >
+          maquetarioEditor.scale * (maquetarioEditor.book.height / 2 + 19.9),
       'El deslizador previsualiza el desplazamiento sin grabar durante el arrastre',
     );
     slider.dispatchEvent(new Event('change', { bubbles: true }));
-    check(book.folio.offsetY === 20, 'Soltar el deslizador guarda el desplazamiento');
+    check(
+      maquetarioEditor.book.folio.offsetY === 20,
+      'Soltar el deslizador guarda el desplazamiento',
+    );
     refreshCategoryTabs();
     if (!moreCategories.hidden) {
       moreCategories.click();
@@ -46,7 +57,7 @@ registerNavigationTest(async function (result) {
       check(!!option, 'Capas queda accesible desde el menú de categorías');
       option.click();
       check(
-        tab === 'layers' && categoryMenu.hidden,
+        maquetarioEditor.tab === 'layers' && categoryMenu.hidden,
         'Una categoría del menú abre el panel correcto',
       );
     }
@@ -58,7 +69,14 @@ registerNavigationTest(async function (result) {
     return result;
   } finally {
     closeCategoryMenu();
-    ({ book, active, spread, selected, tab, dirty } = original);
+    ({
+      book: maquetarioEditor.book,
+      active: maquetarioEditor.active,
+      spread: maquetarioEditor.spread,
+      selected: maquetarioEditor.selected,
+      tab: maquetarioEditor.tab,
+      dirty: maquetarioEditor.dirty,
+    } = original);
     render(true);
   }
 }, 'category-tests');

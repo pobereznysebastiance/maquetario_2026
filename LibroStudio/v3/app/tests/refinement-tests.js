@@ -1,6 +1,6 @@
 'use strict';
 registerIntegrationTest(function (r) {
-  const prior = M.clone(book),
+  const prior = M.clone(maquetarioEditor.book),
     grids = showGridStrip,
     check = (ok, label) => {
       if (!ok) throw Error(label);
@@ -24,27 +24,28 @@ registerIntegrationTest(function (r) {
       $('[data-bind="header.distance"]').closest('details').open,
       'Estado de desplegable persiste al reconstruir panel',
     );
-    book.header.pos = 'left';
-    book.header.enabled = true;
-    book.header.offsetX = book.header.offsetY = 0;
-    book.header.distance = 8;
-    book.header.sideDirection = 'up';
+    maquetarioEditor.book.header.pos = 'left';
+    maquetarioEditor.book.header.enabled = true;
+    maquetarioEditor.book.header.offsetX = maquetarioEditor.book.header.offsetY = 0;
+    maquetarioEditor.book.header.distance = 8;
+    maquetarioEditor.book.header.sideDirection = 'up';
     let el = autoElement(0, 'header', 2, true);
     check(
       el.dataset.sideMargin === 'left' && el.style.transform.includes('-90deg'),
       'Cornisa en margen lateral con lectura ascendente',
     );
     check(
-      parseFloat(el.style.left) > 0 && parseFloat(el.style.left) < M.margins(book, 0).left * 2,
+      parseFloat(el.style.left) > 0 &&
+        parseFloat(el.style.left) < M.margins(maquetarioEditor.book, 0).left * 2,
       'Eje de cornisa dentro del margen izquierdo',
     );
-    book.header.sideDirection = 'down';
+    maquetarioEditor.book.header.sideDirection = 'down';
     check(
       autoElement(0, 'header', 2, true).style.transform.includes('90deg'),
       'Lectura descendente en cornisa lateral',
     );
     check(
-      M.validate(JSON.parse(JSON.stringify(book))).header.sideDirection === 'down',
+      M.validate(JSON.parse(JSON.stringify(maquetarioEditor.book))).header.sideDirection === 'down',
       'Dirección de cornisa persiste en proyecto',
     );
     showGridStrip = true;
@@ -60,7 +61,7 @@ registerIntegrationTest(function (r) {
     );
   } finally {
     liveMasterAdjustment = false;
-    book = prior;
+    maquetarioEditor.book = prior;
     showGridStrip = grids;
     applyPagePriority();
     render(true);

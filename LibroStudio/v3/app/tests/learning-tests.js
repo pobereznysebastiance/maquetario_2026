@@ -1,6 +1,6 @@
 'use strict';
 registerIntegrationTest(function (r) {
-  const prior = M.clone(book),
+  const prior = M.clone(maquetarioEditor.book),
     priorSizes = { ...panelSizes },
     check = (ok, msg) => {
       if (!ok) throw Error(msg);
@@ -16,7 +16,7 @@ registerIntegrationTest(function (r) {
       glossaryMatches('reticula', 'layout').some((t) => t[0] === 'grid'),
       'Buscar glosario sin tildes',
     );
-    const content = JSON.stringify(book);
+    const content = JSON.stringify(maquetarioEditor.book);
     showGlossary('gutter');
     check(
       $('#glossaryDefinition h2').textContent.includes('Medianil'),
@@ -29,22 +29,23 @@ registerIntegrationTest(function (r) {
       'Búsqueda sin resultados no conserva definición anterior',
     );
     closeSheet();
-    check(JSON.stringify(book) === content, 'Glosario no altera el libro');
-    book.cover = defaultCover();
-    book.cover.parts.spine.direction = 'up';
+    check(JSON.stringify(maquetarioEditor.book) === content, 'Glosario no altera el libro');
+    maquetarioEditor.book.cover = defaultCover();
+    maquetarioEditor.book.cover.parts.spine.direction = 'up';
     check(
-      coverArtwork(book.cover, 2, false)
+      coverArtwork(maquetarioEditor.book.cover, 2, false)
         .querySelector('[data-cover-part="spine"] .cover-text')
         .style.transform.includes('-90deg'),
       'Lomo de abajo hacia arriba en salida',
     );
     check(
-      M.validate(JSON.parse(JSON.stringify(book))).cover.parts.spine.direction === 'up',
+      M.validate(JSON.parse(JSON.stringify(maquetarioEditor.book))).cover.parts.spine.direction ===
+        'up',
       'Orientación del lomo persiste al guardar',
     );
-    book.cover.parts.spine.direction = 'down';
+    maquetarioEditor.book.cover.parts.spine.direction = 'down';
     check(
-      coverArtwork(book.cover, 2, false)
+      coverArtwork(maquetarioEditor.book.cover, 2, false)
         .querySelector('[data-cover-part="spine"] .cover-text')
         .style.transform.includes('90deg'),
       'Lomo de arriba hacia abajo en salida',
@@ -54,7 +55,8 @@ registerIntegrationTest(function (r) {
     $('#spineDirection').value = 'up';
     $('#spineDirection').dispatchEvent(new Event('change'));
     check(
-      coverDraft.parts.spine.direction === 'up' && coverPart === 'spine',
+      maquetarioEditor.coverDraft.parts.spine.direction === 'up' &&
+        maquetarioEditor.coverPart === 'spine',
       'Selector aplica dirección al lomo elegido',
     );
     closeSheet();
@@ -69,7 +71,7 @@ registerIntegrationTest(function (r) {
     check(!!$('#helpPane .canvas-shortcut-table'), 'Atajos en el centro de Ayuda');
     closeSheet();
     check(!!$('.documentbar #reviewBook'), 'Revisar libro en la barra del documento');
-    if (hasDocument) {
+    if (maquetarioEditor.hasDocument) {
       preflightDialog();
       check(!!$('#dialogLayer .preflight-item'), 'Revisar libro abre su Hoja');
       closeSheet();
@@ -90,7 +92,7 @@ registerIntegrationTest(function (r) {
       }
     }
   } finally {
-    book = prior;
+    maquetarioEditor.book = prior;
     document.body.classList.remove('ui-large');
     panelSizes = priorSizes;
     $('.template-panel').style.height = '';

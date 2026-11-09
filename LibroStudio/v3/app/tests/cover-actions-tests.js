@@ -1,7 +1,7 @@
 // Pruebas de cover-actions.js: sólo se cargan en la autoprueba (test-loader.js), no van en el instalador.
 
 registerIntegrationTest(function (r) {
-  const prior = M.clone(book),
+  const prior = M.clone(maquetarioEditor.book),
     check = (v, m) => {
       if (!v) throw Error(m);
       r.checks.push(m);
@@ -21,7 +21,7 @@ registerIntegrationTest(function (r) {
       'Formato seleccionado actualiza medidas',
     );
     closeSheet();
-    book.cover = defaultCover();
+    maquetarioEditor.book.cover = defaultCover();
     coverEditor();
     check(
       !!$('#exportCoverVisible') && !!$('#printCoverVisible'),
@@ -45,7 +45,7 @@ registerIntegrationTest(function (r) {
     check(rejected, 'No permite cortar cubierta grande en papel A4 a tamaño real');
   } finally {
     clearPrint();
-    book = prior;
+    maquetarioEditor.book = prior;
     render(true);
   }
   return r;

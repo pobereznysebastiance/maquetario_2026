@@ -7,7 +7,8 @@ import { appVersion } from '../env.ts';
 import { cleanName, exists, MAX_PROJECT_BYTES } from '../files.ts';
 import { availableFaces, PACKAGE_MANIFEST } from '../fonts/catalog.ts';
 import { canPackage, faceBytes, isOpenTypeCff } from '../fonts/opentype.ts';
-import { exclusive, exec, type Session } from '../session.ts';
+import { exclusive, type Session } from '../session.ts';
+import { callMain } from '../page.ts';
 import { exactPdf, prepareOutput, printTrim } from './output.ts';
 
 const IMAGE_TYPES: Record<string, string> = {
@@ -142,7 +143,7 @@ export async function createProjectPackage(
     );
     await rename(stage, final);
   } finally {
-    await exec(session, 'window.clearPrint()').catch(() => undefined);
+    await callMain(session, 'clearPrint').catch(() => undefined);
     // Sólo se borra la carpeta temporal que creó esta operación.
     if (dirname(resolve(stage)) === resolve(parent))
       await rm(stage, { recursive: true, force: true });

@@ -2,6 +2,7 @@
 // Con --compose suma, al final y aparte, la novela dibujada con el motor de composición.
 // Pruebas de integración de la interfaz, PDF reales, guardado, recientes y paquete. Deja los
 // resultados en la carpeta de salida y un resumen.json; sale con código 1 si algo falla.
+// A la página le habla sólo por el contrato (page.ts: maquetarioMain y maquetarioTests).
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -16,6 +17,7 @@ import { openPdf, type TrimSpec } from './print-boxes.ts';
 import { createProjectPackage, type PackageRequest } from './handlers/package.ts';
 import { readRecents, recordRecent, saveProject } from './handlers/project.ts';
 import { delay, exec, waitFor, type Session } from './session.ts';
+import { callMain, mainExpression, mainExpressionIfLoaded, testsExpression } from './page.ts';
 
 type StepResult = {
   step: string;
@@ -70,7 +72,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
         ok: false,
         error: error instanceof Error ? (error.stack ?? error.message) : String(error),
       });
-      await exec(session, 'window.clearPrint&&window.clearPrint()').catch(() => undefined);
+      await exec(session, mainExpressionIfLoaded('clearPrint')).catch(() => undefined);
     }
   };
   /** Las pruebas de la interfaz devuelven {ok, checks} (a veces como texto JSON). */
@@ -96,9 +98,9 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     await exec(session, prepare);
     await delay(wait);
     // Con el motor de composición prendido (--compose), esperar a que la salida esté compuesta.
-    await waitFor(session, 'window.composeOutputReady!==false', 100, 100);
+    await waitFor(session, mainExpression('composeOutputReady'), 100, 100);
     const bytes = await exactPdf(session, page, trim, pdfx);
-    await exec(session, 'window.clearPrint()');
+    await callMain(session, 'clearPrint');
     if (bytes.subarray(0, 5).toString('latin1') !== '%PDF-')
       throw new Error(`PDF inválido: ${file}`);
     await writeFile(join(out, file), bytes);
@@ -109,11 +111,13 @@ export async function runSelfTest(session: Session): Promise<boolean> {
 
   await delay(500);
   // Las confirmaciones (src/components/dialog) no esperan respuesta durante la autoprueba.
-  await exec(session, 'window.maquetarioSelfTest = true');
-  // Las pruebas de la interfaz se cargan aparte (test-loader.js, desde tests/); el paquete distribuido
-  // no las trae, y los pasos que las usan (testStep) se omiten.
-  const loaderDone = await waitFor(session, 'window.maquetarioTestsReady !== undefined', 150, 100);
-  const testsIncluded = loaderDone && (await exec(session, 'window.maquetarioTestsReady')) === true;
+  await callMain(session, 'setSelfTest', true);
+  // Las pruebas de la interfaz se cargan aparte (test-loader.js, desde tests/, arma
+  // window.maquetarioTests); el paquete distribuido no las trae, y los pasos que las usan
+  // (testStep) se omiten.
+  const loaderDone = await waitFor(session, 'window.maquetarioTests !== undefined', 150, 100);
+  const testsIncluded =
+    loaderDone && (await exec(session, 'window.maquetarioTests.ready')) === true;
   if (!testsIncluded)
     console.log(
       '[autoprueba] este paquete no incluye las pruebas de la interfaz: se omiten los pasos que las usan',
@@ -125,7 +129,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   await testStep('interfaz: pruebas de integración', () =>
     uiSuite(
       'verificacion.json',
-      '(()=>{try{return window.runIntegrationTests()}catch(e){return JSON.stringify({ok:false,error:e.stack})}})()',
+      `(()=>{try{return ${testsExpression('runIntegrationTests')}}catch(e){return JSON.stringify({ok:false,error:e.stack})}})()`,
     ),
   );
   await step('guardar sobre un archivo existente', () => checkProjectSaving(session));
@@ -133,24 +137,24 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   await testStep('fuentes del sistema', () =>
     uiSuite(
       'verificacion-fuentes.json',
-      'window.runFontIntegrationTests().catch(e=>({ok:false,error:e.message}))',
+      `${testsExpression('runFontIntegrationTests')}.catch(e=>({ok:false,error:e.message}))`,
     ),
   );
   await step('captura del editor', async () => {
-    await exec(session, 'window.showHandlePreview()');
+    await callMain(session, 'showHandlePreview');
     await delay(150);
     await capture('editor.png');
   });
   await step('PDF de lectura', () =>
-    writePdf('prueba-lectura.pdf', 'window.preparePrint()', A5, 450),
+    writePdf('prueba-lectura.pdf', mainExpression('preparePrint'), A5, 450),
   );
   await step('PDF del índice', () =>
-    writePdf('prueba-indice.pdf', 'window.prepareIndexPrint()', A5, 200),
+    writePdf('prueba-indice.pdf', mainExpression('prepareIndexPrint'), A5, 200),
   );
   await testStep('PDF con marcas de corte', async () =>
     writePdf(
       'prueba-marcas.pdf',
-      'window.prepareMarkedOutputTest()',
+      testsExpression('prepareMarkedOutputTest'),
       { width: 162, height: 224 },
       300,
       // Las mismas opciones que tests/output-tests.js → prepareMarkedOutputTest.
@@ -158,27 +162,27 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     ),
   );
   await testStep('PDF tipográfico', async () => {
-    await exec(session, 'window.prepareFontPdfTest()');
+    await exec(session, testsExpression('prepareFontPdfTest'));
     return writePdf('prueba-fuentes.pdf', 'void 0', A5, 200);
   });
   await testStep('PDF de párrafos', () =>
-    writePdf('prueba-parrafos.pdf', 'window.prepareParagraphPdfTest()', A5, 200),
+    writePdf('prueba-parrafos.pdf', testsExpression('prepareParagraphPdfTest'), A5, 200),
   );
   await step('novela de prueba', async () => {
-    const report = await exec<string>(session, 'window.prepareNovelProof()');
+    const report = await callMain(session, 'prepareNovelProof');
     await writeFile(join(out, 'prueba-novela.json'), report);
     await writeFile(
       join(out, 'El atlas de las casas vacias.mqt'),
-      await exec<string>(session, 'window.novelProofContent()'),
+      await callMain(session, 'novelProofContent'),
     );
     await delay(250);
     await capture('novela.png');
-    return writePdf('El atlas de las casas vacias.pdf', 'window.prepareNovelPdf()', A5, 350);
+    return writePdf('El atlas de las casas vacias.pdf', mainExpression('prepareNovelPdf'), A5, 350);
   });
   // La misma novela en PDF/X-4 (pdfx.ts): sólo del lado del proceso principal.
   await step('PDF/X-4 de la novela', async () => {
     const file = 'El atlas de las casas vacias - PDFX4.pdf';
-    await writePdf(file, 'window.prepareNovelPdf()', A5, 350, null, {
+    await writePdf(file, mainExpression('prepareNovelPdf'), A5, 350, null, {
       title: 'El atlas de las casas vacías',
     });
     const bytes = await readFile(join(out, file));
@@ -192,15 +196,15 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     return { pages: report.pages.length, header: report.header };
   });
   await step('capturas de interfaz', async () => {
-    await exec(session, 'showWelcome()');
+    await exec(session, mainExpression('showWelcome'));
     await delay(600);
     await capture('bienvenida.png');
-    await exec(session, 'hideWelcome()');
-    await exec(session, "showTab('design')");
+    await callMain(session, 'hideWelcome');
+    await callMain(session, 'showTab', 'design');
     await delay(250);
     await capture('inspector-diseno.png');
-    await exec(session, "showTab('book')");
-    await exec(session, 'openSettings()');
+    await callMain(session, 'showTab', 'book');
+    await exec(session, mainExpression('openSettings'));
     await delay(400);
     await capture('configuracion.png');
     // Lista desplegable abierta (clic real: el selector se abre con interacción de la persona).
@@ -227,11 +231,11 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     session.win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
     await delay(150);
     // Configuración es una Hoja en React.
-    await exec(session, 'closeSheet()');
+    await callMain(session, 'closeSheet');
     // void: executeJavaScript esperaría la promesa, que sólo se resuelve al contestar el diálogo.
     await exec(
       session,
-      "window.maquetarioSelfTest = false; void confirmAction({ title: '¿Eliminar la página 3?', message: 'La página y sus objetos se quitan del libro. Podés recuperarlos con Deshacer.', confirmLabel: 'Eliminar página', danger: true })",
+      `${mainExpression('setSelfTest', false)}; void ${mainExpression('confirmAction', { title: '¿Eliminar la página 3?', message: 'La página y sus objetos se quitan del libro. Podés recuperarlos con Deshacer.', confirmLabel: 'Eliminar página', danger: true })}`,
     );
     // Espera a que la confirmación esté dibujada (con un tiempo fijo, a veces se capturaba antes
     // y el cierre de abajo encontraba null).
@@ -243,13 +247,13 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     await capture('confirmacion.png');
     await exec(
       session,
-      "document.querySelector('#confirmDialog').close(); window.maquetarioSelfTest = true",
+      `document.querySelector('#confirmDialog').close(); ${mainExpression('setSelfTest', true)}`,
     );
   });
   await step('confirmación aislada de los atajos', async () => {
     const result = await exec<string>(
       session,
-      "(async()=>{window.maquetarioSelfTest=false;const pages=book.pages.length,before=tool;const answer=confirmAction({title:'Prueba',message:'',confirmLabel:'Eliminar',danger:true});const d=document.querySelector('#confirmDialog');for(const key of ['h','t','Delete','Backspace'])d.querySelector('button').dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true}));d.querySelector('button').click();const value=await answer;window.maquetarioSelfTest=true;return JSON.stringify({closed:!d.open,value,toolKept:tool===before,pagesKept:book.pages.length===pages});})()",
+      "(async()=>{const api=window.maquetarioMain,E=api.editor;api.setSelfTest(false);const pages=E.book.pages.length,before=E.tool;const answer=api.confirmAction({title:'Prueba',message:'',confirmLabel:'Eliminar',danger:true});const d=document.querySelector('#confirmDialog');for(const key of ['h','t','Delete','Backspace'])d.querySelector('button').dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true}));d.querySelector('button').click();const value=await answer;api.setSelfTest(true);return JSON.stringify({closed:!d.open,value,toolKept:E.tool===before,pagesKept:E.book.pages.length===pages});})()",
     );
     const r = JSON.parse(result) as {
       closed: boolean;
@@ -263,7 +267,7 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   await step('espacios de trabajo', async () => {
     const result = await exec<string>(
       session,
-      "(()=>{const W=MaquetarioWorkspace,h=s=>document.querySelector(s)?.hasAttribute('data-workspace-hidden');W.setMode('simple');const simple={frame:h('[data-tool=\"frame\"]'),select:h('[data-tool=\"select\"]'),layersView:h('[data-rail-view=\"layers\"]'),templates:h('.template-panel')};W.setVisible('tool:frame',true);const custom={mode:W.mode(),frame:h('[data-tool=\"frame\"]')};W.setMode('default');const any=document.querySelectorAll('[data-workspace-hidden]').length;return JSON.stringify({simple,custom,any});})()",
+      "(()=>{const W=window.maquetarioMain.workspace,h=s=>document.querySelector(s)?.hasAttribute('data-workspace-hidden');W.setMode('simple');const simple={frame:h('[data-tool=\"frame\"]'),select:h('[data-tool=\"select\"]'),layersView:h('[data-rail-view=\"layers\"]'),templates:h('.template-panel')};W.setVisible('tool:frame',true);const custom={mode:W.mode(),frame:h('[data-tool=\"frame\"]')};W.setMode('default');const any=document.querySelectorAll('[data-workspace-hidden]').length;return JSON.stringify({simple,custom,any});})()",
     );
     const r = JSON.parse(result);
     const ok =
@@ -275,16 +279,16 @@ export async function runSelfTest(session: Session): Promise<boolean> {
       !r.custom.frame &&
       r.any === 0;
     if (!ok) throw new Error(result);
-    await exec(session, 'MaquetarioWorkspace.toggleMenu()');
+    await exec(session, 'window.maquetarioMain.workspace.toggleMenu()');
     await delay(250);
     await capture('menu-espacios.png');
     await exec(
       session,
-      "document.querySelector('#workspaceMenu').hidePopover(); openSettings('workspace')",
+      `document.querySelector('#workspaceMenu').hidePopover(); ${mainExpression('openSettings', 'workspace')}`,
     );
     await delay(400);
     await capture('configuracion-espacio.png');
-    await exec(session, 'closeSheet()');
+    await callMain(session, 'closeSheet');
     return [
       'Inicial oculta lo avanzado',
       'Personalizado guarda la selección',
@@ -333,14 +337,14 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     const r = JSON.parse(
       await exec<string>(
         session,
-        "(()=>{MaquetarioRulers.setVisible(false);const hidden=getComputedStyle(document.querySelector('.ruler-x')).display==='none',top=getComputedStyle(document.querySelector('#spreadStage')).top;MaquetarioRulers.setVisible(true);const shown=getComputedStyle(document.querySelector('.ruler-x')).display!=='none';return JSON.stringify({hidden,top,shown});})()",
+        "(()=>{const R=window.maquetarioMain.rulers;R.setVisible(false);const hidden=getComputedStyle(document.querySelector('.ruler-x')).display==='none',top=getComputedStyle(document.querySelector('#spreadStage')).top;R.setVisible(true);const shown=getComputedStyle(document.querySelector('.ruler-x')).display!=='none';return JSON.stringify({hidden,top,shown});})()",
       ),
     );
     if (!r.hidden || r.top !== '0px' || !r.shown) throw new Error(JSON.stringify(r));
     return ['Ocultar reglas libera el espacio', 'Mostrarlas las vuelve a poner'];
   });
   await testStep('PDF de cubierta', async () => {
-    await exec(session, 'window.prepareCoverProof()');
+    await exec(session, testsExpression('prepareCoverProof'));
     await delay(300);
     const page = await prepareOutput(session, { kind: 'cover', crop: true });
     const bytes = await exactPdf(
@@ -348,14 +352,14 @@ export async function runSelfTest(session: Session): Promise<boolean> {
       page,
       await printTrim(session, { kind: 'cover', crop: true }, page.scale),
     );
-    await exec(session, 'window.clearPrint(); closeSheet()');
+    await exec(session, `${mainExpression('clearPrint')}; ${mainExpression('closeSheet')}`);
     await writeFile(join(out, 'prueba-cubierta.pdf'), bytes);
     return { page };
   });
   await testStep('asistente editorial', () =>
     uiSuite(
       'verificacion-asistente.json',
-      'window.runAssistantTests().catch(e=>({ok:false,error:e.stack}))',
+      `${testsExpression('runAssistantTests')}.catch(e=>({ok:false,error:e.stack}))`,
     ),
   );
   // Qué módulo extiende cada función y en qué orden: tiene que salir idéntico entre entregas
@@ -363,39 +367,51 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   await testStep('extensiones', () =>
     uiSuite(
       'verificacion-extensiones.json',
-      'JSON.stringify({ extensions: MaquetarioExtensions.list() })',
+      `JSON.stringify({ extensions: ${mainExpression('extensions')} })`,
     ),
   );
   await testStep('navegación', () =>
     uiSuite(
       'verificacion-navegacion.json',
-      'window.runNavigationTests().catch(e=>({ok:false,error:e.stack}))',
+      `${testsExpression('runNavigationTests')}.catch(e=>({ok:false,error:e.stack}))`,
     ),
   );
   await testStep('avisos', () =>
     uiSuite(
       'verificacion-avisos.json',
-      'window.runNoticeTests().catch(e=>({ok:false,error:e.stack}))',
+      `${testsExpression('runNoticeTests')}.catch(e=>({ok:false,error:e.stack}))`,
     ),
   );
   await testStep('paquete del proyecto', () => checkPackage(session));
 
   await testStep('capturas de paneles', async () => {
     const shots: [string, string, string][] = [
-      ['panel-salida.png', 'window.prepareOutputReviewPreview()', 'window.closeOutputWindow()'],
+      [
+        'panel-salida.png',
+        testsExpression('prepareOutputReviewPreview'),
+        mainExpression('closeOutputWindow'),
+      ],
       [
         'panel-fuentes.png',
-        'window.prepareFontBrowserPreview()',
+        testsExpression('prepareFontBrowserPreview'),
         "document.querySelector('#fontBrowser')?.close()",
       ],
-      ['panel-cubierta.png', 'window.prepareCoverProof()', 'closeSheet()'],
-      ['panel-asistente.png', 'window.prepareAssistantPreview()', 'window.closeSheet()'],
+      ['panel-cubierta.png', testsExpression('prepareCoverProof'), mainExpression('closeSheet')],
+      [
+        'panel-asistente.png',
+        testsExpression('prepareAssistantPreview'),
+        mainExpression('closeSheet'),
+      ],
       [
         'panel-tutorial.png',
-        'window.startTutorial(3)',
+        mainExpression('startTutorial', 3),
         "document.querySelector('#pauseTutorial')?.click()",
       ],
-      ['panel-glosario.png', 'window.prepareGlossaryPreview()', 'window.closeSheet()'],
+      [
+        'panel-glosario.png',
+        testsExpression('prepareGlossaryPreview'),
+        mainExpression('closeSheet'),
+      ],
     ];
     const done: string[] = [];
     for (const [file, open, close] of shots) {
@@ -412,10 +428,10 @@ export async function runSelfTest(session: Session): Promise<boolean> {
   // Última: abrir "libro nuevo" descarta el libro de prueba.
   await step('captura de libro nuevo', async () => {
     // settingsNew devuelve la promesa de la Hoja (se cumple al cerrarla): no se espera.
-    await exec(session, 'void settingsNew(true)');
+    await exec(session, `void ${mainExpression('settingsNew', true)}`);
     await delay(400);
     await capture('libro-nuevo.png');
-    await exec(session, 'closeSheet()');
+    await callMain(session, 'closeSheet');
   });
 
   // Opcional (--compose): la novela dibujada con el motor de composición, aparte, para revisarla
@@ -426,16 +442,16 @@ export async function runSelfTest(session: Session): Promise<boolean> {
     await step('novela con el motor de composición (aparte)', async () => {
       const folder = 'motor-de-composicion';
       await mkdir(join(out, folder), { recursive: true });
-      await exec(session, 'window.prepareNovelProof()');
-      await exec(session, 'composeActivate().then(() => true)');
+      await callMain(session, 'prepareNovelProof');
+      await exec(session, `${mainExpression('composeActivate')}.then(() => true)`);
       await delay(300);
       await capture(join(folder, 'novela.png'));
-      const report = await exec<unknown>(session, 'composeReport()');
+      const report = await callMain(session, 'composeReport');
       await writeFile(join(out, folder, 'paridad.json'), JSON.stringify(report, null, 2));
       // La salida espera sola al motor (composeOutputReady): no hace falta composeReady().
       return writePdf(
         join(folder, 'El atlas de las casas vacias.pdf'),
-        'window.prepareNovelPdf()',
+        mainExpression('prepareNovelPdf'),
         A5,
         350,
       );
@@ -513,7 +529,7 @@ async function checkPackage(session: Session) {
   const previous = replacePackageFaces([sample]);
   try {
     const request = JSON.parse(
-      await exec<string>(session, `window.preparePackageProof(${JSON.stringify(sample.id)})`),
+      await exec<string>(session, testsExpression('preparePackageProof', sample.id)),
     ) as PackageRequest;
     await createProjectPackage(session, folder, request);
     const [result] = await readdir(folder);

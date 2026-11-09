@@ -1,6 +1,6 @@
 'use strict';
 registerFontTest(async function (r) {
-  const prior = M.clone(book),
+  const prior = M.clone(maquetarioEditor.book),
     check = (ok, msg) => {
       if (!ok) throw Error(msg);
       r.checks.push(msg);
@@ -20,7 +20,8 @@ registerFontTest(async function (r) {
     $('#fontBrowserSearch').value = 'Georgia';
     filterFontBrowser();
     check(
-      fontBrowserMatches.includes('Georgia') && fontBrowserMatches.length < fontList.length,
+      fontBrowserMatches.includes('Georgia') &&
+        fontBrowserMatches.length < maquetarioEditor.fontList.length,
       'Búsqueda de familias en selector visual',
     );
     const face = chooseDefaultFace('Georgia');
@@ -33,12 +34,15 @@ registerFontTest(async function (r) {
       fontBrowserFamily = 'Georgia';
       fontBrowserVariant = face.id;
       await applyFontBrowser();
-      check(book.header.fontFaceId === face.id, 'Cornisa conserva el estilo tipográfico elegido');
+      check(
+        maquetarioEditor.book.header.fontFaceId === face.id,
+        'Cornisa conserva el estilo tipográfico elegido',
+      );
     } else fontBrowser.close();
     check(!fontBrowser.open, 'Aplicar cierra selector de fuentes');
   } finally {
     if (fontBrowser.open) fontBrowser.close();
-    book = prior;
+    maquetarioEditor.book = prior;
     render(true);
   }
   return r;

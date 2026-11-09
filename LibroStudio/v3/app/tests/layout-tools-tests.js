@@ -20,19 +20,19 @@ registerIntegrationTest(function (result) {
   check(out.rect.x === 20 && out.rect.w === 50, 'Imán mueve sin cambiar dimensiones');
   out = snappedFrame({ x: 20, y: 40, w: 15, h: 25 }, 'e', lines, 0.01, { width: 148, height: 210 });
   check(out.rect.w === 15, 'Imán no actúa fuera de tolerancia');
-  const original = M.clone(book),
-    o = book.pages[0].objects[0];
+  const original = M.clone(maquetarioEditor.book),
+    o = maquetarioEditor.book.pages[0].objects[0];
   o.hidden = true;
   check(!paper(0, 1, true).querySelector(`[data-id="${o.id}"]`), 'Capas ocultas no se imprimen');
   o.hidden = false;
   o.locked = true;
-  selected = o.id;
+  maquetarioEditor.selected = o.id;
   check(
     !paper(0, 1, false).querySelector(`[data-id="${o.id}"] .frame-handle`),
     'Capas bloqueadas no tienen controladores',
   );
-  book = original;
-  selected = null;
+  maquetarioEditor.book = original;
+  maquetarioEditor.selected = null;
   render(true);
   return result;
 }, 'layout-tools');

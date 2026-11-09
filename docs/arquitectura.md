@@ -603,7 +603,11 @@ Cada grupo es una entrega con la autoprueba en verde, los PDF idénticos y el in
      - Salen 14 globales, 298 → 284: los 11 de la lista y 3 declaraciones que habían quedado sin publicar. "Estado asignado desde otros archivos" baja de 25 a 24 y los usos desde módulos de 1598 a 1551.
      - Los módulos con efectos se evalúan en el mismo orden. Sólo se adelantan los que quedaron sin efectos (`help-center.tsx`, `project-package.tsx`, `paragraph-format.ts`).
      - Lista de extensiones y recorridos idénticos.
-7. **Contrato con pruebas y proceso principal.**
+7. **Contrato con pruebas y proceso principal.** **Hecho el 09-nov** (salvo sacar los últimos accesores):
+   - `src/contract/page-contract.ts`: los tipos, sin dependencias, que importan la app y desktop. `maquetarioMain` lo publica `src/contract/main-contract.ts`: cada función llama al global en el momento, así pasa por las extensiones. `maquetarioTests` lo arma `test-loader.js`.
+   - El proceso principal (`main.ts`, `open-file.ts`, `handlers/output.ts`, `handlers/package.ts`, `selftest.ts`) usa `callMain`, `mainExpression` y `testsExpression` de `desktop/src/main/page.ts`, con los nombres verificados por TypeScript. Lo que antes eran cadenas con lógica (abrir el proyecto pedido, el corte de la salida, el aviso de cierre) pasó a la página.
+   - `globals-report` controla el contrato: nombres sueltos en el código que evalúa el proceso principal (42 → 0), miembros que usa y no están en el contrato, y que la lista de `test-loader.js` coincida con `MaquetarioTestsApi`.
+   - Las pruebas de `tests/` usan el estado por `maquetarioEditor` (368 usos). Los globales que asignan las pruebas bajan de 31 a 17 y los que leen, de 145 a 129. Las suites de integración, asistente, navegación y avisos dan resultados idénticos.
    - Las pruebas reciben un objeto de prueba (por ejemplo, `window.maquetarioTest` con `editor`, `M` y las funciones que llaman) en lugar de los nombres sueltos.
    - Lo que nombran las cadenas de `selftest.ts` y de `main.ts` queda en una lista explícita, publicada por un solo módulo, que el inventario verifica.
    - Recién ahí se sacan los últimos accesores.

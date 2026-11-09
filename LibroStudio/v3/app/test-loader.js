@@ -1,6 +1,13 @@
 // Pruebas de integración de la interfaz: sólo se cargan en la autoprueba (npm run self-test).
 // Viven en tests/; el programa que se distribuye no las incluye (desktop/package.json → build.files).
 // Se cargan en el mismo orden relativo que tenían en index.html; cada una envuelve a la anterior.
+//
+// Qué usan las pruebas de la página:
+// - el estado del editor sólo por window.maquetarioEditor (book, active, selected, tool…: el
+//   objeto de src/state/editor.ts), nunca por el nombre suelto;
+// - el resto de los globales que leen o asignan lo lista `node scripts/globals-report.mjs`
+//   (columna "pruebas leen/asignan").
+// Lo que la autoprueba les pide a las pruebas va por window.maquetarioTests (abajo).
 (function () {
   'use strict';
   const FILES = [
@@ -39,6 +46,24 @@
     'document-view-tests.js',
     'category-tests.js',
   ].map((name) => 'tests/' + name);
+  // Lo que llama la autoprueba (desktop/src/main/selftest.ts). Tiene que coincidir con
+  // MaquetarioTestsApi (src/contract/page-contract.ts): lo controla scripts/globals-report.mjs.
+  const TESTS_API = [
+    'runIntegrationTests',
+    'runFontIntegrationTests',
+    'runAssistantTests',
+    'runNavigationTests',
+    'runNoticeTests',
+    'prepareMarkedOutputTest',
+    'prepareFontPdfTest',
+    'prepareParagraphPdfTest',
+    'prepareCoverProof',
+    'preparePackageProof',
+    'prepareOutputReviewPreview',
+    'prepareFontBrowserPreview',
+    'prepareAssistantPreview',
+    'prepareGlossaryPreview',
+  ];
   if (!window.MaquetarioHost || !MaquetarioHost.selfTest) return;
   (async () => {
     let missing = 0;
@@ -54,7 +79,13 @@
         document.body.append(script);
       });
     }
-    // true: todas cargadas · 'missing': el paquete no trae pruebas (distribución).
-    window.maquetarioTestsReady = missing === 0 ? true : 'missing';
+    // El contrato con la autoprueba (MaquetarioTestsApi en src/contract/page-contract.ts): el
+    // proceso principal llama a las pruebas sólo por este objeto. Cada función llama al global en
+    // el momento (las pruebas se envuelven unas a otras). ready: true si se cargaron todas,
+    // 'missing' si el paquete no trae pruebas (distribución).
+    const api = { ready: missing === 0 ? true : 'missing' };
+    for (const name of TESTS_API) api[name] = (...args) => window[name](...args);
+    // Las funciones se suman por nombre (TESTS_API): el tipo lo da el contrato.
+    window.maquetarioTests = /** @type {any} */ (Object.freeze(api));
   })();
 })();

@@ -25,14 +25,14 @@ registerIntegrationTest(function (result) {
   assert(M.validate(b).toc.entries.length === 1, 'Guardado compatible del índice');
   showTab('index');
   assert(!!$('#insertToc') && !!$('#indexTool'), 'Sección Índice visible');
-  const saved = M.clone(book);
+  const saved = M.clone(maquetarioEditor.book);
   ensureToc();
   const toc = M.text('', 20, 20, 108, 170);
   toc.toc = true;
-  book.pages[0].objects.push(toc);
+  maquetarioEditor.book.pages[0].objects.push(toc);
   renderPages();
   assert(!!$('.toc-paper-row'), 'Índice colocado en la página');
-  book = saved;
+  maquetarioEditor.book = saved;
   showTab('design');
   showRailView('pages');
   render(true);

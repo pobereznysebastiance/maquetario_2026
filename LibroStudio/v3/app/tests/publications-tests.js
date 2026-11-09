@@ -5,18 +5,18 @@ M.validate = function (input) {
   if (b.publicationType && !publicationTypes[b.publicationType])
     throw Error('Producto editorial inválido.');
   if (b.cover) {
-    const prior = book;
+    const prior = maquetarioEditor.book;
     try {
-      book = b;
+      maquetarioEditor.book = b;
       validateCover(b.cover);
     } finally {
-      book = prior;
+      maquetarioEditor.book = prior;
     }
   }
   return b;
 };
 registerIntegrationTest(function (r) {
-  const prior = M.clone(book),
+  const prior = M.clone(maquetarioEditor.book),
     check = (v, m) => {
       if (!v) throw Error(m);
       r.checks.push(m);
@@ -30,9 +30,9 @@ registerIntegrationTest(function (r) {
       coverGeometry(noFlaps).width === 296 && coverGeometry(noFlaps).parts.length === 2,
       'Cubierta sin lomo ni solapas',
     );
-    book.cover = c;
+    maquetarioEditor.book.cover = c;
     check(
-      M.validate(JSON.parse(JSON.stringify(book))).cover.spine === 12,
+      M.validate(JSON.parse(JSON.stringify(maquetarioEditor.book))).cover.spine === 12,
       'Cubierta persiste en proyecto nativo',
     );
     let rejected = false;
@@ -67,12 +67,12 @@ registerIntegrationTest(function (r) {
     );
     closeSheet();
   } finally {
-    book = prior;
+    maquetarioEditor.book = prior;
     render(true);
   }
   return r;
 }, 'publications-tests');
 window.prepareCoverProof = function () {
-  book.cover = defaultCover();
+  maquetarioEditor.book.cover = defaultCover();
   coverEditor();
 };

@@ -1,22 +1,22 @@
 // Pruebas de book-proof.js: sólo se cargan en la autoprueba (test-loader.js), no van en el instalador.
 
 registerIntegrationTest(function (result) {
-  const old = M.clone(book),
+  const old = M.clone(maquetarioEditor.book),
     check = (ok, msg) => {
       if (!ok) throw Error(msg);
       result.checks.push(msg);
     };
   try {
-    book.header.rule = true;
-    book.header.ruleLength = 55;
-    book.header.ruleWidth = 0.5;
-    book.header.ruleGap = 3;
-    book.header.ruleColor = '#775566';
+    maquetarioEditor.book.header.rule = true;
+    maquetarioEditor.book.header.ruleLength = 55;
+    maquetarioEditor.book.header.ruleWidth = 0.5;
+    maquetarioEditor.book.header.ruleGap = 3;
+    maquetarioEditor.book.header.ruleColor = '#775566';
     check(
       autoElement(0, 'header', 2, true).querySelector('.mqt-rule').style.width === '55%',
       'Miscelánea personalizable en salida',
     );
-    book.header.rule = false;
+    maquetarioEditor.book.header.rule = false;
     check(
       !autoElement(0, 'header', 2, true).querySelector('.mqt-rule'),
       'Miscelánea opcional sin línea residual',
@@ -41,18 +41,18 @@ registerIntegrationTest(function (result) {
         .join(' ')
         .replace(/\s+/g, ' ');
     check(source === rendered, 'Paginación conserva cada palabra del manuscrito en orden');
-    book = b;
+    maquetarioEditor.book = b;
     check(preflightBook().length === 0, 'Revisión completa sin desbordamientos');
-    book.pages[8].objects.push(M.text('Prueba '.repeat(500), 20, 20, 30, 5, 12));
+    maquetarioEditor.book.pages[8].objects.push(M.text('Prueba '.repeat(500), 20, 20, 30, 5, 12));
     check(
       preflightBook().some((i) => i.kind === 'overflow' && i.page === 8),
       'Control detecta desbordamiento en página fuera de la vista',
     );
     M.validate(JSON.parse(JSON.stringify(b)));
   } finally {
-    book = old;
-    active = spread = 0;
-    selected = null;
+    maquetarioEditor.book = old;
+    maquetarioEditor.active = maquetarioEditor.spread = 0;
+    maquetarioEditor.selected = null;
     render(true);
   }
   return result;

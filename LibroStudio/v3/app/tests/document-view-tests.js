@@ -4,17 +4,26 @@ registerNavigationTest(async function (report) {
     if (!condition) throw Error(message);
     report.checks.push(message);
   };
-  const previous = { book, active, spread, selected, zoom, tab, dirty, continuousCanvas };
+  const previous = {
+    book: maquetarioEditor.book,
+    active: maquetarioEditor.active,
+    spread: maquetarioEditor.spread,
+    selected: maquetarioEditor.selected,
+    zoom: maquetarioEditor.zoom,
+    tab: maquetarioEditor.tab,
+    dirty: maquetarioEditor.dirty,
+    continuousCanvas,
+  };
   const nativeValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
   try {
-    book = M.create();
-    book.width = 170;
-    book.height = 240;
-    book.pages = Array.from({ length: 20 }, M.page);
+    maquetarioEditor.book = M.create();
+    maquetarioEditor.book.width = 170;
+    maquetarioEditor.book.height = 240;
+    maquetarioEditor.book.pages = Array.from({ length: 20 }, M.page);
     const title = M.text('Título', 135, 45, 50, 20);
-    book.pages[0].objects = [title];
-    active = spread = 0;
-    selected = title.id;
+    maquetarioEditor.book.pages[0].objects = [title];
+    maquetarioEditor.active = maquetarioEditor.spread = 0;
+    maquetarioEditor.selected = title.id;
     render(true);
     const objectBefore = JSON.stringify(title);
     settingsNew(false);
@@ -25,14 +34,14 @@ registerNavigationTest(async function (report) {
     await new Promise((resolve) => setTimeout(resolve));
     check(
       documentUnit() === 'cm' &&
-        book.width === 170 &&
-        book.height === 240 &&
+        maquetarioEditor.book.width === 170 &&
+        maquetarioEditor.book.height === 240 &&
         JSON.stringify(title) === objectBefore,
       'Cambiar a cm conserva el tamaño real y los objetos',
     );
     check(
       $('.statusbar .status-spacer').nextElementSibling.textContent.endsWith('cm') &&
-        M.validate(M.clone(book)).measurementUnit === 'cm',
+        M.validate(M.clone(maquetarioEditor.book)).measurementUnit === 'cm',
       'La unidad aparece en el estado y queda en el proyecto',
     );
     showTab('design');
@@ -43,7 +52,10 @@ registerNavigationTest(async function (report) {
     );
     nativeValue.set.call(margin, '2.5');
     margin.dispatchEvent(new Event('change', { bubbles: true }));
-    check(book.margins.top === 25, 'Editar en cm actualiza la longitud real en mm');
+    check(
+      maquetarioEditor.book.margins.top === 25,
+      'Editar en cm actualiza la longitud real en mm',
+    );
     coverEditor();
     check(
       nativeValue.get.call($('[data-cover-size="spine"]')) === '1.2',
@@ -51,7 +63,7 @@ registerNavigationTest(async function (report) {
     );
     closeSheet();
     await new Promise((resolve) => setTimeout(resolve, 20));
-    selected = null;
+    maquetarioEditor.selected = null;
     continuousCanvas = true;
     render(true);
     check(
@@ -63,9 +75,9 @@ registerNavigationTest(async function (report) {
       canvasPadding + target.offset + (target.height - canvasStage.clientHeight) / 2;
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     check(
-      !!$('#spread .page[data-page="8"]') && active === 8,
+      !!$('#spread .page[data-page="8"]') && maquetarioEditor.active === 8,
       'Desplazarse revela y activa un pliego posterior (' +
-        active +
+        maquetarioEditor.active +
         ', ' +
         canvasStage.scrollTop +
         ' / ' +
@@ -74,7 +86,7 @@ registerNavigationTest(async function (report) {
     );
     $$('#thumbnails .thumb')[1].click();
     check(
-      active === 2 &&
+      maquetarioEditor.active === 2 &&
         Math.abs(
           canvasStage.scrollTop +
             canvasStage.clientHeight / 2 -
@@ -84,7 +96,7 @@ registerNavigationTest(async function (report) {
         ) < 3,
       'La miniatura salta al pliego correcto en la vista continua',
     );
-    book.paragraphStyles = [
+    maquetarioEditor.book.paragraphStyles = [
       {
         id: 'titulo',
         name: 'Título',
@@ -103,13 +115,22 @@ registerNavigationTest(async function (report) {
     $('#sheetApply').click();
     await new Promise((r) => setTimeout(r, 30));
     check(
-      book.editorialRoles.titulo === 'Título principal',
+      maquetarioEditor.book.editorialRoles.titulo === 'Título principal',
       'La función editorial se guarda en el proyecto',
     );
     return report;
   } finally {
     closeSheet();
-    ({ book, active, spread, selected, zoom, tab, dirty, continuousCanvas } = previous);
+    ({
+      book: maquetarioEditor.book,
+      active: maquetarioEditor.active,
+      spread: maquetarioEditor.spread,
+      selected: maquetarioEditor.selected,
+      zoom: maquetarioEditor.zoom,
+      tab: maquetarioEditor.tab,
+      dirty: maquetarioEditor.dirty,
+      continuousCanvas,
+    } = previous);
     continuousKey = canvasSpreadKey = '';
     render(true);
   }

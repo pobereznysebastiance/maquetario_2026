@@ -2,7 +2,7 @@
 
 registerIntegrationTest(function (r) {
   const old = { ...panelSizes },
-    before = JSON.stringify(book),
+    before = JSON.stringify(maquetarioEditor.book),
     check = (v, m) => {
       if (!v) throw Error(m);
       r.checks.push(m);
@@ -13,7 +13,7 @@ registerIntegrationTest(function (r) {
     applyPanelSizes();
     check($('.app-layout').style.gridTemplateColumns.includes('230px'), 'Ancho de panel ajustable');
     check($('.template-panel').style.height === '210px', 'Altura de plantillas ajustable');
-    check(JSON.stringify(book) === before, 'Ajustar paneles no modifica el libro');
+    check(JSON.stringify(maquetarioEditor.book) === before, 'Ajustar paneles no modifica el libro');
     coverEditor();
     check(
       !!$('.cover-image-actions #coverImage') &&
@@ -21,7 +21,7 @@ registerIntegrationTest(function (r) {
         document.querySelectorAll('#coverImage,#coverRemoveImage').length === 2,
       'Acciones de imagen junto a cubierta, una sola vez',
     );
-    coverPart = 'back';
+    maquetarioEditor.coverPart = 'back';
     updateCoverPreview();
     check(
       $('#coverImageTarget').textContent === coverNames().back,

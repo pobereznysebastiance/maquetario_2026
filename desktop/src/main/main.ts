@@ -42,6 +42,7 @@ import {
 import { handleScheme, registerScheme } from './protocol.ts';
 import { runSelfTest } from './selftest.ts';
 import { createSession, exec, waitFor, type Session } from './session.ts';
+import { callMain, mainExpression, mainExpressionIfLoaded } from './page.ts';
 import { windowChromeOptions } from './window-chrome.ts';
 import { windowSize } from './window-size.ts';
 
@@ -207,7 +208,7 @@ async function openRequestedProject(session: Session): Promise<void> {
  */
 async function whenRendererReady(session: Session): Promise<void> {
   await waitFor(session, RENDERER_READY, 300, 100);
-  if (hasRequestedProject()) await waitFor(session, 'globalThis.welcomeVisible===true', 50, 100);
+  if (hasRequestedProject()) await waitFor(session, mainExpression('welcomeVisible'), 50, 100);
   rendererReady = true;
   await openRequestedProject(session);
 }
@@ -287,7 +288,7 @@ function onClose(session: Session, event: Electron.Event): void {
   if (session.closingAllowed) return;
   if (session.busy || session.assistantWorking) {
     event.preventDefault();
-    void exec(session, 'window.showBusyCloseNotice()').catch(() => undefined);
+    void callMain(session, 'showBusyCloseNotice').catch(() => undefined);
     return;
   }
   if (!session.dirty) return;
@@ -302,10 +303,7 @@ function onClose(session: Session, event: Electron.Event): void {
       message: 'Guardá el libro antes de cerrar Maquetario.',
     });
   };
-  exec<boolean>(
-    session,
-    "typeof window.requestCloseConfirmation==='function'?(window.requestCloseConfirmation(),true):false",
-  )
+  exec<boolean>(session, `${mainExpressionIfLoaded('requestCloseConfirmation')}===true`)
     .then((shown) => shown || fallback())
     .catch(fallback);
 }
@@ -354,9 +352,7 @@ app.whenReady().then(async () => {
     session.win.webContents.once('did-finish-load', () => {
       void (renewed ? Promise.resolve(null) : renewAtStartup())
         .then(
-          (update) =>
-            update &&
-            exec(session, `window.maquetarioUpdateAvailable?.(${JSON.stringify(update)})`),
+          (update) => update && exec(session, mainExpressionIfLoaded('updateAvailable', update)),
         )
         .catch((error) => console.warn('[motiova]', error));
     });

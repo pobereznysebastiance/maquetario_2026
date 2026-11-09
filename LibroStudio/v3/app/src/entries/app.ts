@@ -76,3 +76,5 @@ import '../workspace.ts';
 import '../rulers.ts';
 import '../inspector-views.tsx';
 import '../compose-loader.ts';
+// El contrato con el proceso principal (window.maquetarioMain), al final: usa lo de todos los módulos.
+import '../contract/main-contract.ts';

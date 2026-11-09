@@ -1,6 +1,6 @@
 'use strict';
 registerIntegrationTest(function (result) {
-  const prior = M.clone(book),
+  const prior = M.clone(maquetarioEditor.book),
     old = localStorage.getItem('maquetario-readability'),
     check = (ok, label) => {
       if (!ok) throw Error(label);
@@ -8,10 +8,11 @@ registerIntegrationTest(function (result) {
     };
   try {
     check(!!$('#saveAs') && $('#saveAs').title.includes('Ctrl'), 'Guardar como visible con atajo');
-    const content = JSON.stringify(book);
+    const content = JSON.stringify(maquetarioEditor.book);
     setReadability('large');
     check(
-      document.body.classList.contains('ui-large') && JSON.stringify(book) === content,
+      document.body.classList.contains('ui-large') &&
+        JSON.stringify(maquetarioEditor.book) === content,
       'Modo grande no altera tipografía del libro',
     );
     setReadability('standard');
@@ -23,19 +24,19 @@ registerIntegrationTest(function (result) {
       'Categorías con el rol de subtítulo (13 px semibold)',
     );
     check(parseFloat(getComputedStyle($('.help')).fontSize) >= 12, 'Ayudas de al menos 12 px');
-    const originalObjects = JSON.stringify(book.pages.map((p) => p.objects));
+    const originalObjects = JSON.stringify(maquetarioEditor.book.pages.map((p) => p.objects));
     for (const p of gridPresets) {
       applyGridPreset(p.id);
       check(
-        M.validateGrid(book) &&
-          book.grid.enabled &&
-          book.grid.cols === p.c &&
-          book.grid.rows === p.r,
+        M.validateGrid(maquetarioEditor.book) &&
+          maquetarioEditor.book.grid.enabled &&
+          maquetarioEditor.book.grid.cols === p.c &&
+          maquetarioEditor.book.grid.rows === p.r,
         'Grilla válida: ' + p.id,
       );
     }
     check(
-      JSON.stringify(book.pages.map((p) => p.objects)) === originalObjects,
+      JSON.stringify(maquetarioEditor.book.pages.map((p) => p.objects)) === originalObjects,
       'Cambiar grilla conserva contenido y posiciones',
     );
     check(
@@ -51,7 +52,7 @@ registerIntegrationTest(function (result) {
     check($$('[data-grid-card]').length === 10, 'Biblioteca de diez grillas');
     closeSheet();
   } finally {
-    book = prior;
+    maquetarioEditor.book = prior;
     setReadability(old || 'standard');
     if (old === null) localStorage.removeItem('maquetario-readability');
     render(true);

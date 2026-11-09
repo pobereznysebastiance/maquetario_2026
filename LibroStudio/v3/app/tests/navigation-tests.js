@@ -5,21 +5,21 @@ window.runNavigationTests = async function () {
       if (!ok) throw Error(msg);
       checks.push(msg);
     },
-    prior = M.clone(book),
-    priorZoom = zoom,
-    priorTool = tool;
+    prior = M.clone(maquetarioEditor.book),
+    priorZoom = maquetarioEditor.zoom,
+    priorTool = maquetarioEditor.tool;
   try {
     hideWelcome();
     closeSheet();
     if (fontBrowser.open) fontBrowser.close();
-    hasDocument = true;
-    book = M.create();
-    active = spread = 0;
-    selected = null;
-    tool = 'select';
+    maquetarioEditor.hasDocument = true;
+    maquetarioEditor.book = M.create();
+    maquetarioEditor.active = maquetarioEditor.spread = 0;
+    maquetarioEditor.selected = null;
+    maquetarioEditor.tool = 'select';
     render(true);
     fitCanvas();
-    const original = JSON.stringify(book),
+    const original = JSON.stringify(maquetarioEditor.book),
       fitted = actualCanvasPercent();
     zoomCanvasTo(100);
     check(Math.abs(actualCanvasPercent() - 100) < 0.01, 'Zoom real de pantalla al 100%');
@@ -91,9 +91,15 @@ window.runNavigationTests = async function () {
     const scroll = canvasStage.scrollLeft;
     canvasStage.scrollLeft += 70;
     check(canvasStage.scrollLeft > scroll + 60, 'Lienzo permite desplazamiento horizontal');
-    check(JSON.stringify(book) === original, 'Navegación no modifica objetos ni contenido');
-    book.folio.enabled = book.header.enabled = book.titulillo.enabled = true;
-    active = 1;
+    check(
+      JSON.stringify(maquetarioEditor.book) === original,
+      'Navegación no modifica objetos ni contenido',
+    );
+    maquetarioEditor.book.folio.enabled =
+      maquetarioEditor.book.header.enabled =
+      maquetarioEditor.book.titulillo.enabled =
+        true;
+    maquetarioEditor.active = 1;
     showTab('pages');
     check(
       !!$('[data-page-visible="hideFolio"]') && !!$('[data-page-visible="hideHeader"]'),
@@ -103,27 +109,29 @@ window.runNavigationTests = async function () {
     checkbox.checked = false;
     checkbox.dispatchEvent(new Event('change'));
     check(
-      book.pages[1].hideFolio && !book.pages[0].hideFolio,
+      maquetarioEditor.book.pages[1].hideFolio && !maquetarioEditor.book.pages[0].hideFolio,
       'Ocultar número afecta solo a página elegida',
     );
     check(
-      !M.auto(book, 1, 'folio') && !!M.auto(book, 0, 'folio'),
+      !M.auto(maquetarioEditor.book, 1, 'folio') && !!M.auto(maquetarioEditor.book, 0, 'folio'),
       'Salida respeta excepción individual de folio',
     );
     $('#pageHideAutomatic').click();
     check(
-      !M.auto(book, 1, 'header') && !M.auto(book, 1, 'titulillo') && !!M.auto(book, 0, 'header'),
+      !M.auto(maquetarioEditor.book, 1, 'header') &&
+        !M.auto(maquetarioEditor.book, 1, 'titulillo') &&
+        !!M.auto(maquetarioEditor.book, 0, 'header'),
       'Ocultar los tres conserva otras páginas',
     );
-    const loaded = M.validate(JSON.parse(JSON.stringify(book)));
+    const loaded = M.validate(JSON.parse(JSON.stringify(maquetarioEditor.book)));
     check(
       loaded.pages[1].hideHeader && loaded.pages[1].hideFolio,
       'Excepciones persisten al guardar',
     );
-    check(M.folio(book, 1) === '2', 'Ocultar folio no reinicia numeración');
+    check(M.folio(maquetarioEditor.book, 1) === '2', 'Ocultar folio no reinicia numeración');
     $('#pageShowAutomatic').click();
     check(
-      !!M.auto(book, 1, 'header') && !!M.auto(book, 1, 'folio'),
+      !!M.auto(maquetarioEditor.book, 1, 'header') && !!M.auto(maquetarioEditor.book, 1, 'folio'),
       'Volver a mostrar elementos individuales',
     );
     closeSheet();
@@ -131,11 +139,11 @@ window.runNavigationTests = async function () {
   } finally {
     spaceHand = false;
     endCanvasPan();
-    book = prior;
-    zoom = priorZoom;
-    tool = priorTool;
-    active = spread = 0;
-    selected = null;
+    maquetarioEditor.book = prior;
+    maquetarioEditor.zoom = priorZoom;
+    maquetarioEditor.tool = priorTool;
+    maquetarioEditor.active = maquetarioEditor.spread = 0;
+    maquetarioEditor.selected = null;
     canvasSpreadKey = '';
     render(true);
   }

@@ -20,7 +20,9 @@ declare var PDFLib: any;
 // ── Salida y autoprueba (las llama desktop/src/main/selftest.ts) ──
 declare var fontOutputReady: any;
 declare var maquetarioSelfTest: boolean;
-declare var maquetarioTestsReady: true | 'missing' | undefined;
+/** Las pruebas de la interfaz para la autoprueba (las arma test-loader.js; contrato en src/contract). */
+declare var maquetarioTests:
+  import('./src/contract/page-contract.ts').MaquetarioTestsApi | undefined;
 
 interface Navigator {
   windowControlsOverlay?: any;

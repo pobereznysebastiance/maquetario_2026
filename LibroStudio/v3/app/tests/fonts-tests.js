@@ -23,11 +23,13 @@ window.runFontIntegrationTests = async function () {
     );
   }
   assert(document.fonts.check('16px "MQT_' + face.id + '"'), 'Archivo local cargado por Chromium');
-  let original = M.clone(book);
-  active = 0;
-  selected = book.pages[0].objects.find((o) => o.type === 'text').id;
+  let original = M.clone(maquetarioEditor.book);
+  maquetarioEditor.active = 0;
+  maquetarioEditor.selected = maquetarioEditor.book.pages[0].objects.find(
+    (o) => o.type === 'text',
+  ).id;
   await applyFace(selectObject(), face, face.instances[0]);
-  const saved = M.validate(JSON.parse(JSON.stringify(book)));
+  const saved = M.validate(JSON.parse(JSON.stringify(maquetarioEditor.book)));
   assert(saved.pages[0].objects[0].fontFaceId === face.id, 'Peso y estilo conservados al guardar');
   if (face.axes.length) {
     assert(
@@ -45,10 +47,10 @@ window.runFontIntegrationTests = async function () {
     $('#spread .paper-object.text').style.fontFamily.includes('MQT_'),
     'Estilo real aplicado a la página',
   );
-  window.fontTestBook = M.clone(book);
-  book = original;
-  selected = null;
-  dirty = false;
+  window.fontTestBook = M.clone(maquetarioEditor.book);
+  maquetarioEditor.book = original;
+  maquetarioEditor.selected = null;
+  maquetarioEditor.dirty = false;
   syncNative();
   render(true);
   return {
@@ -65,7 +67,7 @@ window.prepareFontPdfTest = async function () {
   await ensureFace(
     nativeFaces.find((f) => f.id === window.fontTestBook.pages[0].objects[0].fontFaceId),
   );
-  book = M.clone(window.fontTestBook);
+  maquetarioEditor.book = M.clone(window.fontTestBook);
   preparePrint();
   await ensureBookFonts();
   return true;

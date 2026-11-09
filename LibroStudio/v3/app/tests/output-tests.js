@@ -17,7 +17,7 @@ registerIntegrationTest(function (result) {
     folios: true,
   };
   let g = prepareOutput(clean);
-  assert(g.width === book.width, 'PDF sin marcas conserva formato');
+  assert(g.width === maquetarioEditor.book.width, 'PDF sin marcas conserva formato');
   assert(
     !$('#printRoot .crop-marks') && !$('#printRoot .output-guides'),
     'Salida limpia sin guías',
@@ -25,7 +25,7 @@ registerIntegrationTest(function (result) {
   const marked = { ...clean, crop: true, grid: true, guides: true, margins: true };
   g = prepareOutput(marked);
   assert(
-    g.width === book.width + 14 && g.height === book.height + 14,
+    g.width === maquetarioEditor.book.width + 14 && g.height === maquetarioEditor.book.height + 14,
     'Espacio exterior para marcas de corte',
   );
   assert(

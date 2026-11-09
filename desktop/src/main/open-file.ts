@@ -5,6 +5,7 @@
 // mismo camino que Abrir y los recientes: respeta la confirmación de cambios sin guardar.
 // Sin Electron: se prueba con node --test (desktop/test/open-file.test.ts).
 import { extname, resolve } from 'node:path';
+import { mainExpression, mainExpressionIfLoaded } from './page.ts';
 
 /** Extensiones de proyecto que se abren desde el sistema (las mismas que acepta Abrir, sin .json). */
 export const PROJECT_EXTENSIONS = ['.mqt', '.maquetario', '.librostudio'];
@@ -40,27 +41,10 @@ export function takeRequestedProject(): string | null {
 }
 
 /**
- * Lo que corre la interfaz para abrir el proyecto pedido. Es el mismo recorrido que un reciente
- * (src/components/welcome/welcome-service.tsx → openRecentProject): con cambios sin guardar pregunta antes (confirmChanges),
- * cierra la bienvenida y carga con loadOpenedProject, como Abrir (src/global/studio.ts → openBook).
+ * Lo que corre la interfaz para abrir el proyecto pedido (maquetarioMain.openRequested): el mismo
+ * recorrido que un reciente, con la confirmación de cambios sin guardar.
  */
-export const OPEN_REQUESTED_SCRIPT = `(() => {
-  const run = async () => {
-    try {
-      const result = await nativeCall('openRequested', {});
-      if (!result) return;
-      globalThis.hideWelcome?.();
-      loadOpenedProject(result);
-    } catch (error) {
-      toast(error.message, 'error');
-    }
-  };
-  if (dirty) {
-    globalThis.hideWelcome?.();
-    confirmChanges(run, 'open');
-  } else run();
-})()`;
+export const OPEN_REQUESTED_SCRIPT = mainExpression('openRequested');
 
 /** La interfaz ya puede abrir proyectos: respondió "ready" y cargó el puente de proyectos. */
-export const RENDERER_READY =
-  "typeof native!=='undefined'&&native===true&&typeof loadOpenedProject==='function'&&typeof confirmChanges==='function'";
+export const RENDERER_READY = `${mainExpressionIfLoaded('ready')}===true`;

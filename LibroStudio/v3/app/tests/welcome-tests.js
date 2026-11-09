@@ -5,9 +5,10 @@ extend(
   'applyBookSettings',
   (newBookWelcome) =>
     function (isNew, values) {
-      const previous = book;
+      const previous = maquetarioEditor.book;
       const applied = newBookWelcome(isNew, values);
-      if (isNew && book !== previous && native) void nativeCall('newProject');
+      if (isNew && maquetarioEditor.book !== previous && maquetarioEditor.native)
+        void nativeCall('newProject');
       return applied;
     },
   'welcome-tests',
@@ -33,8 +34,8 @@ registerIntegrationTest(function (result) {
       'Tutorial completo: ' + lesson.id,
     );
   }
-  const original = JSON.stringify(book),
-    originalDirty = dirty,
+  const original = JSON.stringify(maquetarioEditor.book),
+    originalDirty = maquetarioEditor.dirty,
     start = localStorage.getItem('maquetario-tutorial-step');
   startTutorial(8);
   check(
@@ -42,7 +43,7 @@ registerIntegrationTest(function (result) {
     'Recorrido guiado abre capítulo Imán',
   );
   check(
-    JSON.stringify(book) === original && dirty === originalDirty,
+    JSON.stringify(maquetarioEditor.book) === original && maquetarioEditor.dirty === originalDirty,
     'Tutorial no modifica el libro',
   );
   showTutorialStep(17);

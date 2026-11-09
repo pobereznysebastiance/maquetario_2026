@@ -5,20 +5,20 @@ window.runAssistantTests = async function () {
       if (!ok) throw Error(label);
       checks.push(label);
     },
-    prior = M.clone(book),
-    prevDirty = dirty;
+    prior = M.clone(maquetarioEditor.book),
+    prevDirty = maquetarioEditor.dirty;
   try {
     check(
       !!$('#editorialAssistant') && $('#editorialAssistant').textContent.includes('Asistente'),
       'Acceso destacado al asistente',
     );
-    book = M.create();
-    book.pages = book.pages.slice(0, 2);
+    maquetarioEditor.book = M.create();
+    maquetarioEditor.book.pages = maquetarioEditor.book.pages.slice(0, 2);
     const target = M.text('Un  texto de prueba. '.repeat(20), 20, 30, 35, 5, 12);
-    book.pages[0].objects = [target];
-    active = spread = 0;
-    selected = null;
-    const before = JSON.stringify(book),
+    maquetarioEditor.book.pages[0].objects = [target];
+    maquetarioEditor.active = maquetarioEditor.spread = 0;
+    maquetarioEditor.selected = null;
+    const before = JSON.stringify(maquetarioEditor.book),
       issues = await automaticEditorialReview();
     check(
       issues.some((i) => i.kind === 'overflow'),
@@ -28,7 +28,10 @@ window.runAssistantTests = async function () {
       issues.some((i) => i.kind === 'spaces'),
       'Revisión automática detecta espacios repetidos',
     );
-    check(JSON.stringify(book) === before, 'Revisión automática no cambia el libro');
+    check(
+      JSON.stringify(maquetarioEditor.book) === before,
+      'Revisión automática no cambia el libro',
+    );
     const payload = classroomPayload('page');
     check(
       !JSON.stringify(payload).includes('data:image'),
@@ -53,18 +56,21 @@ window.runAssistantTests = async function () {
       !!$('#assistantConsent') && !$('#assistantConsent').checked,
       'Envío IA requiere autorización sin preselección',
     );
-    const stamp = JSON.stringify(book);
+    const stamp = JSON.stringify(maquetarioEditor.book);
     $('#assistantFindings [data-finding-fix]').click();
     check(target.text === 'Un texto', 'Corrección de espacios es individual y explícita');
     undo();
-    check(JSON.stringify(book) === stamp, 'Corrección del asistente permite deshacer');
+    check(
+      JSON.stringify(maquetarioEditor.book) === stamp,
+      'Corrección del asistente permite deshacer',
+    );
     closeSheet();
     return { ok: true, checks };
   } finally {
-    book = prior;
-    active = spread = 0;
-    selected = null;
-    dirty = prevDirty;
+    maquetarioEditor.book = prior;
+    maquetarioEditor.active = maquetarioEditor.spread = 0;
+    maquetarioEditor.selected = null;
+    maquetarioEditor.dirty = prevDirty;
     editorialReport = [];
     editorialReportStamp = '';
     editorialSummary = '';
@@ -76,7 +82,9 @@ window.prepareAssistantPreview = async function () {
   closeSheet();
   if (fontBrowser.open) fontBrowser.close();
   window.prepareNovelProof();
-  const target = book.pages[8].objects.find((o) => o.paragraphMap?.[0]?.styleId === 'body');
+  const target = maquetarioEditor.book.pages[8].objects.find(
+    (o) => o.paragraphMap?.[0]?.styleId === 'body',
+  );
   if (target) {
     target.text += '\nEste  párrafo tiene un espacio repetido para la revisión.';
     target.h = 25;

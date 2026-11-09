@@ -20,23 +20,23 @@ window.runIntegrationTests = function () {
   assert(M.sectionAt(b, 5) === 'Segundo capítulo', 'Sección propagada automáticamente');
   b.pages[2].hideHeader = true;
   assert(M.auto(b, 2, 'header') === null, 'Excepción de cornisa');
-  const old = book.grid.cols;
+  const old = maquetarioEditor.book.grid.cols;
   snapshot();
-  book.grid.cols = 2;
+  maquetarioEditor.book.grid.cols = 2;
   undo();
-  assert(book.grid.cols === old, 'Deshacer configuración');
+  assert(maquetarioEditor.book.grid.cols === old, 'Deshacer configuración');
   redo();
-  assert(book.grid.cols === 2, 'Rehacer configuración');
+  assert(maquetarioEditor.book.grid.cols === 2, 'Rehacer configuración');
   undo();
-  dirty = false;
+  maquetarioEditor.dirty = false;
   syncNative();
-  undoStack = [];
-  redoStack = [];
+  maquetarioEditor.undoStack = [];
+  maquetarioEditor.redoStack = [];
   render(true);
   assert($$('.tool').length >= 8, 'Ocho herramientas visibles');
   assert($$('.page').length === 2, 'Páginas enfrentadas');
   assert($$('.auto-folio').length === 2, 'Foliado en ambas páginas');
-  let serialized = JSON.stringify(book);
+  let serialized = JSON.stringify(maquetarioEditor.book);
   assert(
     M.validate(JSON.parse(serialized)).pages[1].objects[0].src.startsWith('data:image/'),
     'Imagen conservada al guardar',

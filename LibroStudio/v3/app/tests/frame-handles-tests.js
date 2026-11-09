@@ -30,12 +30,14 @@ registerIntegrationTest(function (result) {
     max = frameGeometry(rect, 'se', 1000, 1000, bounds);
   assert(min.w === 3 && min.h === 3, 'Tamaño mínimo de caja');
   assert(max.x + max.w === 148 && max.y + max.h === 210, 'Caja limitada a la página');
-  const original = M.clone(book),
-    previousActive = active,
-    previousSpread = spread,
-    previousSelected = selected;
-  active = spread = 0;
-  selected = book.pages[0].objects.find((o) => o.type === 'text').id;
+  const original = M.clone(maquetarioEditor.book),
+    previousActive = maquetarioEditor.active,
+    previousSpread = maquetarioEditor.spread,
+    previousSelected = maquetarioEditor.selected;
+  maquetarioEditor.active = maquetarioEditor.spread = 0;
+  maquetarioEditor.selected = maquetarioEditor.book.pages[0].objects.find(
+    (o) => o.type === 'text',
+  ).id;
   renderPages();
   assert(
     $$('#spread .paper-object.selected > .frame-handle').length === 8,
@@ -44,7 +46,13 @@ registerIntegrationTest(function (result) {
   const o = selectObject(),
     oldSize = o.size,
     oldText = o.text;
-  Object.assign(o, frameGeometry(o, 'e', 20, 0, { width: book.width, height: book.height }));
+  Object.assign(
+    o,
+    frameGeometry(o, 'e', 20, 0, {
+      width: maquetarioEditor.book.width,
+      height: maquetarioEditor.book.height,
+    }),
+  );
   assert(o.size === oldSize && o.text === oldText, 'Redimensionar conserva cuerpo y contenido');
   const printed = paper(0, 96 / 25.4, true);
   assert(!printed.querySelector('.frame-handle'), 'Los controladores no se imprimen');
@@ -56,34 +64,43 @@ registerIntegrationTest(function (result) {
   renderPages();
   const before = { x: box.x, y: box.y, w: box.w, h: box.h },
     el = $(`#spread .paper-object[data-id="${box.id}"]`),
-    undoDepth = undoStack.length,
+    undoDepth = maquetarioEditor.undoStack.length,
     pointer = { button: 0, pointerId: 1, clientX: 100, clientY: 100 };
   el.setPointerCapture = el.releasePointerCapture = () => {};
   el.hasPointerCapture = () => false;
-  objectDown({ ...pointer, stopPropagation() {}, preventDefault() {} }, box, active, el, 'se');
+  objectDown(
+    { ...pointer, stopPropagation() {}, preventDefault() {} },
+    box,
+    maquetarioEditor.active,
+    el,
+    'se',
+  );
   try {
     moveObject({ ...pointer, clientX: 160, clientY: 150 });
-    assert(box.w > before.w && !!drag, 'Redimensionar agranda la caja mientras se arrastra');
+    assert(
+      box.w > before.w && !!maquetarioEditor.drag,
+      'Redimensionar agranda la caja mientras se arrastra',
+    );
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
   } finally {
     // Si algo falla, que el arrastre no quede abierto para las pruebas siguientes.
-    if (drag)
+    if (maquetarioEditor.drag)
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
   }
   assert(
-    !drag &&
+    !maquetarioEditor.drag &&
       box.x === before.x &&
       box.y === before.y &&
       box.w === before.w &&
       box.h === before.h &&
-      selected === box.id &&
-      undoStack.length === undoDepth,
+      maquetarioEditor.selected === box.id &&
+      maquetarioEditor.undoStack.length === undoDepth,
     'Escape cancela el redimensionado: tamaño de antes, caja elegida y sin paso de deshacer',
   );
-  book = original;
-  active = previousActive;
-  spread = previousSpread;
-  selected = previousSelected;
+  maquetarioEditor.book = original;
+  maquetarioEditor.active = previousActive;
+  maquetarioEditor.spread = previousSpread;
+  maquetarioEditor.selected = previousSelected;
   render(true);
   return result;
 }, 'frame-handles');

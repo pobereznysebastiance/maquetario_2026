@@ -5,13 +5,22 @@ registerNavigationTest(async function (result) {
     if (!condition) throw Error(message);
     result.checks.push(message);
   };
-  const prior = { book, active, spread, selected, zoom, tab, dirty, tool };
+  const prior = {
+    book: maquetarioEditor.book,
+    active: maquetarioEditor.active,
+    spread: maquetarioEditor.spread,
+    selected: maquetarioEditor.selected,
+    zoom: maquetarioEditor.zoom,
+    tab: maquetarioEditor.tab,
+    dirty: maquetarioEditor.dirty,
+    tool: maquetarioEditor.tool,
+  };
   const wasLarge = document.body.classList.contains('ui-large');
   try {
-    book = M.create();
-    book.pages = Array.from({ length: 50 }, M.page);
-    active = spread = 0;
-    selected = null;
+    maquetarioEditor.book = M.create();
+    maquetarioEditor.book.pages = Array.from({ length: 50 }, M.page);
+    maquetarioEditor.active = maquetarioEditor.spread = 0;
+    maquetarioEditor.selected = null;
     render(true);
     settingsNew(false);
     $('#spreadArrangement').value = 'vertical';
@@ -24,7 +33,7 @@ registerNavigationTest(async function (result) {
       'El pliego vertical coloca una página debajo de la otra',
     );
     check(
-      M.validate(M.clone(book)).spreadDirection === 'vertical',
+      M.validate(M.clone(maquetarioEditor.book)).spreadDirection === 'vertical',
       'El pliego vertical se guarda en el proyecto',
     );
 
@@ -36,13 +45,13 @@ registerNavigationTest(async function (result) {
         new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true, cancelable: true }),
       );
     check(
-      book.grid.cols === 5 && document.activeElement === $(selector),
+      maquetarioEditor.book.grid.cols === 5 && document.activeElement === $(selector),
       'Las flechas cambian el valor consecutivamente sin perder el foco',
     );
     document.activeElement.dispatchEvent(
       new WheelEvent('wheel', { deltaY: 100, bubbles: true, cancelable: true }),
     );
-    check(book.grid.cols === 4, 'La rueda modifica el campo numérico enfocado');
+    check(maquetarioEditor.book.grid.cols === 4, 'La rueda modifica el campo numérico enfocado');
 
     const clipboard = new DataTransfer();
     clipboard.setData(
@@ -53,10 +62,10 @@ registerNavigationTest(async function (result) {
     $('#spread').dispatchEvent(
       new ClipboardEvent('paste', { clipboardData: clipboard, bubbles: true, cancelable: true }),
     );
-    for (let i = 0; i < 30 && !book.pages[0].objects.length; i++)
+    for (let i = 0; i < 30 && !maquetarioEditor.book.pages[0].objects.length; i++)
       await new Promise((resolve) => setTimeout(resolve, 20));
     check(
-      book.pages[0].objects[0]?.src.startsWith('data:image/svg+xml;base64,'),
+      maquetarioEditor.book.pages[0].objects[0]?.src.startsWith('data:image/svg+xml;base64,'),
       'Pegar SVG coloca un objeto vectorial',
     );
     const drop = new DataTransfer();
@@ -74,10 +83,10 @@ registerNavigationTest(async function (result) {
         cancelable: true,
       }),
     );
-    for (let i = 0; i < 30 && !book.pages[1].objects.length; i++)
+    for (let i = 0; i < 30 && !maquetarioEditor.book.pages[1].objects.length; i++)
       await new Promise((resolve) => setTimeout(resolve, 20));
     check(
-      book.pages[1].objects.length === 1 && active === 1,
+      maquetarioEditor.book.pages[1].objects.length === 1 && maquetarioEditor.active === 1,
       'Soltar una imagen la coloca en la página bajo el puntero',
     );
 
@@ -107,12 +116,15 @@ registerNavigationTest(async function (result) {
       '50 páginas en papel de 80 µm dan 13 pliegos y 2,08 mm de grosor teórico',
     );
     $('#applyBindingSpine').click();
-    check(coverDraft.spine === 0, 'El abrochado configura una cubierta sin ancho de lomo');
+    check(
+      maquetarioEditor.coverDraft.spine === 0,
+      'El abrochado configura una cubierta sin ancho de lomo',
+    );
     $('#bindingMethod').value = 'flat';
     $('#bindingMethod').dispatchEvent(new Event('change'));
     $('#applyBindingSpine').click();
     check(
-      coverDraft.spine === 2,
+      maquetarioEditor.coverDraft.spine === 2,
       'El lomo plano aplica la medida estimada al borrador de cubierta',
     );
     closeSheet();
@@ -139,7 +151,16 @@ registerNavigationTest(async function (result) {
     closeTutorial();
     closeSheet();
     clearPrint();
-    ({ book, active, spread, selected, zoom, tab, dirty, tool } = prior);
+    ({
+      book: maquetarioEditor.book,
+      active: maquetarioEditor.active,
+      spread: maquetarioEditor.spread,
+      selected: maquetarioEditor.selected,
+      zoom: maquetarioEditor.zoom,
+      tab: maquetarioEditor.tab,
+      dirty: maquetarioEditor.dirty,
+      tool: maquetarioEditor.tool,
+    } = prior);
     setReadability(wasLarge ? 'large' : 'standard');
     render(true);
   }

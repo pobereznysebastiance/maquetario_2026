@@ -3,14 +3,21 @@
 registerIntegrationTest(function (r) {
   const c = defaultCover(),
     rows = coverMeasurementRows(c);
-  if (rows.find((p) => p.id === 'front').pixelW !== Math.round((book.width / 25.4) * 300))
+  if (
+    rows.find((p) => p.id === 'front').pixelW !==
+    Math.round((maquetarioEditor.book.width / 25.4) * 300)
+  )
     throw Error('Conversión a píxeles');
   r.checks.push('Ficha de medidas calcula tamaño y píxeles de cada zona');
   if (
     !coverMeasurementText(c).includes(
       displayDimensions(
-        book.width * 2 + c.spine + c.leftFlap + c.rightFlap + 2 * coverExtension(c),
-        book.height + 2 * coverExtension(c),
+        maquetarioEditor.book.width * 2 +
+          c.spine +
+          c.leftFlap +
+          c.rightFlap +
+          2 * coverExtension(c),
+        maquetarioEditor.book.height + 2 * coverExtension(c),
       ),
     )
   )

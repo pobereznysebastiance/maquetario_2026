@@ -12,8 +12,13 @@
 // - lo que todavía declara LibroStudio/v3/app/globals.d.ts.
 // Quién lo usa: cada identificador libre (que no declara el propio archivo en su alcance) de
 // src/, tests/ y scripts/style-snapshot.js. En el proceso principal (desktop/src/main/) se buscan
-// los nombres dentro de las cadenas que evalúa en la página: la autoprueba (selftest.ts) y el
-// resto (main.ts: aviso de cierre, actualizaciones…).
+// los nombres dentro de las cadenas de código que evalúa en la página: la autoprueba
+// (selftest.ts) y el resto (main.ts, handlers…).
+// Contrato con el proceso principal (src/contract/page-contract.ts): el proceso principal nombra
+// sólo maquetarioMain y maquetarioTests. Se controla que cada miembro que usa (por callMain,
+// mainExpression, testsExpression o escrito en una cadena) esté en el contrato, que test-loader.js
+// arme maquetarioTests con los mismos nombres, y qué globales alcanza el contrato (los que lee
+// src/contract/main-contract.ts).
 // Extensiones: llamadas a extend('f', …) / extend.after('f', …) / … con el nombre como texto.
 //
 // El árbol sale del parser de TypeScript que trae prettier (TypeScript 7 ya no expone su API de
@@ -402,6 +407,13 @@ for (const g of globals.values()) {
 }
 
 // ── Proceso principal: nombres dentro de las cadenas que evalúa en la página ──
+// Sólo las cadenas que son código (llamadas, asignaciones, propiedades): un texto suelto como
+// 'book' o 'design' es un dato (o el nombre de un miembro del contrato), y una frase (cuatro
+// palabras seguidas) es un mensaje, no un global. Los textos entre comillas dentro del código
+// (títulos, selectores) no cuentan.
+const unquoted = (text) => text.replace(/'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, "''");
+const isCode = (text) =>
+  /[();=]|[\w$]\.[\w$]/.test(text) && !/(?:\b\p{L}+ ){3}\p{L}+\b/u.test(text);
 const stringsOf = async (file) => {
   const strings = [];
   const collect = (n) => {
@@ -410,14 +422,14 @@ const stringsOf = async (file) => {
     for (const c of children(n)) collect(c);
   };
   collect(await parse(file));
-  return strings.join('\n');
+  return strings.map(unquoted).filter(isCode).join('\n');
 };
-// El nombre suelto (no como propiedad de otra cosa ni dentro de un texto entre comillas) o
-// como window.x / globalThis.x.
+// El nombre suelto (no como propiedad de otra cosa, ni clave de un objeto, ni parte de un nombre
+// de archivo como inspector-diseno.png) o como window.x / globalThis.x.
 const mentions = (text, name) => {
   const n = name.replace(/\$/g, '\\$');
   return (
-    new RegExp(`(?<![\\w.$'"-])${n}(?![\\w$])`).test(text) ||
+    new RegExp(`(?<![\\w.$'"#-])${n}(?![\\w$:-])`).test(text) ||
     new RegExp(`(?:window|globalThis)\\.${n}(?![\\w$])`).test(text)
   );
 };
@@ -429,6 +441,63 @@ for (const g of globals.values()) {
   g.selftest = mentions(selftestText, g.name);
   g.main = mentions(mainText, g.name);
 }
+
+// ── Contrato con el proceso principal ──
+const CONTRACT = join(src, 'contract', 'page-contract.ts');
+const CONTRACT_IMPL = 'src/contract/main-contract.ts';
+const LOADER = join(app, 'test-loader.js');
+const contractTree = await parse(CONTRACT);
+const membersOf = (name) => {
+  const found = [];
+  const visit = (n) => {
+    if (n.type === 'TSInterfaceDeclaration' && n.id.name === name)
+      for (const m of n.body.body) if (m.key?.name) found.push(m.key.name);
+    for (const c of children(n)) visit(c);
+  };
+  visit(contractTree);
+  return found;
+};
+const contract = { main: membersOf('MaquetarioMainApi'), tests: membersOf('MaquetarioTestsApi') };
+const usedByMain = { main: new Set(), tests: new Set() };
+const HELPERS = {
+  callMain: ['main', 1],
+  mainExpression: ['main', 0],
+  mainExpressionIfLoaded: ['main', 0],
+  testsExpression: ['tests', 0],
+};
+for (const file of walkDir(MAIN, (p) => p.endsWith('.ts'))) {
+  const visit = (n) => {
+    if (n.type === 'CallExpression' && n.callee.type === 'Identifier' && HELPERS[n.callee.name]) {
+      const [kind, index] = HELPERS[n.callee.name];
+      const arg = n.arguments[index];
+      if (arg?.type === 'Literal' && typeof arg.value === 'string') usedByMain[kind].add(arg.value);
+    }
+    for (const c of children(n)) visit(c);
+  };
+  visit(await parse(file));
+  const text = await stringsOf(file);
+  for (const m of text.matchAll(/maquetarioMain\??\.(\w+)/g)) usedByMain.main.add(m[1]);
+  for (const m of text.matchAll(/maquetarioTests\??\.(\w+)/g)) usedByMain.tests.add(m[1]);
+}
+const loaderList =
+  (readFileSync(LOADER, 'utf8').match(/const TESTS_API = \[([\s\S]*?)\]/)?.[1] ?? '')
+    .match(/'(\w+)'/g)
+    ?.map((x) => x.slice(1, -1)) ?? [];
+const contractProblems = [
+  ...[...usedByMain.main]
+    .filter((n) => !contract.main.includes(n))
+    .map((n) => `maquetarioMain.${n} no está en el contrato`),
+  ...[...usedByMain.tests]
+    .filter((n) => !contract.tests.includes(n))
+    .map((n) => `maquetarioTests.${n} no está en el contrato`),
+  ...contract.tests
+    .filter((n) => n !== 'ready' && !loaderList.includes(n))
+    .map((n) => `test-loader.js no arma maquetarioTests.${n}`),
+  ...loaderList
+    .filter((n) => !contract.tests.includes(n))
+    .map((n) => `test-loader.js arma ${n}, que no está en el contrato`),
+];
+const CONTRACT_OBJECTS = new Set(['maquetarioMain', 'maquetarioTests']);
 
 // ── Salida ──
 const rows = [...globals.values()]
@@ -443,6 +512,7 @@ const rows = [...globals.values()]
     testWriters: [...g.testWriters],
     selftest: g.selftest,
     main: g.main,
+    contract: g.readers.has(CONTRACT_IMPL),
     extensions: g.extensions,
   }))
   .sort(
@@ -479,13 +549,30 @@ const summary = {
   'asignados por pruebas': rows.filter((r) => r.testWriters.length).length,
   'nombrados en cadenas de la autoprueba': rows.filter((r) => r.selftest).length,
   'nombrados en cadenas del proceso principal': rows.filter((r) => r.main).length,
+  'nombrados sueltos por el proceso principal (fuera del contrato)': rows.filter(
+    (r) => (r.selftest || r.main) && !CONTRACT_OBJECTS.has(r.name),
+  ).length,
+  'miembros del contrato (maquetarioMain)': contract.main.length,
+  'miembros del contrato (maquetarioTests)': contract.tests.length,
+  'globales que alcanza el contrato (src/contract/main-contract.ts)': rows.filter((r) => r.contract)
+    .length,
+  'problemas del contrato': contractProblems.length,
   'funciones extendidas por nombre': rows.filter((r) => r.extensions.length).length,
   'extensiones registradas': [...globals.values()].reduce((n, g) => n + g.extensions.length, 0),
 };
 
 if (process.argv.includes('--json')) {
   console.log(
-    JSON.stringify({ summary, globals: rows, extendedWithoutGlobal: extendedOnly }, null, 2),
+    JSON.stringify(
+      {
+        summary,
+        contract: { ...contract, problems: contractProblems },
+        globals: rows,
+        extendedWithoutGlobal: extendedOnly,
+      },
+      null,
+      2,
+    ),
   );
   process.exit(0);
 }
@@ -494,11 +581,17 @@ for (const [label, n] of Object.entries(summary))
   console.log(`  ${String(n).padStart(4)}  ${label}`);
 if (extendedOnly.length)
   console.log(`\n  Extendidas sin global declarado: ${extendedOnly.join(', ')}`);
+const loose = rows.filter((r) => (r.selftest || r.main) && !CONTRACT_OBJECTS.has(r.name));
+if (loose.length)
+  console.log(
+    `\n  Nombrados sueltos por el proceso principal: ${loose.map((r) => r.name).join(', ')}`,
+  );
+for (const problem of contractProblems) console.log(`  ⚠ ${problem}`);
 
 const onlyState = process.argv.includes('--state');
 const list = onlyState ? rows.filter((r) => r.kind === 'estado') : rows;
 console.log(
-  `\n${onlyState ? 'Estado' : 'Globales'}: nombre · tipo · definido en · archivos que leen/asignan · pruebas leen/asignan · autoprueba (a) / proceso principal (p) · extensiones\n`,
+  `\n${onlyState ? 'Estado' : 'Globales'}: nombre · tipo · definido en · archivos que leen/asignan · pruebas leen/asignan · autoprueba (a) / proceso principal (p) / contrato (c) · extensiones\n`,
 );
 for (const r of list) {
   console.log(
@@ -508,7 +601,7 @@ for (const r of list) {
       r.definedIn.join(', ').padEnd(38),
       `${files(r.readers)}/${files(r.writers)}`.padStart(6),
       `${r.testReaders.length}/${r.testWriters.length}`.padStart(6),
-      (r.selftest ? 'a' : ' ') + (r.main ? 'p' : ' '),
+      (r.selftest ? 'a' : ' ') + (r.main ? 'p' : ' ') + (r.contract ? 'c' : ' '),
       r.extensions.length ? String(r.extensions.length) : '',
     ].join('  '),
   );
