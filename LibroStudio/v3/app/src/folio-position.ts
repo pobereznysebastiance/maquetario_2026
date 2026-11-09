@@ -1,8 +1,8 @@
 // Posición del folio: lo ubica según el ancho real del número (medido en un canvas), dentro del
-// margen elegido (arriba, abajo o lateral), y suma al inspector deslizadores de ajuste fino
-// horizontal y vertical que muestran el cambio en vivo.
+// margen elegido (arriba, abajo o lateral). Los deslizadores de ajuste fino del inspector están en
+// el panel de Foliado (src/components/inspector/FolioPanel.tsx).
 //
-// No publica globales: todo se engancha con extend y decorateInspector.
+// No publica globales: se engancha con extend.
 //
 // Fuente TypeScript: se compila a build/folio-position.js (desktop/scripts/build.mjs).
 import type { AutoType } from './model.ts';
@@ -88,59 +88,7 @@ extend.result(
   'folio-position',
 );
 
-decorateInspector(() => {
-  const section = $('[data-bind="folio.pos"]')?.closest('.section');
-  if (!section || section.querySelector('.folio-placement')) return;
-  const group = document.createElement('div');
-  group.className = 'folio-placement';
-  group.innerHTML = `<strong>${bw('Ajuste fino de posición', 'Fine position', 'Ajuste fino de posição')}</strong>
-    <p class="help">${bw(
-      'Mové el folio con los deslizadores o escribí la medida exacta. El eje del margen queda protegido.',
-      'Drag the sliders or type an exact value. The margin boundary is protected.',
-      'Arraste os controles ou digite a medida exata. O limite da margem é protegido.',
-    )}</p>`;
-  for (const [key, label] of [
-    ['offsetX', bw('Horizontal', 'Horizontal', 'Horizontal')],
-    ['offsetY', bw('Vertical', 'Vertical', 'Vertical')],
-  ]) {
-    const numeric = section.querySelector<HTMLInputElement>(`[data-bind="folio.${key}"]`);
-    const field = numeric?.closest('.field-row');
-    if (!field) continue;
-    field.querySelector('label')!.textContent = label;
-    numeric!.setAttribute('aria-label', label);
-    group.append(field);
-    const slider = document.createElement('input');
-    slider.type = 'range';
-    // String() da el mismo texto que el control al recibir un número.
-    const limits = (value: number) => {
-      const span = Math.max(key === 'offsetX' ? 30 : 60, Math.abs(Number(value)));
-      slider.min = String(-span);
-      slider.max = String(span);
-      slider.value = String(value);
-    };
-    slider.step = '.5';
-    limits(book.folio[key]);
-    slider.setAttribute(
-      'aria-label',
-      label + ' · ' + bw('desplazamiento', 'offset', 'deslocamento'),
-    );
-    slider.oninput = () => {
-      const previous = book.folio[key];
-      numeric!.value = slider.value;
-      book.folio[key] = Number(slider.value);
-      try {
-        renderPages();
-      } finally {
-        book.folio[key] = previous;
-      }
-    };
-    slider.onchange = () => numeric!.dispatchEvent(new Event('change', { bubbles: true }));
-    numeric!.addEventListener('change', () => limits(book.folio[key]));
-    field.append(slider);
-  }
-  const details = section.querySelector('details');
-  if (details) details.before(group);
-  else section.append(group);
-}, 'folio-position');
+// Los deslizadores de ajuste fino del inspector los dibuja el panel de Foliado en React
+// (src/components/inspector/FolioPanel.tsx).
 
 export {};

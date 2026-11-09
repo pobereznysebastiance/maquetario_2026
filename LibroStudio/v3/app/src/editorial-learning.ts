@@ -499,7 +499,8 @@ function decorateGlossaryHints(): void {
     '#inspectorContent .section-heading>span,#inspectorContent .sub-label,#inspectorContent .field-row>label',
   )) {
     if (el.querySelector('.term-help')) continue;
-    const term = termMap[el.textContent.trim()];
+    // Los paneles de React ya dibujan el texto traducido: dejan el castellano en data-text-source.
+    const term = termMap[el.dataset.textSource || el.textContent.trim()];
     if (!term) continue;
     const b = document.createElement('button');
     b.type = 'button';

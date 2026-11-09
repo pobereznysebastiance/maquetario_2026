@@ -239,6 +239,14 @@ function section(
 ): string {
   return `<section class="section" data-section="${esc(title)}" data-key="${key}"><div class="section-heading">${icon(key)}<span${enabled !== null ? ` id="switchLabel-${enabled}"` : ''}>${title}</span>${badge ? `<span class="tiny">${badge}</span>` : ''}${enabled !== null ? toggle(enabled) : ''}</div>${body}</section>`;
 }
+/**
+ * Lugar de una sección que dibuja React (registerInspectorPanel('pestaña:nombre', …), ver
+ * inspector-registry.ts): la sección queda en su orden, con sus atributos (data-section, data-key)
+ * para el orden y el plegado de inspector-sections.ts, y React dibuja su contenido adentro.
+ */
+function inspectorSlot(name: string, title: string, key: string): string {
+  return `<section class="section" data-section="${esc(title)}" data-key="${key}" data-inspector-slot="${name}"></section>`;
+}
 function toggle(path: string): string {
   return `<label class="switch"><input type="checkbox" data-bind="${path}" ${get(path) ? 'checked' : ''} aria-labelledby="switchLabel-${path}"><span></span></label>`;
 }
@@ -349,22 +357,8 @@ function inspector(): void {
         'grid.enabled',
       ) +
       section('Texto', 'text', textControls(true)) +
-      section(
-        'Foliado',
-        'folio',
-        row(
-          'Formato',
-          options('folio.format', [
-            ['arabic', '1, 2, 3…'],
-            ['roman', 'i, ii, iii…'],
-            ['ROMAN', 'I, II, III…'],
-          ]),
-        ) +
-          row('Posición', options('folio.pos', folioPositions)) +
-          row('Comenzar en', number('folio.start', 1, 9999, 1, '')) +
-          masterDetails('folio'),
-        'folio.enabled',
-      ) +
+      // Foliado: panel de React (src/components/inspector/FolioPanel.tsx).
+      inspectorSlot('folio', 'Foliado', 'folio') +
       section(
         'Cornisa',
         'header',
@@ -417,33 +411,38 @@ function inspector(): void {
   }
   bindInspector();
 }
+/**
+ * Graba en el libro el valor de un control con data-bind (casilla, número o texto), con la misma
+ * validación para todos. La usan bindInspector y los paneles de React del inspector.
+ */
+function commitBinding(el: UIElement): void {
+  let value =
+    el.type === 'checkbox' ? el.checked : el.type === 'number' ? Number(el.value) : el.value;
+  const key = el.dataset.bind!;
+  if (
+    el.type === 'number' &&
+    (!Number.isFinite(value) || value < Number(el.min) || value > Number(el.max))
+  ) {
+    toast('Revisá el valor ingresado.', 'warning');
+    inspector();
+    return;
+  }
+  commit(() => {
+    set(key, value);
+    if (key.startsWith('grid.') || key.startsWith('margins.')) {
+      if (
+        !M.validateGrid(book) ||
+        book.margins.inside + book.margins.outside > book.width - 10 ||
+        book.margins.top + book.margins.bottom > book.height - 10
+      )
+        throw Error('La grilla no cabe: reducí márgenes, medianiles o cantidad de módulos.');
+    }
+  }, false);
+}
 function bindInspector(): void {
   const h = $('#inspectorContent');
   h.querySelectorAll<UIElement>('[data-bind]').forEach((el) =>
-    el.addEventListener('change', () => {
-      let value =
-        el.type === 'checkbox' ? el.checked : el.type === 'number' ? Number(el.value) : el.value;
-      const key = el.dataset.bind!;
-      if (
-        el.type === 'number' &&
-        (!Number.isFinite(value) || value < Number(el.min) || value > Number(el.max))
-      ) {
-        toast('Revisá el valor ingresado.', 'warning');
-        inspector();
-        return;
-      }
-      commit(() => {
-        set(key, value);
-        if (key.startsWith('grid.') || key.startsWith('margins.')) {
-          if (
-            !M.validateGrid(book) ||
-            book.margins.inside + book.margins.outside > book.width - 10 ||
-            book.margins.top + book.margins.bottom > book.height - 10
-          )
-            throw Error('La grilla no cabe: reducí márgenes, medianiles o cantidad de módulos.');
-        }
-      }, false);
-    }),
+    el.addEventListener('change', () => commitBinding(el)),
   );
   h.querySelectorAll<UIElement>('[data-fit]').forEach(
     (el) => (el.onclick = () => commit(() => (book.grid.fit = el.dataset.fit!), false)),

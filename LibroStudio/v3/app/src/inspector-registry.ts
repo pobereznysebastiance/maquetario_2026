@@ -1,28 +1,109 @@
 // Inspector: los módulos declaran qué le agregan, en lugar de envolver inspector().
 //   decorateInspector(fn, 'módulo')  →  fn corre después de dibujar el inspector, en orden de carga.
 //   registerInspectorPanel(tab, render, 'módulo')  →  esa pestaña dibuja su propio panel.
+//   registerInspectorPanel('tab:sección', () => <Panel />, 'módulo')  →  una sección de React.
 //   pauseInspectorWhile(cond, 'módulo')  →  mientras cond() sea verdadera, inspector() no redibuja.
 // Por fuera de todo, inspector() conserva el scroll y los <details> abiertos una sola vez.
+//
+// Paneles de React (etapa 3, D2): conviven con los de HTML en la misma cadena.
+// - Una sección: la pestaña en HTML deja su lugar con inspectorSlot(nombre, título, clave) de
+//   studio.ts (un <section class="section"> vacío, en su orden). Apenas se dibuja la pestaña, y
+//   antes que cualquier decorador, React monta el panel registrado como 'pestaña:nombre' dentro de
+//   ese <section> (sincrónico: al volver de inspector() el DOM ya está completo). Así el orden, el
+//   plegado y el reordenamiento de inspector-sections.ts, los <details> abiertos y los
+//   decoradores que buscan nodos con $() siguen funcionando igual.
+// - Una pestaña entera: registerInspectorPanel(tab, render) con un render que devuelve un
+//   elemento de React en vez de escribir el HTML.
+// Cada dibujo del inspector reemplaza el contenido: los paneles de React se vuelven a montar con
+// él (como el HTML) y los anteriores se desmontan cuando su nodo sale de la página.
 //
 // La envoltura de extend.around se registra al cargar: tiene que quedar antes que la de
 // editorial.js, que va por fuera de esta (index.html carga este archivo justo después de studio.js).
 //
-// Fuente TypeScript: se compila a build/inspector-registry.js (desktop/scripts/build.mjs).
+// Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
+import { isValidElement, type ReactNode } from 'react';
+import type { Root } from 'react-dom/client';
 import type { AnyFunction } from './extend.ts';
+import { mount } from './react/mount.tsx';
 
 declare global {
   /** fn corre después de dibujar el inspector, en orden de carga. */
   var decorateInspector: (fn: AnyFunction, origin?: string) => void;
-  /** Con la pestaña panelTab activa, render dibuja el panel en lugar del contenido base. */
-  var registerInspectorPanel: (panelTab: string, render: AnyFunction, origin?: string) => void;
+  /**
+   * Con la pestaña panelTab activa, render dibuja el panel en lugar del contenido base (HTML, o un
+   * elemento de React si lo devuelve). Con 'pestaña:sección', render devuelve el panel de React de
+   * esa sección (el lugar lo deja inspectorSlot en el HTML de la pestaña).
+   */
+  var registerInspectorPanel: (
+    panelTab: string,
+    render: AnyFunction | (() => ReactNode),
+    origin?: string,
+  ) => void;
   /** Mientras cond() sea verdadera, inspector() no redibuja. Devuelve la cantidad de pausas. */
   var pauseInspectorWhile: (cond: () => unknown, origin?: string) => number;
 }
 
+/** Raíces de React montadas en el inspector, con el nodo que las contiene. */
+let roots: { container: Element; root: Root }[] = [];
+/** Paneles de React por sección: 'pestaña:sección' → render. */
+const sectionPanels = new Map<string, () => ReactNode>();
+
+/**
+ * Desmonta los paneles cuyo nodo salió de la página. Mientras la pestaña se arma por pasadas
+ * (inspector-views.ts), lo ya dibujado espera en un fragmento: eso no cuenta como salir.
+ */
+function sweepRoots(): void {
+  roots = roots.filter(({ container, root }) => {
+    if (container.isConnected || container.getRootNode() instanceof DocumentFragment) return true;
+    // Fuera del dibujo en curso: React no admite desmontar mientras dibuja.
+    queueMicrotask(() => root.unmount());
+    return false;
+  });
+}
+function mountPanel(container: Element, node: ReactNode): void {
+  roots.push({ container, root: mount(container, node, { sync: true }) });
+}
+
 globalThis.decorateInspector = (fn, origin = '') => extend.after('inspector', fn, origin);
 // Una pestaña con panel propio dibuja ese panel en lugar del contenido base del inspector.
-globalThis.registerInspectorPanel = (panelTab, render, origin = '') =>
-  extend.instead('inspector', () => tab === panelTab, render, origin);
+globalThis.registerInspectorPanel = (panelTab, render, origin = '') => {
+  if (panelTab.includes(':')) {
+    sectionPanels.set(panelTab, render as () => ReactNode);
+    return;
+  }
+  extend.instead(
+    'inspector',
+    () => tab === panelTab,
+    function (this: unknown, ...args: unknown[]) {
+      const out = (render as AnyFunction).apply(this, args);
+      if (!isValidElement(out)) return out;
+      const host = $('#inspectorContent'),
+        box = document.createElement('div');
+      box.className = 'inspector-panel';
+      host.replaceChildren(box);
+      sweepRoots();
+      mountPanel(box, out);
+    },
+    origin,
+  );
+};
+
+// Secciones de React: se montan apenas se dibuja la pestaña, antes que los decoradores (esta
+// extensión se registra primero).
+extend.after(
+  'inspector',
+  function () {
+    sweepRoots();
+    for (const slot of $('#inspectorContent').querySelectorAll<HTMLElement>(
+      '[data-inspector-slot]',
+    )) {
+      if (slot.hasAttribute('data-react')) continue;
+      const render = sectionPanels.get(tab + ':' + slot.dataset.inspectorSlot);
+      if (render) mountPanel(slot, render());
+    }
+  },
+  'inspector-registry',
+);
 
 const pauses: { cond: () => unknown; origin: string }[] = [];
 globalThis.pauseInspectorWhile = (cond, origin = '') => pauses.push({ cond, origin });

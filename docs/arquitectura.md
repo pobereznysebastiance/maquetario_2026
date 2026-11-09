@@ -226,6 +226,47 @@ El inspector muestra tres pestañas: **Libro**, **Página** y **Selección**. Lo
 
 **Índice** (`index`) y **Capas** (`layers`) son vistas del riel izquierdo, con su selector junto a Páginas: una envoltura `extend.around` registrada al final dibuja esa pestaña con la misma cadena y pasa el resultado a `#railView`. `showTab()` acepta los nombres viejos (`design`, `text`, `object`, `pages`, `structure`, `index`, `layers`) y los lleva a la pestaña o vista nueva; `inspectorTabFor(nombre)` dice cuál. La pestaña elegida se guarda en `maquetario-inspector-view`, y el orden y plegado de secciones guardados por pestaña vieja se pasaron a la nueva. Después de cada armado, las unidades que venían en la etiqueta ("Grosor · mm") pasan adentro del campo.
 
+### Paneles de React en el inspector (etapa 3, D2): base hecha el 09-nov
+
+**Cómo conviven.** La cadena del inspector sigue igual. Lo nuevo:
+- **Una sección en React:** la pestaña en HTML deja su lugar con `inspectorSlot(nombre, título, clave)` de `studio.ts`. Es un `<section class="section" data-section data-key>` vacío, en su orden, y el panel se registra con `registerInspectorPanel('pestaña:nombre', () => <Panel />)`.
+- **Una pestaña entera:** `registerInspectorPanel(tab, render)` con un `render` que devuelve un elemento de React.
+- **Cuándo se monta:** `inspector-registry.ts` monta los paneles apenas se dibuja la pasada, antes que cualquier decorador, y de forma sincrónica (`mount(…, { sync: true })`). Al volver de `inspector()` el DOM ya está completo.
+- **Qué sigue funcionando igual:** el orden, el plegado y el reordenamiento de `inspector-sections.ts` (trabajan sobre el `<section>`, que es el mismo), los `<details>` abiertos y los decoradores que buscan nodos con `$()`.
+- **Cada dibujo vuelve a montar:** cada dibujo del inspector reemplaza el contenido, y el panel se vuelve a montar con él, como el HTML. Las raíces cuyo nodo salió de la página se desmontan. Las que esperan en el fragmento de las pasadas no se tocan.
+- **Entre dibujos,** el panel se actualiza con `useEditorState()`.
+
+**Reglas para pasar un panel:**
+- **Mismo marcado:** mismas clases, `data-bind`, ids, `aria-*` y rótulos que el HTML (`section()`, `row()`, `number()`, `options()` de `studio.ts`). Así no cambian los estilos, las pruebas ni la autoprueba.
+- **Campos ligados con el `change` nativo:** cada campo se liga a su ruta con `commitBinding(el)` de `studio.ts`, la misma validación de `bindInspector`. No con el `onChange` de React: las pruebas escriben `.value` y disparan `new Event('change')`, que no sube. Es lo mismo que resuelve `useNativeChange` en `Form.tsx`, pero ligado en la ref y no en un efecto, para que el campo responda en cuanto se monta.
+- **Los campos no son controlados** (`defaultValue`/`defaultChecked`): el valor vive en el elemento, como en HTML.
+- **Textos con `LibroI18n.tr`** (el traductor del DOM no entra en `data-react`). Si un decorador busca por el texto en castellano, el elemento lleva `data-text-source` (lo usa la ayuda de términos de `editorial-learning.ts`).
+- **Lo que hacía un decorador** moviendo o insertando nodos dentro de la sección pasa al panel. Un decorador puede agregar al final de un nodo de React, pero no mover lo que React dibuja.
+
+**Hecho:** Foliado (`src/components/inspector/FolioPanel.tsx`), con los deslizadores de ajuste fino que antes agregaba `folio-position.ts`. Comparado en Chrome sin ventana contra la versión en HTML (Libro en castellano, inglés y centímetros, después de cambiar valores, deslizar, plegar y reordenar): el marcado es igual salvo `data-text-source` y el atributo `value` de los campos que React actualiza al redibujar.
+
+**Orden para los demás paneles**, de menos a más acoplado:
+
+| Paso | Panel | Qué hay que absorber o cuidar |
+|---|---|---|
+| 1 | Titulillo (Libro) | `master-refinement.ts` agrega "Lectura lateral" después de la posición y oculta "Rotar texto 90°" (lo comparte con Cornisa: el decorador queda para el que siga en HTML) |
+| 2 | Cornisa (Libro) | lo mismo, más título del libro y sección general (`data-bind="title"`/`"chapter"`) |
+| 3 | Grilla (Libro) | botones `data-fit`, validación de márgenes (`commitBinding` ya la tiene) y las plantillas, que redibujan aparte |
+| 4 | Misceláneas y líneas, Biblioteca de fuentes (Libro) | secciones que hoy agregan decoradores (`book-workflow.ts`, `fonts.ts`): pasan a paneles registrados con su propio lugar |
+| 5 | Página (pestaña Página) | `page-exceptions.ts` y `reshapePagePass` en `inspector-views.ts` mueven nodos entre secciones |
+| 6 | Estructura (Libro) | `book-workflow.ts` dibuja la pasada `structure` entera con `registerInspectorPanel`; `addBookSettings` le inserta un botón |
+| 7 | Selección: objeto | `inspector-organization.ts` (alinear, distribuir, capas), `shapes.ts`, `placed-artwork.ts` |
+| 8 | Selección: texto y párrafo | lo más acoplado: `paragraphs.ts` (escucha `change` en el documento y envuelve `commit`), `hyphenation-controls.ts`, `font-glyphs.ts`, `editorial.ts` (controles extra) y la vista de variantes de `fonts.ts` |
+| 9 | Vistas del riel (Índice, Capas) | se arman con la misma cadena y se mueven a `#railView`: van como pestaña entera de React |
+| 10 | La cadena | con todo en React, `inspector-views.ts` pasa a ser un componente con las tres pestañas, y `decorateInspector` queda sólo para lo que no es del inspector |
+
+**Riesgos:**
+- **Decoradores que buscan nodos con `$()`:** si un decorador busca por texto, por posición o mueve nodos, deja de encontrarlos o rompe a React. Antes de pasar cada panel hay que revisar `decorateInspector` y los `$('#inspectorContent …')` que lo tocan, y absorberlos.
+- **`document-units.ts`:** cambia "mm" por "cm" en los textos y redefine `value` en los campos. Funciona sobre React porque React no vuelve a escribir un texto que no cambió. Si un panel cambia el texto de una unidad, hay que pasarlo a `documentUnit()` en el panel.
+- **El traductor del DOM:** no traduce `data-react`. Un decorador que inserta texto en castellano dentro de un panel de React queda sin traducir (los de hoy usan `bw()`).
+- **Volver a montar en cada dibujo:** mientras la cadena siga, cada `render(true)` vuelve a montar los paneles. Es barato con pocos paneles; con muchos conviene que la cadena deje de reemplazar todo (paso 10).
+- **`flushSync` desde un efecto de React:** si `inspector()` se llama dentro de un efecto de React, el montaje sincrónico no se cumple (React avisa y dibuja después).
+
 ## Etapas
 
 1. **Electron con la interfaz actual** (cerrada el 08-nov). Funciona en macOS y Linux además de Windows; la versión C#/WebView2 (`Host*.cs`, `Build*.ps1`, `Maquetario.iss`) y su rama en la interfaz se retiraron. Pendiente, porque depende de Motiova o de la venta: URLs y clave pública de producción, `licenseMode: "enforce"` y la firma de código (ver "Licencias y conexión con Motiova").

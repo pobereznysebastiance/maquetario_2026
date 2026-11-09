@@ -51,6 +51,7 @@ import '../document-units.ts';
 import '../continuous-canvas.ts';
 import '../editorial-rules.ts';
 import '../folio-position.ts';
+import '../components/inspector/FolioPanel.tsx';
 import '../category-design.ts';
 import '../ui/focus.ts';
 import '../ui/select.ts';
