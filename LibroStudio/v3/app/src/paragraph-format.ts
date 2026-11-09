@@ -158,6 +158,7 @@ export const paragraphKeys: string[] = [
   'bold',
   'italic',
   'tracking',
+  'textCase',
   'indentLeft',
   'indentRight',
   'firstIndent',

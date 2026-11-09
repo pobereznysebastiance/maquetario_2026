@@ -23,7 +23,6 @@ import { snapButtonState, toggleSnap } from '../../layout-tools.ts';
 import { bookTitle } from '../../react/no-book.ts';
 import { bw, i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
-import { PieceSwitch } from './PieceSwitch.tsx';
 
 const tr = (text: string) => i18n.tr(text);
 
@@ -60,8 +59,6 @@ export const DocumentBar = () => {
           {editor.book.format + ' · ' + displayDimensions(editor.book.width, editor.book.height)}
         </span>
       </div>
-      {/* Interior | Cubierta: las dos piezas del libro, siempre a la vista (PieceSwitch.tsx). */}
-      <PieceSwitch piece="interior" />
       <SnapButton />
       {/* "Revisar libro": también es el paso 4 del recorrido (centro de Ayuda). */}
       <button

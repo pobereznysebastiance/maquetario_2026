@@ -269,6 +269,21 @@ export const ParagraphPanel = () => {
           ))}
         </select>
       </div>
+      {/* Escritura (planilla de la cátedra): alta y baja, todo mayúscula o versalitas. */}
+      <div className="field-row">
+        <label htmlFor="paragraphTextCase">{bw('Escritura', 'Case', 'Caixa')}</label>
+        <select
+          key={fieldKey('textCase', props.textCase || 'normal')}
+          id="paragraphTextCase"
+          defaultValue={props.textCase || 'normal'}
+          disabled={locked}
+          ref={onNativeChange<HTMLSelectElement>((el) => paragraphPatch({ textCase: el.value }))}
+        >
+          <option value="normal">{bw('Alta y baja', 'Mixed case', 'Alta e baixa')}</option>
+          <option value="uppercase">{bw('Mayúsculas', 'Uppercase', 'Maiúsculas')}</option>
+          <option value="smallcaps">{bw('Versalitas', 'Small caps', 'Versaletes')}</option>
+        </select>
+      </div>
       <Hyphenation format={props} formats={formats} locked={locked} />
       <Btn
         id="newParagraphStyle"

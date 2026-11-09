@@ -28,14 +28,19 @@ import { chooseDefaultFace, selectedFace, variations } from './font-catalog.ts';
 import { modal } from './components/dialog/modal.ts';
 import { boxColumns, boxRoleStyle, fitBox, ROLE_IDS, roleName } from './roles.ts';
 import { goToBookPage } from './book-navigation.ts';
+import { footnoteSettings, hasFootnotes } from './footnote-model.ts';
 
-/** Leyenda obligatoria de la cátedra, en la vista y en lo que se descarga. */
-export const GUIDE_LEGEND =
-  'Pautas tipográficas Material adaptado y desarrollado por la Cátedra de Tipografía I de la UNNE (Universidad Nacional del Nordeste) para fines académicos y editoriales.';
+/** Leyenda obligatoria de la cátedra (texto exacto, en dos renglones), en la vista y al descargar. */
+export const GUIDE_LEGEND_TITLE = 'Pautas tipográficas';
+export const GUIDE_LEGEND_TEXT =
+  'Material adaptado y desarrollado por la Cátedra de Tipografía I de la UNNE (Universidad Nacional del Nordeste) para fines académicos y editoriales.';
+/** Logo de la cátedra (sacado de la planilla de la clase 3), con fondo transparente. */
+const LOGO_URL = 'assets/catedra-tipografia-1.png';
+const LOGO_ALT = 'Tipografía I · Diseño Gráfico · FAU · UNNE';
 
 /**
- * Dónde cortan Ajustado, Normal y Amplio: interlineado ÷ cuerpo. PROVISORIO: es la propuesta que
- * le hicimos a la cátedra (docs/proximos-pasos.md, sección 5); cambiar acá cuando contesten.
+ * Dónde cortan Ajustado, Normal y Amplio: interlineado ÷ cuerpo. Confirmado por la cátedra
+ * (09-nov): menos de 1,2 es ajustado, hasta 1,4 normal; quien quiera otra cosa la elige a mano.
  */
 export const LEADING_LIMITS = { tight: 1.2, normal: 1.4 };
 type LeadingClass = 'tight' | 'normal' | 'wide';
@@ -53,11 +58,6 @@ const leadingNames = (): Record<LeadingClass, string> => ({
   tight: bw('Ajustado', 'Tight', 'Justo'),
 });
 type Writing = 'upper' | 'lower' | 'mixed';
-const writingNames = (): Record<Writing, string> => ({
-  upper: bw('Mayúsculas', 'Uppercase', 'Maiúsculas'),
-  lower: bw('Minúsculas', 'Lowercase', 'Minúsculas'),
-  mixed: bw('Alta y baja', 'Mixed case', 'Alta e baixa'),
-});
 const alignName = (align: string): string =>
   ({ left: pw().l, right: pw().r, center: pw().c, justify: pw().j })[align] || '—';
 // Puntos para mostrar: el interlineado sale de multiplicar (14 × 1,4 = 19,599999…).
@@ -71,6 +71,47 @@ const writingOf = (text: string): Writing | null =>
       : text === text.toLowerCase()
         ? 'lower'
         : 'mixed';
+
+/** Escritura del rol: la propiedad (mayúsculas, versalitas) o, si no tiene, lo que dice el texto. */
+const caseName = (format: Record<string, any>, writing: Set<Writing>): string =>
+  format.textCase === 'uppercase'
+    ? bw('AA · Mayúsculas', 'AA · Uppercase', 'AA · Maiúsculas')
+    : format.textCase === 'smallcaps'
+      ? bw('Versalitas', 'Small caps', 'Versaletes')
+      : writing.size === 1 && writing.has('upper')
+        ? bw('AA · Mayúsculas en el texto', 'AA · Uppercase text', 'AA · Maiúsculas no texto')
+        : bw('Aa · Alta y baja', 'Aa · Mixed case', 'Aa · Alta e baixa');
+/** Rendimiento: por el eje de ancho, o por el nombre del estilo de la fuente. */
+const widthName = (format: Record<string, any>, face?: { style?: string }): string => {
+  const wdth = format.fontAxes?.wdth,
+    name = String(format.fontStyleName || face?.style || '');
+  const condensed = wdth !== undefined ? wdth < 95 : /condens|narrow|compress|compact/i.test(name),
+    expanded = wdth !== undefined ? wdth > 105 : /expand|extend|wide/i.test(name);
+  return condensed
+    ? bw('Condensada', 'Condensed', 'Condensada')
+    : expanded
+      ? bw('Expandida', 'Expanded', 'Expandida')
+      : bw('Normal', 'Normal', 'Normal');
+};
+/** Tinta de texto por defecto (no cuenta como color aplicado). */
+const DEFAULT_INKS = ['#202125', '#1c1d20', '#191a1d', '#000000', '#111111'];
+/**
+ * Lo que la operación tipográfica muestra sola: color aplicado e interletrado. ink es la tinta del
+ * texto del libro (la del Texto principal): ese color no es una operación.
+ */
+const operationAuto = (format: Record<string, any>, ink = ''): string[] => {
+  const out: string[] = [],
+    color = String(format.color || '').toLowerCase();
+  if (color && color !== ink && !DEFAULT_INKS.includes(color))
+    out.push(bw('Color ', 'Color ', 'Cor ') + color);
+  if (format.tracking)
+    out.push(
+      bw('Interletrado ', 'Tracking ', 'Entreletra ') +
+        (format.tracking > 0 ? '+' : '') +
+        format.tracking,
+    );
+  return out;
+};
 
 // ── Textos sin rol: grupos por formato (los usan las pruebas) ──
 
@@ -279,6 +320,9 @@ const otherElements = (): string[] => {
     b.folio.enabled ? item(bw('Folio', 'Folio', 'Fólio'), b.folio) : '',
     b.header.enabled ? item(bw('Cornisa', 'Running head', 'Cabeçalho'), b.header) : '',
     b.titulillo.enabled ? item(bw('Titulillo', 'Running title', 'Titulinho'), b.titulillo) : '',
+    hasFootnotes(b)
+      ? `${bw('Notas al pie', 'Footnotes', 'Notas de rodapé')}: ${footnoteSettings(b).font} ${points(footnoteSettings(b).size)}/${points(footnoteSettings(b).leading)} pt`
+      : '',
   ].filter(Boolean);
 };
 
@@ -308,7 +352,15 @@ const columnsName = (n: number | undefined) =>
 /** La tabla: editable en la Hoja, de sólo lectura en lo que se descarga. */
 const GuideTable = ({ rows, editable }: { rows: RoleRow[]; editable: boolean }) => {
   const notes = notesOf(),
-    cols = editor.book.grid.cols;
+    cols = editor.book.grid.cols,
+    // La tinta del libro: la del Texto principal, o la más usada entre los roles.
+    inks = rows.map((r) => String(r.format.color || '').toLowerCase()),
+    ink =
+      rows.find((r) => r.style.role === 'body')?.format.color?.toLowerCase() ??
+      inks.sort(
+        (a, b) => inks.filter((x) => x === b).length - inks.filter((x) => x === a).length,
+      )[0] ??
+      '';
   return (
     <table>
       <thead>
@@ -321,7 +373,24 @@ const GuideTable = ({ rows, editable }: { rows: RoleRow[]; editable: boolean }) 
         </tr>
       </thead>
       <tbody>
-        {rows.map(({ style, format, paragraphs, pages, writing, exceptions, exceptionPages }) => {
+        {ROLE_IDS.map((roleId) => {
+          // Todas las filas de la planilla, aunque el libro no use ese rol.
+          const row = rows.find((r) => r.style.role === roleId);
+          // Otros sin estilo propio: queda sólo la fila de los automáticos (folio, cornisa, notas).
+          if (!row && roleId === 'other') return null;
+          if (!row)
+            return (
+              <tr key={roleId} data-pauta-empty={roleId}>
+                <th scope="row">
+                  {roleName(roleId)}
+                  <small>{bw('Sin usar', 'Not used', 'Sem uso')}</small>
+                </th>
+                <td colSpan={8} className="guide-unused">
+                  —
+                </td>
+              </tr>
+            );
+          const { style, format, paragraphs, pages, writing, exceptions, exceptionPages } = row;
           const face = selectedFace(format),
             weight =
               format.fontAxes?.wght ??
@@ -380,9 +449,27 @@ const GuideTable = ({ rows, editable }: { rows: RoleRow[]; editable: boolean }) 
                 )}
               </td>
               <td>
-                {[...writing].map((key) => writingNames()[key]).join(' / ') || '—'}
+                {editable ? (
+                  <select
+                    data-pauta="textCase"
+                    aria-label={bw('Escritura', 'Case', 'Caixa')}
+                    defaultValue={format.textCase || 'normal'}
+                  >
+                    <option value="normal">
+                      {bw('Aa · Alta y baja', 'Aa · Mixed case', 'Aa · Alta e baixa')}
+                    </option>
+                    <option value="uppercase">
+                      {bw('AA · Mayúsculas', 'AA · Uppercase', 'AA · Maiúsculas')}
+                    </option>
+                    <option value="smallcaps">
+                      {bw('Versalitas', 'Small caps', 'Versaletes')}
+                    </option>
+                  </select>
+                ) : (
+                  caseName(format, writing)
+                )}
                 <small>
-                  {`${format.fontStyleName || face?.style || weight} · ${format.fontAxes?.wdth ?? '—'} · ${slope}`}
+                  {`${format.fontStyleName || face?.style || weight} · ${widthName(format, face)} · ${slope}`}
                 </small>
               </td>
               <td>
@@ -471,8 +558,11 @@ const GuideTable = ({ rows, editable }: { rows: RoleRow[]; editable: boolean }) 
                     defaultValue={note?.operation || ''}
                   />
                 ) : (
-                  note?.operation || '—'
+                  note?.operation || (operationAuto(format, ink).length ? '' : '—')
                 )}
+                {operationAuto(format, ink).length ? (
+                  <small data-pauta-operation-auto>{operationAuto(format, ink).join(' · ')}</small>
+                ) : null}
               </td>
               <td>
                 <div className="guide-zones">
@@ -526,7 +616,10 @@ const GuideTable = ({ rows, editable }: { rows: RoleRow[]; editable: boolean }) 
           );
         })}
         <tr data-pauta-other>
-          <th scope="row">{roleName('other')}</th>
+          <th scope="row">
+            {roleName('other')}
+            <small>{bw('Automáticos', 'Automatic', 'Automáticos')}</small>
+          </th>
           <td colSpan={8}>
             {otherElements().map((line) => (
               <div key={line}>{line}</div>
@@ -548,6 +641,7 @@ interface RowEdit {
   columns: number | null;
   leadingClass: LeadingClass | '';
   operation: string;
+  textCase: string;
 }
 function readEdits(rows: RoleRow[]): RowEdit[] {
   return rows.map(({ style }) => {
@@ -572,6 +666,7 @@ function readEdits(rows: RoleRow[]): RowEdit[] {
       columns: field('columns') ? Number(field('columns')) : null,
       leadingClass: field('leadingClass') as LeadingClass | '',
       operation: field('operation').trim(),
+      textCase: field('textCase'),
     };
   });
 }
@@ -607,6 +702,8 @@ async function applyEdits(edits: RowEdit[], rows: RoleRow[]): Promise<void> {
           });
       }
       Object.assign(p, { size: edit.size, leading: edit.leading, align: edit.align });
+      if (edit.textCase === 'normal') delete p.textCase;
+      else p.textCase = edit.textCase;
       if ((edit.style.columns ?? null) !== edit.columns) {
         if (edit.columns) edit.style.columns = edit.columns;
         else delete edit.style.columns;
@@ -630,29 +727,156 @@ async function applyEdits(edits: RowEdit[], rows: RoleRow[]): Promise<void> {
 
 // ── Descargar ──
 
-/** La pauta como documento HTML para imprimir (con la leyenda). */
-function guideHtml(rows: RoleRow[]): string {
-  const title = bw(
-      'Pauta de uso tipográfico',
-      'Typography usage guide',
-      'Pauta de uso tipográfico',
-    ),
-    body = renderToStaticMarkup(
-      <>
-        <h1>{title}</h1>
-        <p className="book">{editor.book.title}</p>
-        <GuideTable rows={rows} editable={false} />
-        <p className="legend">{GUIDE_LEGEND}</p>
-      </>,
+/** La leyenda de la cátedra con su logo (en la vista, el logo toma el color del texto). */
+const GuideLegend = ({ logo }: { logo?: string }) => (
+  <div className="guide-legend" data-guide-legend>
+    <span
+      className="guide-logo"
+      role="img"
+      aria-label={LOGO_ALT}
+      data-logo={logo ? 'export' : undefined}
+    />
+    <p>
+      <strong>{GUIDE_LEGEND_TITLE}</strong>
+      <br />
+      {GUIDE_LEGEND_TEXT}
+    </p>
+  </div>
+);
+
+/** Lo que se descarga: título, libro, la tabla de sólo lectura y la leyenda con el logo. */
+const GuideDocument = ({ rows, logo }: { rows: RoleRow[]; logo: string }) => (
+  <>
+    <h1>{bw('Pauta de uso tipográfico', 'Typography usage guide', 'Pauta de uso tipográfico')}</h1>
+    <p className="guide-doc-book">{editor.book.title}</p>
+    <GuideTable rows={rows} editable={false} />
+    <GuideLegend logo={logo} />
+  </>
+);
+
+/** Ancho de la pauta al descargar (px de CSS; la imagen sale al doble). */
+const EXPORT_WIDTH = 1500;
+// Hoja de lo que se descarga: tinta negra sobre papel, sin depender de la app. Todo va bajo
+// .guide-doc, así no toca la interfaz mientras se mide.
+const EXPORT_CSS = [
+  `.guide-doc{width:${EXPORT_WIDTH}px;padding:32px;box-sizing:border-box;background:#fff;color:#111;font:13px/1.4 Georgia,'Times New Roman',serif}`,
+  '.guide-doc h1{font-size:22px;margin:0}',
+  '.guide-doc .guide-doc-book{margin:2px 0 18px;color:#555}',
+  '.guide-doc table{width:100%;border-collapse:collapse}',
+  '.guide-doc th,.guide-doc td{border:1px solid #999;padding:6px 8px;text-align:left;vertical-align:top}',
+  '.guide-doc thead th{background:#eee;font-size:12px}',
+  '.guide-doc small{display:block;color:#555;font-size:11px}',
+  '.guide-doc .guide-zones{display:flex;gap:6px}',
+  '.guide-doc figure{margin:0;text-align:center}',
+  '.guide-doc .guide-spread{width:72px;height:auto;display:block}',
+  '.guide-doc figcaption{font-size:10px;color:#555}',
+  '.guide-doc .guide-unused{color:#999}',
+  '.guide-doc .guide-legend{display:flex;gap:18px;align-items:center;margin-top:20px;font-size:12px}',
+  '.guide-doc .guide-logo{display:block;width:150px;height:60px;visibility:hidden}',
+  '.guide-doc .guide-legend p{margin:0}',
+].join('');
+
+/** La pauta dibujada en un lienzo (al doble de su tamaño), lista para PNG o PDF. */
+async function guideCanvas(rows: RoleRow[]): Promise<HTMLCanvasElement> {
+  // El logo se carga como imagen (la política de la app no deja leerlo con fetch) y se dibuja aparte.
+  const logo = new Image();
+  logo.src = LOGO_URL;
+  const logoReady = await logo.decode().then(
+    () => true,
+    () => false,
+  );
+  const markup = renderToStaticMarkup(<GuideDocument rows={rows} logo="placeholder" />);
+  // Se mide fuera de la vista con la misma hoja, y se pasa a XHTML para el SVG.
+  const host = document.createElement('div');
+  host.className = 'guide-export-measure';
+  host.innerHTML = `<style>${EXPORT_CSS}</style><div class="guide-doc">${markup}</div>`;
+  document.body.append(host);
+  const doc = host.querySelector<HTMLElement>('.guide-doc')!,
+    origin = doc.getBoundingClientRect(),
+    height = Math.ceil(origin.height),
+    xhtml = new XMLSerializer().serializeToString(doc),
+    logoBox = doc.querySelector('.guide-logo')?.getBoundingClientRect();
+  host.remove();
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${EXPORT_WIDTH}" height="${height}">` +
+    `<foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">` +
+    `<style>${EXPORT_CSS}</style>${xhtml}</div></foreignObject></svg>`;
+  const image = new Image();
+  image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  await image.decode();
+  const scale = 2,
+    canvas = document.createElement('canvas');
+  canvas.width = EXPORT_WIDTH * scale;
+  canvas.height = height * scale;
+  const context = canvas.getContext('2d')!;
+  context.fillStyle = '#fff';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  // El logo, en el lugar que le reservó la leyenda.
+  if (logoReady && logoBox) {
+    context.drawImage(
+      logo,
+      (logoBox.left - origin.left) * scale,
+      (logoBox.top - origin.top) * scale,
+      logoBox.width * scale,
+      logoBox.height * scale,
     );
-  // Hoja para imprimir: tinta negra sobre papel, sin depender de la app.
-  const css = `body{font:10pt/1.4 Georgia,serif;margin:12mm;color:#111}h1{font-size:16pt;margin:0}
-.book{margin:0 0 6mm;color:#555}table{width:100%;border-collapse:collapse}
-th,td{border:.2mm solid #999;padding:2mm;text-align:left;vertical-align:top}thead th{background:#eee}
-small{display:block;color:#555}.guide-zones{display:flex;gap:2mm}figure{margin:0;text-align:center}
-.guide-spread{width:28mm;height:auto;display:block}figcaption{font-size:7pt;color:#555}
-.legend{margin-top:6mm;font-size:8pt;color:#333}@page{size:A4 landscape;margin:10mm}`;
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${title} · ${editor.book.title.replace(/[<&]/g, '')}</title><style>${css}</style></head><body>${body}</body></html>`;
+  }
+  return canvas;
+}
+
+const pngOf = (canvas: HTMLCanvasElement): Promise<Blob> =>
+  new Promise((resolve, reject) =>
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(Error('No se pudo armar la imagen.'))),
+      'image/png',
+    ),
+  );
+
+/** La pauta como imagen PNG. */
+async function guidePng(rows: RoleRow[]): Promise<Blob> {
+  return pngOf(await guideCanvas(rows));
+}
+
+/** La pauta como PDF: la imagen en una hoja A3 apaisada, con margen. */
+async function guidePdf(rows: RoleRow[]): Promise<Blob> {
+  const png = await pngOf(await guideCanvas(rows)),
+    pdf = await PDFLib.PDFDocument.create(),
+    image = await pdf.embedPng(await png.arrayBuffer()),
+    width = 1190.55,
+    height = 841.89,
+    margin = 28,
+    scale = Math.min((width - margin * 2) / image.width, (height - margin * 2) / image.height),
+    page = pdf.addPage([width, height]);
+  page.drawImage(image, {
+    x: margin,
+    y: height - margin - image.height * scale,
+    width: image.width * scale,
+    height: image.height * scale,
+  });
+  pdf.setTitle(
+    bw('Pauta de uso tipográfico', 'Typography usage guide', 'Pauta de uso tipográfico') +
+      ' · ' +
+      editor.book.title,
+  );
+  pdf.setCreator('Maquetario');
+  return new Blob([await pdf.save()], { type: 'application/pdf' });
+}
+
+/** Descarga lo que arma make; si falla, lo dice. */
+async function downloadGuide(make: () => Promise<Blob>, extension: string): Promise<void> {
+  try {
+    download(await make(), editor.book.title + ' - pauta tipográfica.' + extension);
+  } catch (error) {
+    toast(
+      bw(
+        'No se pudo descargar la pauta: ',
+        'Could not download the guide: ',
+        'Não foi possível baixar a pauta: ',
+      ) + (error as Error).message,
+      'error',
+    );
+  }
 }
 
 /** La pauta como planilla CSV (una fila por rol, la leyenda al final). */
@@ -669,7 +893,7 @@ function guideCsv(rows: RoleRow[]): string {
         [
           roleName(style.role),
           `${format.font} ${points(format.size)} pt`,
-          [...writing].map((key) => writingNames()[key]).join(' / ') || '—',
+          caseName(format, writing),
           alignName(format.align),
           columnsName(style.columns),
           `${leadingNames()[notes[style.id]?.leading || leadingClass(format.size, format.leading)]} · ${points(format.leading)} pt`,
@@ -681,7 +905,8 @@ function guideCsv(rows: RoleRow[]): string {
       ),
       [roleName('other'), otherElements().join(' · ')].map(cell).join(';'),
       '',
-      cell(GUIDE_LEGEND),
+      cell(GUIDE_LEGEND_TITLE),
+      cell(GUIDE_LEGEND_TEXT),
     ];
   return '\uFEFF' + lines.join('\r\n');
 }
@@ -722,25 +947,33 @@ const GuideSheet = ({ rows, unassigned }: { rows: RoleRow[]; unassigned: Editori
         </ul>
       </section>
     ) : null}
-    <p className="guide-legend">{GUIDE_LEGEND}</p>
-    <div className="page-action">
+    <GuideLegend />
+    <div className="page-action guide-downloads">
       <button
         type="button"
         className="btn"
-        id="guideDownloadHtml"
+        id="guideDownloadPdf"
         title={bw(
           'Con los valores aplicados.',
           'With the applied values.',
           'Com os valores aplicados.',
         )}
-        onClick={() =>
-          download(
-            new Blob([guideHtml(rows)], { type: 'text/html;charset=utf-8' }),
-            editor.book.title + ' - pauta tipográfica.html',
-          )
-        }
+        onClick={() => void downloadGuide(() => guidePdf(rows), 'pdf')}
       >
-        {bw('Descargar para imprimir', 'Download to print', 'Baixar para imprimir')}
+        {bw('Descargar PDF', 'Download PDF', 'Baixar PDF')}
+      </button>
+      <button
+        type="button"
+        className="btn"
+        id="guideDownloadPng"
+        title={bw(
+          'Con los valores aplicados.',
+          'With the applied values.',
+          'Com os valores aplicados.',
+        )}
+        onClick={() => void downloadGuide(() => guidePng(rows), 'png')}
+      >
+        {bw('Descargar imagen', 'Download image', 'Baixar imagem')}
       </button>
       <button
         type="button"
@@ -758,7 +991,7 @@ const GuideSheet = ({ rows, unassigned }: { rows: RoleRow[]; unassigned: Editori
           )
         }
       >
-        {bw('Descargar planilla (CSV)', 'Download spreadsheet (CSV)', 'Baixar planilha (CSV)')}
+        {bw('Planilla (CSV)', 'Spreadsheet (CSV)', 'Planilha (CSV)')}
       </button>
     </div>
   </>

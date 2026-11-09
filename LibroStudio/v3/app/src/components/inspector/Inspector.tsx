@@ -118,7 +118,7 @@ function sectionsOf(pass: string): Slot[] {
         // Lo más usado con una caja de texto va primero: la letra, después el párrafo.
         { name: 'typography', title: 'Tipografía', key: 'text' },
         { name: 'paragraph', className: 'paragraph-panel' },
-        { name: 'notes', title: 'Notas al pie', key: 'text', className: 'footnote-panel' },
+        { name: 'notes', title: 'Notas al pie y citas', key: 'text', className: 'footnote-panel' },
         // "Carácter y párrafo" va al final, dentro de un <div> (no se reordena ni se pliega).
         { name: 'character', tag: 'div' },
       ];

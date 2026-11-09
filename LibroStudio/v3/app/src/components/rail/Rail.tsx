@@ -1,7 +1,7 @@
 // Organismo: riel izquierdo. Las herramientas del lienzo (#tools: Seleccionar, Mano, Texto, Imagen,
 // Marco, Figuras) y el selector de vistas del riel (.rail-switch: Páginas · Índice · Capas). Lo que
 // no actúa sobre la página no va acá: grilla, foliado y cornisa están en la pestaña Libro y la
-// Cubierta en la barra del documento (#coverTool).
+// Cubierta y solapas en la barra principal (#coverTool, components/documentbar/PieceSwitch.tsx).
 //
 // - Las herramientas salen del registro (rail-tools.ts: registerTool). La activa es la del global
 //   tool (estado del editor): se redibuja con useEditorState(), y setTool avisa al terminar.

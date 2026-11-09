@@ -667,6 +667,8 @@ function composeParagraph(
   f: Record<string, any>,
 ): ComposedEntry | null {
   if (unsupported(text)) return null;
+  // Mayúsculas y versalitas (textCase) las dibuja la página: el motor no las compone todavía.
+  if (f.textCase && f.textCase !== 'normal') return null;
   const sizePx = (size: number) => ((size * 25.4) / 72) * OUTPUT_PX;
   // El cuerpo como lo usa Chromium (px truncado a centésimas): así el ancho de cada palabra en
   // pantalla coincide con el del motor y el borde derecho queda parejo.

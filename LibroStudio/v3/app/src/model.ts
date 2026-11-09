@@ -77,6 +77,9 @@ export interface TocEntry {
 export const ROLE_IDS = [
   'title',
   'subtitle',
+  // Las dos filas "Variable" debajo de Subtítulo en la planilla de la cátedra.
+  'subtitle-variant-a',
+  'subtitle-variant-b',
   'body',
   'secondary-a',
   'secondary-b',
@@ -107,6 +110,8 @@ export interface FootnoteSettings {
   rule: boolean;
   /** Dónde vuelve a empezar la numeración. */
   restart: 'book' | 'section' | 'page';
+  /** El número de cada nota al pie: normal o volado (como la llamada). Sin valor, normal. */
+  numberStyle?: 'normal' | 'superscript';
   notes: Record<string, string>;
 }
 
@@ -427,6 +432,9 @@ function validParagraphProperties(p: any): boolean {
     !['auto', 'left', 'center', 'right', 'justify'].includes(p.lastAlign)
   )
     return false;
+  // Escritura: alta y baja (normal), todo mayúscula o versalitas.
+  if (p.textCase !== undefined && !['normal', 'uppercase', 'smallcaps'].includes(p.textCase))
+    return false;
   if (p.font !== undefined && (typeof p.font !== 'string' || p.font.length > 100)) return false;
   if (p.fontFaceId !== undefined && !/^[A-Fa-f0-9]{24}$/.test(p.fontFaceId)) return false;
   if (
@@ -596,6 +604,7 @@ function validate(input: any): Book {
       !number(notes.space, 0, 50) ||
       typeof notes.rule !== 'boolean' ||
       !['book', 'section', 'page'].includes(notes.restart) ||
+      (notes.numberStyle !== undefined && !['normal', 'superscript'].includes(notes.numberStyle)) ||
       !notes.notes ||
       typeof notes.notes !== 'object' ||
       Array.isArray(notes.notes) ||

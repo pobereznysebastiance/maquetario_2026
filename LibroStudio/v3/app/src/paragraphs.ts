@@ -350,6 +350,10 @@ extend.result(
           textAlign: f.align,
           textAlignLast: f.lastAlign || 'auto',
           letterSpacing: ((((f.tracking || 0) / 1000) * f.size * 25.4) / 72) * px + 'px',
+          // Escritura (textCase): todo mayúscula o versalitas; sin valor, nada (un libro sin
+          // escritura especial se dibuja igual que antes).
+          textTransform: f.textCase === 'uppercase' ? 'uppercase' : '',
+          fontVariantCaps: f.textCase === 'smallcaps' ? 'small-caps' : '',
           paddingLeft: (f.indentLeft || 0) * px + 'px',
           paddingRight: (f.indentRight || 0) * px + 'px',
           textIndent: (f.firstIndent || 0) * px + 'px',

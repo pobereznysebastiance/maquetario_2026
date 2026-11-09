@@ -41,7 +41,7 @@ window.runIntegrationTests = function () {
     railTools === 'select,hand,text,image,frame,shape',
     'Riel con las seis herramientas del lienzo (sin grilla, foliado, cornisa, índice, capas ni cubierta)',
   );
-  assert(!!$('.documentbar #coverTool'), 'Cubierta en la barra del documento');
+  assert(!!$('.topbar #coverTool'), 'Cubierta y solapas en la barra principal');
   assert($$('.page').length === 2, 'Páginas enfrentadas');
   assert($$('.auto-folio').length === 2, 'Foliado en ambas páginas');
   let serialized = JSON.stringify(maquetarioEditor.book);

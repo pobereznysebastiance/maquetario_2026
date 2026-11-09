@@ -102,11 +102,26 @@
 /* En ancho chico, Asistente, Imprimir y Vista previa quedan como botones de ícono del mismo tamaño
    que las acciones de archivo (antes, el Asistente quedaba como una pastilla ancha y vacía). El
    nombre sigue en title y aria-label (components/topbar/Topbar.tsx). */
-@media (max-width: 1279px) {
-  .topbar :is(#preview, #printButton, .assistant-entry) > span:not([data-icon]) {
+/* Con Interior | Cubierta y solapas y Aprender (que conservan su nombre, pedido de la cátedra), la
+   barra no entraba en 1366: Imprimir y Vista previa quedan de ícono debajo de 1600 px y el
+   Asistente debajo de 1440 px. */
+@media (max-width: 1599px) {
+  .topbar :is(#preview, #printButton) > span:not([data-icon]) {
     display: none;
   }
-  .topbar :is(#preview, #printButton, .assistant-entry) {
+  .topbar :is(#preview, #printButton) {
+    justify-content: center;
+    width: var(--control-md);
+    min-width: var(--control-md);
+    height: var(--control-md);
+    padding: 0;
+  }
+}
+@media (max-width: 1439px) {
+  .topbar .assistant-entry > span:not([data-icon]) {
+    display: none;
+  }
+  .topbar .assistant-entry {
     justify-content: center;
     width: var(--control-md);
     min-width: var(--control-md);
@@ -240,6 +255,18 @@
   white-space: nowrap;
 }
 .topbar .learn-entry .icon {
+  width: var(--icon-md);
+  height: var(--icon-md);
+}
+
+/* Interior | Cubierta y solapas en la barra principal: del alto de los botones de la barra y con
+   la letra de sus acciones (en la cabecera de la cubierta queda el tamaño de la molécula). */
+.topbar .piece-switch button {
+  min-height: var(--control-md);
+  padding: 0 var(--space-md);
+  font-size: var(--type-md);
+}
+.topbar .piece-switch .icon {
   width: var(--icon-md);
   height: var(--icon-md);
 }

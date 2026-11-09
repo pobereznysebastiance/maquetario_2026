@@ -27,6 +27,7 @@ import {
   roleName,
   selectedRole,
   setRoleColumns,
+  useBoxWidthForRole,
 } from '../../roles.ts';
 
 export const RolePanel = () => {
@@ -151,17 +152,21 @@ export const RolePanel = () => {
                   boxStyle.columns +
                   '.'}
               </p>
-              <Btn
-                id="roleFitColumns"
-                label={bw(
-                  'Ajustar la caja al rol',
-                  'Fit frame to role',
-                  'Ajustar a caixa à função',
-                )}
-                wide
-                disabled={locked}
-                onClick={fitBoxToRole}
-              />
+              {/* ¿Esta caja al rol, o este ancho a todo el rol? (como con el formato) */}
+              <div className="page-action">
+                <Btn
+                  id="roleFitColumns"
+                  label={bw('Esta caja al rol', 'This frame to role', 'Esta caixa à função')}
+                  disabled={locked}
+                  onClick={fitBoxToRole}
+                />
+                <Btn
+                  id="roleUseBoxWidth"
+                  label={bw('Este ancho al rol', 'This width to role', 'Esta largura à função')}
+                  disabled={locked}
+                  onClick={useBoxWidthForRole}
+                />
+              </div>
             </>
           ) : null}
         </>

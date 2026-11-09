@@ -32,6 +32,7 @@ export const FOOTNOTE_DEFAULTS: Omit<FootnoteSettings, 'notes'> = {
   space: 4,
   rule: true,
   restart: 'book',
+  numberStyle: 'normal',
 };
 
 /** Clave de una marca ('e000'). */

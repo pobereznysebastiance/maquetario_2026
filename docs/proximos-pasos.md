@@ -1,6 +1,6 @@
 # Próximos pasos (rama version-juan)
 
-Hoja de ruta para retomar. Estado al cierre (09-nov, noche): todo subido, `npm test`, `npm run typecheck` y `npm run self-test` en verde. Versión **BETA 0.1** (`0.1.0-beta`), instalador y PDF de presentación entregados a Seba.
+Hoja de ruta para retomar. Estado al cierre (09-nov, noche): todo subido, `npm test`, `npm run typecheck` y `npm run self-test` en verde. Versión **BETA 0.2** (`0.2.0-beta`) con todo el pedido de la cátedra; la BETA 0.1 (instalador y PDF de presentación) quedó entregada a Seba.
 
 ## Estado (09-nov)
 
@@ -55,7 +55,7 @@ Hoja de ruta para retomar. Estado al cierre (09-nov, noche): todo subido, `npm t
 - **Informes:** `docs/informe/beta-0.1.html` (para Seba: novedades respecto de la 3.24, qué probar, qué devolución sirve) y `docs/informe/beta-0.1-presentacion.html` (para quienes prueban, a partir del texto de la 3.20). Cómo regenerarlos, en "Informes" al final.
 - **Pendiente:**
   - Juntar la devolución de Seba y de quienes prueben, y ordenarla antes de seguir.
-  - Proyecto de la 3.24: probado el 09-nov. La novela de ejemplo armada y guardada con el código de la 3.24 (rama `main`) se abre tal cual, sin migración, y el pliego se ve igual que en la 3.24; queda como prueba fija (`desktop/test/fixtures/novela-3.24.mqt`). Falta un archivo de la 3.20 (no está en git): pedirle a Seba uno real de un alumno.
+  - Proyecto de la 3.24: probado el 09-nov. La novela de ejemplo armada y guardada con el código de la 3.24 (rama `main`) se abre tal cual, sin migración, y el pliego se ve igual que en la 3.24; queda como prueba fija (`desktop/test/fixtures/novela-3.24.mqt`). Proyecto de la 3.20: probado a mano el 09-nov, abre bien.
   - Hecho el 09-nov: la Alineación de Tipografía ya no queda cortada (llena la columna del control) y los botones de tipo de letra se ven como los otros campos.
   - Revisión con impeccable antes del instalador (09-nov, noche): barrido automático de botones, selectores y campos en todas las pantallas, en 1366 × 768 y 1920 × 1080. Quedaron sin valores cortados ni botones partidos: el inspector da más lugar al control (1 a 1,35), Rol y Estilo de párrafo van a todo el ancho (`.field-row.stacked`), textos de opciones más cortos, la pauta es una ventana de trabajo, átomo `.link-button` y `Btn keepFocus` en lugar de botones armados a mano. Los "?" de ayuda de términos se ven de 22 px pero su zona para apuntar mide 30 px.
   - El `git stash` local "tanda workspace/page-priority/…" es obsoleto (la capa legacy ya se vació): se puede borrar.
@@ -229,7 +229,21 @@ Llegó el 09-nov por Seba (pedido de Tomás), con la planilla "Pauta de uso tipo
 - El motor de composición deja con el dibujo de Chromium los párrafos con llamadas.
 - El tirador inferior de una caja achicada por las notas se dibuja donde termina la caja en el dibujo, no en `o.h`.
 
-**Preguntas para la cátedra:** dónde cortan Amplio/Normal/Ajustado (propuesta: interlineado / cuerpo < 1,2 ajustado, hasta 1,4 normal, más amplio); qué esperan en "Operación tipográfica" (color, filete, texto libre); si se puede usar el logo de Tipografía I y si el texto dice "folleto" o "libro"; Escritura (versalitas, mayúsculas sostenidas) y Rendimiento todavía no son propiedades del texto.
+**Respuestas de la cátedra (09-nov, noche):**
+1. Llamada volada en el texto: así está bien.
+2. Número de la nota al pie: las dos opciones (Libro → Notas al pie → Número al pie: normal o volado). Filete, opcional como ya estaba.
+3. Numeración: quedan las opciones (continua, por sección, por página).
+4. Amplio/Normal/Ajustado: el corte propuesto queda (interlineado / cuerpo < 1,2 ajustado, hasta 1,4 normal, más amplio), con ajuste manual.
+5. "Operación tipográfica" son estilos: texto libre más lo que se detecta solo (color aplicado, interletrado).
+6. Logo de Tipografía I y leyenda: van, en la vista y en lo descargado (el logo, sacado de la planilla de la clase 3: `assets/catedra-tipografia-1.png`).
+7. Escritura y Rendimiento: alcanza. Escritura ya es una propiedad del párrafo (alta y baja, mayúsculas, versalitas); el rendimiento se lee de la fuente (condensada, normal, expandida).
+
+**Ajustes del 09-nov, noche, con el pedido completo (y la planilla en PDF):**
+- La pauta tiene todas las filas de la planilla, también las dos "Variable" del Subtítulo (roles `subtitle-variant-a`/`-b`), aunque no se usen; Otros suma las notas al pie y la Cita.
+- Se descarga en PDF (A3 apaisado) e imagen (PNG), además de la planilla CSV, con la leyenda en dos renglones y el logo.
+- El ancho de caja del rol se aplica a todas sus cajas del libro; una caja con otro ancho ofrece "Esta caja al rol" o "Este ancho al rol".
+- Citas: Selección → Notas al pie y citas → "Marcar como cita" (estilo Cita, sangrado y un punto menor, en el rol Otros si está libre).
+- Interior | Cubierta y solapas pasó a la barra principal (en 1366 Imprimir, Vista previa y Asistente quedan de ícono para que entre).
 
 ## 4. Distribución
 

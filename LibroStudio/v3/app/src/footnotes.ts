@@ -55,7 +55,7 @@ function footnoteBlock(
     side = M.margins(b, index),
     pt = (value: number) => ((value * 25.4) / 72) * px + 'px',
     block = document.createElement('div');
-  block.className = 'footnotes';
+  block.className = 'footnotes' + (s.numberStyle === 'superscript' ? ' raised-numbers' : '');
   if (s.rule) {
     const rule = document.createElement('div');
     rule.className = 'footnote-rule';

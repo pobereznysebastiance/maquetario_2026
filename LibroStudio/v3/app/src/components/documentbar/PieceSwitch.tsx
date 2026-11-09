@@ -1,7 +1,7 @@
-// Conmutador Interior | Cubierta (pedido de la cátedra de Tipografía I): las dos piezas del libro,
-// siempre a la vista. Va en la barra del documento (Interior elegido: Cubierta abre la cubierta
-// desplegada) y en la cabecera de la cubierta (Cubierta elegida: Interior la cierra, como la X; lo
-// guardado queda guardado).
+// Conmutador Interior | Cubierta y solapas (pedido de la cátedra de Tipografía I): las dos piezas
+// del libro, siempre a la vista. Va en la barra principal (Interior elegido: Cubierta abre la
+// cubierta desplegada) y en la cabecera de la cubierta (Cubierta elegida: Interior la cierra, como la
+// X; lo guardado queda guardado).
 //
 // La Cubierta conserva el id #coverTool (la usan el recorrido de la Ayuda, los espacios de trabajo y
 // las pruebas).
@@ -51,7 +51,7 @@ export const PieceSwitch = ({ piece }: { piece: 'interior' | 'cover' }) => (
       }}
     >
       <Icon name="book" />
-      <span>{bw('Cubierta', 'Cover', 'Capa')}</span>
+      <span>{bw('Cubierta y solapas', 'Cover and flaps', 'Capa e orelhas')}</span>
     </button>
   </div>
 );

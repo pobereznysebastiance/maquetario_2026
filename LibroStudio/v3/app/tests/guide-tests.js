@@ -76,22 +76,43 @@ registerNavigationTest(async function (result) {
       'La leyenda de la cátedra está en la vista',
     );
 
-    // La descarga lleva la pauta y la leyenda.
+    // Todas las filas de la planilla, con las que el libro no usa marcadas.
+    check(
+      document.querySelectorAll('[data-pauta-style], [data-pauta-empty]').length === 13 &&
+        !!document.querySelector('[data-pauta-empty="subtitle-variant-a"]'),
+      'La pauta tiene todas las filas de la planilla, también las variables del subtítulo',
+    );
+    check(
+      document.querySelector('[data-guide-legend] strong').textContent === 'Pautas tipográficas' &&
+        !!document.querySelector('[data-guide-legend] .guide-logo'),
+      'La leyenda va en dos renglones, con el logo de la cátedra',
+    );
+
+    // La descarga: PDF, imagen y planilla.
     const files = [];
     globalThis.download = (blob, name) => files.push({ blob, name });
     document.querySelector('#guideDownloadCsv').click();
-    document.querySelector('#guideDownloadHtml').click();
+    document.querySelector('#guideDownloadPng').click();
+    await until(() => files.length >= 2);
+    document.querySelector('#guideDownloadPdf').click();
+    await until(() => files.length >= 3);
     const csv = await files[0].blob.text(),
-      html = await files[1].blob.text();
+      png = new Uint8Array(await files[1].blob.arrayBuffer()),
+      pdf = await files[2].blob.text();
     check(
       files[0].name.endsWith('.csv') &&
         csv.includes('Texto principal') &&
+        csv.includes('Pautas tipográficas') &&
         csv.includes('Cátedra de Tipografía I'),
       'La planilla CSV lleva los roles y la leyenda',
     );
     check(
-      html.includes('<table') && html.includes('<svg') && html.includes('Cátedra de Tipografía I'),
-      'El HTML para imprimir lleva la tabla, las zonas y la leyenda',
+      files[1].name.endsWith('.png') && png[1] === 0x50 && png[2] === 0x4e && png.length > 20000,
+      'La imagen PNG sale con la pauta dibujada',
+    );
+    check(
+      files[2].name.endsWith('.pdf') && pdf.startsWith('%PDF') && files[2].blob.size > 20000,
+      'El PDF sale con la pauta',
     );
 
     // Editar en la tabla cambia el rol en todo el libro.
@@ -99,6 +120,7 @@ registerNavigationTest(async function (result) {
     field('body', 'leading').value = '16';
     field('body', 'operation').value = 'Sangría de primera línea';
     field('chapter', 'align').value = 'center';
+    field('chapter', 'textCase').value = 'uppercase';
     document.querySelector('#sheetApply').click();
     await until(() => body.properties.size === 12);
     // Un párrafo del rol sin ajustes locales de cuerpo.
@@ -113,8 +135,9 @@ registerNavigationTest(async function (result) {
     );
     check(
       chapter.properties.align === 'center' &&
+        chapter.properties.textCase === 'uppercase' &&
         ed.book.editorialPautas.body.operation === 'Sangría de primera línea',
-      'La alineación y la operación tipográfica se guardan',
+      'La alineación, la escritura y la operación tipográfica se guardan',
     );
     check(!!M.validate(M.clone(ed.book)), 'El libro con la pauta editada se valida');
   } finally {

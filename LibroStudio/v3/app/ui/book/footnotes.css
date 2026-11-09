@@ -53,6 +53,13 @@
 .footnote-number {
   margin-right: 0.4em;
 }
+/* Número volado al pie (Libro → Notas al pie → Número al pie), como la llamada en el texto. */
+.footnotes.raised-numbers .footnote-number {
+  position: relative;
+  top: -0.45em;
+  margin-right: 0.25em;
+  font-size: 0.7em;
+}
 
 /* Donde se mide el bloque antes de ponerlo en la página (fuera de la vista). */
 .footnote-measure {

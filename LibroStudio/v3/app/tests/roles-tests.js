@@ -96,17 +96,51 @@ registerIntegrationTest(function (result) {
     const area = M.gridRect(b, 0),
       g = b.grid,
       column = (area.w - g.gapX * (g.cols - 1)) / g.cols;
+    const span = (n) => n * column + (n - 1) * g.gapX;
     assert(
-      body.columns === 2 && Math.abs(first.w - (2 * column + g.gapX)) < 0.05,
-      'El ancho del rol en columnas ajusta la caja',
+      body.columns === 2 &&
+        Math.abs(first.w - span(2)) < 0.05 &&
+        Math.abs(second.w - span(2)) < 0.05,
+      'El ancho del rol en columnas ajusta todas sus cajas del libro',
     );
+    // Una caja que cambió de ancho: ¿esta caja al rol, o este ancho a todo el rol?
+    second.w = span(1);
     select(second);
     assert(
       !!document.querySelector('[data-role-columns-mismatch]'),
       'Otra caja del rol con otro ancho lo avisa',
     );
     document.querySelector('#roleFitColumns').click();
-    assert(Math.abs(second.w - first.w) < 0.05, 'Ajustar la caja la lleva al ancho del rol');
+    assert(Math.abs(second.w - span(2)) < 0.05, 'Esta caja al rol la lleva al ancho del rol');
+    second.w = span(1);
+    select(second);
+    document.querySelector('#roleUseBoxWidth').click();
+    assert(
+      body.columns === 1 && Math.abs(first.w - span(1)) < 0.05,
+      'Este ancho al rol lleva el ancho de la caja a todas las del rol',
+    );
+
+    // Escritura y citas.
+    select(first);
+    change('#paragraphTextCase', 'smallcaps');
+    renderPages();
+    assert(
+      first.paragraphMap.every((m) => m.overrides.textCase === 'smallcaps') &&
+        getComputedStyle(
+          document.querySelector('#spread [data-id="' + first.id + '"] .mqt-paragraph'),
+        ).fontVariantCaps === 'small-caps',
+      'Versalitas en el párrafo y en la página',
+    );
+    select(third);
+    document.querySelector('#markQuote').click();
+    const quote = b.paragraphStyles.find((s) => s.id === 'quote');
+    assert(
+      quote &&
+        styleOf(third) === quote &&
+        quote.properties.indentLeft > 0 &&
+        quote.role === 'other',
+      'Marcar como cita le da el estilo Cita (sangrado, en Otros)',
+    );
 
     // Sin rol: se desvincula conservando el formato.
     select(first);

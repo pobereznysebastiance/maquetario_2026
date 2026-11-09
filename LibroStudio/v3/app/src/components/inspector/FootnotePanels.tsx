@@ -32,6 +32,7 @@ import {
   setFootnoteText,
 } from '../../footnote-model.ts';
 import type { FootnoteSettings } from '../../model.ts';
+import { markAsQuote } from '../../roles.ts';
 
 const title = () => bw('Notas al pie', 'Footnotes', 'Notas de rodapé');
 
@@ -50,7 +51,10 @@ export const NotesPanel = () => {
     locked = !!o.locked;
   return (
     <>
-      <Heading icon="text" title={title()} />
+      <Heading
+        icon="text"
+        title={bw('Notas al pie y citas', 'Footnotes and quotes', 'Notas de rodapé e citações')}
+      />
       <Btn
         id="insertFootnote"
         icon="plus"
@@ -72,6 +76,20 @@ export const NotesPanel = () => {
               'While typing in the box, the note goes at the cursor (also Ctrl+Alt+F); otherwise, at the end of the paragraph.',
               'Escrevendo na caixa, a nota vai no cursor (também com Ctrl+Alt+F); se não, no fim do parágrafo.',
             )}
+      </p>
+      <Btn
+        id="markQuote"
+        label={bw('Marcar como cita', 'Mark as quote', 'Marcar como citação')}
+        wide
+        disabled={locked}
+        onClick={markAsQuote}
+      />
+      <p className="help">
+        {bw(
+          'El párrafo elegido (o el del cursor) pasa a ser una cita: sangrada y un punto más chica. En la pauta va en Otros.',
+          'The chosen paragraph (or the one at the cursor) becomes a quote: indented and one point smaller. In the guide it goes under Other.',
+          'O parágrafo escolhido (ou o do cursor) vira uma citação: recuada e um ponto menor. Na pauta fica em Outros.',
+        )}
       </p>
       {keys.map((key) => {
         const label = bw('Nota', 'Note', 'Nota') + ' ' + (numbers.get(key) ?? '');
@@ -205,6 +223,20 @@ export const FootnoteFormatPanel = () => {
           <option value="book">{bw('Continua', 'Continuous', 'Contínua')}</option>
           <option value="section">{bw('Por sección', 'By section', 'Por seção')}</option>
           <option value="page">{bw('Por página', 'By page', 'Por página')}</option>
+        </select>,
+      )}
+      {row(
+        bw('Número al pie', 'Note number', 'Número da nota'),
+        <select
+          key={fieldKey('footnotes.numberStyle', s.numberStyle)}
+          data-footnote-setting="numberStyle"
+          defaultValue={s.numberStyle || 'normal'}
+          ref={onNativeChange<HTMLSelectElement>((select) =>
+            setFootnoteSetting('numberStyle', select.value as FootnoteSettings['numberStyle']),
+          )}
+        >
+          <option value="normal">{bw('Normal', 'Normal', 'Normal')}</option>
+          <option value="superscript">{bw('Volado', 'Superscript', 'Sobrescrito')}</option>
         </select>,
       )}
       <label className="check-line">

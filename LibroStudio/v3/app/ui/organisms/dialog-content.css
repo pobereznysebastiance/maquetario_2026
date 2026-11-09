@@ -811,11 +811,41 @@ dialog.output-modal .dialog-frame .dialog-body {
   color: var(--text-secondary);
   font-size: var(--type-callout);
 }
+/* Leyenda de la cátedra con su logo: el logo (negro sobre transparente) se pinta con el color del
+   texto, como máscara, para que se lea sobre el fondo oscuro. */
 .guide-legend {
+  --guide-logo-width: 132px;
+  --guide-logo-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
   margin: var(--space-lg) 0 var(--space-sm);
   color: var(--text-tertiary);
   font-size: var(--type-xs);
   line-height: var(--leading-text);
+}
+.guide-legend p {
+  margin: 0;
+}
+.guide-legend strong {
+  color: var(--text-secondary);
+}
+.guide-logo {
+  flex: none;
+  width: var(--guide-logo-width);
+  height: var(--guide-logo-height);
+  background: var(--text-secondary);
+  mask: url('../../assets/catedra-tipografia-1.png') left center / contain no-repeat;
+}
+.guide-unused {
+  color: var(--text-tertiary);
+}
+/* Donde se mide la pauta antes de dibujarla para descargar (fuera de la vista). */
+.guide-export-measure {
+  position: fixed;
+  top: 0;
+  left: -400vw;
+  pointer-events: none;
 }
 .rule-grid-examples {
   display: flex;

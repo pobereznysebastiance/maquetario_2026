@@ -117,8 +117,8 @@ registerNavigationTest(async function (result) {
 
     // Interior | Cubierta.
     check(
-      $('#interiorTool').classList.contains('active') && !!$('.documentbar #coverTool'),
-      'La barra del documento muestra Interior | Cubierta',
+      $('#interiorTool').classList.contains('active') && !!$('.topbar #coverTool'),
+      'La barra principal muestra Interior | Cubierta y solapas',
     );
     $('#coverTool').click();
     await until(() => $('#coverPieceTool'));

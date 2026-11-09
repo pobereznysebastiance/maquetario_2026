@@ -30,6 +30,16 @@ import {
 const ROLE_NAMES: Record<RoleId, [string, string, string]> = {
   title: ['Título', 'Title', 'Título'],
   subtitle: ['Subtítulo', 'Subtitle', 'Subtítulo'],
+  'subtitle-variant-a': [
+    'Subtítulo · variable 1',
+    'Subtitle · variant 1',
+    'Subtítulo · variável 1',
+  ],
+  'subtitle-variant-b': [
+    'Subtítulo · variable 2',
+    'Subtitle · variant 2',
+    'Subtítulo · variável 2',
+  ],
   body: ['Texto principal', 'Main text', 'Texto principal'],
   'secondary-a': ['Texto secundario A', 'Secondary text A', 'Texto secundário A'],
   'secondary-b': ['Texto secundario B', 'Secondary text B', 'Texto secundário B'],
@@ -65,6 +75,9 @@ export function selectedRole(o: BookObject): RoleId | '' | 'mixed' {
 
 /** El estilo del rol de toda la caja, si todos sus párrafos tienen el mismo rol. */
 export function boxRoleStyle(o: BookObject): ParagraphStyle | undefined {
+  // Sólo las cajas de texto tienen rol (imágenes y marcos no tienen texto: recorrer el libro entero
+  // pasa por ellos).
+  if (o.type !== 'text' || o.toc || typeof o.text !== 'string') return undefined;
   const lines = o.text.split('\n').length,
     first = styleOf(o, 0);
   if (!first?.role) return undefined;
@@ -216,7 +229,19 @@ export function fitBox(o: BookObject, n: number, page = editor.active): void {
   o.w = Math.round((span * c.width + (span - 1) * c.gap) * 100) / 100;
 }
 
-/** Ancho del rol de la caja en columnas (null: libre). Ajusta esta caja. */
+/** Lleva todas las cajas del rol (las que son enteras de ese rol) a n columnas, en todo el libro. */
+export function fitRoleBoxes(style: ParagraphStyle, n: number): void {
+  editor.book.pages.forEach((page, index) =>
+    page.objects.forEach((o) => {
+      if (!o.locked && boxRoleStyle(o) === style) fitBox(o, n, index);
+    }),
+  );
+}
+
+/**
+ * Ancho del rol en columnas (null: libre). Como el formato, es del rol: ajusta todas sus cajas en
+ * todo el libro (pedido de la cátedra: "aplicar a todo el libro").
+ */
 export function setRoleColumns(columns: number | null): void {
   const o = selectObject(),
     style = o && boxRoleStyle(o);
@@ -224,8 +249,20 @@ export function setRoleColumns(columns: number | null): void {
   commit(() => {
     if (columns) {
       style.columns = columns;
-      fitBox(o, columns);
+      fitRoleBoxes(style, columns);
     } else delete style.columns;
+  }, false);
+}
+
+/** El ancho de esta caja pasa a ser el del rol, en todas sus cajas. */
+export function useBoxWidthForRole(): void {
+  const o = selectObject(),
+    style = o && boxRoleStyle(o);
+  if (!o || !style || o.locked) return;
+  const columns = boxColumns(o);
+  commit(() => {
+    style.columns = columns;
+    fitRoleBoxes(style, columns);
   }, false);
 }
 
@@ -235,4 +272,50 @@ export function fitBoxToRole(): void {
     style = o && boxRoleStyle(o);
   if (!o || !style?.columns || o.locked) return;
   commit(() => fitBox(o, style.columns!), false);
+}
+
+// ── Citas (pedido de la cátedra: "zonas de citas", en Otros de la pauta) ──
+
+/**
+ * El párrafo elegido (o toda la caja) pasa a ser una cita: el estilo "Cita", sangrado de los dos
+ * lados y un punto más chico que el párrafo, que se crea la primera vez. Si el rol Otros está libre,
+ * la Cita es su estilo (así entra en la fila Otros de la pauta).
+ */
+export function markAsQuote(): void {
+  const o = selectObject();
+  if (!o || o.type !== 'text' || o.locked || o.toc) return;
+  finishEditing();
+  asParagraphOperation(() =>
+    commit(() => {
+      const b = editor.book;
+      if (!b.paragraphStyles) b.paragraphStyles = [];
+      let style = styles().find((s) => s.id === 'quote');
+      if (!style) {
+        const base = paragraphFormat(b, o, currentParagraph(o)),
+          round = (n: number) => Math.round(n * 10) / 10,
+          taken = styles().some((s) => s.name.toLocaleLowerCase() === 'cita');
+        style = {
+          id: 'quote',
+          name: bw('Cita', 'Quote', 'Citação') + (taken ? ' (Otros)' : ''),
+          properties: {
+            ...M.clone(base),
+            size: round(Math.max(4, base.size - 1)),
+            leading: round(Math.max(4, base.leading - 1)),
+            indentLeft: 8,
+            indentRight: 8,
+            firstIndent: 0,
+            spaceBefore: 2,
+            spaceAfter: 2,
+          },
+        };
+        if (!roleStyle('other')) style.role = 'other';
+        b.paragraphStyles.push(style);
+      }
+      for (const i of paragraphIndices(o)) {
+        const meta = paragraphMeta(o, i);
+        meta.styleId = style.id;
+        meta.overrides = {};
+      }
+    }, false),
+  );
 }
