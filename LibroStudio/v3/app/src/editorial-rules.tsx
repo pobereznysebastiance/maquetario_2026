@@ -349,16 +349,8 @@ function editorialRulesDialog(): void {
   );
 }
 
-decorateInspector(() => {
-  if (tab !== 'structure' || !hasDocument) return;
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.id = 'editorialRules';
-  button.className = 'btn wide';
-  button.textContent = bw('Reglas internas', 'Editorial rules', 'Regras internas');
-  button.onclick = editorialRulesDialog;
-  $('#inspectorContent').prepend(button);
-}, 'editorial-rules');
+// "Reglas internas" (#editorialRules) es un botón de la estructura del libro, en el inspector
+// (components/inspector/StructurePanel.tsx).
 
 // Las usan las pruebas (tests/category-tests.js, tests/document-view-tests.js).
 declare global {

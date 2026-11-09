@@ -15,6 +15,7 @@ import type { NovelSample } from './novel-sample.ts';
 import { bookBuilderForm } from './components/book-builder/BookBuilder.tsx';
 import { routeHelpSection } from './components/help/sections.tsx';
 import { openPreflight } from './components/preflight/PreflightSheet.tsx';
+import { structurePanelFor } from './components/inspector/StructurePanel.tsx';
 
 /** Datos del armador de novelas: título, autoría y manuscrito; lo demás es opcional. */
 export type NovelData = Pick<NovelSample, 'title' | 'author' | 'source'> & Partial<NovelSample>;
@@ -92,18 +93,16 @@ registerHelpSection(
     },
   }),
 );
+/**
+ * Pasada 'structure' del inspector (pestaña Libro): deja el lugar de la sección, que dibuja React
+ * (components/inspector/StructurePanel.tsx, registrado abajo como 'structure:structure').
+ */
 function structurePanel(): void {
-  const h = $('#inspectorContent'),
-    items = book.pages
-      .map((p, i) => ({ p, i }))
-      .filter(({ p, i }) => p.partName || p.section || i === 0);
-  h.innerHTML = section(
+  $('#inspectorContent').innerHTML = inspectorSlot(
+    'structure',
     bw('Estructura del libro', 'Book structure', 'Estrutura do livro'),
     'pages',
-    `<p class="structure-summary">${book.pages.length} ${bw('páginas. Elegí una parte para ir a su comienzo.', 'pages. Choose a part to go to its start.', 'páginas. Escolha uma parte para ir ao início.')}</p><button id="structureBuild" class="btn wide">${bw('Armar otro libro…', 'Build another book…', 'Montar outro livro…')}</button>${items.map(({ p, i }, n) => `<button class="structure-item ${active >= i && active < (items[n + 1]?.i ?? book.pages.length) ? 'current' : ''}" data-go-part="${i}"><small>${i + 1}</small><span class="user-content">${esc(titleOfPart(p))}</span><em>${(items[n + 1]?.i ?? book.pages.length) - i} p.</em></button>`).join('')}<p class="help">${bw('En la pestaña Página podés ocultar cornisas y folios solo en la página activa.', 'The Page tab lets you hide headers and folios on the active page only.', 'Na aba Página você pode ocultar cabeçalhos e fólios somente na página ativa.')}</p>`,
   );
-  $('#structureBuild').onclick = () => bookBuilder();
-  $$('[data-go-part]').forEach((b) => (b.onclick = () => goToBookPage(Number(b.dataset.goPart))));
 }
 function goToBookPage(index: number): void {
   finishEditing();
@@ -114,6 +113,7 @@ function goToBookPage(index: number): void {
   render(true);
 }
 registerInspectorPanel('structure', structurePanel, 'book-workflow');
+registerInspectorPanel('structure:structure', structurePanelFor(titleOfPart), 'book-workflow');
 decorateInspector(() => {
   if (tab === 'design') ruleControls();
 }, 'book-workflow');

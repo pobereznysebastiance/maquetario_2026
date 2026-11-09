@@ -68,6 +68,12 @@ function sweepRoots(): void {
 function mountPanel(container: Element, node: ReactNode): void {
   roots.push({ container, root: mount(container, node, { sync: true }) });
 }
+/** Monta los paneles de React de las secciones (inspectorSlot) de la pestaña que se acaba de dibujar. */
+function mountSectionPanels(): void {
+  sweepRoots();
+  for (const slot of $('#inspectorContent').querySelectorAll<HTMLElement>('[data-inspector-slot]'))
+    mountSlot(slot);
+}
 
 globalThis.decorateInspector = (fn, origin = '') => extend.after('inspector', fn, origin);
 // Una pestaña con panel propio dibuja ese panel en lugar del contenido base del inspector.
@@ -81,7 +87,12 @@ globalThis.registerInspectorPanel = (panelTab, render, origin = '') => {
     () => tab === panelTab,
     function (this: unknown, ...args: unknown[]) {
       const out = (render as AnyFunction).apply(this, args);
-      if (!isValidElement(out)) return out;
+      if (!isValidElement(out)) {
+        // Una pestaña en HTML con secciones de React (inspectorSlot): la extensión de abajo no
+        // corre para esta pestaña (este panel reemplaza la cadena), así que se montan acá.
+        mountSectionPanels();
+        return out;
+      }
       const host = $('#inspectorContent'),
         box = document.createElement('div');
       box.className = 'inspector-panel';
@@ -105,11 +116,7 @@ function mountSlot(slot: HTMLElement): void {
 extend.after(
   'inspector',
   function () {
-    sweepRoots();
-    for (const slot of $('#inspectorContent').querySelectorAll<HTMLElement>(
-      '[data-inspector-slot]',
-    ))
-      mountSlot(slot);
+    mountSectionPanels();
   },
   'inspector-registry',
 );

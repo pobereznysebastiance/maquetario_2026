@@ -116,22 +116,6 @@ function planFor(v: InspectorView): { passes: string[]; primary: string } {
 
 // ── Ajustes de cada pasada ──
 
-/** Libro: el formato del libro se configura desde la estructura. */
-function addBookSettings(host: HTMLElement): void {
-  const build = host.querySelector('#structureBuild');
-  if (!build || host.querySelector('#structureSettings')) return;
-  build.insertAdjacentHTML(
-    'afterend',
-    UI.button({
-      id: 'structureSettings',
-      label: 'Formato y configuración',
-      icon: 'settings',
-      wide: true,
-    }),
-  );
-  host.querySelector('#structureSettings')!.addEventListener('click', () => command('settings'));
-}
-
 const UNIT_SUFFIX = /\s·\s(mm|cm|pt|%|px|‰)\s*$/;
 
 /** La unidad va dentro del campo, no en la etiqueta ("Grosor · mm" → "Grosor" + campo con mm). */
@@ -186,7 +170,6 @@ extend(
       for (const pass of passes) {
         tab = pass;
         draw.apply(this, args);
-        if (pass === 'structure') addBookSettings(host);
         host.firstElementChild?.setAttribute('data-pass', pass);
         parts.append(...host.childNodes);
       }
