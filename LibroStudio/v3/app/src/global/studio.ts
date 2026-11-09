@@ -56,6 +56,8 @@ const paths: Record<string, string> = {
   right: 'M4 5h16 M10 10h10 M4 15h16 M10 20h10',
   justify: 'M4 5h16 M4 10h16 M4 15h16 M4 20h16',
   pages: 'M4 5h12v16H4z M8 2h12v16',
+  toc: 'M9 6h11 M9 12h11 M9 18h11 M4 6h1 M4 12h1 M4 18h1',
+  layers: 'M12 4 3 9l9 5 9-5z M3 14l9 5 9-5',
   trash: 'M3 6h18 M9 6V3h6v3 M6 6l1 15h10l1-15 M10 10v7 M14 10v7',
   link: 'M9 9L6 12a4 4 0 0 0 6 6l3-3 M15 15l3-3a4 4 0 0 0-6-6L9 9 M8 16l8-8',
   chevron: 'M6 9l6 6 6-6',

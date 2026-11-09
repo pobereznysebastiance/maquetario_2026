@@ -403,7 +403,7 @@ function moveLayer(direction: number): void {
 const layerButton = document.createElement('button');
 layerButton.id = 'layersTool';
 layerButton.className = 'tool';
-layerButton.innerHTML = icon('pages') + '<span>' + lw().layers + '</span>';
+layerButton.innerHTML = icon('layers') + '<span>' + lw().layers + '</span>';
 layerButton.onclick = () => {
   finishEditing();
   showTab('layers');

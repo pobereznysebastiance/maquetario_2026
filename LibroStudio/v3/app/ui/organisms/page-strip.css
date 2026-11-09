@@ -165,3 +165,13 @@
 .rail-view .page-action {
   flex-wrap: wrap;
 }
+
+/* Selector del riel: sólo íconos (el nombre va en aria-label y title), como un segmentado de macOS. */
+.rail-tab {
+  display: inline-grid;
+  place-items: center;
+}
+.rail-tab .icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}

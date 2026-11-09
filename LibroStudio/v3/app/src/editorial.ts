@@ -280,7 +280,7 @@ extend.result(
 const indexButton = document.createElement('button');
 indexButton.className = 'tool';
 indexButton.id = 'indexTool';
-indexButton.innerHTML = icon('pages') + '<span>Índice</span>';
+indexButton.innerHTML = icon('toc') + '<span>Índice</span>';
 indexButton.onclick = () => {
   finishEditing();
   showTab('index');

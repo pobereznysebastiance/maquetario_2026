@@ -324,6 +324,11 @@ function showRailView(name: RailView): void {
     button.tabIndex = on ? 0 : -1;
   }
   thumbnails.hidden = name !== 'pages';
+  // Índice y Capas necesitan más ancho que las miniaturas (nombres de capas y entradas).
+  const wide = name !== 'pages';
+  const changed = document.body.classList.contains('rail-wide') !== wide;
+  document.body.classList.toggle('rail-wide', wide);
+  if (changed) window.dispatchEvent(new Event('resize'));
   railHost.hidden = name === 'pages';
   if (name === 'pages') {
     railHost.replaceChildren();

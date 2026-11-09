@@ -136,6 +136,7 @@ body[data-rulers='hidden'] #spreadStage {
 /* ── Migrado de page-priority.css y editorial-learning.css: columnas, ayuda del lienzo y modo foco ── */
 .app-layout {
   --layout-left: 184px;
+  --layout-left-wide: 248px; /* riel con Índice o Capas */
   --layout-center-min: 250px;
   --layout-right: 320px;
   grid-template-columns: var(--layout-left) minmax(var(--layout-center-min), 1fr) var(--layout-right);
@@ -240,4 +241,10 @@ body[data-rulers='hidden'] #spreadStage {
 /* Vista previa: la ayuda del lienzo no se muestra (migrado de studio.css). */
 .preview-mode .canvas-hint {
   visibility: hidden;
+}
+
+/* Riel con Índice o Capas: más ancho que con las miniaturas. Si el ancho se ajustó a mano,
+   panel-resize lo pone en línea y manda. */
+.rail-wide .app-layout {
+  --layout-left: var(--layout-left-wide);
 }
