@@ -337,7 +337,7 @@ Convención única: la resume el comentario de `src/react/mount.tsx`. Cada regla
 - En casillas sí sirve el `onChange` de React: viaja con el `click`.
 
 **Diálogos** (`src/components/dialog/dialogs.tsx`)
-- Hoja (`openSheet`, o `modal.sheet`/`modal.info` con un elemento de React) y Ventana de trabajo (`openWorkWindow` o `modal.workspace`). Hay una sola a la vez y abrir una cierra `#modal`.
+- Hoja (`openSheet`, o `modal.sheet`/`modal.info` con un elemento de React) y Ventana de trabajo (`openWorkWindow` o `modal.workspace`). Hay una sola a la vez: abrir una reemplaza a la que esté abierta.
 - La única que se aloja encima de otra es la Ventana con `keepModal` (el explorador de fuentes desde el estilo de párrafo).
 - `closeSheet()` cierra en el acto. Las pruebas y la autoprueba usan eso, no `#modal`.
 - Los efectos de los hijos corren antes de que la ref del `<dialog>` lo abra con `showModal()`. Si un hijo mide o desplaza y no hay alto, lo hace en el cuadro siguiente (`requestAnimationFrame`).
@@ -358,10 +358,105 @@ Convención única: la resume el comentario de `src/react/mount.tsx`. Cada regla
 
 **Proceso principal.** Los cambios del proceso principal (CSP, protocolo `maquetario://`, manejadores) piden reiniciar la app. Ctrl+R sólo recarga la interfaz.
 
+## Etapa 2, parte B: de globales a `import` (plan)
+
+Hoy la interfaz se arma con dos entradas (`src/entries/core.ts` y `app.ts`) y el núcleo `src/global/studio.ts`, que es un script global. Los módulos se comunican por `globalThis`: el núcleo comparte sus `let`/`function` de nivel superior, los módulos publican con `globalThis.x = …` y `declare global`, y `extend` envuelve funciones buscándolas por nombre en `window`. La parte B cambia eso por `import` reales sin cortar la autoprueba en ningún paso.
+
+### Inventario (`node scripts/globals-report.mjs`)
+
+El script lista cada global, quién lo define, qué archivos lo leen o lo asignan, qué pruebas lo usan, si lo nombran las cadenas que el proceso principal evalúa en la página (autoprueba y `main.ts`) y cuántas extensiones `extend()` tiene. Con `--state` muestra sólo el estado y quién lo asigna; con `--json`, todo, para comparar entre entregas. `npm run lint:design` suma a la deuda la línea "globales publicados por módulos (globalThis.x =)".
+
+Punto de partida (09-nov):
+
+| | |
+|---|---|
+| Globales | 328: 94 del núcleo (`studio.ts`) y 234 publicados por módulos |
+| Por tipo | 232 funciones, 30 objetos de servicio (`M`, `UI`, `LibroI18n`, `extend`…), 66 variables de estado |
+| Estado asignado desde otros archivos | 22. Los más repartidos: `selected` (lo asignan 11 archivos), `active` (8), `spread` (6), `tool` (5), `book` (4), `dirty` (3) |
+| Lo más leído | `bw` (51 archivos), `book` (49), `$` (41), `extend` (37), `LibroI18n` (31), `finishEditing` (23), `commit` (22), `M` (22) |
+| Pruebas | leen 141 globales y asignan 31 (`book` lo asignan 20 archivos de prueba; `selected` 13, `active` 12, `spread` 9, `dirty` 8) |
+| Proceso principal | las cadenas de la autoprueba nombran 29 globales y las de `main.ts`, 22 (aviso de cierre, actualizaciones, PDF): son un contrato sin tipos |
+| Extensiones | 43 funciones extendidas por nombre, 106 registros. Las más extendidas: `paper` (9), `inspector` (7), `render` (5), `autoElement` (5), y con 4: `outputDialog`, `prepareOutput`, `setTool`, `objectDown`, `updateCoverPreview`, `startEditing` |
+| Sin usos fuera de su archivo | 25 (por ejemplo `bindInspector`, `hyphenationFields`, `renderBookRoute`, `setLanguage`): son los primeros en dejar de ser globales |
+
+### Estado: un objeto, con accesores mientras se migra
+
+- **Qué pasa al objeto.** `src/state/editor.ts` (en `core`, antes que `studio.ts`) exporta `editor`, con lo que hoy es `let` del núcleo y asignan otros archivos:
+  - `book`, `active`, `spread`, `selected`, `dirty`, `tool`, `zoom`, `scale`, `tab`, `busy`, `preview`, `editing`, `drag`, `native`, `fontList`, `undoStack` y `redoStack`;
+  - y de los módulos: `hasDocument`, `multiSelection`, `paragraphScope`, `coverDraft` y `coverPart`.
+
+  El estado propio de una pantalla (zoom continuo, explorador de fuentes, glifos) queda en su módulo, exportado.
+- **Cómo convive.** Por cada nombre, `editor.ts` instala un accesor en `globalThis` (`Object.defineProperty(globalThis, 'book', { get, set })`), como ya hace `editorial-assistant.ts` con su informe.
+  - `studio.ts` deja de declarar esos `let`, así que `book = b`, `active = 0` y `({ book, active } = previous)` siguen andando en el núcleo, en los módulos, en las pruebas y en las cadenas de la autoprueba, sin cambiar una línea.
+  - Después, cada módulo pasa a `import { editor } …` y `editor.book`.
+  - El accesor se va cuando el inventario muestra que ya nadie usa el nombre suelto. En las pruebas queda hasta el último grupo (ver abajo).
+- **Avisos.** El objeto no avisa por su cuenta en el primer paso (sería un cambio de comportamiento). Cuando el estado esté en un solo lugar, `notifyEditorState()` puede salir de los setters y dejar de colgarse de `updateStatus` y `syncNative`.
+- **Rendimiento.** `book` se lee miles de veces por dibujo: medir `render(true)` con y sin accesor (por ejemplo, 200 llamadas, como se midió la barra de estado) antes de seguir.
+
+### Funciones y objetos: `export` + publicación de compatibilidad
+
+- Cada módulo exporta lo que hoy publica. Mientras alguien lo use por el nombre global (otro módulo, una prueba, una cadena del proceso principal), sigue también `globalThis.x = x`, y el inventario dice cuándo sacarlo.
+- **Orden de carga.** Un `import` adelanta la evaluación del módulo importado. Ya pasó: una Hoja importó `document-units.ts` y su `extend.after('coverEditor', …)` corrió antes de que existiera `coverEditor`, y la app no arrancó. Regla:
+  - lo que se importa desde otros archivos no tiene efectos al cargar (sólo exporta);
+  - los efectos (registrar extensiones, montar React, escuchar eventos) van en un archivo que sólo importa `src/entries/app.ts`, o en una función `init()` que la entrada llama en orden.
+- **Los módulos de React ya importan** su base (`mount`, `dialogs`, `editor-state`, `Form`). Siguen:
+  - cambiar los globales que usan adentro (`book`, `bw`, `closeSheet`, `openSheet`…) por `import`;
+  - y que su servicio exporte en vez de publicar. La publicación queda sólo para quien llama desde afuera.
+
+### `extend`: registro con nombre por módulo
+
+- **Hoy.** `extend('render', …)` busca `window.render`, la reemplaza por una envoltura y compone la cadena. Un `import { render }` apuntaría a la función sin extensiones. Por eso los módulos que se extienden se llaman a sí mismos por `globalThis`.
+- **Propuesta.** El dueño de la función la declara extensible:
+
+  ```ts
+  export const render = extensible('render', function render(full = true) { … });
+  ```
+
+  - `extensible` registra la base en el registro y devuelve una envoltura estable que siempre corre la cadena compuesta.
+  - `extend('render', …)` y sus variantes (`after`, `result`, `around`…) buscan primero en el registro. Sólo caen a `window` mientras quede alguna función sin pasar.
+  - Así `import { render }`, el global de compatibilidad y las llamadas internas del mismo módulo pasan todos por las extensiones.
+  - `MaquetarioExtensions.list()` sigue igual y sirve de comparación: la lista (qué, en qué orden y desde qué módulo) tiene que salir idéntica antes y después de cada paso.
+- **Nombre del registro.** Es el nombre de la función, como hoy. El tercer argumento (el módulo de origen) pasa a ser obligatorio.
+- **Más adelante.** Las 12 envolturas a mano que cuenta la deuda pueden pasar a `after`/`result`/`instead`, o a registros propios como `registerInspectorPanel` y `registerTool`.
+
+### Orden por grupos
+
+Cada grupo es una entrega con la autoprueba en verde, los PDF idénticos y el inventario más bajo:
+
+1. **Herramientas.** El inventario en la deuda (hecho) y una regla: no sumar `globalThis.x` nuevos sin anotarlo.
+2. **`extend` con registro.** `extensible()` y la búsqueda en el registro, todavía sin cambiar quién define qué. Prueba: `MaquetarioExtensions.list()` idéntica.
+3. **Objeto de estado con accesores.** `studio.ts` deja sus `let` de estado. Prueba: autoprueba y JSON idénticos, sin tocar pruebas. Además, medir rendimiento.
+4. **Servicios hoja.** `bw` y `LibroI18n` (`i18n.ts`, `book-workflow.ts`), `M` (`model.ts`), `UI`, los diálogos y `editor-state`. Exportan, y sus lectores importan. La publicación queda para pruebas y cadenas.
+5. **El núcleo en piezas.** De `studio.ts` salen módulos con `export`:
+   - utilidades: `$`, `$$`, `esc`, `icon`, medidas;
+   - dibujo: `paper`, `renderPages`, `autoElement`, que es lo más extendido;
+   - inspector, comandos, guardar/abrir.
+
+   Cada función extendida pasa por `extensible`. Al final `studio.ts` deja de ser un script global y entra como módulo en `core`.
+6. **Módulos y pantallas.** Por inventario, de menos a más lectores. Primero los 25 sin usos externos, que pasan a privados; después cada módulo con su `import`.
+7. **Contrato con pruebas y proceso principal.**
+   - Las pruebas reciben un objeto de prueba (por ejemplo, `window.maquetarioTest` con `editor`, `M` y las funciones que llaman) en lugar de los nombres sueltos.
+   - Lo que nombran las cadenas de `selftest.ts` y de `main.ts` queda en una lista explícita, publicada por un solo módulo, que el inventario verifica.
+   - Recién ahí se sacan los últimos accesores.
+
+**Terminado cuando** el inventario dé:
+- 0 estado asignado desde otros archivos;
+- 0 extensiones que busquen en `window`;
+- y los globales publicados reducidos al contrato (objeto de prueba y lista del proceso principal).
+
+### Riesgos
+
+- **Pruebas que asignan globales.** Son 31 nombres; `book` lo asignan 20 archivos de prueba. Los accesores las cubren hasta el grupo 7. Hasta entonces, cada paso deja intactos los nombres que el inventario marca como asignados por pruebas.
+- **Cadenas que evalúa el proceso principal.** Las de `selftest.ts` (29 nombres) y `main.ts` (22: `requestCloseConfirmation`, `showBusyCloseNotice`, `outputReady`, `maquetarioUpdateAvailable`…) no tienen tipos: renombrar o privatizar uno rompe en silencio. El inventario los marca (columna a/p). Antes de privatizar un nombre, revisar esa columna.
+- **Orden de evaluación de los `import`.** Ver la regla de arriba.
+- **Llamadas internas que saltean las extensiones.** Las resuelve `extensible`. Hasta entonces, sigue la regla de llamar por `globalThis` dentro del módulo que se extiende.
+- **Rendimiento de los accesores** en `book`, `active` y `tool`, que se leen en cada dibujo y en cada movimiento del puntero.
+- **Ciclos de `import`** entre el núcleo y los módulos que lo extienden (el inspector importa el núcleo y el núcleo llama al inspector). Se cortan con el registro de extensiones y con `init()`: el núcleo no importa a quien lo extiende.
+
 ## Etapas
 
 1. **Electron con la interfaz actual** (cerrada el 08-nov). Funciona en macOS y Linux además de Windows; la versión C#/WebView2 (`Host*.cs`, `Build*.ps1`, `Maquetario.iss`) y su rama en la interfaz se retiraron. Pendiente, porque depende de Motiova o de la venta: URLs y clave pública de producción, `licenseMode: "enforce"` y la firma de código (ver "Licencias y conexión con Motiova").
-2. **TypeScript + módulos** (cerrada el 08-nov, salvo la parte B): pruebas fuera del build de producción (`app/tests/`), prettier, reemplazos de funciones globales por `extend`, toda la interfaz en `.ts` estricto con dos puntos de entrada (`src/entries/`) y migraciones del `.mqt` (ver "Formato del proyecto y migraciones"). Queda la **parte B** (cambiar los globales por `import` reales: objeto de estado y un `extend` que no dependa de `window`), que va con la etapa 3. Detalle en `docs/proximos-pasos.md` → "Etapa 2".
+2. **TypeScript + módulos** (cerrada el 08-nov, salvo la parte B): pruebas fuera del build de producción (`app/tests/`), prettier, reemplazos de funciones globales por `extend`, toda la interfaz en `.ts` estricto con dos puntos de entrada (`src/entries/`) y migraciones del `.mqt` (ver "Formato del proyecto y migraciones"). Queda la **parte B** (cambiar los globales por `import` reales: objeto de estado y un `extend` que no dependa de `window`), que va con la etapa 3: plan e inventario en "Etapa 2, parte B: de globales a `import` (plan)".
 3. **Interfaz con componentes** (atomic design, React + Radix, tokens de diseño compartidos con Motiova), revisada con impeccable. Dirección visual: "glass" de macOS, sin que parezca un panel genérico de IA. Decisiones tomadas el 08-nov: `docs/INTERFAZ_08-nov_decisiones-etapa3.md` (Radix sin estilos + CSS propio; inspector en 3 pestañas; tres tipos de diálogo; tokens con los nombres de Motiova). En curso: cómo se pasa una pantalla, en "Pasar una pantalla a React"; qué falta, en `docs/proximos-pasos.md`.
 4. **Motor de composición propio** (HarfBuzz/WASM, justificación Knuth-Plass) y PDF de imprenta (CMYK, PDF/X, TrimBox/BleedBox exactas). Hecho:
    - el motor cargado en la app detrás de una llave apagada (todavía no dibuja), en `docs/MOTOR_09-nov_composicion.md`;

@@ -74,6 +74,13 @@ const allJs = appJs
   .filter((line) => !/^\s*(\/\/|\*|\/\*)/.test(line))
   .join('\n');
 const count = (text, re) => (text.match(re) ?? []).length;
+/** Fuentes TypeScript de un directorio y sus subdirectorios (sin .d.ts). */
+const walkSource = (dir) =>
+  readdirSync(dir).flatMap((name) => {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) return walkSource(path);
+    return /\.tsx?$/.test(name) && !name.endsWith('.d.ts') ? [path] : [];
+  });
 // Lo mismo sin src/ui/components.ts: ahí el marcado de los componentes es legítimo.
 const componentJs = appJs
   .filter((f) => f !== join('src', 'ui', 'components.ts'))
@@ -111,6 +118,15 @@ const debt = {
     componentJs,
     /createElement\('button'\)/g,
   ),
+  // Etapa 2, parte B: lo que un módulo publica en globalThis en lugar de exportarlo. Cuenta
+  // nombres distintos en todo src/ (también .tsx). El detalle, con quién lee y quién asigna cada
+  // uno: node scripts/globals-report.mjs.
+  'globales publicados por módulos (globalThis.x =)': new Set(
+    walkSource(join(app, 'src'))
+      .map((f) => readFileSync(f, 'utf8'))
+      .flatMap((text) => [...text.matchAll(/(?:globalThis|window)\.([\w$]+)\s*=(?!=)/g)])
+      .map((m) => m[1]),
+  ).size,
 };
 console.log('\nDeuda pendiente (tiene que bajar):');
 for (const [what, n] of Object.entries(debt)) console.log(`  ${String(n).padStart(4)}  ${what}`);
