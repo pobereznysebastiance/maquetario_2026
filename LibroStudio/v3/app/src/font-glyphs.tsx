@@ -19,6 +19,8 @@ import { flushSync } from 'react-dom';
 import { useLanguage } from './react/mount.tsx';
 import { Select } from './components/form/Form.tsx';
 import { Icon } from './components/Icon.tsx';
+import { bw } from './i18n/language.ts';
+import { editor } from './core-api.ts';
 
 declare global {
   /** Códigos Unicode que tiene la fuente elegida en la paleta. */
@@ -124,13 +126,13 @@ async function readGlyphFace(id: string): Promise<void> {
 
 /** Agrega el glifo elegido al párrafo de destino con la fuente de la paleta (se puede deshacer). */
 function insertGlyph(): void {
-  const page = book.pages.find((p) => p.id === glyphTargetPage),
+  const page = editor.book.pages.find((p) => p.id === glyphTargetPage),
     target = page?.objects.find((o) => o.id === glyphTargetId);
   if (!target || target.locked || glyphSelected === null) return;
   const lines = target.text.split('\n'),
     index =
-      paragraphScope.id === target.id && paragraphScope.index >= 0
-        ? Math.min(paragraphScope.index, lines.length - 1)
+      editor.paragraphScope.id === target.id && editor.paragraphScope.index >= 0
+        ? Math.min(editor.paragraphScope.index, lines.length - 1)
         : lines.length - 1;
   paragraphOperation = true;
   try {
@@ -343,9 +345,9 @@ async function showFontGlyphs(initialFace?: NativeFontFace): Promise<void> {
   await fontCatalogPromise;
   if (fontBrowser.open) fontBrowser.close();
   const o = selectObject(),
-    f = o?.type === 'text' && !o.toc ? paragraphFormat(book, o, currentParagraph(o)) : null;
+    f = o?.type === 'text' && !o.toc ? paragraphFormat(editor.book, o, currentParagraph(o)) : null;
   glyphTargetId = o?.type === 'text' && !o.toc && !o.locked ? o.id : null;
-  glyphTargetPage = book.pages[active].id;
+  glyphTargetPage = editor.book.pages[editor.active].id;
   currentFace = (f && (selectedFace(f) as NativeFontFace | undefined)) || null;
   glyphFace = initialFace || currentFace || chooseDefaultFace('Georgia') || nativeFaces[0];
   // Cada apertura empieza sin búsqueda, sin filtro y sin glifo elegido.

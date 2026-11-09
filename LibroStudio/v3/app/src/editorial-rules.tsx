@@ -5,6 +5,8 @@
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 import type { BookObject } from './model.ts';
 import { Icon } from './components/Icon.tsx';
+import { bw } from './i18n/language.ts';
+import { editor, M } from './core-api.ts';
 
 interface ParagraphStyle {
   id: string;
@@ -26,8 +28,8 @@ export interface EditorialRule {
 }
 
 function usedGridColumns(page: number, object: BookObject): number {
-  const grid = M.gridRect(book, page),
-    { cols, gapX } = book.grid;
+  const grid = M.gridRect(editor.book, page),
+    { cols, gapX } = editor.book.grid;
   const width = (grid.w - gapX * (cols - 1)) / cols;
   let count = 0;
   for (let column = 0; column < cols; column++) {
@@ -37,8 +39,8 @@ function usedGridColumns(page: number, object: BookObject): number {
   return count;
 }
 function ruleGridPreview({ page, object }: RuleExample): string {
-  const grid = M.gridRect(book, page),
-    { cols, rows, gapX, gapY } = book.grid;
+  const grid = M.gridRect(editor.book, page),
+    { cols, rows, gapX, gapY } = editor.book.grid;
   const w = (grid.w - gapX * (cols - 1)) / cols,
     h = (grid.h - gapY * (rows - 1)) / rows;
   let cells = '';
@@ -46,7 +48,7 @@ function ruleGridPreview({ page, object }: RuleExample): string {
     for (let y = 0; y < rows; y++) {
       cells += `<rect x="${grid.x + x * (w + gapX)}" y="${grid.y + y * (h + gapY)}" width="${w}" height="${h}" vector-effect="non-scaling-stroke"/>`;
     }
-  return `<svg class="rule-grid-preview" viewBox="0 0 ${book.width} ${book.height}" aria-hidden="true">
+  return `<svg class="rule-grid-preview" viewBox="0 0 ${editor.book.width} ${editor.book.height}" aria-hidden="true">
     <g fill="none" stroke="#6a8b8866" stroke-width=".45">${cells}</g>
     <rect x="${object.x}" y="${object.y}" width="${object.w}" height="${object.h}" fill="#3fb59ca0"/>
     </svg>`;
@@ -54,15 +56,15 @@ function ruleGridPreview({ page, object }: RuleExample): string {
 
 function collectEditorialRules(): EditorialRule[] {
   const groups = new Map<string, EditorialRule>();
-  for (const [pageIndex, page] of book.pages.entries())
+  for (const [pageIndex, page] of editor.book.pages.entries())
     for (const object of page.objects) {
       if (object.type !== 'text' || object.hidden || object.toc) continue;
       const lines = object.text.split('\n');
       const columns = usedGridColumns(pageIndex, object);
       for (let index = 0; index < lines.length; index++) {
         if (!lines[index].trim()) continue;
-        const format = paragraphFormat(book, object, index);
-        const style = book.paragraphStyles?.find(
+        const format = paragraphFormat(editor.book, object, index);
+        const style = editor.book.paragraphStyles?.find(
           (item: ParagraphStyle) => item.id === object.paragraphMap?.[index]?.styleId,
         );
         const signature = JSON.stringify([
@@ -133,7 +135,7 @@ const RulesSheet = ({
     justify: pw().j,
   };
   const roleLabel = bw('Función editorial', 'Editorial role', 'Função editorial');
-  const styles: ParagraphStyle[] = book.paragraphStyles || [];
+  const styles: ParagraphStyle[] = editor.book.paragraphStyles || [];
   return (
     <>
       <p className="builder-intro">
@@ -228,7 +230,7 @@ const RulesSheet = ({
                           <div key={i}>
                             {/* El SVG lo arma ruleGridPreview con medidas del libro: no es texto del usuario. */}
                             <span dangerouslySetInnerHTML={{ __html: ruleGridPreview(example) }} />
-                            <small>{M.folio(book, example.page)}</small>
+                            <small>{M.folio(editor.book, example.page)}</small>
                           </div>
                         ))}
                       </div>
@@ -305,12 +307,12 @@ const RulesSheet = ({
 };
 
 function editorialRulesDialog(): void {
-  if (!hasDocument) return;
+  if (!editor.hasDocument) return;
   finishEditing();
   const rules = collectEditorialRules();
-  const styleRoles: Record<string, string> = book.editorialRoles || {};
+  const styleRoles: Record<string, string> = editor.book.editorialRoles || {};
   const styleNotes: Record<string, { leading?: string; operation?: string }> =
-    book.editorialPautas || {};
+    editor.book.editorialPautas || {};
   modal.sheet(
     bw('Pauta de uso tipográfico', 'Typography usage guide', 'Pauta de uso tipográfico'),
     <RulesSheet rules={rules} styleRoles={styleRoles} styleNotes={styleNotes} />,
@@ -338,8 +340,8 @@ function editorialRulesDialog(): void {
         JSON.stringify(notes) !== JSON.stringify(styleNotes)
       ) {
         commit(() => {
-          book.editorialRoles = roles;
-          book.editorialPautas = notes;
+          editor.book.editorialRoles = roles;
+          editor.book.editorialPautas = notes;
         }, false);
       }
       return true;

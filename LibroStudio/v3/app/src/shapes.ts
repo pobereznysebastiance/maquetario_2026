@@ -14,6 +14,9 @@
 import type { Book, BookObject, LibroModelApi } from './model.ts';
 import type { OutputConfig, OutputInfo } from './output.ts';
 import { shapeGallery } from './components/shape-gallery/ShapeGallery.tsx';
+import { bw } from './i18n/language.ts';
+import { M } from './core-api.ts';
+import { closeSheet } from './components/dialog/dialogs.tsx';
 
 /** Nombre de cada figura: castellano, inglés y portugués. */
 type ShapeLabels = [string, string, string];

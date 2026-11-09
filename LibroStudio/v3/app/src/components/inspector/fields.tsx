@@ -22,13 +22,15 @@ import {
   type ReactNode,
 } from 'react';
 import { Icon } from '../Icon.tsx';
+import { bw, i18n } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
 type Control = HTMLInputElement | HTMLSelectElement;
 
 /** Texto traducido como lo hace el traductor del DOM: sin tocar los espacios del borde. */
 export const tt = (text: string): string => {
   const trim = text.trim();
-  return trim ? text.replace(trim, LibroI18n.tr(trim)) : text;
+  return trim ? text.replace(trim, i18n.tr(trim)) : text;
 };
 
 /**
@@ -38,7 +40,7 @@ export const tt = (text: string): string => {
  * elegirla).
  */
 export const fieldKey = (name: string, value: unknown): string =>
-  [name, String(value), LibroI18n.language].join('\u0000');
+  [name, String(value), i18n.language].join('\u0000');
 
 /** Unidad de las longitudes del documento: mm o cm (document-units). */
 export const lengthUnit = (): string => documentUnit();
@@ -332,7 +334,7 @@ export const Options = ({
 
 /** La familia que muestra un selector de fuentes: la elegida si está en la lista, si no la primera. */
 const shownFamily = (family: string): string =>
-  fontList.includes(family) ? family : (fontList[0] ?? '');
+  editor.fontList.includes(family) ? family : (editor.fontList[0] ?? '');
 
 /**
  * Botón que abre el explorador de fuentes (font-browser.tsx) para el selector de al lado, que queda
@@ -357,7 +359,7 @@ export const FontOptions = ({ path }: { path: string }) => (
   <>
     <Options
       path={path}
-      items={fontList.map((f) => [f, f])}
+      items={editor.fontList.map((f) => [f, f])}
       className="font-native-hidden"
       browserHook
     />
@@ -450,19 +452,19 @@ export const MasterDetails = ({
     <summary>{tt('Personalizar pares, impares y posición')}</summary>
     <label className="field-label">{tt('Páginas impares')}</label>
     <input
-      key={fieldKey('odd', book[type].odd)}
+      key={fieldKey('odd', editor.book[type].odd)}
       className="field-full"
       data-bind={`${type}.odd`}
-      defaultValue={book[type].odd}
+      defaultValue={editor.book[type].odd}
       maxLength={1000}
       ref={bind}
     />
     <label className="field-label">{tt('Páginas pares')}</label>
     <input
-      key={fieldKey('even', book[type].even)}
+      key={fieldKey('even', editor.book[type].even)}
       className="field-full"
       data-bind={`${type}.even`}
-      defaultValue={book[type].even}
+      defaultValue={editor.book[type].even}
       maxLength={1000}
       ref={bind}
     />

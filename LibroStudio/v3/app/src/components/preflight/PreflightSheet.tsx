@@ -10,6 +10,9 @@
 
 import type { PreflightIssue } from '../../book-workflow.ts';
 import { Icon } from '../Icon.tsx';
+import { bw } from '../../i18n/language.ts';
+import { closeSheet, openSheet } from '../dialog/dialogs.tsx';
+import { editor } from '../../core-api.ts';
 
 const PreflightReport = ({ issues, pages }: { issues: PreflightIssue[]; pages: number }) => (
   <>
@@ -64,12 +67,12 @@ const PreflightReport = ({ issues, pages }: { issues: PreflightIssue[]; pages: n
 
 /** Revisa el libro y muestra el resultado. Sin libro, ofrece crear uno (como antes). */
 export function openPreflight(): void {
-  if (!hasDocument) {
+  if (!editor.hasDocument) {
     settings(true);
     return;
   }
   const issues = preflightBook();
-  void openSheet(<PreflightReport issues={issues} pages={book.pages.length} />, {
+  void openSheet(<PreflightReport issues={issues} pages={editor.book.pages.length} />, {
     title: 'Revisar el libro completo',
     action: {
       label: 'Revisar salida PDF',

@@ -19,20 +19,22 @@ import {
   SwitchHeading,
   tt,
 } from './fields.tsx';
+import { bw } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
 type MasterType = 'header' | 'titulillo';
 
 const isLateral = (type: MasterType): boolean =>
-  ['left', 'right', 'outer', 'inner'].includes(book[type].pos);
+  ['left', 'right', 'outer', 'inner'].includes(editor.book[type].pos);
 
 /** Sentido de lectura en el margen lateral: el valor va por la propiedad, como antes, y se graba
  * al cambiar. */
 const saveDirection = (type: MasterType) => {
   const listen = onNativeChange<HTMLSelectElement>((select) =>
-    commit(() => (book[type].sideDirection = select.value), false),
+    commit(() => (editor.book[type].sideDirection = select.value), false),
   );
   return (select: HTMLSelectElement | null) => {
-    if (select && firstTime(select)) select.value = book[type].sideDirection || 'up';
+    if (select && firstTime(select)) select.value = editor.book[type].sideDirection || 'up';
     listen(select);
   };
 };
@@ -44,7 +46,7 @@ const SideReading = ({ type }: { type: MasterType }) =>
       <div className="field-row">
         <label>{bw('Lectura lateral', 'Side reading direction', 'Leitura lateral')}</label>
         <select
-          key={fieldKey('direction', book[type].sideDirection)}
+          key={fieldKey('direction', editor.book[type].sideDirection)}
           data-master-direction={type}
           ref={saveDirection(type)}
         >
@@ -76,21 +78,21 @@ export const HeaderPanel = () => {
       </Row>
       <SideReading type="header" />
       <input
-        key={fieldKey('title', book.title)}
+        key={fieldKey('title', editor.book.title)}
         className="field-full"
         aria-label={tt('Título del libro')}
         data-bind="title"
         maxLength={250}
-        defaultValue={book.title}
+        defaultValue={editor.book.title}
         ref={bind}
       />
       <input
-        key={fieldKey('chapter', book.chapter)}
+        key={fieldKey('chapter', editor.book.chapter)}
         className="field-full"
         aria-label={tt('Sección general')}
         data-bind="chapter"
         maxLength={250}
-        defaultValue={book.chapter}
+        defaultValue={editor.book.chapter}
         ref={bind}
       />
       <MasterDetails

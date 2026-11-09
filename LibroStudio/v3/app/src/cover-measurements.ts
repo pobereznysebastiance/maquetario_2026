@@ -7,6 +7,7 @@
 // Fuente TypeScript: se compila a build/cover-measurements.js (desktop/scripts/build.mjs).
 
 import type { CoverDesign, CoverGeometryPart } from './publications.ts';
+import { bw } from './i18n/language.ts';
 
 export interface CoverMeasurementRow extends CoverGeometryPart {
   height: number;

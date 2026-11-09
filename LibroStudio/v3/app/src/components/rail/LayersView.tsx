@@ -12,6 +12,8 @@
 import type { DragEvent } from 'react';
 import type { BookObject } from '../../model.ts';
 import { Icon } from '../Icon.tsx';
+import { bw } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
 /** Lo que la vista necesita de layout-tools.ts. */
 export interface LayersSource {
@@ -53,14 +55,14 @@ const LayerRow = ({ o, objects }: { o: BookObject; objects: BookObject[] }) => {
       : bw('Bloquear', 'Lock', 'Bloquear') + ': ' + name;
   return (
     <div
-      className={`layer-row ${o.id === selected ? 'active' : ''} ${o.hidden ? 'is-hidden' : ''}`}
+      className={`layer-row ${o.id === editor.selected ? 'active' : ''} ${o.hidden ? 'is-hidden' : ''}`}
       draggable="true"
       data-layer={o.id}
       onClick={(e) => {
         if ((e.target as Element).closest('button')) return;
         finishEditing();
-        tool = 'select';
-        selected = o.id;
+        editor.tool = 'select';
+        editor.selected = o.id;
         render(false);
       }}
       onDragStart={(e: DragEvent) => {
@@ -119,13 +121,17 @@ let layers: LayersSource;
 
 const LayersView = () => {
   const w = layers.words(),
-    objects = book.pages[active].objects,
+    objects = editor.book.pages[editor.active].objects,
     current = selectObject();
   return (
-    <section className="section" data-section={w.layers + ' · ' + (active + 1)} data-key="pages">
+    <section
+      className="section"
+      data-section={w.layers + ' · ' + (editor.active + 1)}
+      data-key="pages"
+    >
       <div className="section-heading">
         <Icon name="pages" />
-        <span>{w.layers + ' · ' + (active + 1)}</span>
+        <span>{w.layers + ' · ' + (editor.active + 1)}</span>
       </div>
       <p className="help">{w.hint}</p>
       <div id="layerList">

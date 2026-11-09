@@ -8,6 +8,7 @@
 // Fuente TypeScript: se compila a build/frame-handles.js (desktop/scripts/build.mjs).
 
 import type { BookObject, Rect } from './model.ts';
+import { i18n } from './i18n/language.ts';
 
 declare global {
   /** Direcciones de los controladores: esquinas y bordes (nw, n, ne, e, se, s, sw, w). */
@@ -27,7 +28,7 @@ declare global {
 const frameDirections = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
 globalThis.frameDirections = frameDirections;
 function frameHandleLabel(direction: string): string {
-  const lang = globalThis.LibroI18n?.language || 'es';
+  const lang = i18n.language || 'es';
   const names: Record<string, Record<string, string>> = {
     es: {
       nw: 'Esquina superior izquierda',

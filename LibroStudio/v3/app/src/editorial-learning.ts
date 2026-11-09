@@ -9,6 +9,8 @@
 'use strict';
 import type { CoverDesign } from './publications.ts';
 import { glossaryHelpSection, renderGlossary } from './components/help/Glossary.tsx';
+import { bw } from './i18n/language.ts';
+import { closeSheet } from './components/dialog/dialogs.tsx';
 
 /** Texto en castellano, inglés y portugués. */
 type Words = [string, string, string];

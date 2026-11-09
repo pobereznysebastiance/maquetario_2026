@@ -22,6 +22,9 @@ import { useLayoutEffect, useRef } from 'react';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
 import { LabeledInput, useFieldEvents } from '../form/Form.tsx';
+import { bw, i18n } from '../../i18n/language.ts';
+import { editor, M } from '../../core-api.ts';
+import { closeSheet, openWorkWindow } from '../dialog/dialogs.tsx';
 
 declare global {
   /** Abre el editor de la cubierta desplegada. */
@@ -50,8 +53,8 @@ const previousFlap: Record<string, number> = {};
 /** Guarda el borrador en el libro y sigue con la salida (exportar o imprimir la cubierta). */
 function saveAndGo(next: () => void): void {
   try {
-    validateCover(coverDraft!);
-    commit(() => (book.cover = M.clone(coverDraft)), false);
+    validateCover(editor.coverDraft!);
+    commit(() => (editor.book.cover = M.clone(editor.coverDraft)), false);
     closeSheet();
     setTimeout(next, 30);
   } catch (e) {
@@ -75,7 +78,7 @@ function chooseImage(): void {
     }
     const r = new FileReader();
     r.onload = () => {
-      coverDraft!.parts[coverPart].image = r.result as string;
+      editor.coverDraft!.parts[editor.coverPart].image = r.result as string;
       updateCoverPreview();
     };
     r.readAsDataURL(file);
@@ -93,11 +96,11 @@ function refreshBindingEstimate(): void {
     apply = document.querySelector<HTMLButtonElement>('#applyBindingSpine');
   if (!spine || !method || !caliper || !result || !hint || !apply) return;
   const format = (number: number) =>
-    new Intl.NumberFormat(LibroI18n.language, {
+    new Intl.NumberFormat(i18n.language, {
       maximumFractionDigits: documentUnit() === 'cm' ? 3 : 2,
     }).format(number);
   const stapled = method.value === 'stapled',
-    pageCount = book.pages.length;
+    pageCount = editor.book.pages.length;
   const sheets = Math.ceil(pageCount / 4),
     blanks = sheets * 4 - pageCount;
   const leaves = stapled ? sheets * 2 : Math.ceil(pageCount / 2);
@@ -142,7 +145,7 @@ function fieldChanged(target: HTMLElement, type: 'change' | 'input'): void {
   const field = target as HTMLInputElement;
   if (type === 'input') {
     if (field.id === 'coverBackground') {
-      coverDraft!.background = field.value;
+      editor.coverDraft!.background = field.value;
       updateCoverPreview();
     } else if (field.id === 'paperCaliper') refreshBindingEstimate();
     return;
@@ -151,17 +154,18 @@ function fieldChanged(target: HTMLElement, type: 'change' | 'input'): void {
   if (size) {
     const n = Number(field.value);
     if (!Number.isFinite(n) || n < Number(field.min) || n > Number(field.max)) {
-      field.value = coverDraft![size];
+      field.value = editor.coverDraft![size];
       return;
     }
-    coverDraft![size] = n;
+    editor.coverDraft![size] = n;
     updateCoverPreview();
     return;
   }
   const flap = field.dataset.flap;
   if (flap) {
     const width = document.querySelector<HTMLInputElement>(`[data-cover-size="${flap}"]`)!;
-    if (!field.checked && coverDraft![flap] > 0) previousFlap[flap] = coverDraft![flap];
+    if (!field.checked && editor.coverDraft![flap] > 0)
+      previousFlap[flap] = editor.coverDraft![flap];
     width.value = String(field.checked ? previousFlap[flap] : 0);
     width.dispatchEvent(new Event('change', { bubbles: true }));
     return;
@@ -177,26 +181,26 @@ function fieldChanged(target: HTMLElement, type: 'change' | 'input'): void {
         (v as number) > Number(field.max))
     )
       return;
-    coverDraft!.parts[coverPart][key] = v;
+    editor.coverDraft!.parts[editor.coverPart][key] = v;
     updateCoverPreview();
     return;
   }
   switch (field.id) {
     case 'coverWrap':
       if (field.value === '' || !field.validity.valid) {
-        field.value = String(coverDraft!.wrap || 0);
+        field.value = String(editor.coverDraft!.wrap || 0);
         return;
       }
-      coverDraft!.wrap = Number(field.value);
+      editor.coverDraft!.wrap = Number(field.value);
       updateCoverPreview();
       return;
     case 'spineDirection':
-      coverDraft!.parts.spine.direction = field.value;
-      coverPart = 'spine';
+      editor.coverDraft!.parts.spine.direction = field.value;
+      editor.coverPart = 'spine';
       updateCoverPreview();
       return;
     case 'coverImageFit':
-      coverDraft!.parts[coverPart].imageFit = field.value;
+      editor.coverDraft!.parts[editor.coverPart].imageFit = field.value;
       updateCoverPreview();
       return;
     case 'bindingMethod':
@@ -211,7 +215,7 @@ const CoverEditor = () => {
   // Al dibujar (también al cambiar de idioma): la estimación del lomo en el idioma actual.
   useLayoutEffect(() => refreshBindingEstimate());
   const unit = documentUnit();
-  const draft = coverDraft!;
+  const draft = editor.coverDraft!;
   return (
     <>
       <p className="builder-intro">
@@ -242,7 +246,7 @@ const CoverEditor = () => {
             className="btn"
             id="coverRemoveImage"
             onClick={() => {
-              delete coverDraft!.parts[coverPart].image;
+              delete editor.coverDraft!.parts[editor.coverPart].image;
               updateCoverPreview();
             }}
           >
@@ -292,7 +296,7 @@ const CoverEditor = () => {
               className="btn"
               data-cover-edit={key}
               onClick={() => {
-                coverPart = key;
+                editor.coverPart = key;
                 updateCoverPreview();
               }}
             >
@@ -318,7 +322,7 @@ const CoverEditor = () => {
           <LabeledInput
             label={bw('Distancia superior', 'Top distance', 'Distância superior') + ' · mm'}
           >
-            <input id="coverY" type="number" min="0" max={book.height} />
+            <input id="coverY" type="number" min="0" max={editor.book.height} />
           </LabeledInput>
           <LabeledInput label={bw('Alineación', 'Alignment', 'Alinhamento')}>
             <select id="coverAlign">
@@ -403,10 +407,10 @@ const CoverEditor = () => {
             id="downloadCoverSpecs"
             onClick={() =>
               download(
-                new Blob(['﻿' + coverMeasurementText(coverDraft!)], {
+                new Blob(['﻿' + coverMeasurementText(editor.coverDraft!)], {
                   type: 'text/plain;charset=utf-8',
                 }),
-                book.title + ' - medidas cubierta.txt',
+                editor.book.title + ' - medidas cubierta.txt',
               )
             }
           >
@@ -524,14 +528,14 @@ const CoverActions = () => {
 };
 
 globalThis.coverEditor = function (): void {
-  if (!hasDocument) {
+  if (!editor.hasDocument) {
     settings(true);
     return;
   }
   finishEditing();
-  coverDraft = M.clone(book.cover || defaultCover());
-  coverPart = 'front';
-  for (const key of ['leftFlap', 'rightFlap']) previousFlap[key] = coverDraft![key] || 70;
+  editor.coverDraft = M.clone(editor.book.cover || defaultCover());
+  editor.coverPart = 'front';
+  for (const key of ['leftFlap', 'rightFlap']) previousFlap[key] = editor.coverDraft![key] || 70;
   void openWorkWindow(<CoverEditor />, {
     title: bw('Cubierta desplegada', 'Full cover spread', 'Capa aberta'),
     variant: 'cover-modal',
@@ -539,8 +543,8 @@ globalThis.coverEditor = function (): void {
     action: {
       label: bw('Guardar cubierta', 'Save cover', 'Salvar capa'),
       run: () => {
-        validateCover(coverDraft!);
-        commit(() => (book.cover = M.clone(coverDraft)), false);
+        validateCover(editor.coverDraft!);
+        commit(() => (editor.book.cover = M.clone(editor.coverDraft)), false);
       },
     },
   });

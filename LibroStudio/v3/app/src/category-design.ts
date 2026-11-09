@@ -6,6 +6,9 @@
 //
 // Fuente TypeScript: se compila a build/category-design.js (desktop/scripts/build.mjs).
 
+import { bw } from './i18n/language.ts';
+import { UI } from './core-api.ts';
+
 declare global {
   /** Muestra las pestañas que entran y pasa el resto al menú "Más categorías". */
   var refreshCategoryTabs: () => void;

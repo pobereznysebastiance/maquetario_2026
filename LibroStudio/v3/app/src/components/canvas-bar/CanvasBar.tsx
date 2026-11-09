@@ -27,6 +27,8 @@ import { useEditorState } from '../../react/editor-state.ts';
 import { GridMini } from '../grid-gallery/GridGallery.tsx';
 import { gridSize } from '../../readability.ts';
 import { useCanvasBar } from './canvas-bar-state.ts';
+import { bw, i18n } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
 /** Porcentaje real del lienzo (antes de que cargue canvas-navigation, 100). */
 const canvasPercent = (): number =>
@@ -57,7 +59,7 @@ const ZoomControls = () => {
         type="button"
         id="zoomOut"
         className="icon-btn"
-        aria-label={LibroI18n.tr('Alejar')}
+        aria-label={i18n.tr('Alejar')}
         onClick={() => zoomCanvasTo(canvasPercent() / 1.2)}
       >
         −
@@ -77,7 +79,7 @@ const ZoomControls = () => {
         type="button"
         id="zoomIn"
         className="icon-btn"
-        aria-label={LibroI18n.tr('Acercar')}
+        aria-label={i18n.tr('Acercar')}
         onClick={() => zoomCanvasTo(canvasPercent() * 1.2)}
       >
         +
@@ -180,7 +182,7 @@ export const TemplateStrip = () => {
           key={preset.id}
           type="button"
           className={
-            book.grid.cols === preset.c && book.grid.rows === preset.r
+            editor.book.grid.cols === preset.c && editor.book.grid.rows === preset.r
               ? 'template active'
               : 'template'
           }

@@ -31,6 +31,8 @@ import {
   SectionHeading,
   tt,
 } from './fields.tsx';
+import { bw } from '../../i18n/language.ts';
+import { editor, M } from '../../core-api.ts';
 
 type Face = NativeFontFace;
 type Axis = Face['axes'][number] & { name?: string };
@@ -138,11 +140,11 @@ export const ParagraphPanel = () => {
         <p className="help">{w.empty}</p>
       </>
     );
-  if (paragraphScope.id !== o.id) paragraphScope = { id: o.id, index: -1 };
+  if (editor.paragraphScope.id !== o.id) editor.paragraphScope = { id: o.id, index: -1 };
   const indices = paragraphIndices(o),
-    formats = indices.map((i) => paragraphFormat(book, o, i)),
+    formats = indices.map((i) => paragraphFormat(editor.book, o, i)),
     props = formats[0],
-    styles: ParagraphStyle[] = book.paragraphStyles || [],
+    styles: ParagraphStyle[] = editor.book.paragraphStyles || [],
     styleIds = indices.map((i) => o.paragraphMap?.[i]?.styleId || ''),
     singleStyle = styleIds.every((id) => id === styleIds[0]) ? styleIds[0] : 'mixed',
     style = styles.find((s) => s.id === singleStyle),
@@ -162,12 +164,12 @@ export const ParagraphPanel = () => {
       <div className="field-row">
         <label>{w.scope}</label>
         <select
-          key={fieldKey('scope', o.id + ':' + paragraphScope.index)}
+          key={fieldKey('scope', o.id + ':' + editor.paragraphScope.index)}
           id="paragraphScope"
-          defaultValue={String(paragraphScope.index)}
+          defaultValue={String(editor.paragraphScope.index)}
           disabled={locked}
           ref={onNativeChange<HTMLSelectElement>((el) => {
-            paragraphScope = { id: o.id, index: Number(el.value) };
+            editor.paragraphScope = { id: o.id, index: Number(el.value) };
             inspector();
           })}
         >
@@ -282,7 +284,7 @@ export const ParagraphPanel = () => {
           disabled={!style || locked}
           onClick={() =>
             asParagraphOperation(() => {
-              const properties = paragraphFormat(book, o, currentParagraph(o));
+              const properties = paragraphFormat(editor.book, o, currentParagraph(o));
               commit(() => {
                 style!.properties = M.clone(properties);
                 for (const index of paragraphIndices(o)) paragraphMeta(o, index).overrides = {};
@@ -398,7 +400,7 @@ export const TypographyPanel = () => {
   const w = fw(),
     objectFace = selectedFace(o) as Face | undefined,
     // El párrafo elegido manda (salvo en el índice, que no tiene párrafos).
-    props = o.toc ? null : paragraphFormat(book, o, currentParagraph(o)),
+    props = o.toc ? null : paragraphFormat(editor.book, o, currentParagraph(o)),
     face = props ? (selectedFace(props) as Face | undefined) : undefined,
     shown = (key: string) =>
       props && props[key] !== undefined
@@ -476,7 +478,7 @@ export const TypographyPanel = () => {
           disabled={locked}
           ref={changeFont}
         >
-          {fontList.map((f) => (
+          {editor.fontList.map((f) => (
             <option key={f}>{f}</option>
           ))}
         </select>

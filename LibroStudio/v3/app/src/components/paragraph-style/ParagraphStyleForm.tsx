@@ -14,6 +14,8 @@
 import { useLayoutEffect, useRef } from 'react';
 import { Control, Field, Select } from '../form/Form.tsx';
 import type { ParagraphFormat, ParagraphStyle } from '../../paragraphs.ts';
+import { bw } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
 interface FormProps {
   existing: ParagraphStyle | null | undefined;
@@ -74,7 +76,7 @@ const ParagraphStyleForm = ({ existing, properties, words: w }: FormProps) => {
           <Select
             id="paragraphStyleFont"
             defaultValue={properties.font}
-            options={fontList.map((family) => ({ value: family, label: family }))}
+            options={editor.fontList.map((family) => ({ value: family, label: family }))}
           />
         </Control>
         <Field

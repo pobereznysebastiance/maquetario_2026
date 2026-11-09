@@ -13,6 +13,7 @@
 // Fuente TypeScript: se compila a build/fonts.js (desktop/scripts/build.mjs).
 
 import type { BookObject } from './model.ts';
+import { i18n } from './i18n/language.ts';
 
 /** Lo que mira selectedFace: un objeto de texto, un formato de párrafo o un elemento automático. */
 interface FontRef {
@@ -153,7 +154,7 @@ const fontWords: Record<string, Record<string, string>> = {
     manage: 'Gerenciar pastas',
   },
 };
-const fw = () => fontWords[globalThis.LibroI18n?.language || 'es'];
+const fw = () => fontWords[i18n.language || 'es'];
 globalThis.fw = fw;
 /** Se está leyendo el catálogo de fuentes del equipo (lo muestra la biblioteca de fuentes). */
 globalThis.fontCatalogLoading = () => fontLoading;

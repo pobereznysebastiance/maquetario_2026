@@ -1,0 +1,551 @@
+// Idioma de la interfaz, sin efectos al cargar: el diccionario (es → en, pt), tr() para los textos
+// en castellano (también los que tienen números o nombres variables), bw(es, en, pt) para los
+// textos fijos y el idioma actual. Lo importan los módulos y las pantallas de React:
+//
+//   import { bw, i18n } from '../i18n/language.ts';
+//   bw('Guardar', 'Save', 'Salvar')   i18n.tr('Sin selección')   i18n.language
+//
+// La parte que toca la página (traducir el DOM, el selector #language, avisar el cambio y publicar
+// window.LibroI18n) está en src/i18n.ts, que usa este módulo.
+//
+// Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts). No lo importa nada de core:
+// el idioma tiene que ser uno solo.
+
+import { extraTranslations, type TranslationRow } from '../data/i18n-extra.ts';
+
+export type Language = 'es' | 'en' | 'pt';
+
+const labels: TranslationRow[] = [
+  ['Maquetación y diseño de libros', 'Book layout and design', 'Diagramação e design de livros'],
+  ['Nuevo', 'New', 'Novo'],
+  ['Abrir', 'Open', 'Abrir'],
+  ['Guardar', 'Save', 'Salvar'],
+  ['Deshacer', 'Undo', 'Desfazer'],
+  ['Rehacer', 'Redo', 'Refazer'],
+  ['Configuración', 'Settings', 'Configurações'],
+  ['Espacio de trabajo', 'Workspace', 'Espaço de trabalho'],
+  ['Vista previa', 'Preview', 'Visualização'],
+  ['Exportar PDF', 'Export PDF', 'Exportar PDF'],
+  ['Seleccionar', 'Select', 'Selecionar'],
+  ['Texto', 'Text', 'Texto'],
+  ['Imagen', 'Image', 'Imagem'],
+  ['Marco', 'Frame', 'Moldura'],
+  ['Grilla', 'Grid', 'Grade'],
+  ['Foliado', 'Page numbering', 'Numeração'],
+  ['Cornisa', 'Running header', 'Cabeçalho'],
+  ['Cuadro de texto', 'Text frame', 'Caixa de texto'],
+  ['Páginas', 'Pages', 'Páginas'],
+  ['Diseño', 'Design', 'Design'],
+  ['Índice', 'Contents', 'Sumário'],
+  ['Proyecto local', 'Local project', 'Projeto local'],
+  ['Listo para crear', 'Ready to create', 'Pronto para criar'],
+  ['Proyecto guardado', 'Project saved', 'Projeto salvo'],
+  ['Cambios sin guardar', 'Unsaved changes', 'Alterações não salvas'],
+  ['Configurar libro', 'Book settings', 'Configurar livro'],
+  ['Plantillas', 'Templates', 'Modelos'],
+  ['Unidades: mm', 'Units: mm', 'Unidades: mm'],
+  ['Guardado en tu equipo', 'Saved on your computer', 'Salvo no seu computador'],
+  ['Sin selección', 'Nothing selected', 'Sem seleção'],
+  ['Columnas', 'Columns', 'Colunas'],
+  ['Filas', 'Rows', 'Linhas'],
+  ['Medianiles', 'Gutters', 'Espaçamentos'],
+  ['Entre columnas', 'Between columns', 'Entre colunas'],
+  ['Entre filas', 'Between rows', 'Entre linhas'],
+  ['Ajustar grilla a', 'Fit grid to', 'Ajustar grade a'],
+  ['A los márgenes', 'Margins', 'Às margens'],
+  ['Al borde de página', 'Page edges', 'À borda da página'],
+  ['Márgenes', 'Margins', 'Margens'],
+  ['Superior', 'Top', 'Superior'],
+  ['Inferior', 'Bottom', 'Inferior'],
+  ['Interior', 'Inside', 'Interna'],
+  ['Exterior', 'Outside', 'Externa'],
+  ['Tipo de letra', 'Font family', 'Fonte'],
+  ['Tamaño', 'Size', 'Tamanho'],
+  ['Interlineado', 'Leading', 'Entrelinha'],
+  ['Alineación', 'Alignment', 'Alinhamento'],
+  ['Formato', 'Format', 'Formato'],
+  ['Posición', 'Position', 'Posição'],
+  ['Comenzar en', 'Start at', 'Começar em'],
+  [
+    'Personalizar pares, impares y posición',
+    'Customize odd/even pages and position',
+    'Personalizar pares, ímpares e posição',
+  ],
+  ['Páginas impares', 'Odd pages', 'Páginas ímpares'],
+  ['Páginas pares', 'Even pages', 'Páginas pares'],
+  ['Aplicar a', 'Apply to', 'Aplicar a'],
+  ['Todas las páginas', 'All pages', 'Todas as páginas'],
+  ['Solo impares', 'Odd pages only', 'Somente ímpares'],
+  ['Solo pares', 'Even pages only', 'Somente pares'],
+  ['Cuerpo', 'Font size', 'Corpo'],
+  ['Distancia al borde', 'Distance from edge', 'Distância da borda'],
+  ['Desplazamiento X', 'X offset', 'Deslocamento X'],
+  ['Desplazamiento Y', 'Y offset', 'Deslocamento Y'],
+  ['Izquierda', 'Left', 'Esquerda'],
+  ['Centrada', 'Centered', 'Centralizado'],
+  ['Derecha', 'Right', 'Direita'],
+  ['Rotar texto 90°', 'Rotate text 90°', 'Girar texto 90°'],
+  ['Línea debajo de la cornisa', 'Rule below the header', 'Linha abaixo do cabeçalho'],
+  ['Margen superior', 'Top margin', 'Margem superior'],
+  ['Margen inferior', 'Bottom margin', 'Margem inferior'],
+  ['Lateral exterior', 'Outside edge', 'Lateral externa'],
+  ['Lateral interior', 'Inside edge', 'Lateral interna'],
+  ['Lateral izquierdo', 'Left edge', 'Lateral esquerda'],
+  ['Lateral derecho', 'Right edge', 'Lateral direita'],
+  ['Inferior exterior', 'Bottom outside', 'Inferior externa'],
+  ['Inferior centrado', 'Bottom center', 'Inferior centralizado'],
+  ['Inferior interior', 'Bottom inside', 'Inferior interna'],
+  ['Superior exterior', 'Top outside', 'Superior externa'],
+  ['Superior centrado', 'Top center', 'Superior centralizado'],
+  ['Superior interior', 'Top inside', 'Superior interna'],
+  ['Titulillo', 'Running title', 'Título corrente'],
+  ['Tipografía', 'Typography', 'Tipografia'],
+  ['Transformar objeto', 'Transform object', 'Transformar objeto'],
+  ['Editar contenido', 'Edit content', 'Editar conteúdo'],
+  ['Negrita', 'Bold', 'Negrito'],
+  ['Cursiva', 'Italic', 'Itálico'],
+  ['Color', 'Color', 'Cor'],
+  ['Al frente', 'Bring to front', 'Trazer para frente'],
+  ['Al fondo', 'Send to back', 'Enviar para trás'],
+  ['Eliminar objeto', 'Delete object', 'Excluir objeto'],
+  ['Posición X', 'X position', 'Posição X'],
+  ['Posición Y', 'Y position', 'Posição Y'],
+  ['Ancho', 'Width', 'Largura'],
+  ['Alto', 'Height', 'Altura'],
+  ['Edición', 'Editing', 'Edição'],
+  ['Libro', 'Book', 'Livro'],
+  ['Página', 'Page', 'Página'],
+  ['Selección', 'Selection', 'Seleção'],
+  ['Capas', 'Layers', 'Camadas'],
+  ['Inspector', 'Inspector', 'Inspetor'],
+  ['Vistas del panel', 'Panel views', 'Vistas do painel'],
+  ['Sección general', 'Default section', 'Seção padrão'],
+  ['Cuerpo del texto', 'Font size', 'Corpo do texto'],
+  ['Ej.: Capítulo 2', 'E.g. Chapter 2', 'Ex.: Capítulo 2'],
+  ['Ocultar consejo', 'Hide tip', 'Ocultar dica'],
+  ['Nada seleccionado', 'Nothing selected', 'Nada selecionado'],
+  [
+    'Creá o abrí un libro para ver sus propiedades.',
+    'Create or open a book to see its properties.',
+    'Crie ou abra um livro para ver suas propriedades.',
+  ],
+  [
+    'Hacé clic en una caja, una imagen o un marco de la página para ver sus propiedades. Con doble clic en una caja de texto, escribís.',
+    'Click a text frame, image or frame on the page to see its properties. Double-click a text frame to type.',
+    'Clique em uma caixa, imagem ou moldura da página para ver suas propriedades. Clique duas vezes em uma caixa de texto para escrever.',
+  ],
+  ['Formato y configuración', 'Format and settings', 'Formato e configuração'],
+  ['Agregar', 'Add', 'Adicionar'],
+  ['Duplicar', 'Duplicate', 'Duplicar'],
+  ['Comenzar sección en esta página', 'Start a section on this page', 'Iniciar seção nesta página'],
+  ['Ocultar cornisa en esta página', 'Hide header on this page', 'Ocultar cabeçalho nesta página'],
+  [
+    'Ocultar titulillo en esta página',
+    'Hide running title on this page',
+    'Ocultar título corrente nesta página',
+  ],
+  ['Ocultar folio en esta página', 'Hide page number on this page', 'Ocultar número nesta página'],
+  ['← Antes', '← Earlier', '← Antes'],
+  ['Después →', 'Later →', 'Depois →'],
+  ['Eliminar página', 'Delete page', 'Excluir página'],
+  ['Elementos automáticos', 'Automatic elements', 'Elementos automáticos'],
+  ['Índice del libro', 'Table of contents', 'Sumário do livro'],
+  ['Título del índice', 'Contents heading', 'Título do sumário'],
+  ['Incluir comienzos de sección', 'Include section starts', 'Incluir inícios de seção'],
+  ['Incluir títulos marcados', 'Include marked headings', 'Incluir títulos marcados'],
+  ['Marcar texto como título', 'Mark text as a heading', 'Marcar texto como título'],
+  ['Quitar título del índice', 'Remove heading from contents', 'Remover título do sumário'],
+  [
+    'Colocar índice en página activa',
+    'Place contents on active page',
+    'Inserir sumário na página ativa',
+  ],
+  ['Entradas del índice', 'Contents entries', 'Entradas do sumário'],
+  ['Agregar entrada manual', 'Add a manual entry', 'Adicionar entrada manual'],
+  ['Nueva entrada del índice', 'New contents entry', 'Nova entrada do sumário'],
+  ['Texto de la entrada', 'Entry text', 'Texto da entrada'],
+  ['Página de referencia', 'Reference page', 'Página de referência'],
+  ['Agregar entrada', 'Add entry', 'Adicionar entrada'],
+  ['Escribí el texto de la entrada.', 'Enter the entry text.', 'Digite o texto da entrada.'],
+  ['Carácter y párrafo', 'Character and paragraph', 'Caractere e parágrafo'],
+  ['Tracking', 'Tracking', 'Tracking'],
+  ['Sangría inicial', 'First-line indent', 'Recuo da primeira linha'],
+  ['Espacio entre párrafos', 'Paragraph spacing', 'Espaço entre parágrafos'],
+  [
+    'Glifos y caracteres especiales',
+    'Glyphs and special characters',
+    'Glifos e caracteres especiais',
+  ],
+  ['Abrir Índice', 'Open Contents', 'Abrir Sumário'],
+  ['Guías individuales', 'Individual guides', 'Guias individuais'],
+  ['Agregar guía', 'Add guide', 'Adicionar guia'],
+  ['Nueva guía', 'New guide', 'Nova guia'],
+  ['Orientación', 'Orientation', 'Orientação'],
+  ['Vertical', 'Vertical', 'Vertical'],
+  ['Horizontal', 'Horizontal', 'Horizontal'],
+  ['Posición desde el borde · mm', 'Position from edge · mm', 'Posição a partir da borda · mm'],
+  [
+    'La guía debe estar dentro de la página.',
+    'The guide must be inside the page.',
+    'A guia deve estar dentro da página.',
+  ],
+  [
+    'Guías horizontales y verticales en todas las páginas. No se imprimen.',
+    'Horizontal and vertical guides on all pages. They do not print.',
+    'Guias horizontais e verticais em todas as páginas. Não são impressas.',
+  ],
+  ['Cancelar', 'Cancel', 'Cancelar'],
+  ['Aplicar', 'Apply', 'Aplicar'],
+  ['Cerrar', 'Close', 'Fechar'],
+  ['Configuración del libro', 'Book settings', 'Configuração do livro'],
+  [
+    'Un nuevo libro, una nueva historia',
+    'A new book, a new story',
+    'Um novo livro, uma nova história',
+  ],
+  ['Unidad de medida', 'Measurement unit', 'Unidade de medida'],
+  ['Milímetros (mm)', 'Millimeters (mm)', 'Milímetros (mm)'],
+  ['Centímetros (cm)', 'Centimeters (cm)', 'Centímetros (cm)'],
+  ['Título del libro', 'Book title', 'Título do livro'],
+  ['Ancho · mm', 'Width · mm', 'Largura · mm'],
+  ['Alto · mm', 'Height · mm', 'Altura · mm'],
+  ['Ancho · cm', 'Width · cm', 'Largura · cm'],
+  ['Alto · cm', 'Height · cm', 'Altura · cm'],
+  ['Cantidad de páginas', 'Number of pages', 'Quantidade de páginas'],
+  ['Páginas enfrentadas', 'Facing pages', 'Páginas espelhadas'],
+  ['Crear libro', 'Create book', 'Criar livro'],
+  ['Aplicar al libro', 'Apply to book', 'Aplicar ao livro'],
+  ['Personalizado', 'Custom', 'Personalizado'],
+  ['Tu libro, listo para salir', 'Your book, ready to share', 'Seu livro, pronto para sair'],
+  ['PDF de lectura', 'Reading PDF', 'PDF de leitura'],
+  ['PDF para abrochado al medio', 'Saddle-stitch booklet PDF', 'PDF para grampo central'],
+  ['Papel del cuadernillo', 'Booklet paper', 'Papel do livreto'],
+  ['Ajuste de las páginas', 'Page scaling', 'Ajuste das páginas'],
+  ['Reducir solo si no entran', 'Shrink only when needed', 'Reduzir apenas se necessário'],
+  ['Tamaño real · sin reducir', 'Actual size · no scaling', 'Tamanho real · sem redução'],
+  [
+    'Pliego a medida · tamaño real',
+    'Custom sheet · actual size',
+    'Folha personalizada · tamanho real',
+  ],
+  ['Generar PDF', 'Create PDF', 'Gerar PDF'],
+  ['Preparando tu PDF…', 'Preparing your PDF…', 'Preparando seu PDF…'],
+  ['PDF guardado correctamente.', 'PDF saved successfully.', 'PDF salvo com sucesso.'],
+  ['Exportación cancelada.', 'Export cancelled.', 'Exportação cancelada.'],
+  ['Proyecto abierto.', 'Project opened.', 'Projeto aberto.'],
+  [
+    'Proyecto guardado. Podés seguir editando.',
+    'Project saved. You can keep editing.',
+    'Projeto salvo. Você pode continuar editando.',
+  ],
+  [
+    'Tu libro tiene cambios sin guardar',
+    'Your book has unsaved changes',
+    'Seu livro tem alterações não salvas',
+  ],
+  ['Guardar y continuar', 'Save and continue', 'Salvar e continuar'],
+  ['Continuar sin guardar', 'Continue without saving', 'Continuar sem salvar'],
+  ['Asistente editorial', 'Editorial assistant', 'Assistente editorial'],
+  ['Retomá tu último libro', 'Resume your last book', 'Retome seu último livro'],
+  ['Recuperar libro', 'Recover book', 'Recuperar livro'],
+  ['Diseñá con intención', 'Design with intention', 'Crie com intenção'],
+  ['La grilla ordena el espacio.', 'The grid organizes space.', 'A grade organiza o espaço.'],
+  [
+    'Tu composición le da carácter.',
+    'Your composition gives it character.',
+    'Sua composição dá personalidade.',
+  ],
+  [
+    'Seleccioná un cuadro de texto en la página.',
+    'Select a text frame on the page.',
+    'Selecione uma caixa de texto na página.',
+  ],
+  ['Hacé doble clic para escribir.', 'Double-click to type.', 'Clique duas vezes para escrever.'],
+  ['Cuadro de texto seleccionado', 'Text frame selected', 'Caixa de texto selecionada'],
+  [
+    'Seleccioná un objeto para ajustar sus medidas.',
+    'Select an object to adjust its dimensions.',
+    'Selecione um objeto para ajustar suas medidas.',
+  ],
+  [
+    'Doble clic para editar texto',
+    'Double-click to edit text',
+    'Clique duas vezes para editar o texto',
+  ],
+  [
+    'Arrastrá la esquina para redimensionar',
+    'Drag the corner to resize',
+    'Arraste o canto para redimensionar',
+  ],
+  [
+    'La grilla es una guía: no se imprime ni aparece en el PDF.',
+    'The grid is a guide: it is not printed or exported to PDF.',
+    'A grade é uma guia: não é impressa nem exportada para PDF.',
+  ],
+  [
+    'Generá una tabla de contenidos con secciones, títulos marcados y entradas propias. Los folios se actualizan automáticamente.',
+    'Create a table of contents from sections, marked headings and custom entries. Page numbers update automatically.',
+    'Crie um sumário com seções, títulos marcados e entradas próprias. A numeração é atualizada automaticamente.',
+  ],
+  [
+    'La tabla se actualiza también en el PDF. Si el contenido no entra, ampliá la caja o reducí el cuerpo.',
+    'The table also updates in the PDF. If it overflows, enlarge the frame or reduce the font size.',
+    'O sumário também é atualizado no PDF. Se não couber, amplie a caixa ou reduza o corpo.',
+  ],
+  [
+    'Todavía no hay entradas. Marcá un título o definí una sección.',
+    'No entries yet. Mark a heading or define a section.',
+    'Ainda não há entradas. Marque um título ou defina uma seção.',
+  ],
+  [
+    'La sección se mantiene en las páginas siguientes hasta el próximo comienzo.',
+    'The section continues on following pages until the next section starts.',
+    'A seção continua nas próximas páginas até o início da seção seguinte.',
+  ],
+  [
+    'Elegí un carácter para agregarlo al final del cuadro seleccionado. Su disponibilidad depende de la tipografía.',
+    'Choose a character to append to the selected frame. Availability depends on the font.',
+    'Escolha um caractere para adicionar ao final da caixa selecionada. A disponibilidade depende da fonte.',
+  ],
+  [
+    'Guardá el proyecto para poder retomarlo después. También podés continuar y descartar estos cambios.',
+    'Save the project to resume it later. You can also continue and discard these changes.',
+    'Salve o projeto para retomá-lo depois. Você também pode continuar e descartar estas alterações.',
+  ],
+  // ── Bienvenida (src/components/welcome/) ──
+  [
+    'Cada libro empieza con una idea.',
+    'Every book begins with an idea.',
+    'Todo livro começa com uma ideia.',
+  ],
+  [
+    'Dale forma a tus páginas. Componé, ajustá y prepará tu libro para compartirlo.',
+    'Shape your pages. Compose, refine and prepare your book to share.',
+    'Dê forma às suas páginas. Componha, ajuste e prepare seu livro para compartilhar.',
+  ],
+  ['Proyectos recientes', 'Recent projects', 'Projetos recentes'],
+  [
+    'Tus proyectos aparecerán acá cuando los guardes o abras.',
+    'Your projects will appear here after you save or open them.',
+    'Seus projetos aparecerão aqui depois de salvar ou abrir.',
+  ],
+  ['Crear un libro', 'Create a book', 'Criar um livro'],
+  ['Abrir proyecto', 'Open project', 'Abrir projeto'],
+  ['Explorar el ejemplo', 'Explore the example', 'Explorar o exemplo'],
+  [
+    'Abrí una novela ya maquetada para ver cómo está hecha.',
+    'Open a finished novel to see how it is built.',
+    'Abra um romance já diagramado para ver como foi feito.',
+  ],
+  ['Ayuda', 'Help', 'Ajuda'],
+  [
+    'Tutorial guiado y glosario editorial.',
+    'Guided tutorial and editorial glossary.',
+    'Tutorial guiado e glossário editorial.',
+  ],
+  ['Tutorial guiado', 'Guided tutorial', 'Tutorial guiado'],
+  ['Glosario editorial', 'Editorial glossary', 'Glossário editorial'],
+  ['Elegí por dónde empezar.', 'Choose where to start.', 'Escolha por onde começar.'],
+  ['Volver al libro', 'Back to the book', 'Voltar ao livro'],
+  [
+    'Creado por Sebastián Poberezny',
+    'Created by Sebastián Poberezny',
+    'Criado por Sebastián Poberezny',
+  ],
+  ['Archivo no disponible', 'File unavailable', 'Arquivo indisponível'],
+  ['Copia de recuperación', 'Recovery copy', 'Cópia de recuperação'],
+  ['Recuperar', 'Recover', 'Recuperar'],
+  ['Descartar', 'Discard', 'Descartar'],
+  [
+    'Descartar la copia de recuperación',
+    'Discard the recovery copy',
+    'Descartar a cópia de recuperação',
+  ],
+  [
+    'La copia se borra de este equipo. Tus archivos guardados no cambian.',
+    'The copy is deleted from this computer. Your saved files do not change.',
+    'A cópia é apagada deste computador. Seus arquivos salvos não mudam.',
+  ],
+  ['Inicio', 'Home', 'Início'],
+  ['Tutorial', 'Tutorial', 'Tutorial'],
+  [
+    'Atelier editorial de páginas y grillas',
+    'Editorial studio of pages and grids',
+    'Ateliê editorial de páginas e grades',
+  ],
+  // Centro de Ayuda (help-center.ts) y sus secciones.
+  ['Secciones de la ayuda', 'Help sections', 'Seções da ajuda'],
+  ['Glosario', 'Glossary', 'Glossário'],
+  ['Atajos', 'Shortcuts', 'Atalhos'],
+  ['Recorrido del libro', 'Book workflow', 'Percurso do livro'],
+  [
+    'Un recorrido por todas las secciones de Maquetario, sobre tu libro actual. Abre los paneles y señala los controles; vos decidís qué cambiar.',
+    'A tour of every section of Maquetario, on your current book. It opens panels and highlights controls; you decide what to change.',
+    'Um percurso por todas as seções do Maquetario, no seu livro atual. Ele abre os painéis e destaca os controles; você decide o que mudar.',
+  ],
+  ['Empezar desde el principio', 'Start from the beginning', 'Começar do início'],
+  ['Seguir donde quedé', 'Continue where I left off', 'Continuar de onde parei'],
+  ['Capítulos', 'Chapters', 'Capítulos'],
+  [
+    'Los pasos para llevar un manuscrito a un PDF listo para imprimir. Cada paso abre su herramienta.',
+    'The steps to take a manuscript to a print-ready PDF. Each step opens its tool.',
+    'Os passos para levar um manuscrito a um PDF pronto para impressão. Cada passo abre sua ferramenta.',
+  ],
+  ['Armar libro', 'Build book', 'Montar livro'],
+  ['Estructura', 'Structure', 'Estrutura'],
+  ['Cubierta', 'Cover', 'Capa'],
+  ['Revisar libro', 'Check book', 'Revisar livro'],
+  ['PDF / Imprimir', 'PDF / Print', 'PDF / Imprimir'],
+  [
+    'Desde un manuscrito, con partes, índice y estilos.',
+    'From a manuscript, with parts, contents and styles.',
+    'A partir de um manuscrito, com partes, sumário e estilos.',
+  ],
+  ['Ir al comienzo de cada parte.', 'Go to the start of each part.', 'Ir ao início de cada parte.'],
+  [
+    'Tapa, lomo, contratapa y solapas.',
+    'Front, spine, back and flaps.',
+    'Capa, lombada, contracapa e orelhas.',
+  ],
+  [
+    'Texto que no entra y objetos fuera de página.',
+    'Overset text and objects outside the page.',
+    'Texto que não cabe e objetos fora da página.',
+  ],
+  ['Vista previa y salida final.', 'Preview and final output.', 'Prévia e saída final.'],
+  ['Estás acá', 'You are here', 'Você está aqui'],
+  ['Revisar el libro completo', 'Check the whole book', 'Revisar o livro completo'],
+  ['Revisar salida PDF', 'Review PDF output', 'Revisar saída PDF'],
+  // ── Aviso de cambios sin guardar (src/app-notices.tsx) ──
+  [
+    '¿Guardamos los cambios de tu libro?',
+    'Save the changes to your book?',
+    'Vamos salvar as alterações do seu livro?',
+  ],
+  [
+    'Tenés cambios sin guardar. Guardalos para retomar tu trabajo tal como está.',
+    'You have unsaved changes. Save them to resume your work exactly as it is.',
+    'Você tem alterações não salvas. Salve para retomar seu trabalho como está.',
+  ],
+  [
+    'Si cerrás sin guardar, se descartan los cambios desde el último guardado.',
+    'Closing without saving discards changes since the last save.',
+    'Fechar sem salvar descarta as alterações desde o último salvamento.',
+  ],
+  [
+    'Si seguís sin guardar, se descartan los cambios desde el último guardado.',
+    'Continuing without saving discards changes since the last save.',
+    'Continuar sem salvar descarta as alterações desde o último salvamento.',
+  ],
+  ['Cerrar sin guardar', 'Close without saving', 'Fechar sem salvar'],
+  ['Guardar y cerrar', 'Save and close', 'Salvar e fechar'],
+  ['Descartar y abrir', 'Discard and open', 'Descartar e abrir'],
+  ['Guardar y abrir', 'Save and open', 'Salvar e abrir'],
+  ['Descartar y crear', 'Discard and create', 'Descartar e criar'],
+  ['Guardar y crear', 'Save and create', 'Salvar e criar'],
+  ['Descartar y armar', 'Discard and build', 'Descartar e montar'],
+  ['Guardar y armar', 'Save and build', 'Salvar e montar'],
+  ['Descartar y recuperar', 'Discard and recover', 'Descartar e recuperar'],
+  ['Guardar y recuperar', 'Save and recover', 'Salvar e recuperar'],
+  ['Descartar cambios', 'Discard changes', 'Descartar alterações'],
+  // ── Salida: PDF para imprenta (src/components/output/) ──
+  ['PDF para imprenta (PDF/X-4)', 'Print-ready PDF (PDF/X-4)', 'PDF para gráfica (PDF/X-4)'],
+  [
+    'El color queda en RGB etiquetado (sRGB) con la condición de impresión FOGRA39 (offset, papel estucado): la imprenta lo convierte a CMYK. Si te piden CMYK o PDF/X-1a, consultá antes.',
+    'Color stays in tagged RGB (sRGB) with the FOGRA39 printing condition (offset, coated paper): the printer converts it to CMYK. If they ask for CMYK or PDF/X-1a, check with them first.',
+    'A cor fica em RGB etiquetado (sRGB) com a condição de impressão FOGRA39 (offset, papel couché): a gráfica converte para CMYK. Se pedirem CMYK ou PDF/X-1a, consulte antes.',
+  ],
+];
+labels.push(...extraTranslations);
+const map = new Map(
+  labels.map(([es, en, pt]): [string, Record<Language, string>] => [es, { es, en, pt }]),
+);
+let locale = (localStorage.getItem('librostudio-language') || 'es') as Language;
+if (!['es', 'en', 'pt'].includes(locale)) locale = 'es';
+/** Texto en castellano → idioma actual (si no lo conoce, lo devuelve igual). */
+export function tr(text: string): string {
+  if (locale === 'es') return text;
+  const direct = map.get(text);
+  if (direct) return direct[locale];
+  const replace = (rx: RegExp, en: string, pt: string) =>
+    text.replace(rx, locale === 'en' ? en : pt);
+  if (/^Página \d+ de \d+$/.test(text))
+    return replace(/^Página (\d+) de (\d+)$/, 'Page $1 of $2', 'Página $1 de $2');
+  if (/^Página \d+$/.test(text)) return replace(/^Página (\d+)$/, 'Page $1', 'Página $1');
+  if (/^(Vertical|Horizontal) · /.test(text)) return text;
+  if (/^Ir a páginas /.test(text))
+    return replace(/^Ir a páginas /, 'Go to pages ', 'Ir para páginas ');
+  if (/^Libro \(3 columnas\)$/.test(text))
+    return locale === 'en' ? 'Book (3 columns)' : 'Livro (3 colunas)';
+  if (/^(Revista|Folleto|Simple|Cuaderno) \(/.test(text)) {
+    const names: Record<string, [en: string, pt: string]> = {
+      Revista: ['Magazine', 'Revista'],
+      Folleto: ['Brochure', 'Folheto'],
+      Simple: ['Simple', 'Simples'],
+      Cuaderno: ['Notebook', 'Caderno'],
+    };
+    let s = text.replace(
+      /^(Revista|Folleto|Simple|Cuaderno)/,
+      (m) => names[m]![locale === 'en' ? 0 : 1],
+    );
+    return s
+      .replace('columnas', locale === 'en' ? 'columns' : 'colunas')
+      .replace('columna', locale === 'en' ? 'column' : 'coluna');
+  }
+  if (/^\d+ caja/.test(text))
+    return replace(
+      /^(\d+) cajas? con texto sobrante$/,
+      '$1 overflowing text frame(s)',
+      '$1 caixa(s) com texto excedente',
+    );
+  if (/^(Texto|Imagen|Marco) · /.test(text))
+    return text.replace(/^(Texto|Imagen|Marco)/, (m) => map.get(m)![locale]);
+  if (/^Eliminar página \d+$/.test(text))
+    return replace(/^Eliminar página (\d+)$/, 'Delete page $1', 'Excluir página $1');
+  if (text.startsWith('Páginas individuales en orden.'))
+    return text
+      .replace(
+        'Páginas individuales en orden.',
+        locale === 'en' ? 'Individual pages in reading order.' : 'Páginas individuais em ordem.',
+      )
+      .replace('páginas', locale === 'en' ? 'pages' : 'páginas');
+  if (text.startsWith('Imposición automática.'))
+    return text
+      .replace(
+        'Imposición automática.',
+        locale === 'en' ? 'Automatic imposition.' : 'Imposição automática.',
+      )
+      .replace('páginas ·', locale === 'en' ? 'pages ·' : 'páginas ·')
+      .replace('hojas.', locale === 'en' ? 'sheets.' : 'folhas.')
+      .replace(
+        'Sin páginas en blanco adicionales.',
+        locale === 'en' ? 'No extra blank pages.' : 'Sem páginas em branco adicionais.',
+      )
+      .replace(
+        'páginas en blanco adicionales.',
+        locale === 'en' ? 'additional blank pages.' : 'páginas em branco adicionais.',
+      );
+  if (text.startsWith('No se pudo '))
+    return (
+      (locale === 'en' ? 'Could not complete the action: ' : 'Não foi possível concluir a ação: ') +
+      text.slice(text.indexOf(':') + 1)
+    );
+  return text;
+}
+
+/** Idioma actual de la interfaz. */
+export const currentLanguage = (): Language => locale;
+/** Cambia el idioma actual (lo hace src/i18n.ts al elegirlo en #language). */
+export function setCurrentLanguage(language: Language): void {
+  locale = language;
+}
+/** Texto fijo en el idioma de la interfaz: castellano, inglés, portugués. */
+export const bw = (es: string, en: string, pt: string): string =>
+  [es, en, pt][{ es: 0, en: 1, pt: 2 }[locale] || 0];
+/** tr y el idioma actual, como los ofrece window.LibroI18n. */
+export const i18n = {
+  tr,
+  get language(): Language {
+    return locale;
+  },
+};

@@ -13,13 +13,16 @@
 //
 // Una sección devuelve su contenido en React (las de src/components/help/sections.tsx) o, si
 // todavía no pasó, dibuja HTML en host (el glosario). Lo que dibuja React no lo traduce el DOM:
-// los textos van con LibroI18n.tr() o bw(), y el HTML de una sección tiene que llegar traducido.
+// los textos van con i18n.tr() o bw(), y el HTML de una sección tiene que llegar traducido.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 import { useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { useLanguage } from '../../react/mount.tsx';
+import { i18n } from '../../i18n/language.ts';
+import { openSheetContent, openWorkWindow } from '../dialog/dialogs.tsx';
+import { editor } from '../../core-api.ts';
 
 export type HelpSectionId = 'tutorial' | 'glossary' | 'shortcuts' | 'route';
 
@@ -114,7 +117,7 @@ export const HelpCenter = () => {
   const section = sections.get(current.section)!;
   return (
     <div className="help-center">
-      <nav className="help-nav" aria-label={LibroI18n.tr('Secciones de la ayuda')}>
+      <nav className="help-nav" aria-label={i18n.tr('Secciones de la ayuda')}>
         {ordered().map((s) => (
           <button
             key={s.id}
@@ -123,7 +126,7 @@ export const HelpCenter = () => {
             aria-current={s.id === current.section ? 'page' : undefined}
             onClick={() => openHelp(s.id)}
           >
-            {LibroI18n.tr(s.label)}
+            {i18n.tr(s.label)}
           </button>
         ))}
       </nav>
@@ -142,7 +145,7 @@ function openHelp(section?: HelpSectionId | string, arg?: string): void {
   // Ya abierto: sólo cambia de sección (no se vuelve a abrir la ventana).
   if (helpOpen()) return notify();
   // Como modal(): con una salida en curso no se abre nada.
-  if (busy) return;
+  if (editor.busy) return;
   finishEditing();
   helpElement = <HelpCenter />;
   void openWorkWindow(helpElement, { title: 'Ayuda' });

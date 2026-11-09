@@ -9,6 +9,7 @@ import { useLanguage } from '../../react/mount.tsx';
 import { openGuideDialog, type BookGuide } from '../../editorial.ts';
 import { NumberField, Row, SwitchHeading, TermHelp, tt } from './fields.tsx';
 import { Icon } from '../Icon.tsx';
+import { editor } from '../../core-api.ts';
 
 /** Dos medidas lado a lado con su etiqueta debajo (pair() de studio.ts). */
 const Pair = ({
@@ -43,9 +44,9 @@ const Pair = ({
 const FitButton = ({ fit, label }: { fit: 'margins' | 'page'; label: string }) => (
   <button
     type="button"
-    className={book.grid.fit === fit ? 'active' : undefined}
+    className={editor.book.grid.fit === fit ? 'active' : undefined}
     data-fit={fit}
-    onClick={() => commit(() => (book.grid.fit = fit), false)}
+    onClick={() => commit(() => (editor.book.grid.fit = fit), false)}
   >
     {tt(label)}
   </button>
@@ -63,7 +64,7 @@ const GuideControls = () => (
         {tt('Agregar guía')}
       </button>
       <div className="guide-list">
-        {((book.guides || []) as BookGuide[]).map((g, i) => (
+        {((editor.book.guides || []) as BookGuide[]).map((g, i) => (
           <div className="field-row" key={i}>
             <span>
               {`${g.axis === 'v' ? 'Vertical' : 'Horizontal'} · ${displayMeasure(g.position)} ${documentUnit()}`}
@@ -74,7 +75,7 @@ const GuideControls = () => (
               title={tt('Quitar guía')}
               aria-label={tt('Quitar guía')}
               data-remove-guide={i}
-              onClick={() => commit(() => book.guides.splice(i, 1), false)}
+              onClick={() => commit(() => editor.book.guides.splice(i, 1), false)}
             >
               <Icon name="close" />
             </button>

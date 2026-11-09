@@ -9,6 +9,9 @@
 //
 // Fuente TypeScript: se compila a build/publications.js (desktop/scripts/build.mjs).
 
+import { bw } from './i18n/language.ts';
+import { M } from './core-api.ts';
+
 /** Una zona de la cubierta (texto, tipografía e imagen). */
 export interface CoverDesignPart {
   text: string;

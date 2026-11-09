@@ -11,6 +11,9 @@
 
 import { noBookReason } from './react/no-book.ts';
 import type { Book, BookObject } from './model.ts';
+import { i18n } from './i18n/language.ts';
+import { M, UI } from './core-api.ts';
+import { notifyEditorState } from './react/editor-state.ts';
 
 const reviewText = {
   es: {
@@ -112,7 +115,7 @@ const reviewText = {
 };
 export type ReviewWords = (typeof reviewText)['es'];
 
-const rw = (): ReviewWords => reviewText[LibroI18n.language || 'es'];
+const rw = (): ReviewWords => reviewText[i18n.language || 'es'];
 
 declare global {
   /** Deja la app con un libro en blanco (pantalla sin libro). La usa scripts/style-snapshot.js. */
@@ -152,9 +155,9 @@ function refreshEmptyCanvas(): void {
   const addPage = $('#addPage');
   if (addPage) {
     addPage.disabled = !hasDocument;
-    addPage.title = hasDocument ? LibroI18n.tr('Agregar página') : noBookReason();
+    addPage.title = hasDocument ? i18n.tr('Agregar página') : noBookReason();
   }
-  globalThis.notifyEditorState?.();
+  notifyEditorState();
   emptyCanvas.innerHTML = `<div>${icon('pages')}<h2>${w.emptyTitle}</h2><p>${w.emptyBody}</p>${UI.button({ id: 'emptyNew', variant: 'primary', label: w.create })}${UI.button({ id: 'emptyOpen', label: w.open })}</div>`;
   $('#emptyNew').onclick = () => settings(true);
   $('#emptyOpen').onclick = openBook;
@@ -493,7 +496,7 @@ extend.after(
 );
 function activateBlankDocument(): void {
   const empty = M.create();
-  empty.title = { es: 'Mi libro', en: 'My book', pt: 'Meu livro' }[LibroI18n.language];
+  empty.title = { es: 'Mi libro', en: 'My book', pt: 'Meu livro' }[i18n.language];
   empty.chapter = '';
   empty.pages = [M.page(), M.page()];
   empty.grid.cols = 1;

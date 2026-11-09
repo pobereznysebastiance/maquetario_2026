@@ -8,6 +8,7 @@
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 import { useLanguage } from '../../react/mount.tsx';
+import { bw } from '../../i18n/language.ts';
 
 interface GalleryProps {
   kinds: string[];

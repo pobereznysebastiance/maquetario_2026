@@ -21,6 +21,7 @@ import { Dialog } from 'radix-ui';
 import { Icon } from '../Icon.tsx';
 import { useLanguage } from '../../react/mount.tsx';
 import { dialogLayer, showModalOnMount } from './native.ts';
+import { bw, i18n } from '../../i18n/language.ts';
 
 export type SheetSize = 'sm' | 'md' | 'lg';
 
@@ -99,7 +100,7 @@ interface FrameProps {
 
 /** Texto del botón de una acción: el de mientras corre, si lo tiene. */
 const actionLabel = (action: DialogAction, running: boolean) =>
-  LibroI18n.tr(running && action.busyLabel ? action.busyLabel : action.label);
+  i18n.tr(running && action.busyLabel ? action.busyLabel : action.label);
 
 /** Marco común: <dialog> nativo + Radix Dialog, cabecera con cruz, cuerpo y barra de acciones. */
 const DialogFrame = ({
@@ -182,7 +183,7 @@ const DialogFrame = ({
               <div className="modal-header">
                 <div>
                   <Dialog.Title asChild>
-                    <h1>{LibroI18n.tr(title)}</h1>
+                    <h1>{i18n.tr(title)}</h1>
                   </Dialog.Title>
                 </div>
                 {kind === 'confirm' ? null : (
@@ -197,7 +198,7 @@ const DialogFrame = ({
               </div>
               <div className="dialog-body">
                 {children}
-                {error ? <p className="inline-error">{LibroI18n.tr(error)}</p> : null}
+                {error ? <p className="inline-error">{i18n.tr(error)}</p> : null}
               </div>
               <div className="modal-actions">{actions(run, close, running)}</div>
             </div>
@@ -237,7 +238,7 @@ export const Sheet = ({
               disabled={running}
               onClick={close}
             >
-              {cancelLabel ? LibroI18n.tr(cancelLabel) : bw('Cancelar', 'Cancel', 'Cancelar')}
+              {cancelLabel ? i18n.tr(cancelLabel) : bw('Cancelar', 'Cancel', 'Cancelar')}
             </button>
           )}
           <button
@@ -335,7 +336,7 @@ export const ConfirmSheet = ({
             disabled={running}
             onClick={close}
           >
-            {cancelLabel ? LibroI18n.tr(cancelLabel) : bw('Cancelar', 'Cancel', 'Cancelar')}
+            {cancelLabel ? i18n.tr(cancelLabel) : bw('Cancelar', 'Cancel', 'Cancelar')}
           </button>
           <button
             type="button"

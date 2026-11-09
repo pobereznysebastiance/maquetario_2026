@@ -4,6 +4,9 @@
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
+import { bw } from '../i18n/language.ts';
+import { editor } from '../core-api.ts';
+
 /** Motivo de un control deshabilitado porque no hay libro abierto. */
 export const noBookReason = (): string =>
   bw(
@@ -14,4 +17,4 @@ export const noBookReason = (): string =>
 
 /** title de un control que necesita libro: el suyo con libro; sin libro, el motivo. */
 export const bookTitle = (title: string | undefined): string | undefined =>
-  hasDocument ? title : noBookReason();
+  editor.hasDocument ? title : noBookReason();

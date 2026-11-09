@@ -9,6 +9,8 @@
 //
 // Fuente TypeScript: se compila a build/panel-resize.js (desktop/scripts/build.mjs).
 
+import { bw } from './i18n/language.ts';
+
 declare global {
   /** Medidas elegidas (px): left, right y templates. Vacío = las de la hoja de estilos. */
   var panelSizes: Record<string, number>;

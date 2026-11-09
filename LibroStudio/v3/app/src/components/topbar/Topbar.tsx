@@ -24,8 +24,10 @@ import { Icon } from '../Icon.tsx';
 import { mount, useLanguage } from '../../react/mount.tsx';
 import { notifyEditorState, useEditorState } from '../../react/editor-state.ts';
 import { bookTitle } from '../../react/no-book.ts';
+import { bw, i18n } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
-const tr = (text: string) => LibroI18n.tr(text);
+const tr = (text: string) => i18n.tr(text);
 
 /** Acción del botón por su propiedad onclick, una sola vez (un reemplazo desde afuera gana). */
 const action =
@@ -74,7 +76,7 @@ const AssistantSpark = () => (
 export const Topbar = () => {
   useEditorState();
   useLanguage();
-  const noOutput = !hasDocument || busy;
+  const noOutput = !editor.hasDocument || editor.busy;
   const assistant = bw('Asistente editorial', 'Editorial assistant', 'Assistente editorial'),
     print = bw('Imprimir', 'Print', 'Imprimir');
   return (
@@ -100,7 +102,7 @@ export const Topbar = () => {
           icon="save"
           label={tr('Guardar')}
           title={bookTitle(bw('Guardar · Ctrl+S', 'Save · Ctrl+S', 'Salvar · Ctrl+S'))}
-          disabled={!hasDocument}
+          disabled={!editor.hasDocument}
           run={() => saveProject()}
         />
         <ToolAction
@@ -114,7 +116,7 @@ export const Topbar = () => {
               'Salvar como… · Ctrl+Shift+S',
             ),
           )}
-          disabled={!hasDocument}
+          disabled={!editor.hasDocument}
           run={() => saveProjectAs()}
         />
         <ToolAction
@@ -122,7 +124,7 @@ export const Topbar = () => {
           icon="folder"
           label={bw('Empaquetar', 'Package', 'Empacotar')}
           title={bookTitle(bw('Empaquetar proyecto', 'Package project', 'Empacotar projeto'))}
-          disabled={!hasDocument}
+          disabled={!editor.hasDocument}
           run={() => packageDialog()}
         />
         <span className="divider"></span>
@@ -130,14 +132,14 @@ export const Topbar = () => {
           id="undo"
           icon="undo"
           label={tr('Deshacer')}
-          disabled={!undoStack.length}
+          disabled={!editor.undoStack.length}
           run={() => undo()}
         />
         <ToolAction
           id="redo"
           icon="redo"
           label={tr('Rehacer')}
-          disabled={!redoStack.length}
+          disabled={!editor.redoStack.length}
           run={() => redo()}
         />
         <span className="divider"></span>
@@ -176,7 +178,7 @@ export const Topbar = () => {
             assistant + ' · ' + bw('Revisar mi libro', 'Review my book', 'Revisar meu livro'),
           )}
           aria-label={assistant}
-          disabled={!hasDocument}
+          disabled={!editor.hasDocument}
           ref={action(() => globalThis.openEditorialAssistant())}
         >
           <AssistantSpark />
@@ -197,10 +199,10 @@ export const Topbar = () => {
         <button
           type="button"
           id="preview"
-          className={preview ? 'btn primary' : 'btn'}
+          className={editor.preview ? 'btn primary' : 'btn'}
           title={bookTitle(tr('Vista previa'))}
           aria-label={tr('Vista previa')}
-          aria-pressed={preview}
+          aria-pressed={editor.preview}
           disabled={noOutput}
           ref={action(() => {
             togglePreview();

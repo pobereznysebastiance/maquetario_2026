@@ -8,6 +8,8 @@
 //
 // Fuente TypeScript: se compila a build/readability.js (desktop/scripts/build.mjs).
 import { refreshCanvasBar } from './components/canvas-bar/canvas-bar-state.ts';
+import { bw } from './i18n/language.ts';
+import { M } from './core-api.ts';
 ('use strict');
 
 /** Retícula de la biblioteca: columnas (c), filas (r) y medianiles (gx, gy) en mm. */

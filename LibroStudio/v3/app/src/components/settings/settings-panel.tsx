@@ -18,6 +18,8 @@ import type { WorkspaceMode } from '../../workspace.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
 import { CheckItem, Select, SettingRow } from '../form/Form.tsx';
+import { bw, i18n } from '../../i18n/language.ts';
+import { confirmAction, openSheet } from '../dialog/dialogs.tsx';
 
 /** Versión nueva del programa en Motiova (mismo formato que desktop/src/main/motiova/desktop.ts). */
 interface UpdateInfo {
@@ -165,7 +167,7 @@ const t = (key: TextKey): string => bw(...text[key]);
 
 /** Cambia el idioma por la API de i18n (LibroI18n.set), la misma que usa la bienvenida. */
 function setLanguage(value: Language): void {
-  if (LibroI18n.language !== value) LibroI18n.set(value);
+  if (i18n.language !== value) LibroI18n.set(value);
 }
 
 /** Sección de la Hoja: título y filas. */
@@ -427,7 +429,7 @@ const SettingsPanel = ({
               { value: 'en', label: 'English' },
               { value: 'pt', label: 'Português' },
             ]}
-            defaultValue={LibroI18n.language}
+            defaultValue={i18n.language}
             onChange={(value) => {
               setLanguage(value as Language);
               // La Hoja se vuelve a armar en el idioma elegido.

@@ -16,6 +16,8 @@ import { guideForm } from './components/guide/GuideForm.tsx';
 import { tocEntryForm } from './components/toc-entry/TocEntryForm.tsx';
 import { registerRailView } from './components/rail/rail-views.ts';
 import { indexViewFor } from './components/rail/IndexView.tsx';
+import { i18n } from './i18n/language.ts';
+import { M } from './core-api.ts';
 
 declare global {
   /** Configuración del índice del libro; la crea con los valores por defecto si no existe. */
@@ -59,7 +61,7 @@ function addTocEntry(): void {
     () => {
       const label = $('#entryLabel').value.trim().slice(0, 500),
         pageId = $('#entryPage').value;
-      if (!label) throw Error(LibroI18n.tr('Escribí el texto de la entrada.'));
+      if (!label) throw Error(i18n.tr('Escribí el texto de la entrada.'));
       commit(() => ensureToc().entries.push({ id: M.uid(), label, pageId }), false);
     },
     'Agregar entrada',
@@ -152,7 +154,7 @@ export function openGuideDialog(): void {
       const axis = $('#guideAxis').value,
         n = Number($('#guidePosition').value);
       if (!Number.isFinite(n) || n < 0 || n > (axis === 'v' ? book.width : book.height))
-        throw Error(LibroI18n.tr('La guía debe estar dentro de la página.'));
+        throw Error(i18n.tr('La guía debe estar dentro de la página.'));
       commit(() => {
         if (!book.guides) book.guides = [];
         book.guides.push({ axis, position: n });
@@ -188,7 +190,7 @@ extend.result(
 registerTool({
   id: 'indexTool',
   icon: 'index',
-  label: () => LibroI18n.tr('Índice'),
+  label: () => i18n.tr('Índice'),
   shortcut: null,
   onSelect: () => {
     finishEditing();

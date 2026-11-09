@@ -10,6 +10,7 @@
 import { Fragment, useRef } from 'react';
 import { Field } from '../form/Form.tsx';
 import type { NovelData } from '../../book-workflow.ts';
+import { bw } from '../../i18n/language.ts';
 
 const EXTRA_PARTS = ['dedication', 'epigraph', 'legal', 'thanks', 'colophon'] as const;
 

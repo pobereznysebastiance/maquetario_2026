@@ -2,20 +2,22 @@
 // Las registra el módulo que las conoce (tutorial.ts, canvas-navigation.ts, book-workflow.ts);
 // el glosario todavía dibuja HTML (editorial-learning.ts). Leen los globales del núcleo al
 // dibujarse (el centro de Ayuda las vuelve a pedir al abrir, al cambiar de sección y de idioma).
-// Los textos van con LibroI18n.tr() (castellano con su fila en i18n.ts) o bw().
+// Los textos van con i18n.tr() (castellano con su fila en i18n.ts) o bw().
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 import { useLanguage } from '../../react/mount.tsx';
 import type { HelpSection } from './help-center.tsx';
+import { bw, i18n } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
-const tr = (text: string) => LibroI18n.tr(text);
+const tr = (text: string) => i18n.tr(text);
 
 // ── Tutorial guiado ──
 
 const TutorialSection = () => {
   useLanguage();
-  const lang = { es: 0, en: 1, pt: 2 }[LibroI18n.language] || 0,
+  const lang = { es: 0, en: 1, pt: 2 }[i18n.language] || 0,
     saved = Number(localStorage.getItem('maquetario-tutorial-step')) || 0;
   // startTutorial por globalThis: review-workspace.ts la extiende (pide un libro antes).
   return (
@@ -201,7 +203,7 @@ const RouteSection = ({ source }: { source: RouteSource }) => {
               type="button"
               data-route-step={id}
               // Sin libro sólo se puede empezar (primer paso).
-              disabled={!hasDocument && id !== 'build'}
+              disabled={!editor.hasDocument && id !== 'build'}
               onClick={() => source.open(id)}
             >
               {tr(label)}

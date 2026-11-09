@@ -16,6 +16,9 @@ import { bookBuilderForm } from './components/book-builder/BookBuilder.tsx';
 import { routeHelpSection } from './components/help/sections.tsx';
 import { openPreflight } from './components/preflight/PreflightSheet.tsx';
 import { structurePanelFor } from './components/inspector/StructurePanel.tsx';
+import { M, UI } from './core-api.ts';
+import { closeSheet } from './components/dialog/dialogs.tsx';
+import { bw } from './i18n/language.ts';
 
 /** Datos del armador de novelas: título, autoría y manuscrito; lo demás es opcional. */
 export type NovelData = Pick<NovelSample, 'title' | 'author' | 'source'> & Partial<NovelSample>;
@@ -41,10 +44,8 @@ export interface PreflightIssue {
   kind: 'bounds' | 'overflow';
 }
 
-// Labels are kept separate from document content: changing language never translates a manuscript.
-const bw = (es: string, en: string, pt: string): string =>
-  [es, en, pt][{ es: 0, en: 1, pt: 2 }[LibroI18n.language] || 0];
-// Se publica enseguida (ver el final del archivo): los archivos que cargan después lo usan.
+// bw vive en src/i18n/language.ts. Se sigue publicando enseguida: studio.ts y las pruebas lo leen
+// como global.
 globalThis.bw = bw;
 const titleOfPart = (p: Page): string =>
   p.partName || p.section || bw('Página sin título', 'Untitled page', 'Página sem título');

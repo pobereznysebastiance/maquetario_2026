@@ -12,6 +12,8 @@ import type { ReactNode } from 'react';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
 import { Btn, fieldKey, lengthUnit, onNativeChange, SectionHeading } from './fields.tsx';
+import { bw } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
 /** Una figura sin forma todavía (marco o imagen común) pasa a rectángulo al tocar su aspecto. */
 const init = (o: Record<string, any>) => {
@@ -248,7 +250,7 @@ export const ShapePanel = () => {
           disabled={locked}
           onClick={() => {
             if (!o.shape) commit(() => init(o), false);
-            chooseImage({ frame: o, page: active });
+            chooseImage({ frame: o, page: editor.active });
           }}
         />
       </div>

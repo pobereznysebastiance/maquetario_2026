@@ -16,6 +16,7 @@
 import type { ChangeEvent, ReactNode } from 'react';
 import { Icon } from '../Icon.tsx';
 import type { Language } from '../../i18n.ts';
+import { bw } from '../../i18n/language.ts';
 
 /** Proyecto reciente que informa el anfitrión (appInfo). */
 export interface RecentProject {

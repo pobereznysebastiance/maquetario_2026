@@ -11,6 +11,7 @@
 //
 // Fuente TypeScript: se compila a build/master-refinement.js (desktop/scripts/build.mjs).
 import type { AutoType, Book, LibroModelApi } from './model.ts';
+import { M } from './core-api.ts';
 
 declare global {
   /** Se está ajustando un número de cornisa, titulillo o folio: el inspector no se redibuja. */

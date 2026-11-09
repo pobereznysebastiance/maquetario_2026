@@ -5,7 +5,7 @@
 // El indicador de guardado dice la verdad: sale de dirty, la misma variable que syncNative()
 // manda al anfitrión y que pone body.has-unsaved-changes (el color del punto lo da el CSS).
 // Los textos en castellano tienen su fila (o su patrón) en src/i18n.ts y se traducen con
-// LibroI18n.tr(); la unidad usa bw(), como antes en document-units.ts.
+// i18n.tr(); la unidad usa bw(), como antes en document-units.ts.
 //
 // Sin libro (hasDocument en falso) dice "Sin libro abierto" y no muestra página, selección,
 // sobrantes ni unidad (el guardado lo esconde el CSS de .no-document): no hay datos que mostrar.
@@ -17,17 +17,19 @@
 
 import { mount, useLanguage } from '../../react/mount.tsx';
 import { useEditorState } from '../../react/editor-state.ts';
+import { bw, i18n } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
-const tr = (text: string) => LibroI18n.tr(text);
+const tr = (text: string) => i18n.tr(text);
 
 const OBJECT_NAMES: Record<string, string> = { text: 'Texto', image: 'Imagen' };
 
 export const StatusBar = () => {
   useEditorState();
   useLanguage();
-  const object = hasDocument ? selectObject() : undefined;
+  const object = editor.hasDocument ? selectObject() : undefined;
   const name = object ? OBJECT_NAMES[object.type] || 'Marco' : '';
-  if (!hasDocument)
+  if (!editor.hasDocument)
     return (
       <>
         <span id="statusText">
@@ -38,13 +40,15 @@ export const StatusBar = () => {
         <span className="status-spacer"></span>
         <span hidden></span>
         <span className="saved" id="savedState">
-          <i></i> {dirty ? tr('Cambios sin guardar') : tr('Guardado en tu equipo')}
+          <i></i> {editor.dirty ? tr('Cambios sin guardar') : tr('Guardado en tu equipo')}
         </span>
       </>
     );
   return (
     <>
-      <span id="statusText">{tr(`Página ${active + 1} de ${book.pages.length}`)}</span>
+      <span id="statusText">
+        {tr(`Página ${editor.active + 1} de ${editor.book.pages.length}`)}
+      </span>
       <span id="selectionText">
         {object ? tr(`${name} · ${displayDimensions(object.w, object.h)}`) : tr('Sin selección')}
       </span>
@@ -56,7 +60,7 @@ export const StatusBar = () => {
       <span className="status-spacer"></span>
       <span>{bw('Unidades', 'Units', 'Unidades') + ': ' + documentUnit()}</span>
       <span className="saved" id="savedState">
-        <i></i> {dirty ? tr('Cambios sin guardar') : tr('Guardado en tu equipo')}
+        <i></i> {editor.dirty ? tr('Cambios sin guardar') : tr('Guardado en tu equipo')}
       </span>
     </>
   );

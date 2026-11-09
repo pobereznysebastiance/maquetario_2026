@@ -11,6 +11,8 @@
 //
 // Fuente TypeScript: se compila a build/page-exceptions.js (desktop/scripts/build.mjs).
 
+import { bw } from './i18n/language.ts';
+
 /** Qué oculta una página, en el idioma actual ("Sin número · Sin cornisa"); vacío si nada. */
 function hiddenParts(index: number): string {
   const p = book.pages[index];

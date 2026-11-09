@@ -17,6 +17,7 @@ import { useLanguage } from '../../react/mount.tsx';
 import { Select } from '../form/Form.tsx';
 import type { HelpSection } from './help-center.tsx';
 import type { EditorialTerm, GlossaryCategory } from '../../editorial-learning.ts';
+import { bw, i18n } from '../../i18n/language.ts';
 
 type Words = [string, string, string];
 
@@ -62,7 +63,7 @@ const GlossarySection = ({ source }: { source: GlossarySource }) => {
   const term = editorialTerms.find((t) => t[0] === selected);
   return (
     <>
-      <h2 className="help-heading">{LibroI18n.tr('Glosario')}</h2>
+      <h2 className="help-heading">{i18n.tr('Glosario')}</h2>
       <p className="builder-intro">
         {bw(
           'Un diccionario para entender lo que estás diseñando. Buscá un término o explorá una categoría.',

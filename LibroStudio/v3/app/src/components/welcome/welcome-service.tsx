@@ -21,6 +21,9 @@ import { mount, useLanguage } from '../../react/mount.tsx';
 import { WelcomeScreen, type RecentProject } from './WelcomeScreen.tsx';
 import type { Language } from '../../i18n.ts';
 import type { Book } from '../../model.ts';
+import { i18n } from '../../i18n/language.ts';
+import { editor, M } from '../../core-api.ts';
+import { confirmAction } from '../dialog/dialogs.tsx';
 
 export type { RecentProject } from './WelcomeScreen.tsx';
 
@@ -70,7 +73,7 @@ const ww = (): Record<string, string> =>
   Object.fromEntries(
     Object.entries(WELCOME_TEXT).map(([key, text]) => [
       key,
-      globalThis.LibroI18n ? LibroI18n.tr(text) : text,
+      globalThis.LibroI18n ? i18n.tr(text) : text,
     ]),
   );
 globalThis.ww = ww;
@@ -116,10 +119,10 @@ function hideWelcome(): void {
   requestAnimationFrame(renderPages);
 }
 async function showWelcome(): Promise<void> {
-  if (busy) return;
+  if (editor.busy) return;
   finishEditing();
   if (globalThis.closeTutorial) globalThis.closeTutorial();
-  if (native)
+  if (editor.native)
     try {
       welcomeInfo = await nativeCall('appInfo');
     } catch {}
@@ -135,18 +138,18 @@ async function showWelcome(): Promise<void> {
 function startDemo(): void {
   const go = () => {
     globalThis.hideWelcome();
-    book = M.create();
-    if (native) nativeCall('newProject').catch(() => {});
-    active = spread = 0;
-    selected = null;
-    undoStack = [];
-    redoStack = [];
-    dirty = false;
+    editor.book = M.create();
+    if (editor.native) nativeCall('newProject').catch(() => {});
+    editor.active = editor.spread = 0;
+    editor.selected = null;
+    editor.undoStack = [];
+    editor.redoStack = [];
+    editor.dirty = false;
     syncNative();
     render(true);
     ensureBookFonts().then(renderPages);
   };
-  if (dirty) {
+  if (editor.dirty) {
     globalThis.hideWelcome();
     confirmChanges(go, 'open');
   } else go();
@@ -156,16 +159,16 @@ function recover(): void {
   if (!copy) return;
   const go = () => {
     globalThis.hideWelcome();
-    book = M.clone(copy);
-    active = spread = 0;
-    selected = null;
-    dirty = true;
+    editor.book = M.clone(copy);
+    editor.active = editor.spread = 0;
+    editor.selected = null;
+    editor.dirty = true;
     syncNative();
     render(true);
     ensureBookFonts().then(renderPages);
   };
   // Con cambios sin guardar en el libro abierto, el mismo aviso que al abrir otro.
-  if (dirty) {
+  if (editor.dirty) {
     globalThis.hideWelcome();
     confirmChanges(go, 'recover');
   } else go();
@@ -199,7 +202,7 @@ async function openRecentProject(record: RecentProject): Promise<void> {
       toast((error as Error).message, 'error');
     }
   };
-  if (dirty) {
+  if (editor.dirty) {
     globalThis.hideWelcome();
     confirmChanges(run, 'open');
   } else await run();
@@ -219,7 +222,7 @@ const WelcomeRoot = () => {
       version={s.info.version}
       recents={s.info.recents}
       recovery={s.recovery ? { title: s.recovery.title, pages: s.recovery.pages.length } : null}
-      canResume={hasDocument}
+      canResume={editor.hasDocument}
       onNew={() => {
         globalThis.hideWelcome();
         settings(true);
@@ -280,7 +283,7 @@ extend.result(
   'saveProject',
   async function (pending: Promise<unknown>) {
     const saved = await pending;
-    if (saved && native)
+    if (saved && editor.native)
       try {
         welcomeInfo = await nativeCall('appInfo');
       } catch {}
@@ -289,8 +292,8 @@ extend.result(
   'welcome',
 );
 async function initializeWelcome(): Promise<void> {
-  for (let i = 0; i < 100 && !native; i++) await new Promise((r) => setTimeout(r, 100));
-  if (!native) return;
+  for (let i = 0; i < 100 && !editor.native; i++) await new Promise((r) => setTimeout(r, 100));
+  if (!editor.native) return;
   try {
     welcomeInfo = await nativeCall('appInfo');
     // Versión del panel izquierdo, en el mismo formato que la bienvenida (v3.24.0).

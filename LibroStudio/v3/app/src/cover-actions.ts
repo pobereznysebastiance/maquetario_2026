@@ -6,6 +6,8 @@
 //
 // Fuente TypeScript: se compila a build/cover-actions.js (desktop/scripts/build.mjs).
 
+import { bw } from './i18n/language.ts';
+
 /** Lo que devuelve prepareOutput (output.js). */
 interface OutputInfo {
   width: number;

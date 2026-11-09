@@ -10,6 +10,7 @@
 import { createElement } from 'react';
 import { CoverSheetWindow } from './components/output/OutputWindow.tsx';
 import { setPrinters } from './components/output/printers.ts';
+import { bw } from './i18n/language.ts';
 
 declare global {
   /** Familia CSS por defecto para los textos de la cubierta (Georgia o su cara más cercana). */

@@ -12,6 +12,7 @@
 // Fuente TypeScript: se compila a build/canvas-navigation.js (desktop/scripts/build.mjs).
 import { shortcutsHelpSection } from './components/help/sections.tsx';
 import { refreshCanvasBar } from './components/canvas-bar/canvas-bar-state.ts';
+import { bw } from './i18n/language.ts';
 
 /** Punto del lienzo: posición en el pliego (sin escala) y en la mesa (relativa al visor). */
 export interface CanvasAnchor {

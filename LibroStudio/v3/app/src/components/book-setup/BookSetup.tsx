@@ -14,13 +14,16 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../react/mount.tsx';
 import { Control, Field, Select } from '../form/Form.tsx';
+import { bw, i18n } from '../../i18n/language.ts';
+import { editor, M } from '../../core-api.ts';
+import { openSheet } from '../dialog/dialogs.tsx';
 
 declare global {
   /** Abre la Hoja de formato del libro (nuevo con isNew; si no, el del libro actual). Se cumple al cerrarla. */
   var settingsNew: (isNew?: boolean) => Promise<void> | undefined;
 }
 
-const tr = (text: string): string => LibroI18n.tr(text);
+const tr = (text: string): string => i18n.tr(text);
 
 /** Valor de un campo de medida al pasar de mm a cm (o al revés), como lo escribe la Hoja. */
 const convert = (value: string, cm: boolean): string =>
@@ -31,7 +34,7 @@ let chosenFormat = '';
 
 const BookSetup = ({ isNew }: { isNew: boolean }) => {
   useLanguage();
-  const [activeFormat, setActiveFormat] = useState<string | null>(book.format);
+  const [activeFormat, setActiveFormat] = useState<string | null>(editor.book.format);
   const [cm, setCm] = useState(false);
   const title = useRef<HTMLInputElement>(null);
   const width = useRef<HTMLInputElement>(null);
@@ -84,7 +87,7 @@ const BookSetup = ({ isNew }: { isNew: boolean }) => {
   };
   // Un libro en centímetros abre la Hoja en centímetros.
   useLayoutEffect(() => {
-    if (book.measurementUnit === 'cm') {
+    if (editor.book.measurementUnit === 'cm') {
       units.current!.value = 'cm';
       changeUnit('cm');
     }
@@ -150,7 +153,7 @@ const BookSetup = ({ isNew }: { isNew: boolean }) => {
             id="newTitle"
             label="Título del libro"
             type="text"
-            defaultValue={isNew ? 'Mi libro' : book.title}
+            defaultValue={isNew ? 'Mi libro' : editor.book.title}
             full
             inputRef={title}
           />
@@ -169,7 +172,7 @@ const BookSetup = ({ isNew }: { isNew: boolean }) => {
           <Field
             id="newWidth"
             label={cm ? 'Ancho · cm' : 'Ancho · mm'}
-            defaultValue={book.width}
+            defaultValue={editor.book.width}
             min={60}
             max={420}
             inputRef={width}
@@ -178,7 +181,7 @@ const BookSetup = ({ isNew }: { isNew: boolean }) => {
           <Field
             id="newHeight"
             label={cm ? 'Alto · cm' : 'Alto · mm'}
-            defaultValue={book.height}
+            defaultValue={editor.book.height}
             min={60}
             max={594}
             inputRef={height}
@@ -191,7 +194,7 @@ const BookSetup = ({ isNew }: { isNew: boolean }) => {
                 { value: 'portrait', label: 'Vertical' },
                 { value: 'landscape', label: 'Horizontal' },
               ]}
-              defaultValue={book.width > book.height ? 'landscape' : 'portrait'}
+              defaultValue={editor.book.width > editor.book.height ? 'landscape' : 'portrait'}
               selectRef={orientation}
               onChange={swapOrientation}
             />
@@ -210,7 +213,7 @@ const BookSetup = ({ isNew }: { isNew: boolean }) => {
               id="formatName"
               label="Formato"
               type="text"
-              defaultValue={book.format}
+              defaultValue={editor.book.format}
               readOnly
               inputRef={formatName}
             />
@@ -244,7 +247,9 @@ const BookSetup = ({ isNew }: { isNew: boolean }) => {
                   ),
                 },
               ]}
-              defaultValue={!book.facing ? 'single' : verticalSpread() ? 'vertical' : 'horizontal'}
+              defaultValue={
+                !editor.book.facing ? 'single' : verticalSpread() ? 'vertical' : 'horizontal'
+              }
             />
           </Control>
         </div>
@@ -270,9 +275,9 @@ function applyFromSheet(isNew: boolean): boolean {
 }
 
 globalThis.settingsNew = function (isNew = true) {
-  if (busy) return;
+  if (editor.busy) return;
   finishEditing();
-  chosenFormat = book.format;
+  chosenFormat = editor.book.format;
   return openSheet(<BookSetup isNew={isNew} />, {
     title: isNew
       ? bw('Crear un libro', 'Create a book', 'Criar um livro')

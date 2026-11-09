@@ -21,6 +21,9 @@
 import { useEffect, useLayoutEffect, useReducer, useRef, useSyncExternalStore } from 'react';
 import { flushSync } from 'react-dom';
 import { useLanguage } from './react/mount.tsx';
+import { bw } from './i18n/language.ts';
+import { openWorkWindow } from './components/dialog/dialogs.tsx';
+import { editor } from './core-api.ts';
 
 /** Cara tipográfica del catálogo y sus instancias: los tipos son los de fonts.ts (NativeFontFace). */
 export type UIFontInstance = NativeFontInstance;
@@ -132,7 +135,7 @@ function syncVariant(): void {
 
 function filterFontBrowser(): void {
   const search = (document.getElementById('fontBrowserSearch') as HTMLInputElement | null)?.value;
-  fontBrowserMatches = fontList.filter((f) =>
+  fontBrowserMatches = editor.fontList.filter((f) =>
     foldEditorial(f).includes(foldEditorial(search || '')),
   );
   listScroll = 0;
@@ -387,18 +390,18 @@ const FontBrowser = ({ hosted }: { hosted: boolean }) => {
 function openFontBrowser(select: HTMLSelectElement): void {
   if (select.disabled) return;
   fontBrowserTarget = select;
-  fontBrowserFamily = select.value || fontList[0];
+  fontBrowserFamily = select.value || editor.fontList[0];
   const o =
     select.dataset.object === 'font'
       ? selectObject()
       : select.dataset.bind
         ? get(select.dataset.bind.replace(/\.font$/, ''))
         : null;
-  const f = o?.type === 'text' ? paragraphFormat(book, o, currentParagraph(o)) : o,
+  const f = o?.type === 'text' ? paragraphFormat(editor.book, o, currentParagraph(o)) : o,
     fontFace = f ? (selectedFace(f) as UIFontFace | undefined) : null;
   fontBrowserVariant = fontFace ? fontFace.id : '';
   syncVariant();
-  fontBrowserMatches = [...fontList];
+  fontBrowserMatches = [...editor.fontList];
   notice = '';
   const index = fontBrowserMatches.indexOf(fontBrowserFamily);
   listScroll = Math.max(0, index * ROW_HEIGHT - 100);
@@ -507,7 +510,7 @@ globalThis.decorateFontBrowsers = function (root: ParentNode = document) {
 extend.result(
   'autoElement',
   function (el, i, type, px, print = false) {
-    const cfg = book[type],
+    const cfg = editor.book[type],
       face = selectedFace(cfg);
     if (el && face) {
       el.style.fontFamily = `"MQT_${face.id}"`;
@@ -527,7 +530,7 @@ extend.result(
     await pending;
     await Promise.all(
       ['header', 'titulillo', 'folio'].map((t) =>
-        ensureFace(selectedFace(book[t]) as UIFontFace | undefined).catch(() => {}),
+        ensureFace(selectedFace(editor.book[t]) as UIFontFace | undefined).catch(() => {}),
       ),
     );
   },

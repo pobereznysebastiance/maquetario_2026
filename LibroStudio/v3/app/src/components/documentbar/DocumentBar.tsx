@@ -21,8 +21,10 @@ import { mount, useLanguage } from '../../react/mount.tsx';
 import { useEditorState } from '../../react/editor-state.ts';
 import { snapButtonState, toggleSnap } from '../../layout-tools.ts';
 import { bookTitle } from '../../react/no-book.ts';
+import { i18n } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
-const tr = (text: string) => LibroI18n.tr(text);
+const tr = (text: string) => i18n.tr(text);
 
 /** Acción por defecto de "Configurar libro" (una sola vez por botón: el reemplazo gana). */
 const bindSettings = (button: HTMLButtonElement | null) => {
@@ -52,9 +54,9 @@ export const DocumentBar = () => {
     <>
       <div className="document-title">
         <span className="document-dot"></span>
-        <span id="documentName">{book.title}</span>
+        <span id="documentName">{editor.book.title}</span>
         <span className="doc-format" id="documentFormat">
-          {book.format + ' · ' + displayDimensions(book.width, book.height)}
+          {editor.book.format + ' · ' + displayDimensions(editor.book.width, editor.book.height)}
         </span>
       </div>
       <SnapButton />
@@ -64,7 +66,7 @@ export const DocumentBar = () => {
         className="quiet"
         id="reviewBook"
         title={bookTitle(tr('Texto que no entra y objetos fuera de página.'))}
-        disabled={!hasDocument}
+        disabled={!editor.hasDocument}
         onClick={() => preflightDialog()}
       >
         <Icon name="check" />
@@ -75,7 +77,7 @@ export const DocumentBar = () => {
         className="quiet"
         id="documentSettings"
         title={bookTitle(undefined)}
-        disabled={!hasDocument}
+        disabled={!editor.hasDocument}
         ref={bindSettings}
       >
         <Icon name="settings" />

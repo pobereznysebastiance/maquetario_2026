@@ -14,6 +14,8 @@
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
 import { Btn, fieldKey, Heading, onNativeChange, SectionHeading, tt } from './fields.tsx';
+import { bw } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
 /** Escucha el "change" nativo de un campo (una sola vez por nodo). */
 const onChange = onNativeChange<HTMLInputElement>;
@@ -39,22 +41,26 @@ const VISIBILITY: [key: string, label: () => string, element: 'folio' | 'header'
 
 /** Casilla "Mostrar …": marcada si el elemento se ve en la página activa. */
 const toggleVisible = onChange((input) =>
-  commit(() => (book.pages[active][input.dataset.pageVisible!] = !input.checked), true),
+  commit(
+    () => (editor.book.pages[editor.active][input.dataset.pageVisible!] = !input.checked),
+    true,
+  ),
 );
 const setAll = (hidden: boolean) =>
   commit(() => {
-    const p = book.pages[active];
+    const p = editor.book.pages[editor.active];
     p.hideFolio = p.hideHeader = p.hideTitle = hidden;
   }, true);
 
 /** La página sola: elementos automáticos que se ven en la página activa. */
 export const PageExceptionsPanel = () => {
   useLanguage();
-  const page = book.pages[active];
+  const page = editor.book.pages[editor.active];
   return (
     <>
       <SectionHeading className="active-page-notice">
-        <Icon name="pages" /> <strong>{`${bw('Página', 'Page', 'Página')} ${active + 1}`}</strong>
+        <Icon name="pages" />{' '}
+        <strong>{`${bw('Página', 'Page', 'Página')} ${editor.active + 1}`}</strong>
       </SectionHeading>
       <span className="page-only-tag">
         {bw('Solo esta página', 'This page only', 'Somente esta página')}
@@ -77,7 +83,7 @@ export const PageExceptionsPanel = () => {
           />
           <span>
             {label()}
-            {!book[element].enabled ? (
+            {!editor.book[element].enabled ? (
               <small>
                 {bw(
                   'Desactivado para todo el libro en la pestaña Libro.',
@@ -109,16 +115,16 @@ export const PageExceptionsPanel = () => {
 };
 
 const saveSection = onChange((input) =>
-  commit(() => (book.pages[active].section = input.value), false),
+  commit(() => (editor.book.pages[editor.active].section = input.value), false),
 );
 
 /** Página N: sección, agregar, duplicar, mover y eliminar. */
 export const PageSectionPanel = () => {
   useLanguage();
-  const page = book.pages[active];
+  const page = editor.book.pages[editor.active];
   return (
     <>
-      <Heading icon="file" title={'Página ' + (active + 1)} />
+      <Heading icon="file" title={'Página ' + (editor.active + 1)} />
       <div className="sub-label" id="pageSectionLabel">
         {tt('Comenzar sección en esta página')}
       </div>
@@ -140,8 +146,12 @@ export const PageSectionPanel = () => {
         <Btn command="duplicate" label="Duplicar" />
       </div>
       <div className="page-action">
-        <Btn command="earlier" label="← Antes" disabled={active === 0} />
-        <Btn command="later" label="Después →" disabled={active === book.pages.length - 1} />
+        <Btn command="earlier" label="← Antes" disabled={editor.active === 0} />
+        <Btn
+          command="later"
+          label="Después →"
+          disabled={editor.active === editor.book.pages.length - 1}
+        />
       </div>
       <Btn
         command="deletePage"
@@ -149,7 +159,7 @@ export const PageSectionPanel = () => {
         label="Eliminar página"
         variant="danger"
         wide
-        disabled={book.pages.length === 1}
+        disabled={editor.book.pages.length === 1}
       />
     </>
   );

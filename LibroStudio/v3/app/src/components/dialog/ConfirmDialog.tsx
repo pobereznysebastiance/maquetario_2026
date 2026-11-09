@@ -12,6 +12,7 @@ import { useRef } from 'react';
 import { AlertDialog } from 'radix-ui';
 import { useLanguage } from '../../react/mount.tsx';
 import { dialogLayer, showModalOnMount } from './native.ts';
+import { bw, i18n } from '../../i18n/language.ts';
 
 export type ChoiceVariant = 'primary' | 'danger' | 'secondary';
 
@@ -55,7 +56,7 @@ export const ConfirmDialog = ({
   // Los textos llegan en castellano desde el resto de la app; el traductor del DOM no entra en
   // lo que dibuja React (data-react), así que se traducen acá.
   useLanguage();
-  const tr = (text: string) => LibroI18n.tr(text);
+  const tr = (text: string) => i18n.tr(text);
   const { title, message, actions, cancelLabel } = options;
   const dialog = useRef<HTMLDialogElement | null>(null);
   const cancel = useRef<HTMLButtonElement>(null);

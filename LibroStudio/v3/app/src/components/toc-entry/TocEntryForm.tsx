@@ -5,6 +5,7 @@
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 import { Control, Field, Select } from '../form/Form.tsx';
+import { editor, M } from '../../core-api.ts';
 
 const TocEntryForm = () => (
   <div className="modal-grid">
@@ -12,10 +13,10 @@ const TocEntryForm = () => (
     <Control label="Página de referencia" htmlFor="entryPage" full>
       <Select
         id="entryPage"
-        defaultValue={book.pages[active]?.id}
-        options={book.pages.map((page, i) => ({
+        defaultValue={editor.book.pages[editor.active]?.id}
+        options={editor.book.pages.map((page, i) => ({
           value: page.id,
-          label: `${i + 1} · ${M.sectionAt(book, i)}`,
+          label: `${i + 1} · ${M.sectionAt(editor.book, i)}`,
         }))}
       />
     </Control>

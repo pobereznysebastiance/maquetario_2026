@@ -20,6 +20,7 @@
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 import { flushSync } from 'react-dom';
+import { bw, i18n } from '../../i18n/language.ts';
 
 export interface RailTool {
   tool?: string;
@@ -78,7 +79,7 @@ globalThis.refreshRail = refreshRail;
 
 // Herramientas del núcleo (studio.ts: setTool). Los nombres van en castellano y se traducen al
 // dibujar (src/i18n.ts); "Crear texto" y "Caja de texto" tienen su texto propio.
-const tr = (text: string) => (globalThis.LibroI18n ? LibroI18n.tr(text) : text);
+const tr = (text: string) => (globalThis.LibroI18n ? i18n.tr(text) : text);
 const textTitle = () => bw('Crear caja de texto', 'Create a text frame', 'Criar caixa de texto');
 for (const spec of [
   { tool: 'select', icon: 'select', label: () => tr('Seleccionar'), shortcut: 'V' },

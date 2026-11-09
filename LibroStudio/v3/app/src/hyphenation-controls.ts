@@ -9,6 +9,7 @@
 // Fuente TypeScript: se compila a build/hyphenation-controls.js (desktop/scripts/build.mjs).
 
 import type { BookObject } from './model.ts';
+import { bw } from './i18n/language.ts';
 
 /** Formato efectivo de un párrafo (lo que devuelve paragraphFormat). */
 type ParagraphFormat = Record<string, any>;

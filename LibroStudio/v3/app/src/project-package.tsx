@@ -10,6 +10,9 @@
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
+import { bw } from './i18n/language.ts';
+import { editor, M } from './core-api.ts';
+
 /** Lo que devuelve el anfitrión al abrir un proyecto (desktop/src/main/handlers/project.ts). */
 interface OpenedProject {
   content: string;
@@ -42,19 +45,20 @@ function packageFontUsage(): Record<string, string> {
     const id = face?.id || 'missing:' + format.font + ' ' + (format.fontStyleName || '');
     usage.set(id, format.font + (face?.style ? ' · ' + face.style : ''));
   };
-  for (const page of book.pages)
+  for (const page of editor.book.pages)
     for (const object of page.objects) {
       if (object.type !== 'text') continue;
       if (object.toc) include(object);
       else {
         const count = object.text.split('\n').length;
-        for (let index = 0; index < count; index++) include(paragraphFormat(book, object, index));
+        for (let index = 0; index < count; index++)
+          include(paragraphFormat(editor.book, object, index));
       }
     }
   for (const type of ['header', 'titulillo', 'folio'] as const)
-    if (book[type].enabled) include(book[type]);
-  for (const style of book.paragraphStyles || []) include(style.properties);
-  if (book.cover) include({ font: 'Georgia' });
+    if (editor.book[type].enabled) include(editor.book[type]);
+  for (const style of editor.book.paragraphStyles || []) include(style.properties);
+  if (editor.book.cover) include({ font: 'Georgia' });
   return Object.fromEntries(usage);
 }
 
@@ -87,21 +91,21 @@ const PackageSheet = () => (
 );
 
 function packageDialog(): void {
-  if (!hasDocument || busy) return;
+  if (!editor.hasDocument || editor.busy) return;
   const title = bw('Empaquetar proyecto', 'Package project', 'Empacotar projeto');
   modal.sheet(
     title,
     <PackageSheet />,
     async () => {
-      if (busy) return false;
-      M.validate(book);
-      if (book.cover) validateCover(book.cover);
+      if (editor.busy) return false;
+      M.validate(editor.book);
+      if (editor.book.cover) validateCover(editor.book.cover);
       const copyFonts = $('#packageFonts').checked;
-      busy = true;
+      editor.busy = true;
       try {
         await fontCatalogPromise;
         const result = await nativeCall('packageProject', {
-          project: JSON.stringify(book, null, 2),
+          project: JSON.stringify(editor.book, null, 2),
           copyFonts,
           fonts: packageFontUsage(),
         });
@@ -120,7 +124,7 @@ function packageDialog(): void {
         );
         return true;
       } finally {
-        busy = false;
+        editor.busy = false;
       }
     },
     bw('Elegir carpeta…', 'Choose folder…', 'Escolher pasta…'),

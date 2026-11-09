@@ -18,6 +18,9 @@
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
+import { bw, i18n } from './i18n/language.ts';
+import { editor } from './core-api.ts';
+
 /** Qué hacer con cada salida del aviso. save devuelve si se guardó (si no, el aviso sigue abierto). */
 export interface CloseActions {
   save: () => Promise<boolean>;
@@ -38,7 +41,7 @@ declare global {
   var prepareCloseNoticePreview: () => void;
 }
 
-const tr = (text: string): string => LibroI18n.tr(text);
+const tr = (text: string): string => i18n.tr(text);
 
 /** Los verbos de cada caso: [descartar, guardar]. */
 const VERBS: Record<UnsavedIntent, [string, string]> = {
@@ -54,7 +57,7 @@ const VERBS: Record<UnsavedIntent, [string, string]> = {
 const UnsavedNotice = ({ closing }: { closing: boolean }) => (
   <div className="close-publication-message">
     <div>
-      <h2 className="user-content">{book.title}</h2>
+      <h2 className="user-content">{editor.book.title}</h2>
       <p>{tr('Tenés cambios sin guardar. Guardalos para retomar tu trabajo tal como está.')}</p>
       <p className="help">
         {tr(

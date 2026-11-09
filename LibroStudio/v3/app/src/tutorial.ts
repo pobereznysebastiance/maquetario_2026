@@ -20,6 +20,7 @@
 
 import { tutorialHelpSection } from './components/help/sections.tsx';
 import { renderTutorialCard } from './components/tutorial/TutorialCard.tsx';
+import { closeSheet } from './components/dialog/dialogs.tsx';
 
 /** Una lección del tutorial (title, body y task: castellano, inglés y portugués). */
 export interface GuideLesson {
@@ -572,7 +573,7 @@ globalThis.tutorialCard = tutorialCard;
 function startTutorial(index?: number): void {
   hideWelcome();
   // Desde el centro de Ayuda (u otra Hoja o Ventana de React): se cierra antes de mostrar la tarjeta.
-  globalThis.closeSheet?.();
+  closeSheet();
   let saved = Number(localStorage.getItem('maquetario-tutorial-step')) || 0;
   tutorialIndex = Number.isInteger(index)
     ? (index as number)

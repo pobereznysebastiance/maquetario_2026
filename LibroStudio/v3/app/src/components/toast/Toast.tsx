@@ -19,6 +19,7 @@ import { useSyncExternalStore } from 'react';
 import { Toast } from 'radix-ui';
 import { Icon } from '../Icon.tsx';
 import { mount, useLanguage } from '../../react/mount.tsx';
+import { bw, i18n } from '../../i18n/language.ts';
 
 declare global {
   /** Esconde el aviso que se ve (si hay uno). */
@@ -53,7 +54,7 @@ const subscribe = (listener: () => void) => {
 
 /** Muestra un aviso (reemplaza al que se ve). El texto llega en castellano y sale traducido. */
 export function showToast(message: string, type = 'success'): void {
-  current = { id: ++nextId, message: LibroI18n.tr(String(message)), type, open: true };
+  current = { id: ++nextId, message: i18n.tr(String(message)), type, open: true };
   emit();
 }
 

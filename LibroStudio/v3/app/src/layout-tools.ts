@@ -13,6 +13,8 @@ import type { Book, BookObject, Rect } from './model.ts';
 import { notifyEditorState } from './react/editor-state.ts';
 import { registerRailView } from './components/rail/rail-views.ts';
 import { layersViewFor } from './components/rail/LayersView.tsx';
+import { i18n } from './i18n/language.ts';
+import { M } from './core-api.ts';
 
 /** Posiciones (mm) a las que se ajusta el imán, por eje. */
 export interface SnapLines {
@@ -91,7 +93,7 @@ const layoutWords: Record<string, Record<string, string>> = {
     height: 'Altura',
   },
 };
-const lw = () => layoutWords[globalThis.LibroI18n?.language || 'es'];
+const lw = () => layoutWords[i18n.language || 'es'];
 function snapLines(b: Book, index: number): SnapLines {
   const m = M.margins(b, index),
     x = [0, b.width, m.left, b.width - m.right],

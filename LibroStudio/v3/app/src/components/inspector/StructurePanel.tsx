@@ -16,10 +16,12 @@ import type { Page } from '../../model.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
 import { SectionHeading, SectionTitle } from './fields.tsx';
+import { bw, i18n } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
 const StructurePanel = ({ titleOf }: { titleOf: (page: Page) => string }) => {
   useLanguage();
-  const parts = book.pages
+  const parts = editor.book.pages
     .map((p, i) => ({ p, i }))
     .filter(({ p, i }) => p.partName || p.section || i === 0);
   return (
@@ -31,7 +33,7 @@ const StructurePanel = ({ titleOf }: { titleOf: (page: Page) => string }) => {
         </SectionTitle>
       </SectionHeading>
       <p className="structure-summary">
-        {`${book.pages.length} ${bw('páginas. Elegí una parte para ir a su comienzo.', 'pages. Choose a part to go to its start.', 'páginas. Escolha uma parte para ir ao início.')}`}
+        {`${editor.book.pages.length} ${bw('páginas. Elegí una parte para ir a su comienzo.', 'pages. Choose a part to go to its start.', 'páginas. Escolha uma parte para ir ao início.')}`}
       </p>
       <button id="structureBuild" className="btn wide" onClick={() => bookBuilder()}>
         {bw('Armar otro libro…', 'Build another book…', 'Montar outro livro…')}
@@ -43,9 +45,9 @@ const StructurePanel = ({ titleOf }: { titleOf: (page: Page) => string }) => {
         onClick={() => command('settings')}
       >
         <Icon name="settings" />
-        {LibroI18n.tr('Formato y configuración')}
+        {i18n.tr('Formato y configuración')}
       </button>
-      {hasDocument ? (
+      {editor.hasDocument ? (
         <button
           type="button"
           id="editorialRules"
@@ -56,11 +58,13 @@ const StructurePanel = ({ titleOf }: { titleOf: (page: Page) => string }) => {
         </button>
       ) : null}
       {parts.map(({ p, i }, n) => {
-        const end = parts[n + 1]?.i ?? book.pages.length;
+        const end = parts[n + 1]?.i ?? editor.book.pages.length;
         return (
           <button
             key={i}
-            className={'structure-item ' + (active >= i && active < end ? 'current' : '')}
+            className={
+              'structure-item ' + (editor.active >= i && editor.active < end ? 'current' : '')
+            }
             data-go-part={i}
             onClick={() => goToBookPage(i)}
           >

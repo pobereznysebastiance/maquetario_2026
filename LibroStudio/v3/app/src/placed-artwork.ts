@@ -4,6 +4,8 @@
 //
 // Fuente TypeScript: se compila a build/placed-artwork.js (desktop/scripts/build.mjs).
 import type { Page } from './model.ts';
+import { bw } from './i18n/language.ts';
+import { M } from './core-api.ts';
 
 interface PlacedImage {
   src: string;

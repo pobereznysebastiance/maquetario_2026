@@ -12,6 +12,8 @@
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
 import { fieldKey, lengthUnit, onNativeChange, Row, SectionHeading } from './fields.tsx';
+import { bw } from '../../i18n/language.ts';
+import { editor, M } from '../../core-api.ts';
 
 type Field = HTMLInputElement | HTMLSelectElement;
 type RuleType = 'header' | 'titulillo' | 'folio';
@@ -76,7 +78,7 @@ const Measure = ({
 );
 
 const RuleSettings = ({ type }: { type: RuleType }) => {
-  const element = book[type];
+  const element = editor.book[type];
   const name =
     type === 'header'
       ? bw('cornisa', 'header', 'cabeçalho')
@@ -161,15 +163,15 @@ function insertFreeRule(): void {
       type: 'frame',
       decoration: 'line',
       name: bw('Línea libre', 'Free rule', 'Linha livre'),
-      x: book.margins.inside,
-      y: book.height / 2,
-      w: Math.min(65, book.width - 40),
+      x: editor.book.margins.inside,
+      y: editor.book.height / 2,
+      w: Math.min(65, editor.book.width - 40),
       h: 3,
       lineWidth: 0.35,
       lineColor: '#77716C',
     };
-    book.pages[active].objects.push(o);
-    selected = o.id;
+    editor.book.pages[editor.active].objects.push(o);
+    editor.selected = o.id;
   }, false);
 }
 

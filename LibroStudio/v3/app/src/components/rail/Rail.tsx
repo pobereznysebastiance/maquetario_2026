@@ -22,6 +22,8 @@ import { mount, useLanguage } from '../../react/mount.tsx';
 import { notifyEditorState, useEditorState } from '../../react/editor-state.ts';
 import { railMounted, railToolsSnapshot, subscribeRailTools } from './rail-tools.ts';
 import { noBookReason } from '../../react/no-book.ts';
+import { i18n } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
 type RailView = 'pages' | 'index' | 'layers';
 
@@ -34,7 +36,7 @@ export const ToolRail = () => {
     <>
       {list.map((spec) => {
         const label = spec.label();
-        const active = !!spec.tool && spec.tool === tool;
+        const active = !!spec.tool && spec.tool === editor.tool;
         return (
           <button
             key={spec.tool ?? spec.id}
@@ -86,7 +88,7 @@ export const RailSwitch = () => {
   // El nombre del tablist va en el contenedor (.rail-switch, index.html), donde el traductor del DOM
   // no entra porque es data-react: se pone desde acá con cada cambio de idioma.
   useLayoutEffect(() => {
-    $('.rail-switch').setAttribute('aria-label', LibroI18n.tr('Vistas del panel'));
+    $('.rail-switch').setAttribute('aria-label', i18n.tr('Vistas del panel'));
   }, [language]);
   // inspector-views.tsx (la vista) carga al final: hasta entonces, Páginas.
   const current: RailView = typeof currentRailView === 'function' ? currentRailView() : 'pages';
@@ -94,9 +96,9 @@ export const RailSwitch = () => {
     <>
       {VIEWS.map(({ view, label, icon, panel }) => {
         const on = view === current;
-        const name = LibroI18n.tr(label);
+        const name = i18n.tr(label);
         // Sin libro, Índice y Capas no tienen qué mostrar (review-workspace vuelve a Páginas).
-        const off = !hasDocument && view !== 'pages';
+        const off = !editor.hasDocument && view !== 'pages';
         return (
           <button
             key={view}

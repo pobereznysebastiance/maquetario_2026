@@ -20,11 +20,15 @@
 // modal(), modal.sheet, modal.info, modal.workspace y modal.confirm (studio.ts) son la fachada de
 // estas funciones.
 //
+// Este archivo no tiene efectos al cargar: se importa (import { openSheet } from …/dialogs.tsx).
+// El montaje en la página, el bloqueo del teclado y la publicación de los globales están en
+// dialog-host.tsx, que importa src/entries/app.ts en su lugar.
+//
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 import { useSyncExternalStore, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
-import { mount, useLanguage } from '../../react/mount.tsx';
+import { useLanguage } from '../../react/mount.tsx';
 import { ConfirmDialog, type ChoiceOptions, type ConfirmOptions } from './ConfirmDialog.tsx';
 import {
   ConfirmSheet,
@@ -90,7 +94,7 @@ const update = (sync: boolean) => {
   else notify();
 };
 
-const DialogHost = () => {
+export const DialogHost = () => {
   const { confirm, sheet, hosted } = useSyncExternalStore(subscribe, () => snapshot);
   useLanguage();
   return (
@@ -138,7 +142,7 @@ const DialogHost = () => {
  * Muestra una pregunta con varias salidas. Devuelve el id elegido, o null si se canceló (Esc incluido).
  * variant: 'primary' | 'danger' | 'secondary'
  */
-function askChoice(options: ChoiceOptions): Promise<string | null> {
+export function askChoice(options: ChoiceOptions): Promise<string | null> {
   // La autoprueba no puede contestar diálogos: elige la primera acción.
   if (window.maquetarioSelfTest) return Promise.resolve(options.actions[0]?.id ?? null);
   // Una pregunta nueva reemplaza a la que estuviera abierta (que queda cancelada).
@@ -161,7 +165,7 @@ function askChoice(options: ChoiceOptions): Promise<string | null> {
 }
 
 /** Sí/No para una acción. Con danger:true el botón es de peligro y el foco queda en Cancelar. */
-async function confirmAction({
+export async function confirmAction({
   title,
   message,
   confirmLabel,
@@ -244,31 +248,5 @@ export function closeSheet(): void {
   request?.done();
 }
 
-// La raíz no dibuja nada propio: los diálogos van por portales a la capa (native.ts).
-const root = document.createElement('div');
-root.id = 'dialogRoot';
-document.body.append(root);
-mount(root, <DialogHost />, { sync: true });
-
-// Mientras la confirmación está abierta, ni el teclado ni los clics llegan a los atajos de la app
-// (Escape, Enter, Suprimir, letras de herramientas…). Lo propio del diálogo sigue funcionando:
-// Tab, Enter sobre el botón con foco y Escape para cancelar son acciones nativas, no oyentes.
-// (Los clics se cortan en el mismo diálogo: ConfirmDialog.tsx.)
-window.addEventListener(
-  'keydown',
-  (event) => {
-    if ((document.getElementById('confirmDialog') as HTMLDialogElement | null)?.open)
-      event.stopImmediatePropagation();
-  },
-  true,
-);
-
-// Las usan studio.ts, settings-panel.ts y la autoprueba (desktop/src/main/selftest.ts).
-globalThis.askChoice = askChoice;
-globalThis.confirmAction = confirmAction;
-globalThis.openSheet = openSheet;
-globalThis.openWorkWindow = openWorkWindow;
-globalThis.openConfirmSheet = openConfirmSheet;
-globalThis.closeSheet = closeSheet;
-// El centro de Ayuda (components/help/) lo usa para saber si su Ventana sigue abierta.
-globalThis.openSheetContent = () => sheetRequest?.content ?? null;
+/** Contenido de la Hoja o Ventana abierta, o null (al instante, aunque React no haya redibujado). */
+export const openSheetContent = (): ReactNode | null => sheetRequest?.content ?? null;

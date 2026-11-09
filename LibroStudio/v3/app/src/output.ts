@@ -17,6 +17,9 @@ import { createElement } from 'react';
 import type { Language } from './i18n.ts';
 import { OutputWindow } from './components/output/OutputWindow.tsx';
 import { setPrinters, type InstalledPrinter } from './components/output/printers.ts';
+import { i18n } from './i18n/language.ts';
+import { M } from './core-api.ts';
+import { notifyEditorState } from './react/editor-state.ts';
 
 /** Opciones de una salida. El diálogo las trae todas; la autoprueba y la cubierta (kind = 'cover') piden sólo algunas. */
 export interface OutputConfig {
@@ -253,7 +256,7 @@ declare global {
   var closeOutputWindow: () => void;
 }
 
-globalThis.ow = () => outputWords[(globalThis.LibroI18n?.language || 'es') as Language];
+globalThis.ow = () => outputWords[(i18n.language || 'es') as Language];
 let installedPrinters: InstalledPrinter[] = [];
 globalThis.setOutputApplyDisabled = function (disabled) {
   const button = document.querySelector<HTMLButtonElement>('#outputApply');
@@ -584,7 +587,7 @@ globalThis.sendOutput = async function (destination, config, report) {
   busy = true;
   document.querySelector('main')!.inert = true;
   // La barra superior (React) deshabilita Imprimir, Vista previa y Exportar mientras dura.
-  globalThis.notifyEditorState?.();
+  notifyEditorState();
   toast(w.wait, 'info');
   try {
     if (!native) throw Error('Esta función requiere la app de escritorio de Maquetario.');
@@ -603,9 +606,7 @@ globalThis.sendOutput = async function (destination, config, report) {
           (result.pdfx ? ' - PDFX4' : ''),
       });
       toast(
-        saved.saved
-          ? LibroI18n.tr('PDF guardado correctamente.')
-          : LibroI18n.tr('Exportación cancelada.'),
+        saved.saved ? i18n.tr('PDF guardado correctamente.') : i18n.tr('Exportación cancelada.'),
         saved.saved ? 'success' : 'info',
       );
     }
@@ -617,7 +618,7 @@ globalThis.sendOutput = async function (destination, config, report) {
   } finally {
     busy = false;
     document.querySelector('main')!.inert = false;
-    globalThis.notifyEditorState?.();
+    notifyEditorState();
   }
 };
 // Imprimir y Exportar PDF están en la barra superior (components/topbar/Topbar.tsx).

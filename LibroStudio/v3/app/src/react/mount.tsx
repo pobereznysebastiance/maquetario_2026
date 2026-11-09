@@ -11,7 +11,7 @@
 //   lo que sigue siendo global se publica desde ahí (con extend.replace si otros lo extienden).
 // - Mismo marcado que el HTML de antes (clases, ids, data-*, aria-*). Estilos sólo con clases y
 //   tokens de ui/; comportamiento con Radix sin estilos; íconos con <Icon name>.
-// - Textos: el traductor del DOM no entra en data-react. bw() o LibroI18n.tr() (con su fila en
+// - Textos: el traductor del DOM no entra en data-react. bw() o i18n.tr() (con su fila en
 //   i18n.ts) y useLanguage(); lo que otro módulo agrega adentro llega ya traducido.
 // - Campos no controlados. El onChange de React no recibe un new Event('change') (no sube):
 //   Select / useNativeChange o useFieldEvents (Form.tsx). En casillas, onChange sí (va con click).
@@ -32,6 +32,7 @@
 import { StrictMode, useEffect, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot, type Root } from 'react-dom/client';
+import { i18n } from '../i18n/language.ts';
 
 /**
  * Monta un árbol de React dentro de host (un nodo que ya existe en la página). Lo que hubiera
@@ -48,9 +49,9 @@ export function mount(host: Element, node: ReactNode, { sync = false } = {}): Ro
 
 /** Idioma actual de la interfaz; el componente se vuelve a dibujar cuando cambia. */
 export function useLanguage(): string {
-  const [language, setLanguage] = useState(() => LibroI18n.language);
+  const [language, setLanguage] = useState(() => i18n.language);
   useEffect(() => {
-    const update = () => setLanguage(LibroI18n.language);
+    const update = () => setLanguage(i18n.language);
     document.addEventListener('maquetario:language', update);
     return () => document.removeEventListener('maquetario:language', update);
   }, []);

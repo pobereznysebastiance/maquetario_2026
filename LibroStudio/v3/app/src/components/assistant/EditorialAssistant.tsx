@@ -22,6 +22,9 @@ import {
   type ClassServiceInfo,
   type EditorialFinding,
 } from '../../editorial-assistant.ts';
+import { bw } from '../../i18n/language.ts';
+import { editor, M } from '../../core-api.ts';
+import { closeSheet } from '../dialog/dialogs.tsx';
 
 declare global {
   /** Abre la Ventana del asistente (avisa si no hay un libro abierto). */
@@ -37,10 +40,12 @@ function goToFinding(item: EditorialFinding): void {
     setTimeout(coverEditor, 30);
     return;
   }
-  const index = book.pages.findIndex((p) => p.id === item.pageId);
+  const index = editor.book.pages.findIndex((p) => p.id === item.pageId);
   if (index < 0) return;
   goToBookPage(index);
-  selected = book.pages[index].objects.some((o) => o.id === item.objectId) ? item.objectId : null;
+  editor.selected = editor.book.pages[index].objects.some((o) => o.id === item.objectId)
+    ? item.objectId
+    : null;
   showTab(selectObject()?.type === 'text' ? 'text' : 'object');
   render(true);
 }
@@ -52,7 +57,7 @@ function ignoreFinding(item: EditorialFinding): void {
 
 /** Quita los espacios repetidos de la caja del hallazgo (se puede deshacer). */
 function fixSpaces(item: EditorialFinding): void {
-  const target = book.pages
+  const target = editor.book.pages
     .find((p) => p.id === item.pageId)
     ?.objects.find((o) => o.id === item.objectId);
   if (!target || target.locked) return;
@@ -69,7 +74,7 @@ function fixSpaces(item: EditorialFinding): void {
 }
 
 const Finding = ({ item }: { item: EditorialFinding }) => {
-  const index = book.pages.findIndex((p) => p.id === item.pageId);
+  const index = editor.book.pages.findIndex((p) => p.id === item.pageId);
   return (
     <article className={`assistant-finding ${item.severity}`}>
       <div className="assistant-finding-heading">
@@ -278,7 +283,7 @@ export const EditorialAssistant = () => {
 };
 
 async function openEditorialAssistant(): Promise<void> {
-  if (!hasDocument) {
+  if (!editor.hasDocument) {
     toast(
       bw(
         'Creá o abrí un libro para revisarlo.',
@@ -313,7 +318,7 @@ async function runAutomaticReview(): Promise<void> {
     const issues = await automaticEditorialReview();
     assistant.report = issues;
     assistant.stamp = stamp;
-    assistant.summary = `${book.pages.length} ${bw('páginas revisadas', 'pages reviewed', 'páginas revisadas')} · ${issues.length} ${bw('hallazgos para comprobar', 'findings to check', 'observações para conferir')}`;
+    assistant.summary = `${editor.book.pages.length} ${bw('páginas revisadas', 'pages reviewed', 'páginas revisadas')} · ${issues.length} ${bw('hallazgos para comprobar', 'findings to check', 'observações para conferir')}`;
     assistant.progress = '';
   } catch (e) {
     assistant.error = (e as Error).message;

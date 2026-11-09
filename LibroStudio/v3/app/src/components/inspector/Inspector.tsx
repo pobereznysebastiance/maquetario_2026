@@ -29,6 +29,8 @@ import { inspectorPanel, inspectorPaused } from '../../inspector-registry.ts';
 import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { SectionContext, type SectionChrome } from './fields.tsx';
+import { bw, i18n } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
 /** Pestaña visible del inspector. */
 export type InspectorView = 'book' | 'page' | 'selection';
@@ -72,7 +74,7 @@ function sectionsOf(pass: string): Slot[] {
       return [
         // La página sola (qué elementos automáticos se ven) va primero, sin data-section.
         { name: 'exceptions', className: 'individual-page-settings' },
-        { name: 'page', title: 'Página ' + (active + 1), key: 'file' },
+        { name: 'page', title: 'Página ' + (editor.active + 1), key: 'file' },
         { name: 'auto', title: 'Elementos automáticos', key: 'link' },
       ];
     case 'object':
@@ -123,7 +125,7 @@ export function planFor(view: InspectorView): { passes: string[]; primary: strin
   if (view === 'book') return { passes: ['structure', 'design'], primary: 'design' };
   if (view === 'page') return { passes: ['pages'], primary: 'pages' };
   const o = selectObject();
-  if (multiSelection.size > 1) return { passes: ['object'], primary: 'object' };
+  if (editor.multiSelection.size > 1) return { passes: ['object'], primary: 'object' };
   if (!o) return { passes: ['selection'], primary: 'selection' };
   // Primero el objeto, después el texto y el párrafo.
   if (o.type === 'text') return { passes: ['object', 'text'], primary: 'text' };
@@ -229,10 +231,10 @@ export const Inspector = ({
   if (inspectorPaused() && last.current) return last.current;
 
   // Sin libro (la mesa vacía, que ya tiene Crear y Abrir): un estado vacío en las tres pestañas.
-  if (!hasDocument)
+  if (!editor.hasDocument)
     return (last.current = (
       <div key="no-book" className="inspector-empty">
-        <p className="help">{LibroI18n.tr('Creá o abrí un libro para ver sus propiedades.')}</p>
+        <p className="help">{i18n.tr('Creá o abrí un libro para ver sus propiedades.')}</p>
       </div>
     ));
 

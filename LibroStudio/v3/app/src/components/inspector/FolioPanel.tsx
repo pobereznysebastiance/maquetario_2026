@@ -22,6 +22,8 @@ import {
   Row,
   SwitchHeading,
 } from './fields.tsx';
+import { bw } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
 /** Ajuste fino: el número del desplazamiento y su deslizador, que previsualiza sin grabar. */
 const FineOffset = ({ axis }: { axis: 'offsetX' | 'offsetY' }) => {
@@ -29,7 +31,7 @@ const FineOffset = ({ axis }: { axis: 'offsetX' | 'offsetY' }) => {
       axis === 'offsetX'
         ? bw('Horizontal', 'Horizontal', 'Horizontal')
         : bw('Vertical', 'Vertical', 'Vertical'),
-    value = Number(book.folio[axis]),
+    value = Number(editor.book.folio[axis]),
     span = Math.max(axis === 'offsetX' ? 30 : 60, Math.abs(value));
   const slide = (slider: HTMLInputElement | null) => {
     if (!slider || !firstTime(slider)) return;
@@ -39,13 +41,13 @@ const FineOffset = ({ axis }: { axis: 'offsetX' | 'offsetY' }) => {
       slider.parentElement!.querySelector<HTMLInputElement>(`[data-bind="folio.${axis}"]`)!;
     // Mientras se arrastra: se ve en la página sin grabar ni sumar un paso de deshacer.
     slider.addEventListener('input', () => {
-      const previous = book.folio[axis];
+      const previous = editor.book.folio[axis];
       numeric().value = slider.value;
-      book.folio[axis] = Number(slider.value);
+      editor.book.folio[axis] = Number(slider.value);
       try {
         renderPages();
       } finally {
-        book.folio[axis] = previous;
+        editor.book.folio[axis] = previous;
       }
     });
     // Al soltar: lo graba el número, como si se hubiera escrito.

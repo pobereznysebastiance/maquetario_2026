@@ -1,6 +1,7 @@
 // Estado del editor en un solo objeto (etapa 2, parte B, grupo 3).
 //
-//   import { editor } from '../state/editor.ts';
+//   import { editor } from '../state/editor.ts';   // desde core
+//   import { editor } from '../core-api.ts';       // desde app (otro bundle: no se duplica)
 //   editor.book.pages[editor.active]
 //
 // Antes, cada pieza de estado era un `let` del núcleo (studio.ts) o un global que publicaba un

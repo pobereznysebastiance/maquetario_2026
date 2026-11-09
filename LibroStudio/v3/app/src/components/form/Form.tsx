@@ -28,6 +28,7 @@ import {
   type Ref,
   type RefObject,
 } from 'react';
+import { i18n } from '../../i18n/language.ts';
 
 /**
  * Escucha el "change" nativo en el propio elemento, como hacía la interfaz en HTML. El onChange de
@@ -55,7 +56,7 @@ function assignRef<T>(ref: Ref<T> | undefined, value: T | null): void {
   else if (ref) (ref as { current: T | null }).current = value;
 }
 
-const tr = (text: string): string => LibroI18n.tr(text);
+const tr = (text: string): string => i18n.tr(text);
 
 /** Molécula: etiqueta arriba y control abajo (.control, como control() de studio.ts). */
 export const Control = ({

@@ -22,6 +22,7 @@ import { notifyEditorState } from './react/editor-state.ts';
 import { mount } from './react/mount.tsx';
 import { mountRailViews } from './components/rail/RailViews.tsx';
 import { Inspector, planFor, type InspectorView } from './components/inspector/Inspector.tsx';
+import { editor } from './core-api.ts';
 
 /** Vista del riel izquierdo. */
 type RailView = 'pages' | 'index' | 'layers';
@@ -108,7 +109,7 @@ const content = $('#inspectorContent');
 extend.after(
   'inspector',
   function () {
-    tab = planFor(view).primary;
+    editor.tab = planFor(view).primary;
     for (const field of content.querySelectorAll<HTMLInputElement>('input[type="number"]'))
       if (field.hasAttribute('value') && Number(field.value) !== Number(field.defaultValue))
         field.value = field.defaultValue;
@@ -138,7 +139,7 @@ function syncTabs(): void {
 }
 /** El consejo del pie habla de la grilla: se ve en Libro, con un libro abierto, hasta que se descarta. */
 function syncFoot(): void {
-  foot.hidden = view !== 'book' || !hasDocument || tipHidden();
+  foot.hidden = view !== 'book' || !editor.hasDocument || tipHidden();
 }
 
 // ── El inspector: un componente de React, montado una vez. Con cada dibujo (también cuando se
@@ -165,7 +166,7 @@ extend(
       writeStore(VIEW_STORE, view);
       base.call(this, view);
       // Si el inspector estaba en pausa, tab quedó con el nombre de la pestaña visible.
-      if (tab === view) tab = planFor(view).primary;
+      if (editor.tab === view) editor.tab = planFor(view).primary;
       syncTabs();
       revealPass(name);
     },

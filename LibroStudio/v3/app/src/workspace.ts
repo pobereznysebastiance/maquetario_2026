@@ -9,6 +9,9 @@
 //
 // Fuente TypeScript: se compila a build/workspace.js (desktop/scripts/build.mjs).
 
+import { bw } from './i18n/language.ts';
+import { UI } from './core-api.ts';
+
 export type WorkspaceMode = 'simple' | 'default' | 'custom';
 export type WorkspaceGroup = 'tools' | 'tabs' | 'zones';
 

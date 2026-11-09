@@ -6,6 +6,7 @@
 //
 // Fuente TypeScript: se compila a build/folio-position.js (desktop/scripts/build.mjs).
 import type { AutoType } from './model.ts';
+import { M } from './core-api.ts';
 
 const folioMetric = document.createElement('canvas').getContext('2d')!;
 extend.result(

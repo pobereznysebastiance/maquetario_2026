@@ -1,19 +1,20 @@
 // Estado del editor para los componentes de React (etapa 3): cómo se enteran de que algo cambió.
 //
-// El estado sigue viviendo en los globales del núcleo (book, active, selected, dirty, tool… de
-// studio.ts). Un componente no copia ese estado: lo lee directamente al dibujarse y se suscribe a
-// los avisos con useEditorState(), que devuelve un número de versión que cambia con cada aviso.
+// El estado vive en el objeto editor (src/state/editor.ts; desde app se importa de core-api.ts).
+// Un componente no copia ese estado: lo lee directamente al dibujarse y se suscribe a los avisos
+// con useEditorState(), que devuelve un número de versión que cambia con cada aviso.
 //
 //   export const StatusBar = () => {
 //     useEditorState(); // se redibuja cuando el núcleo avisa
 //     useLanguage();    // y cuando cambia el idioma
-//     return <span>{LibroI18n.tr(`Página ${active + 1} de ${book.pages.length}`)}</span>;
+//     return <span>{i18n.tr(`Página ${editor.active + 1} de ${editor.book.pages.length}`)}</span>;
 //   };
 //
 // Quién avisa: las funciones del núcleo que antes escribían el DOM a mano, por extend.after
-// (updateStatus — la llama render —, syncNative y checkOverflow). Si una pantalla nueva depende de
-// otra función del núcleo, se suma acá su nombre; si un módulo cambia estado fuera de esas
-// funciones, llama a notifyEditorState().
+// (updateStatus — la llama render —, syncNative y checkOverflow; ese enganche y el global
+// notifyEditorState están en editor-state-wiring.ts, así este archivo no tiene efectos al cargar).
+// Si una pantalla nueva depende de otra función del núcleo, se suma allá su nombre; si un módulo
+// cambia estado fuera de esas funciones, llama a notifyEditorState().
 //
 // notifyEditorState() redibuja en el acto (flushSync): al volver, el DOM ya está al día, igual
 // que cuando se escribía a mano (las pruebas y otros módulos leen el DOM enseguida). Por eso no se
@@ -31,6 +32,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { flushSync } from 'react-dom';
+import { editor } from '../core-api.ts';
 
 let version = 0;
 const listeners = new Set<() => void>();
@@ -59,7 +61,7 @@ function redraw(): void {
 export function notifyEditorState(): void {
   version += 1;
   if (!listeners.size) return;
-  if (globalThis.drag) {
+  if (editor.drag) {
     if (!pendingFrame) pendingFrame = requestAnimationFrame(redraw);
     return;
   }
@@ -71,14 +73,3 @@ export function notifyEditorState(): void {
 export function useEditorState(): number {
   return useSyncExternalStore(subscribe, () => version);
 }
-
-declare global {
-  /** Avisa a los componentes de React que el estado del editor cambió (busy, preview…). */
-  var notifyEditorState: () => void;
-}
-globalThis.notifyEditorState = notifyEditorState;
-
-// Los cambios de hasDocument (review-workspace → refreshEmptyCanvas) y de busy (salida) avisan
-// con notifyEditorState() directamente.
-for (const name of ['updateStatus', 'syncNative', 'checkOverflow'])
-  extend.after(name, () => notifyEditorState(), 'editor-state');

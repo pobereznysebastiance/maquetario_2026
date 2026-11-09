@@ -11,6 +11,8 @@
 
 import type { TocConfig } from '../../model.ts';
 import { Icon } from '../Icon.tsx';
+import { i18n } from '../../i18n/language.ts';
+import { editor, M } from '../../core-api.ts';
 
 /** Lo que la vista necesita de editorial.ts. */
 export interface IndexSource {
@@ -24,7 +26,7 @@ export interface IndexSource {
 /** Texto traducido como lo hace el traductor del DOM: sin tocar los espacios del borde. */
 const tt = (text: string): string => {
   const trim = text.trim();
-  return trim ? text.replace(trim, LibroI18n.tr(trim)) : text;
+  return trim ? text.replace(trim, i18n.tr(trim)) : text;
 };
 
 const bound = new WeakSet<Element>();
@@ -38,8 +40,8 @@ const onNativeChange =
   };
 
 const IndexView = ({ source }: { source: IndexSource }) => {
-  const config = M.tocConfig(book),
-    entries = M.tocEntries(book),
+  const config = M.tocConfig(editor.book),
+    entries = M.tocEntries(editor.book),
     o = selectObject();
   return (
     <>

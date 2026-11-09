@@ -6,6 +6,8 @@
 
 import { useLayoutEffect, useRef } from 'react';
 import { Control, Field, Select } from '../form/Form.tsx';
+import { bw } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
 const GuideForm = () => {
   const root = useRef<HTMLDivElement>(null);
@@ -31,7 +33,7 @@ const GuideForm = () => {
         }
         defaultValue={20}
         min={0}
-        max={Math.max(book.width, book.height)}
+        max={Math.max(editor.book.width, editor.book.height)}
       />
     </div>
   );

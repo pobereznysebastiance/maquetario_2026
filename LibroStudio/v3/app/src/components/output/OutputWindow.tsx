@@ -26,6 +26,7 @@ import { flushSync } from 'react-dom';
 import { Icon } from '../Icon.tsx';
 import { useLanguage } from '../../react/mount.tsx';
 import { printersSnapshot, subscribePrinters } from './printers.ts';
+import { bw, i18n } from '../../i18n/language.ts';
 
 /** Escucha los "change" de la ventana en captura (también los que no burbujean). */
 function useFormChange(onFormChange: (target: HTMLElement) => void) {
@@ -181,10 +182,10 @@ export const OutputWindow = ({ destination, onFormChange, onExpand, pdfx }: Outp
           <div className="output-pdfx">
             <label className="check-line">
               <input id="outPdfx" type="checkbox" defaultChecked={!!pdfx} />
-              {LibroI18n.tr('PDF para imprenta (PDF/X-4)')}
+              {i18n.tr('PDF para imprenta (PDF/X-4)')}
             </label>
             <p className="help">
-              {LibroI18n.tr(
+              {i18n.tr(
                 'El color queda en RGB etiquetado (sRGB) con la condición de impresión FOGRA39 (offset, papel estucado): la imprenta lo convierte a CMYK. Si te piden CMYK o PDF/X-1a, consultá antes.',
               )}
             </p>

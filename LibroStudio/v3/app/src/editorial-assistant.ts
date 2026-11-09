@@ -13,6 +13,8 @@
 
 import type { BookObject } from './model.ts';
 import { notifyEditorState } from './react/editor-state.ts';
+import { bw, i18n } from './i18n/language.ts';
+import { M } from './core-api.ts';
 
 export type FindingSeverity = 'error' | 'warning' | 'tip';
 
@@ -367,7 +369,7 @@ function classroomPayload(scope: string) {
   let remaining = 20000,
     truncated = false;
   return {
-    language: LibroI18n.language,
+    language: i18n.language,
     scope,
     title: book.title,
     width: book.width,

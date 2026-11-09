@@ -11,6 +11,8 @@
 'use strict';
 import type { Book, BookObject } from './model.ts';
 import { paragraphStyleForm } from './components/paragraph-style/ParagraphStyleForm.tsx';
+import { i18n } from './i18n/language.ts';
+import { M } from './core-api.ts';
 
 /** Formato de un párrafo: font, size, leading, align, sangrías, espacios… (ver paragraphKeys). */
 export type ParagraphFormat = Record<string, any>;
@@ -190,7 +192,7 @@ const paragraphWords = {
   },
 };
 export type ParagraphWords = (typeof paragraphWords)['es'];
-const pw = (): ParagraphWords => paragraphWords[LibroI18n.language || 'es'];
+const pw = (): ParagraphWords => paragraphWords[i18n.language || 'es'];
 globalThis.pw = pw;
 const paragraphKeys: string[] = [
   'font',

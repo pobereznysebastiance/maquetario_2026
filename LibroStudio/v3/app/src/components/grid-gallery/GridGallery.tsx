@@ -10,6 +10,9 @@
 
 import { useLanguage } from '../../react/mount.tsx';
 import { gridSize, type GridPreset } from '../../readability.ts';
+import { bw } from '../../i18n/language.ts';
+import { closeSheet, openSheet } from '../dialog/dialogs.tsx';
+import { editor } from '../../core-api.ts';
 
 declare global {
   /** Abre la biblioteca de retículas. */
@@ -46,7 +49,7 @@ const GridGallery = () => {
             key={preset.id}
             type="button"
             className={
-              book.grid.cols === preset.c && book.grid.rows === preset.r
+              editor.book.grid.cols === preset.c && editor.book.grid.rows === preset.r
                 ? 'grid-card active'
                 : 'grid-card'
             }
@@ -81,7 +84,7 @@ const GridGallery = () => {
 };
 
 globalThis.gridGallery = function () {
-  if (busy) return;
+  if (editor.busy) return;
   finishEditing();
   void openSheet(<GridGallery />, {
     title: bw('Biblioteca de grillas', 'Grid library', 'Biblioteca de grades'),

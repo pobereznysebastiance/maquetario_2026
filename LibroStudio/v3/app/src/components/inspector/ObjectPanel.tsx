@@ -16,6 +16,8 @@ import { useLanguage } from '../../react/mount.tsx';
 import { editableObjectSelection } from '../../inspector-organization.ts';
 import { Icon } from '../Icon.tsx';
 import { fieldKey, lengthUnit, onNativeChange, SectionHeading, SectionTitle } from './fields.tsx';
+import { bw, i18n } from '../../i18n/language.ts';
+import { editor } from '../../core-api.ts';
 
 /** Encabezado de una sección (section() de studio.ts): el título ya viene traducido. */
 const Heading = ({ icon, title }: { icon: string; title: string }) => (
@@ -120,7 +122,7 @@ const saveGeometry = onNativeChange<HTMLInputElement>((input) => {
   }
   commit(() => {
     o[key] = value;
-    if (o.x + o.w > book.width || o.y + o.h > book.height)
+    if (o.x + o.w > editor.book.width || o.y + o.h > editor.book.height)
       throw Error(
         bw(
           'El objeto debe quedar dentro de la página.',
@@ -162,7 +164,7 @@ export const GeometryPanel = () => {
                   data-object-geometry={key}
                   type="number"
                   min={key === 'w' || key === 'h' ? 1 : 0}
-                  max={key === 'x' || key === 'w' ? book.width : book.height}
+                  max={key === 'x' || key === 'w' ? editor.book.width : editor.book.height}
                   step="0.5"
                   defaultValue={shown(o[key])}
                   disabled={locked}
@@ -344,9 +346,9 @@ export const EmptySelection = () => {
   useLanguage();
   return (
     <>
-      <p className="inspector-empty-title">{LibroI18n.tr('Nada seleccionado')}</p>
+      <p className="inspector-empty-title">{i18n.tr('Nada seleccionado')}</p>
       <p className="help">
-        {LibroI18n.tr(
+        {i18n.tr(
           'Hacé clic en una caja, una imagen o un marco de la página para ver sus propiedades. Con doble clic en una caja de texto, escribís.',
         )}
       </p>
