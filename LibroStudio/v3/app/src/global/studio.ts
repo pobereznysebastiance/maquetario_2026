@@ -331,8 +331,11 @@ function inspector(): void {
       inspectorSlot('titulillo', 'Titulillo', 'text');
   if (tab === 'text') {
     const o = selectObject();
+    // Selección de una caja de texto: "Párrafo y estilos", "Tipografía" y "Carácter y párrafo" son
+    // paneles de React (src/components/inspector/TextPanels.tsx); acá queda su lugar, en orden.
     host.innerHTML =
-      section('Tipografía', 'text', textControls(false)) +
+      '<section class="section paragraph-panel" data-inspector-slot="paragraph"></section>' +
+      '<section class="section" data-section="Tipografía" data-key="text" data-inspector-slot="typography"></section>' +
       section(
         'Transformar objeto',
         'box',
@@ -344,7 +347,9 @@ function inspector(): void {
         'Edición',
         'info',
         '<p class="help">Doble clic en el texto para escribir. Arrastrá para mover una caja, imagen o marco. Usá su esquina inferior derecha para cambiar el tamaño.<br><br>Cada caja conserva su propio texto. El símbolo rojo + indica desbordamiento: ampliá la caja o reducí el cuerpo.</p>',
-      );
+      ) +
+      // "Carácter y párrafo" va al final, dentro de un <div> (no se reordena ni se pliega).
+      '<div data-inspector-slot="character"></div>';
   }
   if (tab === 'pages')
     // Pestaña Página: paneles de React (src/components/inspector/PagePanel.tsx). La página sola
@@ -383,6 +388,32 @@ function commitBinding(el: UIElement): void {
     }
   }, false);
 }
+/**
+ * Graba en el objeto seleccionado el valor de un control con data-object (medidas, cuerpo,
+ * interlineado, color…), con el aviso de rango. La usan bindInspector y los paneles de React.
+ */
+function commitObjectField(el: UIElement): void {
+  const o = selectObject();
+  if (!o) return;
+  let value = el.type === 'number' ? Number(el.value) : el.value;
+  if (
+    el.type === 'number' &&
+    (!Number.isFinite(value) || value < Number(el.min) || value > Number(el.max))
+  ) {
+    toast('El valor está fuera del rango permitido.', 'warning');
+    inspector();
+    return;
+  }
+  commit(() => {
+    o[el.dataset.object!] = value;
+    if (['x', 'y', 'w', 'h'].includes(el.dataset.object!)) {
+      o.x = Math.max(0, Math.min(o.x, book.width - 3));
+      o.y = Math.max(0, Math.min(o.y, book.height - 3));
+      o.w = Math.min(o.w, book.width - o.x);
+      o.h = Math.min(o.h, book.height - o.y);
+    }
+  }, false);
+}
 function bindInspector(): void {
   const h = $('#inspectorContent');
   h.querySelectorAll<UIElement>('[data-bind]').forEach((el) =>
@@ -392,29 +423,7 @@ function bindInspector(): void {
     (el) => (el.onclick = () => commit(() => (book.grid.fit = el.dataset.fit!), false)),
   );
   h.querySelectorAll<UIElement>('[data-object]').forEach(
-    (el) =>
-      (el.onchange = () => {
-        const o = selectObject();
-        if (!o) return;
-        let value = el.type === 'number' ? Number(el.value) : el.value;
-        if (
-          el.type === 'number' &&
-          (!Number.isFinite(value) || value < Number(el.min) || value > Number(el.max))
-        ) {
-          toast('El valor está fuera del rango permitido.', 'warning');
-          inspector();
-          return;
-        }
-        commit(() => {
-          o[el.dataset.object!] = value;
-          if (['x', 'y', 'w', 'h'].includes(el.dataset.object!)) {
-            o.x = Math.max(0, Math.min(o.x, book.width - 3));
-            o.y = Math.max(0, Math.min(o.y, book.height - 3));
-            o.w = Math.min(o.w, book.width - o.x);
-            o.h = Math.min(o.h, book.height - o.y);
-          }
-        }, false);
-      }),
+    (el) => (el.onchange = () => commitObjectField(el)),
   );
   h.querySelectorAll<UIElement>('[data-align]').forEach(
     (el) => (el.onclick = () => commit(() => (selectObject()!.align = el.dataset.align!), false)),

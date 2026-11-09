@@ -358,14 +358,7 @@ async function showFontGlyphs(initialFace?: NativeFontFace): Promise<void> {
   if (glyphFace) await readGlyphFace(glyphFace.id);
 }
 globalThis.showFontGlyphs = showFontGlyphs;
-decorateInspector(() => {
-  const b = $('#glyphPanel');
-  if (b) {
-    b.disabled = false;
-    b.textContent = bw('Glifos de la tipografía…', 'Typeface glyphs…', 'Glifos da tipografia…');
-    b.onclick = () => showFontGlyphs();
-  }
-}, 'font-glyphs');
+// "Glifos de la tipografía…" del inspector lo dibuja el panel de Carácter (TextPanels.tsx).
 // "Ver glifos de esta fuente" vive en el explorador de fuentes (font-browser.tsx).
 
 export {};

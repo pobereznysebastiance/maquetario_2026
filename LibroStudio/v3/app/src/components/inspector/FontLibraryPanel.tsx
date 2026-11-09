@@ -10,6 +10,7 @@
 import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
+import { Btn } from './fields.tsx';
 
 /** Líneas grises de "cargando" (UI.skeleton). */
 const Skeleton = ({ lines, label }: { lines: number; label: string }) => (
@@ -39,25 +40,21 @@ export const FontLibraryPanel = () => {
       {loading ? <Skeleton lines={4} label={w.loading} /> : null}
       <details className="font-library-options">
         <summary>{w.manage}</summary>
-        <button
-          type="button"
+        <Btn
           id="addFontFolder"
-          className="btn wide"
+          icon="folder"
+          label={w.folder}
+          wide
           disabled={loading}
           onClick={() => obtainFonts('chooseFontFolder')}
-        >
-          <Icon name="folder" />
-          {w.folder}
-        </button>
-        <button
-          type="button"
+        />
+        <Btn
           id="refreshFontCatalog"
-          className="btn wide"
+          label={w.refresh}
+          wide
           disabled={loading}
           onClick={() => obtainFonts('refreshFonts')}
-        >
-          {w.refresh}
-        </button>
+        />
         <p className="help">{w.hint}</p>
         <details>
           <summary>{w.folders}</summary>

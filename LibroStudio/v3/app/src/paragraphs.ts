@@ -251,7 +251,7 @@ function paragraphFormat(b: Book, o: BookObject, index: number): ParagraphFormat
   return { ...paragraphBase(o), ...(style?.properties || {}), ...(meta.overrides || {}) };
 }
 globalThis.paragraphFormat = paragraphFormat;
-function paragraphIndices(o: BookObject): number[] {
+export function paragraphIndices(o: BookObject): number[] {
   return paragraphScope.id === o.id && paragraphScope.index >= 0
     ? [Math.min(paragraphScope.index, o.text.split('\n').length - 1)]
     : o.text.split('\n').map((_: string, i: number) => i);
@@ -362,7 +362,7 @@ function currentParagraph(o: BookObject): number {
     : 0;
 }
 globalThis.currentParagraph = currentParagraph;
-function styleDialog(existing: ParagraphStyle | null | undefined): void {
+export function styleDialog(existing: ParagraphStyle | null | undefined): void {
   const o = selectObject();
   if (!o || o.type !== 'text' || o.locked) return;
   const w = pw(),
@@ -443,157 +443,7 @@ function styleDialog(existing: ParagraphStyle | null | undefined): void {
     existing ? w.edit : w.new,
   );
 }
-function paragraphControls(): void {
-  const o = selectObject(),
-    w = pw(),
-    host = $('#inspectorContent');
-  const sectionNode = document.createElement('section');
-  sectionNode.className = 'section paragraph-panel';
-  if (!o || o.type !== 'text' || o.toc) {
-    sectionNode.innerHTML = `<div class="section-heading">¶ ${w.panel}</div><p class="help">${w.empty}</p>`;
-    host.prepend(sectionNode);
-    return;
-  }
-  if (paragraphScope.id !== o.id) paragraphScope = { id: o.id, index: -1 };
-  const indices = paragraphIndices(o),
-    formats = indices.map((i) => paragraphFormat(book, o, i)),
-    props = formats[0],
-    styleIds = indices.map((i) => o.paragraphMap?.[i]?.styleId || ''),
-    singleStyle = styleIds.every((id) => id === styleIds[0]) ? styleIds[0] : 'mixed',
-    style = (book.paragraphStyles || []).find((s: ParagraphStyle) => s.id === singleStyle);
-  sectionNode.innerHTML = `<div class="section-heading">¶ ${w.panel}</div><div class="field-row"><label>${w.scope}</label><select id="paragraphScope"><option value="-1">${w.all}</option>${o.text
-    .split('\n')
-    .map(
-      (text: string, i: number) =>
-        `<option value="${i}" ${paragraphScope.index === i ? 'selected' : ''}>${w.paragraph} ${i + 1} · ${esc(text.slice(0, 25) || '—')}</option>`,
-    )
-    .join(
-      '',
-    )}</select></div><div class="field-row"><label>${w.style}</label><select id="paragraphStyle"><option value="">${w.none}</option>${singleStyle === 'mixed' ? `<option value="mixed" selected disabled>${w.mixed}</option>` : ''}${(book.paragraphStyles || []).map((s: ParagraphStyle) => `<option value="${s.id}" ${singleStyle === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></div><div class="paragraph-align">${[
-    ['left', w.l],
-    ['center', w.c],
-    ['right', w.r],
-    ['justify', w.j],
-  ]
-    .map(([align, label]) =>
-      UI.textButton({
-        icon: align,
-        title: label,
-        data: { paragraphAlign: align },
-        active: props.align === align,
-      }),
-    )
-    .join('')}</div>${[
-    ['indentLeft', w.left, 0, 80],
-    ['indentRight', w.right, 0, 80],
-    ['firstIndent', w.first, -30, 50],
-    ['spaceBefore', w.before, 0, 50],
-    ['spaceAfter', w.after, 0, 50],
-  ]
-    .map(
-      ([key, label, min, max]) =>
-        `<div class="field-row"><label>${label}</label><span class="unit-wrap"><input data-paragraph="${key}" type="number" step=".5" min="${min}" max="${max}" value="${Number(props[key] || 0).toFixed(1)}"><span class="unit">mm</span></span></div>`,
-    )
-    .join('')}<div class="field-row"><label>${w.last}</label><select id="paragraphLastAlign">${[
-    ['auto', w.auto],
-    ['left', w.l],
-    ['center', w.c],
-    ['right', w.r],
-    ['justify', w.j],
-  ]
-    .map(
-      ([key, label]) =>
-        `<option value="${key}" ${props.lastAlign === key ? 'selected' : ''}>${label}</option>`,
-    )
-    .join(
-      '',
-    )}</select></div>${hyphenationFields(props, 'paragraphHyphen', formats)}${UI.button({ id: 'newParagraphStyle', label: '+ ' + w.new, wide: true })}<div class="page-action">${UI.button({ id: 'editParagraphStyle', label: w.edit, disabled: !style })}${UI.button({ id: 'redefineParagraphStyle', icon: 'refresh', label: '', title: bw('Redefinir el estilo con la selección', 'Redefine style from selection', 'Redefinir o estilo com a seleção'), disabled: !style })}</div>${UI.quietButton({ id: 'clearParagraphOverrides', label: w.reset, wide: true })}${UI.quietButton({ id: 'detachParagraphStyle', label: w.detach, wide: true, disabled: !(singleStyle && singleStyle !== 'mixed') })}<p class="help">${w.hint}</p>`;
-  host.prepend(sectionNode);
-  bindParagraphHyphenation(o, formats);
-  $('#paragraphScope').value = paragraphScope.index;
-  $('#paragraphScope').onchange = (e) => {
-    paragraphScope = { id: o.id, index: Number((e.target as HTMLSelectElement).value) };
-    inspector();
-  };
-  $('#paragraphStyle').value = singleStyle;
-  $('#paragraphStyle').onchange = (e) => applyParagraphStyle((e.target as HTMLSelectElement).value);
-  sectionNode
-    .querySelectorAll<HTMLElement>('[data-paragraph-align]')
-    .forEach((b) => (b.onclick = () => paragraphPatch({ align: b.dataset.paragraphAlign })));
-  sectionNode.querySelectorAll<HTMLInputElement>('[data-paragraph]').forEach(
-    (input) =>
-      (input.onchange = () => {
-        const value = Number(input.value);
-        if (Number.isFinite(value) && value >= Number(input.min) && value <= Number(input.max))
-          paragraphPatch({ [input.dataset.paragraph!]: value });
-        else inspector();
-      }),
-  );
-  $('#paragraphLastAlign').onchange = (e) =>
-    paragraphPatch({ lastAlign: (e.target as HTMLSelectElement).value });
-  $('#newParagraphStyle').onclick = () => styleDialog(null);
-  $('#editParagraphStyle').onclick = () => styleDialog(style);
-  $('#redefineParagraphStyle').title = w.redefine;
-  $('#redefineParagraphStyle').onclick = () => {
-    paragraphOperation = true;
-    try {
-      const properties = paragraphFormat(book, o, currentParagraph(o));
-      commit(() => {
-        style.properties = M.clone(properties);
-        for (const index of paragraphIndices(o)) paragraphMeta(o, index).overrides = {};
-      }, false);
-    } finally {
-      paragraphOperation = false;
-    }
-  };
-  $('#clearParagraphOverrides').onclick = () => {
-    paragraphOperation = true;
-    try {
-      commit(() => {
-        for (const index of paragraphIndices(o)) paragraphMeta(o, index).overrides = {};
-      }, false);
-    } finally {
-      paragraphOperation = false;
-    }
-  };
-  $('#detachParagraphStyle').onclick = () => applyParagraphStyle(null);
-  if (o.locked)
-    sectionNode
-      .querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLButtonElement>(
-        'input,select,button',
-      )
-      .forEach((el) => (el.disabled = true));
-  for (const key of ['font', 'size', 'leading', 'color']) {
-    const el = host.querySelector<UIElement>(`[data-object="${key}"]`);
-    if (el && props[key] !== undefined)
-      el.value = typeof props[key] === 'number' ? Number(props[key].toFixed(2)) : props[key];
-  }
-  const face = selectedFace(props) as CatalogFace | undefined,
-    variant = host.querySelector<HTMLSelectElement>('#fontVariant');
-  if (variant && face) {
-    const variants: [string, string][] = [];
-    for (const f of familyFaces(props.font)) {
-      variants.push([f.id, f.style]);
-      f.instances.forEach((i, index) => variants.push([f.id + '@' + index, i.name]));
-    }
-    variant.innerHTML = variants
-      .map(([id, name]) => `<option value="${id}">${esc(name)}</option>`)
-      .join('');
-    const named = face.instances.findIndex((i) => i.name === props.fontStyleName);
-    variant.value = face.id + (named >= 0 ? '@' + named : '');
-    variant.onchange = async (e) => {
-      const [id, inst] = (e.target as HTMLSelectElement).value.split('@'),
-        f = nativeFaces.find((f) => f.id === id);
-      if (f) await applyFace(o, f, inst !== undefined ? f.instances[Number(inst)] : null);
-    };
-  }
-  host
-    .querySelectorAll<HTMLElement>('[data-align]')
-    .forEach((el) => el.classList.toggle('active', el.dataset.align === props.align));
-}
-decorateInspector(() => {
-  if (tab === 'text') paragraphControls();
-}, 'paragraphs');
+// "Párrafo y estilos" es un panel de React: src/components/inspector/TextPanels.tsx.
 extend(
   'applyFace',
   (faceBeforeParagraphs) =>
@@ -767,49 +617,4 @@ document.addEventListener('selectionchange', () => {
     }
   }
 });
-decorateInspector(() => {
-  if (tab !== 'text') return;
-  const o = selectObject();
-  if (!o || o.type !== 'text' || o.toc) return;
-  const props = paragraphFormat(book, o, currentParagraph(o)),
-    face = selectedFace(props) as CatalogFace | undefined,
-    variant = $('#fontVariant'),
-    block = variant?.closest('.font-variant-block'),
-    specimen = $('#fontSpecimen');
-  if (!face || !block) return;
-  block
-    .querySelectorAll('.font-axis,.paragraph-variable-axes,.sub-label')
-    .forEach((n) => n.remove());
-  if (face.axes.length) {
-    const holder = document.createElement('div');
-    holder.className = 'paragraph-variable-axes';
-    holder.innerHTML = `<div class="sub-label">${fw().axes}</div>${face.axes.map((a: FontAxis) => `<div class="font-axis"><div><label>${esc(a.name || a.tag)} <span>${a.tag}</span></label><output>${Number(props.fontAxes?.[a.tag] ?? a.normal).toFixed(1)}</output></div><input type="range" data-paragraph-axis="${a.tag}" min="${a.min}" max="${a.max}" step="${a.tag === 'wght' ? 1 : 0.1}" value="${props.fontAxes?.[a.tag] ?? a.normal}" ${o.locked ? 'disabled' : ''}></div>`).join('')}`;
-    block.insertBefore(holder, specimen);
-    holder.querySelectorAll('input').forEach((input) => {
-      input.oninput = () =>
-        (input.previousElementSibling!.querySelector('output')!.textContent = Number(
-          input.value,
-        ).toFixed(1));
-      input.onchange = () => {
-        const axes = {
-          ...variations(face),
-          ...(props.fontAxes || {}),
-          [input.dataset.paragraphAxis!]: Number(input.value),
-        };
-        paragraphPatch({
-          fontAxes: axes,
-          ...(axes.wght !== undefined ? { fontWeight: axes.wght } : {}),
-        });
-      };
-    });
-  }
-  if (specimen)
-    Object.assign(specimen.style, {
-      fontFamily: `"MQT_${face.id}", "${props.font}"`,
-      fontWeight: String(props.fontAxes?.wght ?? props.fontWeight ?? face.weight),
-      fontStyle: props.fontItalic ? 'italic' : 'normal',
-      fontVariationSettings: Object.entries(props.fontAxes || {})
-        .map(([tag, value]) => `"${tag}" ${value}`)
-        .join(','),
-    });
-}, 'paragraphs');
+// Los ejes variables del párrafo los dibuja el panel de Tipografía (TextPanels.tsx).

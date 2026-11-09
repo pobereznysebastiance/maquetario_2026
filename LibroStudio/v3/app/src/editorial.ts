@@ -51,7 +51,6 @@ extend.around(
     function () {
       if (tab !== 'index') {
         draw();
-        if (tab === 'text') extraTextControls();
         if (tab === 'design') extraGuideControls();
         return;
       }
@@ -175,39 +174,6 @@ extend.instead(
   },
   'editorial',
 );
-function extraTextControls(): void {
-  const h = $('#inspectorContent'),
-    o = selectObject();
-  const extra = document.createElement('div');
-  extra.innerHTML = section(
-    'Carácter y párrafo',
-    'text',
-    row(
-      'Tracking',
-      `<span class="unit-wrap"><input data-extra="tracking" type="number" min="-100" max="500" value="${o?.tracking || 0}" ${!o || o.type !== 'text' || o.toc ? 'disabled' : ''}><span class="unit">‰</span></span>`,
-    ) +
-      row(
-        'Sangría inicial',
-        `<span class="unit-wrap"><input data-extra="indent" type="number" min="0" max="30" step=".5" value="${o?.indent || 0}" ${!o || o.type !== 'text' || o.toc ? 'disabled' : ''}><span class="unit">mm</span></span>`,
-      ) +
-      row(
-        'Espacio entre párrafos',
-        `<span class="unit-wrap"><input data-extra="spaceAfter" type="number" min="0" max="30" step=".5" value="${o?.spaceAfter || 0}" ${!o || o.type !== 'text' || o.toc ? 'disabled' : ''}><span class="unit">mm</span></span>`,
-      ) +
-      `${UI.button({ id: 'glyphPanel', label: 'Glifos y caracteres especiales', wide: true, disabled: !o || o.type !== 'text' || !!o.toc })}${UI.button({ id: 'openIndexFromText', label: 'Abrir Índice', wide: true })}`,
-  );
-  h.append(extra);
-  extra.querySelectorAll<HTMLInputElement>('[data-extra]').forEach(
-    (el) =>
-      (el.onchange = () => {
-        const n = Number(el.value);
-        if (!Number.isFinite(n) || n < Number(el.min) || n > Number(el.max)) return;
-        commit(() => (selectObject()![el.dataset.extra!] = n), false);
-      }),
-  );
-  $('#openIndexFromText').onclick = () => showTab('index');
-  // #glyphPanel lo abre font-glyphs.tsx (showFontGlyphs), que le pone su acción al decorar.
-}
 function extraGuideControls(): void {
   // En Libro, la estructura va primero: las guías acompañan a la grilla.
   const host = $('#inspectorContent'),

@@ -11,20 +11,17 @@
 // Un número fuera de rango vuelve a dibujar el inspector sin grabar, como antes.
 //
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
-import type { ReactNode } from 'react';
 import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
+import { onNativeChange, Row } from './fields.tsx';
 
 type Field = HTMLInputElement | HTMLSelectElement;
 type RuleType = 'header' | 'titulillo' | 'folio';
 
-const bound = new WeakSet<Element>();
 /** Liga un campo con data-rule a su ruta del libro (una sola vez por nodo). */
-const bindRule = (el: Field | null): void => {
-  if (!el || bound.has(el)) return;
-  bound.add(el);
-  el.addEventListener('change', () => {
+const bindRule = onNativeChange<Field>((el) => {
+  {
     const input = el as HTMLInputElement;
     if (
       input.type === 'number' &&
@@ -47,16 +44,8 @@ const bindRule = (el: Field | null): void => {
         ),
       false,
     );
-  });
-};
-
-/** Fila del inspector (row() de studio.ts). */
-const Row = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div className="field-row">
-    <label>{label}</label>
-    {children}
-  </div>
-);
+  }
+});
 
 /** Número con su unidad adentro del campo. */
 const Measure = ({

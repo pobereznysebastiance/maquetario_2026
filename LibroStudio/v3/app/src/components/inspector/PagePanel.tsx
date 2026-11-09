@@ -14,22 +14,10 @@
 import { useEditorState } from '../../react/editor-state.ts';
 import { useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
+import { Btn, Heading, onNativeChange, tt } from './fields.tsx';
 
-/** Texto traducido como lo hace el traductor del DOM: sin tocar los espacios del borde. */
-const tt = (text: string): string => {
-  const trim = text.trim();
-  return trim ? text.replace(trim, LibroI18n.tr(trim)) : text;
-};
-
-const bound = new WeakSet<Element>();
 /** Escucha el "change" nativo de un campo (una sola vez por nodo). */
-const onChange =
-  (handler: (el: HTMLInputElement) => void) =>
-  (el: HTMLInputElement | null): void => {
-    if (!el || bound.has(el)) return;
-    bound.add(el);
-    el.addEventListener('change', () => handler(el));
-  };
+const onChange = onNativeChange<HTMLInputElement>;
 
 const VISIBILITY: [key: string, label: () => string, element: 'folio' | 'header' | 'titulillo'][] =
   [
@@ -121,34 +109,6 @@ export const PageExceptionsPanel = () => {
   );
 };
 
-/** Botón de una orden del editor (UI.button con data-command, como lo ligaba bindInspector). */
-const CommandButton = ({
-  name,
-  label,
-  icon,
-  variant,
-  wide = false,
-  disabled = false,
-}: {
-  name: string;
-  label: string;
-  icon?: string;
-  variant?: 'danger';
-  wide?: boolean;
-  disabled?: boolean;
-}) => (
-  <button
-    type="button"
-    className={'btn' + (variant ? ' ' + variant : '') + (wide ? ' wide' : '')}
-    data-command={name}
-    disabled={disabled}
-    onClick={() => command(name)}
-  >
-    {icon ? <Icon name={icon} /> : null}
-    {tt(label)}
-  </button>
-);
-
 const saveSection = onChange((input) =>
   commit(() => (book.pages[active].section = input.value), false),
 );
@@ -160,10 +120,7 @@ export const PageSectionPanel = () => {
   const page = book.pages[active];
   return (
     <>
-      <div className="section-heading">
-        <Icon name="file" />
-        <span data-text-source={'Página ' + (active + 1)}>{tt('Página ' + (active + 1))}</span>
-      </div>
+      <Heading icon="file" title={'Página ' + (active + 1)} />
       <div className="sub-label" id="pageSectionLabel">
         {tt('Comenzar sección en esta página')}
       </div>
@@ -180,15 +137,15 @@ export const PageSectionPanel = () => {
         {tt('La sección se mantiene en las páginas siguientes hasta el próximo comienzo.')}
       </p>
       <div className="page-action">
-        <CommandButton name="addPage" icon="plus" label="Agregar" />
-        <CommandButton name="duplicate" label="Duplicar" />
+        <Btn command="addPage" icon="plus" label="Agregar" />
+        <Btn command="duplicate" label="Duplicar" />
       </div>
       <div className="page-action">
-        <CommandButton name="earlier" label="← Antes" disabled={active === 0} />
-        <CommandButton name="later" label="Después →" disabled={active === book.pages.length - 1} />
+        <Btn command="earlier" label="← Antes" disabled={active === 0} />
+        <Btn command="later" label="Después →" disabled={active === book.pages.length - 1} />
       </div>
-      <CommandButton
-        name="deletePage"
+      <Btn
+        command="deletePage"
         icon="trash"
         label="Eliminar página"
         variant="danger"
@@ -204,10 +161,7 @@ export const AutoElementsPanel = () => {
   useLanguage();
   return (
     <>
-      <div className="section-heading">
-        <Icon name="link" />
-        <span data-text-source="Elementos automáticos">{tt('Elementos automáticos')}</span>
-      </div>
+      <Heading icon="link" title="Elementos automáticos" />
       <p className="help">
         {tt(
           'Cornisas, titulillos y folios se actualizan en todo el libro al cambiar una sección o reorganizar páginas.',

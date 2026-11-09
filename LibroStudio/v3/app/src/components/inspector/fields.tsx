@@ -72,10 +72,29 @@ export const SwitchHeading = ({
   </div>
 );
 
-/** Fila del inspector (row() de studio.ts). */
-export const Row = ({ label, children }: { label: string; children: ReactNode }) => (
+/** Título de sección sin interruptor (section() de studio.ts). */
+export const Heading = ({ icon, title }: { icon: string; title: string }) => (
+  <div className="section-heading">
+    <Icon name={icon} />
+    <span data-text-source={title}>{tt(title)}</span>
+  </div>
+);
+
+/**
+ * Fila del inspector (row() de studio.ts). term: deja el texto en castellano en
+ * data-text-source, para que la ayuda de términos lo reconozca en cualquier idioma.
+ */
+export const Row = ({
+  label,
+  term = false,
+  children,
+}: {
+  label: string;
+  term?: boolean;
+  children: ReactNode;
+}) => (
   <div className="field-row">
-    <label>{tt(label)}</label>
+    <label data-text-source={term ? label : undefined}>{tt(label)}</label>
     {children}
   </div>
 );
@@ -118,6 +137,48 @@ export const Options = ({ path, items }: { path: string; items: string[][] }) =>
       </option>
     ))}
   </select>
+);
+
+/**
+ * Botón (UI.button de src/ui/components.ts, o UI.quietButton con quiet): mismas clases y
+ * atributos. label va traducido con tt().
+ */
+export const Btn = ({
+  id,
+  label,
+  icon,
+  variant,
+  wide = false,
+  quiet = false,
+  disabled = false,
+  title,
+  command: name,
+  onClick,
+}: {
+  id?: string;
+  label: string;
+  icon?: string;
+  variant?: 'primary' | 'danger';
+  wide?: boolean;
+  quiet?: boolean;
+  disabled?: boolean;
+  title?: string;
+  /** Orden del editor (data-command), como la ligaba bindInspector. */
+  command?: string;
+  onClick?: () => void;
+}) => (
+  <button
+    type="button"
+    id={id}
+    className={(quiet ? 'quiet' : 'btn') + (variant ? ' ' + variant : '') + (wide ? ' wide' : '')}
+    title={title}
+    disabled={disabled}
+    data-command={name}
+    onClick={onClick ?? (name ? () => command(name) : undefined)}
+  >
+    {icon ? <Icon name={icon} /> : null}
+    {tt(label)}
+  </button>
 );
 
 /** Casilla con su texto (.check-line). */
