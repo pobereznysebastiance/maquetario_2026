@@ -10,3 +10,5 @@ import '../test-registry.ts';
 import '../model.ts';
 import '../state/editor.ts';
 import '../ui/components.ts';
+// Lo que salió de studio.ts (grupo 5): módulos sin efectos en src/core/ y su publicación.
+import '../core/core-wiring.ts';

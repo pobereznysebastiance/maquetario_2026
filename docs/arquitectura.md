@@ -675,6 +675,19 @@ Cada grupo es una entrega con la autoprueba en verde, los PDF idénticos y el in
 **Orden de cortes** (un commit cada uno; los cinco primeros no tocan el lienzo):
 1. **Utilidades:** `src/core/dom.ts` (`$`, `$$`, `esc`) y `src/core/icons.ts` (`paths`, `icon`, `icons`). `M` pasa a publicarse desde `core` (`globalThis.M = LibroModel`). No tienen efectos ni extensiones, y es el bloque con más lectores (44 archivos, 26 pruebas leen `$`). `category-design.ts` amplía `paths` con `Object.assign`: tiene que seguir siendo el mismo objeto.
 2. **Anfitrión y avisos:** `src/core/host-bridge.ts` (`pending`, `nativeCall`, `toast` con su cola, `syncNative`). `toast` y `syncNative` pasan a `extensible`. `window.nativeCall` y `MaquetarioHost.onMessage` quedan en el cableado.
+
+   **Pasos 1 y 2 hechos (09-nov).**
+   - Los módulos sin efectos son `src/core/utils.ts` (`$`, `$$`, `esc` y `M`; `M` va acá y no en un `dom.ts` aparte), `src/core/icons.ts` y `src/core/host-bridge.ts`.
+   - `src/core/core-wiring.ts`, al final de `entries/core.ts`, hace tres cosas:
+     - publica los once nombres que siguen leyendo `studio.ts`, los módulos y las pruebas;
+     - registra `toast` y `syncNative` con `extensible`;
+     - escucha las respuestas del anfitrión: es el único oyente de `MaquetarioHost.onMessage`, y ahora se engancha un poco antes, al cargar `core`.
+   - `pending` deja de ser global. Las declaraciones salieron de `studio.ts`.
+   - Resultados:
+     - globales del núcleo 75 → 63 y globales en total 284 → 283;
+     - el orden de los módulos con efectos en `app.js` y `core.js` no cambia (sólo se suman los cuatro de `core` al final);
+     - la lista de extensiones sale idéntica, y las de `editor-state-wiring` se contaron a mano: `syncNative`, `updateStatus` y `checkOverflow` siguen con `editor-state`;
+     - los recorridos y las suites de `tests/` salen idénticos.
 3. **Deshacer y recuperación:** `src/core/history.ts` (`snapshot`, `changed`, `commit`, `undo`, `redo`) y `src/core/recovery.ts` (`recoveryDb`, `storeRecovery`, `recoveryTimer`). `changed` programa la copia de recuperación, así que van juntos. `commit` pasa a `extensible`.
 4. **Medidas, rutas y la fachada del inspector:** `src/core/book-paths.ts` (`get`, `set`, `selectObject`, `documentUnit`, `displayMeasure`, `displayDimensions`, `positions`, `folioPositions`) y `src/core/inspector.ts` (`inspector`, `commitBinding`, `commitObjectField`). Los ayudantes de marcado (`section`, `toggle`, `row`, `number`, `options`) quedan privados del módulo que todavía los use. Si sólo los usa código que ya no se llama, se borran.
 5. **Diálogos, archivo, formato, salida y recuperación de cambios:**
