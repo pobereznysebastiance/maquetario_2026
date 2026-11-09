@@ -559,31 +559,15 @@ const paper = extensible('paper', function (i: number, px: number, print = false
   return page;
 });
 /**
- * Lo que la página dibujada por paper() lleva sólo en el lienzo: página activa, objeto elegido (su
- * etiqueta y su manija) y la grilla con las guías. Nunca sale impreso. Los módulos suman lo suyo con
- * extend.result('screenPage', …) (controladores, selección múltiple, bloqueados…). No pone
- * oyentes: los eventos del lienzo los atiende #spread (ver "Eventos del lienzo", más abajo).
+ * Lo que la página dibujada por paper() lleva sólo en el lienzo. La base pone la grilla y las guías;
+ * la capa de selección (components/canvas/SelectionLayer.tsx, enganchada en canvas-layer.ts) dibuja
+ * encima, con React, la etiqueta y los controladores del objeto elegido, la selección múltiple, la
+ * página activa y la marca de texto sobrante. Nunca sale impreso. No pone oyentes: los eventos del
+ * lienzo los atiende #spread (ver "Eventos del lienzo", más abajo).
  */
 const screenPage = extensible(
   'screenPage',
   function (page: HTMLElement, i: number, px: number): HTMLElement {
-    if (active === i) page.classList.add('active-page');
-    for (const o of book.pages[i].objects) {
-      // Los objetos ocultos no están en el papel (layout-tools).
-      const el = page.querySelector<HTMLElement>(`:scope > .objects > [data-id="${o.id}"]`);
-      if (!el) continue;
-      if (selected === o.id) el.classList.add('selected');
-      if (selected === o.id) {
-        const badge = document.createElement('span');
-        badge.className = 'object-badge';
-        badge.textContent =
-          o.type === 'text' ? 'Cuadro de texto' : o.type === 'image' ? 'Imagen' : 'Marco';
-        el.append(badge);
-        const handle = document.createElement('span');
-        handle.className = 'resize-handle';
-        el.append(handle);
-      }
-    }
     const guides = document.createElement('div');
     guides.className = 'guides';
     guides.innerHTML = gridSvg(i, px);
@@ -631,23 +615,11 @@ const render = extensible('render', function (full = true): void {
  * extienden.
  */
 function updateStatus(): void {}
-function checkOverflow(): void {
-  let count = 0;
-  $$('#spread .paper-object.text').forEach((el) => {
-    const t = el.querySelector('.text-content')!;
-    el.querySelector('.overflow-mark')?.remove();
-    if (t.scrollHeight > t.clientHeight + 2 || t.scrollWidth > t.clientWidth + 2) {
-      count++;
-      let plus = document.createElement('span');
-      plus.className = 'overflow-mark';
-      plus.textContent = '+';
-      plus.title = 'Texto desbordado';
-      el.append(plus);
-    }
-  });
-  // La barra de estado (React) muestra la cuenta: se redibuja después de esta función.
-  overflowCount = count;
-}
+/**
+ * Mide las cajas de texto con texto sobrante del pliego visible (overflowCount). La medición y la
+ * marca + son de la capa de selección (canvas-layer.ts); la barra de estado se redibuja después.
+ */
+function checkOverflow(): void {}
 const startEditing = extensible('startEditing', function (el: HTMLElement): void {
   if (preview || busy) return;
   finishEditing();
@@ -707,16 +679,8 @@ const objectDown = extensible(
     el.addEventListener('pointermove', moveObject);
     el.addEventListener('pointerup', upObject, { once: true });
     el.addEventListener('pointercancel', upObject, { once: true });
-    $$('.paper-object.selected').forEach((n) => n.classList.remove('selected'));
-    el.classList.add('selected');
-    if (!el.querySelector('.resize-handle')) {
-      const handle = document.createElement('span');
-      handle.className = 'resize-handle';
-      el.append(handle);
-    }
-    $$('.page').forEach((n) =>
-      n.classList.toggle('active-page', Number(n.dataset.page) === active),
-    );
+    // La etiqueta, los controladores y las clases de selección los dibuja la capa de selección
+    // (components/canvas/SelectionLayer.tsx), que se entera con el aviso de abajo.
     inspector();
     updateStatus();
   },

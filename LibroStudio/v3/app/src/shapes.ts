@@ -92,19 +92,6 @@ extend.result(
   },
   'shapes',
 );
-// En el lienzo, la etiqueta del objeto elegido dice qué figura es.
-extend.result(
-  'screenPage',
-  function (page: HTMLElement, _drawn: HTMLElement, index: number): HTMLElement {
-    for (const o of book.pages[index].objects) {
-      if (!o.shape) continue;
-      const badge = page.querySelector(`[data-id="${o.id}"] > .object-badge`);
-      if (badge) badge.textContent = bw(...shapeNames[o.shape]);
-    }
-    return page;
-  },
-  'shapes',
-);
 const beforeShapeValidation: LibroModelApi['validate'] = M.validate;
 M.validate = function (input: any): Book {
   const b = beforeShapeValidation(input);

@@ -324,33 +324,13 @@ extend.before(
   },
   'review-workspace',
 );
-// Página activa y selección múltiple: sólo en el lienzo.
-extend.result(
-  'screenPage',
-  function (page: HTMLElement, _drawn: HTMLElement, index: number) {
-    page.classList.toggle('is-page-active', index === active);
-    const badge = document.createElement('span');
-    badge.className = 'page-active-badge';
-    badge.textContent = `${rw().active} ${index + 1}`;
-    page.append(badge);
-    for (const o of book.pages[index].objects)
-      if (multiSelection.has(o.id)) {
-        const el = page.querySelector(`[data-id="${o.id}"]`);
-        if (el) el.classList.add('multi-selected');
-      }
-    return page;
-  },
-  'review-workspace',
-);
+// Página activa (su rótulo) y selección múltiple en el lienzo: capa de selección
+// (components/canvas/SelectionLayer.tsx).
 function updateActivePage(): void {
   const w = rw();
   $$('#spread .page').forEach((page) => {
     const chosen = Number(page.dataset.page) === active;
     page.classList.toggle('is-page-active', chosen);
-    // El rótulo se escribe al dibujar la página (paper); acá se reescribe para que siga al idioma
-    // sin redibujar. No sale en la impresión.
-    const label = page.querySelector('.page-active-badge');
-    if (label) label.textContent = `${w.active} ${Number(page.dataset.page) + 1}`;
   });
   $$('.thumb-paper').forEach((page) => {
     const index = Number(page.dataset.individualPage);

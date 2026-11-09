@@ -43,6 +43,7 @@ import '../font-glyphs.tsx';
 import '../page-priority.ts';
 import '../inspector-organization.ts';
 import '../shapes.ts';
+import '../canvas-layer.ts';
 import '../editorial-assistant.ts';
 import '../components/assistant/EditorialAssistant.tsx';
 import '../canvas-navigation.ts';

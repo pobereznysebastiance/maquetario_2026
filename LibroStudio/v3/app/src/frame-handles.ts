@@ -8,7 +8,7 @@
 // Fuente TypeScript: se compila a build/frame-handles.js (desktop/scripts/build.mjs).
 
 import type { BookObject, Rect } from './model.ts';
-import { i18n } from './i18n/language.ts';
+import { frameDirections, refreshSelection } from './components/canvas/SelectionLayer.tsx';
 
 declare global {
   /** Direcciones de los controladores: esquinas y bordes (nw, n, ne, e, se, s, sw, w). */
@@ -25,57 +25,8 @@ declare global {
   var showHandlePreview: () => void;
 }
 
-const frameDirections = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+// Los controladores los dibuja la capa de selección (components/canvas/SelectionLayer.tsx).
 globalThis.frameDirections = frameDirections;
-function frameHandleLabel(direction: string): string {
-  const lang = i18n.language || 'es';
-  const names: Record<string, Record<string, string>> = {
-    es: {
-      nw: 'Esquina superior izquierda',
-      n: 'Borde superior',
-      ne: 'Esquina superior derecha',
-      e: 'Borde derecho',
-      se: 'Esquina inferior derecha',
-      s: 'Borde inferior',
-      sw: 'Esquina inferior izquierda',
-      w: 'Borde izquierdo',
-    },
-    en: {
-      nw: 'Top-left corner',
-      n: 'Top edge',
-      ne: 'Top-right corner',
-      e: 'Right edge',
-      se: 'Bottom-right corner',
-      s: 'Bottom edge',
-      sw: 'Bottom-left corner',
-      w: 'Left edge',
-    },
-    pt: {
-      nw: 'Canto superior esquerdo',
-      n: 'Borda superior',
-      ne: 'Canto superior direito',
-      e: 'Borda direita',
-      se: 'Canto inferior direito',
-      s: 'Borda inferior',
-      sw: 'Canto inferior esquerdo',
-      w: 'Borda esquerda',
-    },
-  };
-  return names[lang][direction];
-}
-function addFrameHandles(el: HTMLElement, o: BookObject, index: number): void {
-  el.querySelectorAll(':scope > .resize-handle').forEach((handle) => handle.remove());
-  for (const direction of frameDirections) {
-    const handle = document.createElement('span');
-    handle.className = 'resize-handle frame-handle handle-' + direction;
-    handle.dataset.handle = direction;
-    handle.title = frameHandleLabel(direction);
-    handle.setAttribute('aria-label', handle.title);
-    handle.setAttribute('role', 'button');
-    // El pointerdown lo atiende #spread (studio.ts): llama a objectDown con data-handle.
-    el.append(handle);
-  }
-}
 function frameGeometry(
   start: Rect,
   direction: string,
@@ -97,19 +48,6 @@ function frameGeometry(
   return { x: left, y: top, w: right - left, h: bottom - top };
 }
 globalThis.frameGeometry = frameGeometry;
-// Sólo en el lienzo: lo impreso no lleva controladores.
-extend.result(
-  'screenPage',
-  function (page: HTMLElement, _drawn: HTMLElement, index: number) {
-    for (const o of book.pages[index].objects) {
-      if (o.id !== selected) continue;
-      const el = page.querySelector<HTMLElement>(`[data-id="${o.id}"]`);
-      if (el) addFrameHandles(el, o, index);
-    }
-    return page;
-  },
-  'frame-handles',
-);
 extend.replace(
   'objectDown',
   function (
@@ -149,12 +87,8 @@ extend.replace(
     el.addEventListener('pointermove', moveObject);
     el.addEventListener('pointerup', upObject, { once: true });
     el.addEventListener('pointercancel', cancelFrameDrag, { once: true });
-    $$('.paper-object.selected').forEach((n) => n.classList.remove('selected'));
-    el.classList.add('selected');
-    addFrameHandles(el, o, index);
-    $$('.page').forEach((n) =>
-      n.classList.toggle('active-page', Number(n.dataset.page) === active),
-    );
+    // Selección, controladores y página activa: la capa de selección, en el acto.
+    refreshSelection();
     inspector();
     updateStatus();
   },

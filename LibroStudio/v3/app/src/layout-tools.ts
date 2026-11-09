@@ -294,20 +294,8 @@ extend.result(
   },
   'layout-tools',
 );
-// En el lienzo, los bloqueados se marcan y no llevan controladores.
-extend.result(
-  'screenPage',
-  function (page: HTMLElement, _drawn: HTMLElement, index: number) {
-    for (const o of book.pages[index].objects) {
-      const node = page.querySelector(`[data-id="${o.id}"]`);
-      if (!node) continue;
-      node.classList.toggle('locked', !!o.locked);
-      if (o.locked) node.querySelectorAll('.frame-handle').forEach((n) => n.remove());
-    }
-    return page;
-  },
-  'layout-tools',
-);
+// En el lienzo, los bloqueados se marcan y no llevan controladores: capa de selección
+// (components/canvas/SelectionLayer.tsx).
 // La vista Capas del riel es un componente de React (components/rail/LayersView.tsx).
 registerRailView('layers', layersViewFor({ words: lw, reorder: reorderLayer, move: moveLayer }));
 function reorderLayer(source: string, target: string): void {

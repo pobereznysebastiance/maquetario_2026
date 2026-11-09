@@ -310,7 +310,7 @@ Tiempos (Chrome sin ventana, libro de muestra, 50 llamadas seguidas a `inspector
 
 ## El lienzo (etapa 3, D2): plan
 
-Es lo último del orden D2. Plan escrito el 09-nov. Hechos: pasos 1 y 2.
+Es lo último del orden D2. Plan escrito el 09-nov. Hechos: pasos 1 a 3.
 
 ### Qué es hoy
 
@@ -386,12 +386,26 @@ Cada paso es una entrega con la autoprueba en verde, PDF idénticos (`compare-ou
      - Se fueron los oyentes de `screenPage`, de los controladores (`frame-handles`) y la extensión de `screenPage` de `editorial`. El doble clic en el Índice pasa por `startEditing`, que `editorial` ya desvía a la vista del Índice.
      - Autoprueba completa: PDF y JSON idénticos, salvo `verificacion-extensiones.json` (`screenPage` pierde `editorial`).
      - `#spread` igual en los recorridos. Con eventos de puntero reales (CDP) dan lo mismo antes y después: elegir, arrastrar, controladores, Mayús + clic, clic en la página vacía, doble clic, escribir y salir, mano con Espacio, botón del medio, vista continua y Escape.
-3. **Capa de selección en React (`components/canvas/SelectionLayer.tsx`).**
+3. ✓ **Capa de selección en React (`components/canvas/SelectionLayer.tsx`).**
    - Dibuja con `createPortal` dentro del `.paper-object` elegido: etiqueta, 8 controladores y manija.
    - También la marca de selección múltiple, la de página activa y el `+` de desborde.
    - El marcado es el mismo: `frame-handles-tests` sigue contando `.paper-object.selected > .frame-handle`.
    - Se redibuja con un aviso propio, `pagesDrawn`, que da `renderPages` con `flushSync` (los nodos del papel son nuevos en cada dibujo), y con la selección.
    - Salen las ramas de pantalla de `frame-handles`, `review-workspace` y `shapes`, y `checkOverflow` deja de escribir el DOM.
+   - **Hecho (09-nov).**
+     - **Qué dibuja:** `SelectionLayer.tsx` pone, con portales dentro de los nodos del papel, la etiqueta y los 8 controladores del objeto elegido (bloqueado, sólo la etiqueta), la marca + y el rótulo de página activa.
+     - **Clases:** `selected`, `multi-selected`, `locked`, `active-page` e `is-page-active` se ponen después de cada dibujo.
+     - **Cuándo se dibuja:**
+       - `canvas-layer.ts` la engancha a `screenPage` (`trackPage`, en el acto: cada página nueva, también en la vista continua);
+       - `objectDown` de `frame-handles` llama a `refreshSelection()` en lugar de escribir clases y controladores;
+       - también se redibuja con el aviso del estado y con el idioma.
+     - **Desborde:** `checkOverflow` lo mide `canvas-layer.ts` (`extend.replace`), y la capa se redibuja sólo si cambió qué cajas desbordan. Durante el arrastre se mide en cada movimiento, pero no redibuja.
+     - **Lo que se fue:** las extensiones de `screenPage` de `frame-handles`, `layout-tools`, `review-workspace` y `shapes`, y la reescritura del rótulo en `updateActivePage`. `frameDirections` y los nombres de los controladores viven en la capa.
+     - **Pruebas:**
+       - La autoprueba da PDF y JSON idénticos, salvo `verificacion-extensiones.json`: `screenPage` queda sólo con `canvas-layer`, y `checkOverflow` suma `canvas-layer`.
+       - `#spread` sale igual en los recorridos, y con eventos de puntero reales dan lo mismo antes y después.
+       - El arrastre cuesta lo mismo: ~0,9 ms por movimiento y ~1 ms por cuadro, antes y después.
+       - Única diferencia: si la selección cambia sólo con el aviso del estado, sin redibujar el pliego, la capa la sigue; antes quedaban los controladores viejos.
 4. **Grilla, guías, imán y reglas.**
    - `<PageGuides/>` por página, en lugar de `gridSvg` + la extensión de `editorial`.
    - `<SnapIndicators/>` con un estado propio que escribe `moveObject`.
