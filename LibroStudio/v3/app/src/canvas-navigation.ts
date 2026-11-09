@@ -208,15 +208,15 @@ extend.replace(
   },
   'canvas-navigation',
 );
-const handTool = document.createElement('button');
-handTool.type = 'button';
-handTool.id = 'handTool';
-handTool.className = 'tool';
-handTool.dataset.tool = 'hand';
-handTool.innerHTML =
-  '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12V6a2 2 0 0 1 4 0v5-7a2 2 0 0 1 4 0v7-5a2 2 0 0 1 4 0v8-4a2 2 0 0 1 3 0v7c0 4-3 6-7 6h-2c-3 0-5-2-7-5l-3-4c-1-2 1-3 2-2l2 2Z"/></svg><span>' +
-  bw('Mano', 'Hand', 'Mão') +
-  '</span><small class="shortcut">H</small>';
+const handTool = UI.element(
+  UI.tool({
+    id: 'handTool',
+    tool: 'hand',
+    icon: 'hand',
+    label: bw('Mano', 'Hand', 'Mão'),
+    shortcut: 'H',
+  }),
+);
 handTool.title = bw(
   'Mano · H / Espacio + arrastrar',
   'Hand · H / Space + drag',
@@ -380,12 +380,13 @@ document.addEventListener('visibilitychange', () => {
     updateCanvasCursor();
   }
 });
-const shortcutButton = document.createElement('button');
-shortcutButton.type = 'button';
-shortcutButton.id = 'canvasShortcuts';
-shortcutButton.className = 'icon-btn';
-shortcutButton.innerHTML = icon('help');
-shortcutButton.title = bw('Atajos de navegación', 'Navigation shortcuts', 'Atalhos de navegação');
+const shortcutButton = UI.element(
+  UI.iconButton({
+    id: 'canvasShortcuts',
+    icon: 'help',
+    label: bw('Atajos de navegación', 'Navigation shortcuts', 'Atalhos de navegação'),
+  }),
+);
 $('#fullscreen').before(shortcutButton);
 shortcutButton.onclick = () =>
   modal(

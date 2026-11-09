@@ -74,6 +74,14 @@ const allJs = appJs
   .filter((line) => !/^\s*(\/\/|\*|\/\*)/.test(line))
   .join('\n');
 const count = (text, re) => (text.match(re) ?? []).length;
+// Lo mismo sin src/ui/components.ts: ahí el marcado de los componentes es legítimo.
+const componentJs = appJs
+  .filter((f) => f !== join('src', 'ui', 'components.ts'))
+  .map((f) => readFileSync(join(app, f), 'utf8'))
+  .join('\n')
+  .split('\n')
+  .filter((line) => !/^\s*(\/\/|\*|\/\*)/.test(line))
+  .join('\n');
 const debt = {
   'funciones globales reemplazadas a mano (sin extend)': count(
     allJs,
@@ -93,6 +101,16 @@ const debt = {
     /\$\('#language'\)\.onchange\s*=\s*function/g,
   ),
   'estilos inline desde JS (style= / .style.x=)': count(allJs, /style="|\.style\.[a-zA-Z]+\s*=/g),
+  // Botones escritos a mano en cadenas (class="btn…", <button …>) en lugar de UI.* de
+  // src/ui/components.ts, que es el único lugar donde vive su marcado (etapa 3, D2).
+  'HTML de componentes a mano (class="btn / <button en cadenas)': count(
+    componentJs,
+    /class="btn\b|<button\b/g,
+  ),
+  "botones creados a mano (createElement('button'))": count(
+    componentJs,
+    /createElement\('button'\)/g,
+  ),
 };
 console.log('\nDeuda pendiente (tiene que bajar):');
 for (const [what, n] of Object.entries(debt)) console.log(`  ${String(n).padStart(4)}  ${what}`);

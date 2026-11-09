@@ -42,12 +42,13 @@ const categoryIcons: Record<string, string> = {
   layers: 'layers',
 };
 const categoryTabs = $('.tabs');
-const moreCategories = document.createElement('button');
-moreCategories.type = 'button';
-moreCategories.id = 'moreCategories';
-moreCategories.setAttribute('aria-haspopup', 'true');
-moreCategories.setAttribute('aria-expanded', 'false');
-moreCategories.innerHTML = icon('more');
+const moreCategories = UI.element(
+  UI.textButton({
+    id: 'moreCategories',
+    icon: 'more',
+    aria: { haspopup: 'true', expanded: 'false' },
+  }),
+);
 categoryTabs.append(moreCategories);
 const categoryMenu = document.createElement('div');
 categoryMenu.id = 'categoryMenu';
@@ -96,12 +97,13 @@ moreCategories.onclick = () => {
   }
   categoryMenu.replaceChildren();
   for (const button of categoryTabs.querySelectorAll<HTMLElement>('.tab[hidden]')) {
-    const option = document.createElement('button');
-    option.type = 'button';
-    option.className = button.dataset.tab === tab ? 'active' : '';
-    option.innerHTML =
-      icon(categoryIcons[button.dataset.tab!] || 'pages') +
-      `<span>${esc(categoryName(button))}</span>`;
+    const option = UI.element(
+      UI.textButton({
+        icon: categoryIcons[button.dataset.tab!] || 'pages',
+        label: categoryName(button),
+        active: button.dataset.tab === tab,
+      }),
+    );
     option.onclick = () => {
       closeCategoryMenu();
       showTab(button.dataset.tab!);

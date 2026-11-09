@@ -46,7 +46,6 @@ import '../continuous-canvas.ts';
 import '../editorial-rules.ts';
 import '../folio-position.ts';
 import '../category-design.ts';
-import '../ui/components.ts';
 import '../ui/focus.ts';
 import '../ui/select.ts';
 import '../ui/dialog.ts';

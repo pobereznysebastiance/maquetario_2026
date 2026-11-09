@@ -117,7 +117,7 @@ async function showWelcome(): Promise<void> {
       welcomeInfo = await nativeCall('appInfo');
     } catch {}
   const w = ww();
-  welcome.innerHTML = `<header class="welcome-header"><div class="welcome-brand"><img src="maquetario.svg" alt=""><strong>Maquetario</strong><span>v${welcomeInfo.version}</span></div></header><div class="welcome-body"><section class="welcome-copy"><h1>${w.headline.replace('\n', '<br>')}</h1><p class="welcome-intro">${w.intro}</p><div class="welcome-actions"><button id="welcomeNew" class="btn primary">${icon('plus')}${w.new}</button><button id="welcomeOpen" class="btn">${icon('folder')}${w.open}</button></div><div class="welcome-links"><button id="welcomeTutorial">${w.learn} ↗</button><button id="welcomeDemo">${w.demo} ↗</button><button id="welcomeResume">${w.resume} ↗</button>${recoveryCopy ? `<button id="welcomeRecover">${w.recover} ↗</button>` : ''}</div><section class="welcome-recents"><div class="welcome-section-title"><h2>${w.recent}</h2></div><div id="recentProjects">${welcomeInfo.recents.length ? welcomeInfo.recents.map((r, i) => `<button class="recent-project ${r.missing ? 'missing' : ''}" data-recent="${i}"><span class="recent-cover">${icon('pages')}</span><span class="recent-details user-content"><strong>${esc(r.name)}</strong><small>${esc(r.path)}</small></span><span class="recent-date">${r.missing ? w.missing : new Date(r.modified).toLocaleDateString(LibroI18n.language === 'pt' ? 'pt-BR' : LibroI18n.language === 'en' ? 'en-US' : 'es-AR')}</span><span class="recent-arrow">↗</span></button>`).join('') : `<div class="recent-empty">${icon('folder')}<p>${w.empty}</p></div>`}</div></section></section><aside class="welcome-art"><img src="assets/welcome-editorial-glass.png" alt="Atelier editorial de páginas y grillas"><div class="art-caption"><span>Maquetario</span><div class="art-swatches"><i></i><i></i><i></i></div></div></aside></div><footer class="welcome-footer"><span>${w.created}</span><span class="welcome-footer-end"><select id="welcomeLanguage" aria-label="Idioma"><option value="es">ES · Español</option><option value="en">EN · English</option><option value="pt">PT · Português</option></select><span>Maquetario v${welcomeInfo.version}</span></span></footer>`;
+  welcome.innerHTML = `<header class="welcome-header"><div class="welcome-brand"><img src="maquetario.svg" alt=""><strong>Maquetario</strong><span>v${welcomeInfo.version}</span></div></header><div class="welcome-body"><section class="welcome-copy"><h1>${w.headline.replace('\n', '<br>')}</h1><p class="welcome-intro">${w.intro}</p><div class="welcome-actions">${UI.button({ id: 'welcomeNew', variant: 'primary', icon: 'plus', label: w.new })}${UI.button({ id: 'welcomeOpen', icon: 'folder', label: w.open })}</div><div class="welcome-links">${UI.textButton({ id: 'welcomeTutorial', label: `${w.learn} ↗` })}${UI.textButton({ id: 'welcomeDemo', label: `${w.demo} ↗` })}${UI.textButton({ id: 'welcomeResume', label: `${w.resume} ↗` })}${recoveryCopy ? UI.textButton({ id: 'welcomeRecover', label: `${w.recover} ↗` }) : ''}</div><section class="welcome-recents"><div class="welcome-section-title"><h2>${w.recent}</h2></div><div id="recentProjects">${welcomeInfo.recents.length ? welcomeInfo.recents.map((r, i) => UI.recentProject({ data: { recent: i }, missing: r.missing, name: r.name, path: r.path, date: r.missing ? w.missing : new Date(r.modified).toLocaleDateString(LibroI18n.language === 'pt' ? 'pt-BR' : LibroI18n.language === 'en' ? 'en-US' : 'es-AR') })).join('') : `<div class="recent-empty">${icon('folder')}<p>${w.empty}</p></div>`}</div></section></section><aside class="welcome-art"><img src="assets/welcome-editorial-glass.png" alt="Atelier editorial de páginas y grillas"><div class="art-caption"><span>Maquetario</span><div class="art-swatches"><i></i><i></i><i></i></div></div></aside></div><footer class="welcome-footer"><span>${w.created}</span><span class="welcome-footer-end"><select id="welcomeLanguage" aria-label="Idioma"><option value="es">ES · Español</option><option value="en">EN · English</option><option value="pt">PT · Português</option></select><span>Maquetario v${welcomeInfo.version}</span></span></footer>`;
   welcomeVisible = true;
   welcome.hidden = false;
   document.body.classList.add('welcome-open');
@@ -220,14 +220,13 @@ const brandHome = $('.brand');
 brandHome.style.cursor = 'pointer';
 brandHome.title = ww().home;
 brandHome.onclick = () => globalThis.showWelcome();
-const helpButton = document.createElement('button');
-helpButton.className = 'quiet';
-helpButton.id = 'tutorialButton';
-helpButton.innerHTML = icon('help') + '<span>' + ww().tutorial + '</span>';
+const helpButton = UI.element(
+  UI.quietButton({ id: 'tutorialButton', icon: 'help', label: ww().tutorial }),
+);
 helpButton.onclick = () => startTutorial();
 $('.documentbar').append(helpButton);
 document.addEventListener('maquetario:language', () => {
-  helpButton.innerHTML = icon('help') + '<span>' + ww().tutorial + '</span>';
+  helpButton.querySelector('span')!.textContent = ww().tutorial;
 });
 document.addEventListener(
   'keydown',

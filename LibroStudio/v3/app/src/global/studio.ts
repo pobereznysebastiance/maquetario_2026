@@ -68,6 +68,7 @@ const paths: Record<string, string> = {
   refresh: 'M20 11a8 8 0 1 0-2.3 5.7 M20 4v7h-7',
   help: 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0 M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4 M12 17h.01',
   grip: 'M9 6h.01 M9 12h.01 M9 18h.01 M15 6h.01 M15 12h.01 M15 18h.01',
+  hand: 'M7 12V6a2 2 0 0 1 4 0v5-7a2 2 0 0 1 4 0v7-5a2 2 0 0 1 4 0v8-4a2 2 0 0 1 3 0v7c0 4-3 6-7 6h-2c-3 0-5-2-7-5l-3-4c-1-2 1-3 2-2l2 2Z',
 };
 function icon(name: string): string {
   return `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[name] || paths.file}"/></svg>`;
@@ -525,9 +526,13 @@ function renderTemplates(): void {
   const host = $('#templates');
   host.innerHTML =
     templates
-      .map(
-        ([name, c, r], i) =>
-          `<button class="template ${book.grid.cols === c && book.grid.rows === r ? 'active' : ''}" data-template="${i}"><div class="template-art">${templateMini(c)}</div>${name}</button>`,
+      .map(([name, c, r], i) =>
+        UI.templateCard({
+          active: book.grid.cols === c && book.grid.rows === r,
+          data: { template: i },
+          art: templateMini(c),
+          label: name,
+        }),
       )
       .join('') +
     '<div class="template-tip"><strong>ⓘ &nbsp; Diseñá con intención</strong>La grilla ordena el espacio.<br>Tu composición le da carácter.</div>';
@@ -554,11 +559,21 @@ function thumbs(): void {
   host.classList.toggle('thumbs-vertical', verticalSpread());
   let step = book.facing ? 2 : 1;
   for (let i = 0; i < book.pages.length; i += step) {
-    const b = document.createElement('button');
-    b.className = 'thumb' + (spread === i ? ' active' : '');
-    b.title =
-      'Ir a páginas ' + (i + 1) + (step === 2 && i + 1 < book.pages.length ? '–' + (i + 2) : '');
-    b.innerHTML = `<div class="thumb-pages">${Array.from({ length: Math.min(step, book.pages.length - i) }, (_, j) => `<div class="thumb-paper"><div class="thumb-grid"></div>${book.pages[i + j].objects.length ? `<div class="thumb-lines"></div><div class="thumb-head">${esc(M.sectionAt(book, i + j))}</div>` : ''}</div>`).join('')}</div><small>${i + 1}${step === 2 && i + 1 < book.pages.length ? ' - ' + (i + 2) : ''}</small>`;
+    const b = UI.element(
+      UI.pageThumb({
+        active: spread === i,
+        title:
+          'Ir a páginas ' +
+          (i + 1) +
+          (step === 2 && i + 1 < book.pages.length ? '–' + (i + 2) : ''),
+        pages: Array.from(
+          { length: Math.min(step, book.pages.length - i) },
+          (_, j) =>
+            `<div class="thumb-paper"><div class="thumb-grid"></div>${book.pages[i + j].objects.length ? `<div class="thumb-lines"></div><div class="thumb-head">${esc(M.sectionAt(book, i + j))}</div>` : ''}</div>`,
+        ).join(''),
+        label: `${i + 1}${step === 2 && i + 1 < book.pages.length ? ' - ' + (i + 2) : ''}`,
+      }),
+    );
     b.onclick = () => {
       finishEditing();
       active = spread = i;
@@ -1578,7 +1593,7 @@ function buildToolbar(): void {
     .map(
       ([id, label, key], i) =>
         (i === 3 || id === 'openSettings' ? '<span class="divider"></span>' : '') +
-        `<button class="tool-action" id="${id}" title="${label}">${icon(key)}<span>${label}</span></button>`,
+        UI.toolAction({ id, title: label, icon: key, label }),
     )
     .join('');
   for (const [id, , , fn] of actions) $('#' + id).onclick = fn;
@@ -1593,9 +1608,8 @@ function buildToolbar(): void {
     ['box', 'Cuadro de texto', 'box', ''],
   ];
   $('#tools').innerHTML = tools
-    .map(
-      ([id, label, key, k]) =>
-        `<button class="tool ${id === 'select' ? 'active' : ''}" data-tool="${id}">${icon(key)}<span>${label}</span><span class="shortcut">${k}</span></button>`,
+    .map(([id, label, key, k]) =>
+      UI.tool({ tool: id, label, icon: key, shortcut: k, active: id === 'select' }),
     )
     .join('');
   $$('[data-tool]').forEach((el) => (el.onclick = () => setTool(el.dataset.tool!)));

@@ -49,7 +49,7 @@ workflowRoute.className = 'book-route';
 workflowRoute.setAttribute('aria-label', 'Libro');
 $('.documentbar').after(workflowRoute);
 function renderBookRoute(): void {
-  workflowRoute.innerHTML = `<strong>${bw('TU LIBRO, PASO A PASO', 'YOUR BOOK, STEP BY STEP', 'SEU LIVRO, PASSO A PASSO')}</strong><span class="route-spacer"></span><button id="buildBook">① ${bw('Armar libro', 'Build book', 'Montar livro')}</button><button id="structureBook">② ${bw('Estructura', 'Structure', 'Estrutura')}</button><button id="reviewBook">③ ${bw('Revisar libro', 'Check book', 'Revisar livro')}</button><button id="outputBook">④ PDF / ${bw('Imprimir', 'Print', 'Imprimir')}</button>`;
+  workflowRoute.innerHTML = `<strong>${bw('TU LIBRO, PASO A PASO', 'YOUR BOOK, STEP BY STEP', 'SEU LIVRO, PASSO A PASSO')}</strong><span class="route-spacer"></span>${UI.textButton({ id: 'buildBook', label: '① ' + bw('Armar libro', 'Build book', 'Montar livro') })}${UI.textButton({ id: 'structureBook', label: '② ' + bw('Estructura', 'Structure', 'Estrutura') })}${UI.textButton({ id: 'reviewBook', label: '③ ' + bw('Revisar libro', 'Check book', 'Revisar livro') })}${UI.textButton({ id: 'outputBook', label: '④ PDF / ' + bw('Imprimir', 'Print', 'Imprimir') })}`;
   $('#buildBook').onclick = () => bookBuilder();
   $('#structureBook').onclick = () => showTab('structure');
   $('#reviewBook').onclick = () => preflightDialog();
@@ -655,13 +655,15 @@ extend.result(
   async function (pending: Promise<void>) {
     await pending;
     if ($('#welcomeNew')) {
-      const b = document.createElement('button');
-      b.className = 'btn';
-      b.id = 'welcomeNovel';
-      b.textContent = bw(
-        'Armar desde un manuscrito',
-        'Build from a manuscript',
-        'Montar a partir de um manuscrito',
+      const b = UI.element(
+        UI.button({
+          id: 'welcomeNovel',
+          label: bw(
+            'Armar desde un manuscrito',
+            'Build from a manuscript',
+            'Montar a partir de um manuscrito',
+          ),
+        }),
       );
       b.onclick = () => bookBuilder();
       $('.welcome-actions').append(b);

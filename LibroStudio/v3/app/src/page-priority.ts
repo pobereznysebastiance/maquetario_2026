@@ -18,15 +18,9 @@ declare global {
 
 globalThis.showGridStrip = localStorage.getItem('maquetario-grid-strip') === 'open';
 globalThis.showWorkflow = localStorage.getItem('maquetario-workflow') === 'open';
-const workflowToggle = document.createElement('button');
-workflowToggle.type = 'button';
-workflowToggle.id = 'toggleWorkflow';
-workflowToggle.className = 'quiet';
+const workflowToggle = UI.element(UI.quietButton({ id: 'toggleWorkflow' }));
 $('.documentbar').append(workflowToggle);
-const templateToggle = document.createElement('button');
-templateToggle.type = 'button';
-templateToggle.id = 'toggleGridStrip';
-templateToggle.className = 'quiet';
+const templateToggle = UI.element(UI.quietButton({ id: 'toggleGridStrip' }));
 const templateLabel = $('.template-heading>span');
 templateLabel.firstChild?.remove();
 templateLabel.prepend(templateToggle);

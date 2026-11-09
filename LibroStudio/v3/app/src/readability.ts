@@ -63,10 +63,8 @@ async function saveProjectAs(): Promise<boolean> {
     return false;
   }
 }
-const saveAsButton = document.createElement('button');
-saveAsButton.className = 'tool-action';
-saveAsButton.id = 'saveAs';
-saveAsButton.innerHTML = icon('save') + '<span></span>';
+// El nombre y el title los pone readabilityLabels() (cambian con el idioma).
+const saveAsButton = UI.element(UI.toolAction({ id: 'saveAs', icon: 'save', label: '' }));
 saveAsButton.onclick = saveProjectAs;
 $('#save').after(saveAsButton);
 document.addEventListener(
@@ -256,9 +254,15 @@ extend.replace(
   function () {
     const host = $('#templates');
     host.innerHTML = gridPresets
-      .map(
-        (p) =>
-          `<button class="template ${book.grid.cols === p.c && book.grid.rows === p.r ? 'active' : ''}" data-grid-preset="${p.id}" title="${esc(bw(...p.use))}"><div class="template-art">${gridPresetMini(p)}</div>${bw(...p.name)}<span class="template-dimensions">${gridSize(p.c, p.r)}</span></button>`,
+      .map((p) =>
+        UI.templateCard({
+          active: book.grid.cols === p.c && book.grid.rows === p.r,
+          data: { gridPreset: p.id },
+          title: bw(...p.use),
+          art: gridPresetMini(p),
+          label: bw(...p.name),
+          detail: gridSize(p.c, p.r),
+        }),
       )
       .join('');
     $$('[data-grid-preset]').forEach(
@@ -266,9 +270,7 @@ extend.replace(
     );
     let library = $('#gridLibrary');
     if (!library) {
-      library = document.createElement('button');
-      library.id = 'gridLibrary';
-      library.className = 'quiet';
+      library = UI.element(UI.quietButton({ id: 'gridLibrary' }));
       $('.template-heading>span').append(library);
     }
     library.textContent = bw('Ver todas…', 'View all…', 'Ver todas…');

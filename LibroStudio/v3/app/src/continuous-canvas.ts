@@ -69,10 +69,7 @@ extend(
     },
   'continuous-canvas',
 );
-const continuousButton = document.createElement('button');
-continuousButton.type = 'button';
-continuousButton.id = 'continuousCanvas';
-continuousButton.className = 'quiet';
+const continuousButton = UI.element(UI.quietButton({ id: 'continuousCanvas' }));
 $('#fitZoom').before(continuousButton);
 
 function labelContinuousCanvas(): void {
