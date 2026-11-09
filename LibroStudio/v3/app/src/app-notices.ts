@@ -29,9 +29,9 @@ function showClosePublicationDialog(actions: CloseActions): void {
   if ($('#modal').open) $('#modal').close();
   let settled = false,
     saving = false;
-  modal(
+  modal.confirm(
     bw('¿Guardamos tu libro?', 'Save your book?', 'Vamos salvar seu livro?'),
-    `<div class="close-publication-message"><div class="close-publication-symbol">${icon('save')}</div><div><h2 class="user-content">${esc(book.title)}</h2><p>${bw('Tenés cambios sin guardar. Guardalos para retomar tu trabajo tal como está.', 'You have unsaved changes. Save them to resume your work exactly as it is.', 'Você tem alterações não salvas. Salve para retomar seu trabalho como está.')}</p><p class="help">${bw('Si cerrás sin guardar, se descartan los cambios desde el último guardado.', 'Closing without saving discards changes since the last save.', 'Fechar sem salvar descarta as alterações desde o último salvamento.')}</p></div></div><p id="closePublicationError" class="inline-error"></p>`,
+    `<div class="close-publication-message"><div><h2 class="user-content">${esc(book.title)}</h2><p>${bw('Tenés cambios sin guardar. Guardalos para retomar tu trabajo tal como está.', 'You have unsaved changes. Save them to resume your work exactly as it is.', 'Você tem alterações não salvas. Salve para retomar seu trabalho como está.')}</p><p class="help">${bw('Si cerrás sin guardar, se descartan los cambios desde el último guardado.', 'Closing without saving discards changes since the last save.', 'Fechar sem salvar descarta as alterações desde o último salvamento.')}</p></div></div><p id="closePublicationError" class="inline-error"></p>`,
     async () => {
       if (saving) return false;
       saving = true;
@@ -52,8 +52,8 @@ function showClosePublicationDialog(actions: CloseActions): void {
       }
     },
     bw('Guardar y cerrar', 'Save and close', 'Salvar e fechar'),
+    { variant: 'close-publication-modal' },
   );
-  dialogVariant('close-publication-modal');
   const discard = document.createElement('button');
   discard.type = 'button';
   discard.id = 'discardPublication';

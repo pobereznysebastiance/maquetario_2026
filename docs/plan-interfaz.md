@@ -65,6 +65,18 @@ LibroStudio/v3/app/ui/
 
 El lienzo (la mesa de trabajo alrededor de la página) es sólido y neutro, para que el color del libro se juzgue bien. El vidrio nunca queda detrás de la página.
 
+## Diálogos: tres tipos (D4)
+
+Se elige el tipo con la función, nunca con una clase de tamaño. Todos usan `#modal` (salvo la confirmación simple, que es `#confirmDialog`); el tipo queda en `data-kind` y el ancho de la hoja en `data-size` mientras dure la apertura. Los tamaños son tokens `--dialog-*` de `ui/tokens/semantic.css`.
+
+| Tipo | Función | Forma |
+|---|---|---|
+| Confirmación | `confirmAction` / `askChoice` (confirm.ts), o `modal.confirm(título, cuerpo, aplicar, 'Verbo')` si lleva contenido propio | 420 px, sin cruz, el verbo en el botón. |
+| Hoja | `modal.sheet(título, cuerpo, aplicar, 'Verbo', { size: 'sm' \| 'md' \| 'lg' })`; `modal.info(título, cuerpo, 'Listo')` si sólo informa | 560 / 820 / 1040 px. Cancelar + verbo, o un solo botón. `modal(...)` sin más es una Hoja mediana. |
+| Ventana de trabajo | `modal.workspace(título, cuerpo, { action: { label, run } })` | Casi pantalla completa (tope 1600 px), sin pie: título, acciones y cruz en una barra arriba. |
+
+`variant` (en las opciones) pone una clase para el contenido de esa pantalla, no para su tamaño; `cancelLabel` cambia el texto de Cancelar ("Ahora no"). Nada de diálogo sobre diálogo: una Hoja o una Ventana reemplaza a la que esté abierta, y el explorador de fuentes abierto desde una Hoja ocupa su lugar. Sólo una Confirmación puede quedar encima de una Hoja (por ejemplo, "Cerrar sesión" desde Configuración).
+
 ## Orden de trabajo
 
 1. **Base**: tokens, capas, `base.css`, control automático. Botón, campo e ícono como primeros átomos. Translucidez real de la ventana en Electron.

@@ -56,7 +56,7 @@ function packageFontUsage(): Record<string, string> {
 function packageDialog(): void {
   if (!hasDocument || busy) return;
   const title = bw('Empaquetar proyecto', 'Package project', 'Empacotar projeto');
-  modal(
+  modal.sheet(
     title,
     `<p class="builder-intro">${bw(
       'Creá una carpeta con el proyecto editable, copias de las imágenes y un PDF del interior. Si diseñaste una cubierta, se agrega su PDF por separado.',
@@ -113,6 +113,7 @@ function packageDialog(): void {
       }
     },
     bw('Elegir carpeta…', 'Choose folder…', 'Escolher pasta…'),
+    { size: 'sm' },
   );
 }
 

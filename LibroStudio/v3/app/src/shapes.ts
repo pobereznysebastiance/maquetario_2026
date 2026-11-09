@@ -126,7 +126,7 @@ function shapeChooser(): void {
     settings(true);
     return;
   }
-  modal(
+  modal.info(
     bw('Figuras y contenedores', 'Shapes and containers', 'Figuras e contêineres'),
     `<p class="builder-intro">${bw('Elegí una figura y arrastrá sobre la página para dibujarla. Con Shift conserva proporciones iguales. Después ajustá relleno y trazo en Objeto.', 'Choose a shape and drag on the page to draw it. Hold Shift for equal proportions. Then set fill and stroke in Object.', 'Escolha uma figura e arraste na página para desenhar. Com Shift mantém proporções iguais. Depois ajuste preenchimento e traço em Objeto.')}</p><div class="shape-choices">${Object.entries(
       shapeNames,
@@ -136,7 +136,6 @@ function shapeChooser(): void {
           `<button type="button" data-shape-kind="${key}" class="shape-choice"><div>${shapeSvg({ id: 'pick-' + key, shape: key, type: 'frame', w: 50, h: 35, fill: '#3CD1BB', stroke: '#E4B16C', strokeWidth: 1.2 })}</div><strong>${bw(...labels)}</strong></button>`,
       )
       .join('')}</div>`,
-    () => true,
     bw('Cerrar', 'Close', 'Fechar'),
   );
   $$('[data-shape-kind]').forEach(

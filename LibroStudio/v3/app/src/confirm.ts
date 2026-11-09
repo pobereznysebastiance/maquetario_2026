@@ -34,6 +34,8 @@ export interface ConfirmOptions {
 const dialog = document.createElement('dialog');
 dialog.id = 'confirmDialog';
 dialog.className = 'confirm-dialog';
+// Confirmación: uno de los tres tipos de diálogo (dialog.css); el verbo va en el botón.
+dialog.dataset.kind = 'confirm';
 dialog.setAttribute('aria-labelledby', 'confirmTitle');
 dialog.innerHTML =
   '<form method="dialog" class="confirm-form"><h2 class="confirm-title" id="confirmTitle"></h2><p class="confirm-message"></p><div class="confirm-actions"></div></form>';

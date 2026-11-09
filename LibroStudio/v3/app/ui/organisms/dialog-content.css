@@ -86,9 +86,6 @@
 }
 
 /* Armador de libros (manuscrito → partes). */
-.book-builder {
-  width: min(var(--dialog-builder-width), 94vw);
-}
 .builder-intro {
   margin: 0 0 var(--space-lg);
   color: var(--text-secondary);
@@ -277,19 +274,6 @@
   gap: var(--space-md);
   padding: 0;
 }
-.close-publication-symbol {
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: var(--control-lg);
-  height: var(--control-lg);
-  border: var(--border-width) solid var(--status-warning-line);
-  border-radius: var(--radius-lg);
-  background: var(--status-warning-surface);
-}
-.close-publication-symbol .icon {
-  color: var(--status-warning);
-}
 .close-publication-message h2 {
   margin: 0 0 var(--space-sm);
   font-size: var(--type-lg);
@@ -334,14 +318,7 @@
 }
 
 /* ── Migrado de output-review.css y review.css: revisión de salida (opciones | vista previa) ── */
-.output-modal #modalForm {
-  display: flex;
-  flex-direction: column;
-  max-height: 95vh;
-}
-.output-modal .modal-header {
-  flex-shrink: 0;
-}
+/* Ventana de trabajo: opciones y vista previa ocupan todo el alto, cada una con su desplazamiento. */
 .output-modal #modalBody {
   display: flex;
   flex: 1 1 0%;
@@ -350,12 +327,10 @@
 }
 .output-review-layout {
   --output-options-width: 310px;
-  --output-layout-height: min(75vh, 820px);
   --output-layout-min: 420px;
   display: grid;
   grid-template-columns: var(--output-options-width) minmax(0, 1fr);
   width: 100%;
-  height: var(--output-layout-height);
   min-height: var(--output-layout-min);
 }
 .output-review-options {
@@ -427,9 +402,6 @@
 }
 .output-review-pane .output-sheet {
   box-shadow: var(--elevation-page);
-}
-.output-modal .modal-actions {
-  flex-shrink: 0;
 }
 .output-modal.preview-expanded .output-review-layout {
   grid-template-columns: 1fr;

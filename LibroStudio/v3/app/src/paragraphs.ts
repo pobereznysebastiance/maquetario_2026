@@ -368,7 +368,7 @@ function styleDialog(existing: ParagraphStyle | null | undefined): void {
     properties = existing
       ? M.clone(existing.properties)
       : paragraphFormat(book, o, currentParagraph(o));
-  modal(
+  modal.sheet(
     existing ? w.editTitle : w.createTitle,
     `<div class="modal-grid">${control(w.name, 'paragraphStyleName', existing?.name || '', 'text', '', '', true)}<div class="control full"><label>${w.font}</label><select id="paragraphStyleFont">${fontList.map((f) => `<option value="${esc(f)}" ${f === properties.font ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select></div>${control(w.size, 'paragraphStyleSize', properties.size, 'number', 4, 150)}${control(w.leading, 'paragraphStyleLeading', properties.leading, 'number', 4, 220)}<div class="control full"><label>${pw().panel}</label><select id="paragraphStyleAlign">${[
       ['left', w.l],

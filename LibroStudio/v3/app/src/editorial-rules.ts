@@ -160,7 +160,7 @@ function editorialRulesDialog(): void {
     })
     .join('');
   const roleLabel = bw('Función editorial', 'Editorial role', 'Função editorial');
-  modal(
+  modal.sheet(
     bw('Pauta de uso tipográfico', 'Typography usage guide', 'Pauta de uso tipográfico'),
     `
     <p class="builder-intro">${bw(
@@ -228,8 +228,8 @@ function editorialRulesDialog(): void {
       return true;
     },
     bw('Listo', 'Done', 'Pronto'),
+    { size: 'lg', variant: 'editorial-rules-dialog' },
   );
-  dialogVariant('editorial-rules-dialog');
 }
 
 decorateInspector(() => {

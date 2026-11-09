@@ -1,7 +1,24 @@
-/* Organismo: explorador de fuentes. La fuente elegida se marca con fondo de selección
-   (antes, una franja dorada a la izquierda). */
-#fontBrowser {
-  width: min(var(--font-browser-width), 95vw);
+/* Organismo: explorador de fuentes. Es una Ventana de trabajo (data-kind="workspace", ver
+   dialog.css): la lista de familias ocupa el alto disponible. La fuente elegida se marca con fondo
+   de selección (antes, una franja dorada a la izquierda). */
+
+/* Abierto desde una Hoja: ocupa su lugar en vez de apilarse (font-browser.ts → hostFontBrowser).
+   La Hoja toma el tamaño de la Ventana y esconde su contenido; el explorador va encima, sin velo. */
+#modal[data-hosting='font-browser'] {
+  width: min(var(--dialog-workspace-max-width), calc(100vw - 2 * var(--dialog-workspace-inset)));
+  max-width: none;
+  height: calc(100vh - 2 * var(--dialog-workspace-inset));
+  max-height: none;
+  overflow: hidden;
+}
+#modal[data-hosting='font-browser'] .dialog-frame {
+  visibility: hidden;
+}
+#fontBrowser[data-hosted] {
+  box-shadow: none;
+}
+#fontBrowser[data-hosted]::backdrop {
+  background: transparent;
 }
 .font-browser-row {
   border-radius: var(--radius-sm);
@@ -44,6 +61,8 @@
   max-width: 100%;
 }
 .font-browser-body {
+  display: flex;
+  flex-direction: column;
   padding: var(--space-lg) var(--space-xl);
 }
 #fontBrowserSearch {
@@ -56,13 +75,22 @@
   --font-detail-min: 260px;
   display: grid;
   grid-template-columns: minmax(var(--font-list-min), 1.2fr) minmax(var(--font-detail-min), 1fr);
+  flex: 1 1 0%;
   gap: var(--space-xl);
+  min-height: 0;
   margin-top: var(--space-md);
 }
+/* La columna de la lista: el conteo arriba y la lista con todo el alto que queda. */
+.font-browser-columns > :first-child {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 #fontBrowserList {
-  --font-list-height: 420px;
+  --font-list-min-height: 420px;
   position: relative;
-  height: var(--font-list-height);
+  flex: 1 1 0%;
+  min-height: var(--font-list-min-height);
   border: var(--border-width) solid var(--line-default);
   border-radius: var(--radius-lg);
   background: var(--surface-field);

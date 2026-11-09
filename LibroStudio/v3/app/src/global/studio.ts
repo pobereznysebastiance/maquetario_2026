@@ -1044,6 +1044,38 @@ function setTool(name: string): void {
   $$('.tool').forEach((e) => e.classList.toggle('active', e.dataset.tool === tool));
   $('#spread').style.cursor = tool === 'select' ? 'default' : 'crosshair';
 }
+// ── Diálogos: tres tipos (D4, docs/INTERFAZ_08-nov_decisiones-etapa3.md) ──
+//
+//   modal.sheet(título, cuerpo, aplicar, 'Verbo', { size })  Hoja: formulario corto, Cancelar + verbo
+//   modal.info(título, cuerpo, 'Listo', { size })            Hoja que sólo informa: un solo botón
+//   modal.workspace(título, cuerpo, { action })              Ventana de trabajo: casi pantalla completa,
+//                                                            sin Cancelar; sus acciones van arriba, junto a la cruz
+//   modal.confirm(título, cuerpo, aplicar, 'Verbo')          Confirmación con contenido propio (420 px, sin cruz)
+//   confirmAction / askChoice (confirm.ts)                   Confirmación simple (la de siempre)
+//
+// modal(título, cuerpo, aplicar, etiqueta) sigue andando: es una Hoja mediana con Cancelar.
+// Todas usan el mismo #modal: el tipo queda en data-kind (y el ancho de la hoja en data-size)
+// mientras dure la apertura. Nada de diálogo sobre diálogo: una Hoja o una Ventana reemplaza el
+// contenido de la que esté abierta; sólo una Confirmación puede quedar por encima de una Hoja.
+
+type DialogKind = 'confirm' | 'sheet' | 'workspace';
+/** Ancho de la Hoja: sm (formularios de dos o tres campos), md (por defecto), lg (dos columnas). */
+type SheetSize = 'sm' | 'md' | 'lg';
+interface DialogOptions {
+  /** Ancho de la Hoja (las otras clases tienen el suyo). */
+  size?: SheetSize;
+  /** Clase del contenido mientras dure la apertura: estilos propios de esa pantalla, no su tamaño. */
+  variant?: string;
+  /** Texto del botón secundario en lugar de "Cancelar" (por ejemplo, "Ahora no"). */
+  cancelLabel?: string;
+}
+interface WorkspaceOptions extends Omit<DialogOptions, 'size' | 'cancelLabel'> {
+  /** Acción principal de la ventana (Guardar PDF, Guardar cubierta…), en la barra del título. */
+  action?: { label: string; run: () => unknown };
+}
+/** Lo que pidió modal.sheet/info/workspace/confirm para la próxima llamada a modal(). */
+let nextDialog: { kind: DialogKind; single: boolean; options: DialogOptions } | null = null;
+
 function modal(
   title: string,
   body: string,
@@ -1052,6 +1084,8 @@ function modal(
   // Ya no se muestra (era una etiqueta en mayúsculas sobre el título); queda por la firma.
   eyebrow = '',
 ): void {
+  const setup = nextDialog || { kind: 'sheet', single: false, options: {} };
+  nextDialog = null;
   if (busy) return;
   finishEditing();
   $('#modalTitle').textContent = title;
@@ -1071,8 +1105,69 @@ function modal(
       e.textContent = (error as Error).message;
     }
   };
+  setDialogKind(setup.kind, setup.single, setup.options);
   $('#modal').showModal();
 }
+/** Pone el tipo de diálogo en #modal (botones, tamaño, clase) y lo deshace al cerrar. */
+function setDialogKind(kind: DialogKind, single: boolean, options: DialogOptions): void {
+  const dialog = $('#modal'),
+    cancel = $('#modalCancel'),
+    apply = $('#modalApply');
+  dialog.dataset.kind = kind;
+  if (kind === 'sheet') dialog.dataset.size = options.size || 'md';
+  else delete dialog.dataset.size;
+  // Hoja que sólo informa y Ventana de trabajo: no hay nada que cancelar.
+  cancel.hidden = single || kind === 'workspace';
+  // Ventana sin acción propia: se cierra con la cruz.
+  apply.hidden = kind === 'workspace' && single;
+  // Confirmación: sin cruz (Escape y el botón secundario cancelan).
+  $('#modalClose').hidden = kind === 'confirm';
+  cancel.textContent = options.cancelLabel || bw('Cancelar', 'Cancel', 'Cancelar');
+  if (options.variant) dialogVariant(options.variant);
+  onDialogClose(() => {
+    delete dialog.dataset.kind;
+    delete dialog.dataset.size;
+    cancel.hidden = apply.hidden = $('#modalClose').hidden = false;
+    cancel.textContent = bw('Cancelar', 'Cancel', 'Cancelar');
+  });
+}
+/** Hoja: formulario corto con Cancelar y el verbo de la acción. */
+modal.sheet = function (
+  title: string,
+  body: string,
+  apply: () => unknown,
+  label: string,
+  options: DialogOptions = {},
+): void {
+  nextDialog = { kind: 'sheet', single: false, options };
+  modal(title, body, apply, label);
+};
+/** Hoja que sólo informa (o elige y se cierra sola): un único botón, sin Cancelar. */
+modal.info = function (
+  title: string,
+  body: string,
+  label: string,
+  options: DialogOptions = {},
+): void {
+  nextDialog = { kind: 'sheet', single: true, options };
+  modal(title, body, () => true, label);
+};
+/** Ventana de trabajo: casi pantalla completa, sin pie; se cierra con la cruz. */
+modal.workspace = function (title: string, body: string, options: WorkspaceOptions = {}): void {
+  nextDialog = { kind: 'workspace', single: !options.action, options };
+  modal(title, body, options.action?.run || (() => true), options.action?.label || '');
+};
+/** Confirmación con contenido propio (por ejemplo, el aviso de cierre): 420 px, sin cruz. */
+modal.confirm = function (
+  title: string,
+  body: string,
+  apply: () => unknown,
+  label: string,
+  options: Omit<DialogOptions, 'size'> = {},
+): void {
+  nextDialog = { kind: 'confirm', single: false, options };
+  modal(title, body, apply, label);
+};
 function control(
   label: string,
   id: string,
@@ -1094,7 +1189,7 @@ function settings(isNew = false): void {
 }
 function settingsNew(isNew = true): void {
   let format = book.format;
-  modal(
+  modal.sheet(
     isNew ? 'Un nuevo libro, una nueva historia' : 'Configuración del libro',
     `<div class="book-setup"><section class="book-setup-sizes"><p class="book-setup-label">${bw('Tamaño de página', 'Page size', 'Tamanho da página')}</p><div class="format-options">${Object.entries(
       M.formats,
@@ -1173,8 +1268,8 @@ function settingsNew(isNew = true): void {
       return true;
     },
     isNew ? 'Crear libro' : 'Aplicar al libro',
+    { size: 'lg', variant: 'book-setup-dialog' },
   );
-  dialogVariant('book-setup-dialog');
   $$('.format-option').forEach(
     (el) =>
       (el.onclick = () => {
@@ -1413,7 +1508,7 @@ function command(name: string): void {
 }
 function exportDialog(): void {
   let count = Math.ceil(book.pages.length / 4) * 4;
-  modal(
+  modal.sheet(
     'Tu libro, listo para salir',
     `<label class="export-choice"><input type="radio" name="exportMode" value="reading" checked>${icon('file')}<span><b>PDF de lectura</b><small>Páginas individuales en orden.\n${displayDimensions(book.width, book.height)} · ${book.pages.length} páginas.</small></span></label><label class="export-choice"><input type="radio" name="exportMode" value="booklet">${icon('pages')}<span><b>PDF para abrochado al medio</b><small>Imposición automática. ${count} páginas · ${count / 4} hojas.\n${count - book.pages.length ? count - book.pages.length + ' páginas en blanco adicionales.' : 'Sin páginas en blanco adicionales.'}</small></span></label><div class="modal-grid"><div class="control"><label>Papel del cuadernillo</label><select id="exportPaper"><option value="A4">A4 · 297 × 210 mm</option><option value="A3">A3 · 420 × 297 mm</option><option value="auto">Pliego a medida · tamaño real</option></select></div><div class="control"><label>Ajuste de las páginas</label><select id="exportScale"><option value="fit">Reducir solo si no entran</option><option value="actual">Tamaño real · sin reducir</option></select></div></div><div class="notice">El PDF incluye las cornisas, titulillos y folios; las guías no se exportan. Para abrochado: imprimí doble faz por el borde corto y sin volver a aplicar “modo folleto”.<br><br>Sin marcas de corte, sangrado ni compensación por grosor. Revisá el cuadernillo con una impresión de prueba.</div>`,
     () => {
@@ -1547,7 +1642,7 @@ async function offerRecovery(): Promise<void> {
       db.close();
       if (req.result) {
         const b = M.validate(JSON.parse(req.result));
-        modal(
+        modal.sheet(
           'Retomá tu último libro',
           `<p class="help">${bw(`Hay una copia de recuperación de <b>${esc(b.title)}</b> con ${b.pages.length} páginas en este equipo. Tus archivos guardados no se modifican.`, `There is a recovery copy of <b>${esc(b.title)}</b> with ${b.pages.length} pages on this computer. Your saved files are not changed.`, `Há uma cópia de recuperação de <b>${esc(b.title)}</b> com ${b.pages.length} páginas neste computador. Seus arquivos salvos não são alterados.`)}</p><p class="help">${bw('Si elegís Ahora no, la copia queda guardada en este equipo hasta que crees o edites otro libro.', 'If you choose Not now, the copy stays on this computer until you create or edit another book.', 'Se você escolher Agora não, a cópia fica neste computador até você criar ou editar outro livro.')}</p>`,
           () => {
@@ -1557,13 +1652,9 @@ async function offerRecovery(): Promise<void> {
             render(true);
           },
           'Recuperar libro',
+          // El botón secundario dice la acción (la copia queda guardada).
+          { size: 'sm', cancelLabel: bw('Ahora no', 'Not now', 'Agora não') },
         );
-        // El botón secundario dice la acción; al cerrar vuelve a ser "Cancelar" para los demás diálogos.
-        const cancel = $('#modal .modal-actions button[value="cancel"]');
-        if (cancel) {
-          cancel.textContent = bw('Ahora no', 'Not now', 'Agora não');
-          onDialogClose(() => (cancel.textContent = 'Cancelar'));
-        }
       }
     };
   } catch {}

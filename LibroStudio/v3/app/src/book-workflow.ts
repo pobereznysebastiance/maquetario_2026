@@ -523,9 +523,8 @@ function installNovel(b: Book): void {
 function bookBuilder(sample = false): void {
   const run = () => {
     hideWelcome();
-    dialogVariant('book-builder');
     const d: NovelData = sample ? novelSample() : { title: '', author: '', source: '' };
-    modal(
+    modal.sheet(
       bw('Dale estructura a tu libro', 'Give your book a structure', 'Dê estrutura ao seu livro'),
       `<div class="builder-steps"><span>1 · ${bw('Datos', 'Details', 'Dados')}</span><span>2 · ${bw('Partes y manuscrito', 'Parts and manuscript', 'Partes e manuscrito')}</span><span>3 · ${bw('Crear y revisar', 'Create and review', 'Criar e revisar')}</span></div><p class="builder-intro">${bw('Prepará todas las partes en un solo lugar. El manuscrito se distribuye según el espacio real de las páginas A5 y queda editable, con estilos vinculados.', 'Prepare every part in one place. The manuscript is distributed using real A5 page space and remains editable with linked styles.', 'Prepare todas as partes em um lugar. O manuscrito é distribuído pelo espaço real das páginas A5 e fica editável, com estilos vinculados.')}</p><div class="modal-grid">${control(bw('Título', 'Title', 'Título'), 'novelTitle', d.title, 'text', '', '')}${control(bw('Autor/a', 'Author', 'Autor/a'), 'novelAuthor', d.author, 'text', '', '')}</div><div class="builder-parts"><label class="check-line"><input id="novelToc" type="checkbox" checked>${bw('Índice automático', 'Automatic contents', 'Sumário automático')}</label><label class="check-line"><input id="novelBlanks" type="checkbox" checked>${bw('Blancos de cortesía', 'Blank versos', 'Versos em branco')}</label><label class="check-line"><input id="novelRule" type="checkbox">${bw('Línea en cornisas', 'Header rules', 'Linhas nos cabeçalhos')}</label></div><details><summary>${bw('Dedicatoria, epígrafe, legales y cierre', 'Dedication, epigraph, copyright and closing', 'Dedicatória, epígrafe, créditos e encerramento')}</summary>${(
         [
@@ -633,7 +632,7 @@ function preflightDialog(): void {
     return;
   }
   const issues = preflightBook();
-  modal(
+  modal.sheet(
     bw('Revisar el libro completo', 'Check the whole book', 'Revisar o livro completo'),
     `<p class="builder-intro">${book.pages.length} ${bw('páginas revisadas. Este control comprueba texto sobrante y objetos fuera de página.', 'pages checked. This checks overset text and objects outside the page.', 'páginas revisadas. Este controle verifica texto excedente e objetos fora da página.')}</p>${issues.length ? issues.map((issue) => `<div class="preflight-item warn">${bw('Página', 'Page', 'Página')} ${issue.page + 1} · ${issue.kind === 'overflow' ? bw('Texto sobrante', 'Overset text', 'Texto excedente') : bw('Objeto fuera de página', 'Object outside page', 'Objeto fora da página')}<button type="button" class="preflight-link" data-issue-page="${issue.page}">${bw('Ir a la página', 'Go to page', 'Ir à página')}</button></div>`).join('') : `<div class="preflight-item ok">✓ ${bw('Sin desbordamientos ni objetos fuera de página.', 'No overset text or objects outside the page.', 'Sem texto excedente nem objetos fora da página.')}</div>`}<p class="help">${bw('Revisá también ortografía, cortes de párrafo y calidad de imágenes. Cambiar un estilo puede hacer que sobre texto: repetí este control antes de exportar.', 'Also review spelling, paragraph breaks and image quality. Style changes may cause overset text: repeat this check before exporting.', 'Revise também ortografia, quebras de parágrafo e qualidade de imagens. Alterar um estilo pode causar excesso: repita este controle antes de exportar.')}</p>`,
     () => {

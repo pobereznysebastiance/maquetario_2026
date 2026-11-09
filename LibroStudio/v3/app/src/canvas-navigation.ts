@@ -389,7 +389,7 @@ const shortcutButton = UI.element(
 );
 $('#fullscreen').before(shortcutButton);
 shortcutButton.onclick = () =>
-  modal(
+  modal.info(
     bw('Moverse por la maqueta', 'Navigate the layout', 'Navegar pela diagramação'),
     `<table class="canvas-shortcut-table">${[
       [
@@ -446,7 +446,6 @@ shortcutButton.onclick = () =>
       .join(
         '',
       )}</table><p class="help">${bw('Los atajos de navegación no se activan mientras escribís en un campo o editás texto. El 100% usa píxeles de pantalla y no calibra el tamaño físico de tu monitor.', 'Navigation shortcuts do not activate while typing in fields or editing text. 100% uses screen pixels and does not calibrate physical monitor size.', 'Atalhos de navegação não ativam ao digitar em campos ou editar texto. 100% usa pixels de tela e não calibra o tamanho físico do monitor.')}</p>`,
-    () => true,
     bw('Cerrar', 'Close', 'Fechar'),
   );
 extend.after(

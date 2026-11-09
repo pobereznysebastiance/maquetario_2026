@@ -63,6 +63,8 @@ function entryFor(name: string): Entry {
     globals[name] = function (this: unknown, ...args: unknown[]) {
       return created.composed.apply(this, args);
     };
+    // Lo que cuelga de la función (por ejemplo modal.sheet o modal.workspace) sigue a mano.
+    Object.assign(globals[name] as object, base);
   }
   return entry;
 }

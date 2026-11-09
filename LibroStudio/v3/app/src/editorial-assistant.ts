@@ -430,13 +430,11 @@ async function openEditorialAssistant(): Promise<void> {
   try {
     classServiceInfo = await nativeCall('assistantStatus');
   } catch {}
-  modal(
+  modal.workspace(
     bw('Asistente editorial', 'Editorial assistant', 'Assistente editorial'),
     `<div class="assistant-hero"><div><h2>${bw('Revisar mi libro', 'Review my book', 'Revisar meu livro')}</h2><p>${bw('Encontrá detalles, entendé el motivo y decidí qué cambiar.', 'Find details, understand why and decide what to change.', 'Encontre detalhes, entenda o motivo e decida o que mudar.')}</p></div></div><div class="assistant-workspace"><aside><button type="button" class="btn assistant-run" id="runAutomaticReview">${bw('Revisión automática', 'Automatic review', 'Revisão automática')}</button><p class="help">${bw('Sin conexión. No envía contenido.', 'Offline. Sends no content.', 'Sem conexão. Não envia conteúdo.')}</p><hr><h3>${bw('IA del aula', 'Classroom AI', 'IA da turma')}</h3><p class="help" id="assistantConnection">${classServiceInfo.configured ? bw('Aula conectada', 'Classroom connected', 'Turma conectada') : bw('Pendiente de conectar al servicio del docente.', 'Waiting for the teacher service connection.', 'Aguardando conexão ao serviço do docente.')}</p><button type="button" class="btn wide" id="assistantConnect">${bw('Conectar aula', 'Connect classroom', 'Conectar turma')}</button><label class="builder-label" for="assistantScope">${bw('Consulta con IA', 'AI review scope', 'Consulta com IA')}</label><select id="assistantScope"><option value="page">${bw('Página activa', 'Active page', 'Página ativa')}</option><option value="structure">${bw('Estructura del libro', 'Book structure', 'Estrutura do livro')}</option></select><p class="help">${bw('Página activa: envía texto y medidas, hasta 20.000 caracteres. Estructura: solo títulos de partes y medidas, sin el cuerpo del manuscrito. No envía imágenes ni archivos.', 'Active page: sends text and dimensions, up to 20,000 characters. Structure: only part titles and dimensions, without manuscript body text. Sends no images or files.', 'Página ativa: envia texto e medidas, até 20.000 caracteres. Estrutura: apenas títulos das partes e medidas, sem o corpo do manuscrito. Não envia imagens nem arquivos.')}</p><label class="check-line assistant-consent"><input type="checkbox" id="assistantConsent">${bw('Autorizo enviar esta consulta al servicio de IA del aula.', 'I authorize sending this query to the classroom AI service.', 'Autorizo enviar esta consulta ao serviço de IA da turma.')}</label><button type="button" class="btn wide" id="runClassroomAI" ${classServiceInfo.configured ? '' : 'disabled'}>${bw('Consultar IA', 'Ask AI', 'Consultar IA')}</button><p class="help">${bw('Las sugerencias de IA pueden equivocarse. No cambian el libro automáticamente.', 'AI suggestions can be wrong. They do not change the book automatically.', 'Sugestões da IA podem estar erradas. Não alteram o livro automaticamente.')}</p></aside><section><div id="assistantSummary"></div><p class="notice" id="assistantStale" hidden>${bw('El libro cambió. Repetí la revisión para actualizar los hallazgos.', 'The book changed. Run the review again to refresh findings.', 'O livro mudou. Repita a revisão para atualizar as observações.')}</p><div id="assistantFindings"></div><p id="assistantError" class="inline-error"></p></section></div>`,
-    () => true,
-    bw('Volver al editor', 'Back to editor', 'Voltar ao editor'),
+    { variant: 'assistant-modal' },
   );
-  dialogVariant('assistant-modal');
   $('#runAutomaticReview').onclick = runAutomaticReview;
   $('#assistantConnect').onclick = configureClassroom;
   $('#runClassroomAI').onclick = runClassroomReview;
@@ -467,7 +465,7 @@ async function runAutomaticReview(): Promise<void> {
   }
 }
 function configureClassroom(): void {
-  modal(
+  modal.sheet(
     bw('Conectar el aula', 'Connect classroom', 'Conectar turma'),
     `<p class="builder-intro">${bw('Tu docente te entrega un código. La clave del proveedor de IA nunca se instala en los equipos de estudiantes.', 'Your teacher provides a code. The AI provider key is never installed on student computers.', 'Seu docente fornece um código. A chave do provedor de IA nunca é instalada nos computadores dos alunos.')}</p><label class="builder-label" for="classCode">${bw('Código de aula', 'Classroom code', 'Código da turma')}</label><input id="classCode" type="password" autocomplete="off" maxlength="200" placeholder="${classServiceInfo.configured ? bw('Dejar vacío para conservar', 'Leave blank to keep', 'Deixar vazio para manter') : ''}"><details ${classServiceInfo.serviceUrl ? '' : 'open'}><summary>${bw('Configuración del docente', 'Teacher setup', 'Configuração do docente')}</summary><label class="builder-label" for="classUrl">${bw('Dirección del servicio del aula', 'Classroom service address', 'Endereço do serviço da turma')}</label><input id="classUrl" type="url" value="${esc(classServiceInfo.serviceUrl || '')}" placeholder="https://…"><p class="help">${bw('Podés distribuir maquetario-aula.json junto al ejecutable con esta dirección. Los estudiantes solo ingresan el código. El servicio central se publica por separado.', 'Distribute maquetario-aula.json next to the executable with this address. Students only enter the code. Publish the central service separately.', 'Distribua maquetario-aula.json junto ao executável com este endereço. Alunos só informam o código. O serviço central é publicado separadamente.')}</p></details>`,
     async () => {
@@ -478,6 +476,7 @@ function configureClassroom(): void {
       setTimeout(openEditorialAssistant, 30);
     },
     bw('Guardar conexión', 'Save connection', 'Salvar conexão'),
+    { size: 'sm' },
   );
 }
 function classroomPayload(scope: string) {

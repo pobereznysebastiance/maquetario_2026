@@ -86,7 +86,7 @@ extend.around(
           selected = o.id;
         }, true);
       $('#addTocEntry').onclick = () => {
-        modal(
+        modal.sheet(
           'Nueva entrada del índice',
           `<div class="modal-grid">${control('Texto de la entrada', 'entryLabel', '', 'text', '', '', true)}<div class="control full"><label>Página de referencia</label><select id="entryPage">${book.pages.map((p, i) => `<option value="${p.id}" ${i === active ? 'selected' : ''}>${i + 1} · ${esc(M.sectionAt(book, i))}</option>`).join('')}</select></div></div>`,
           () => {
@@ -96,6 +96,7 @@ extend.around(
             commit(() => ensureToc().entries.push({ id: M.uid(), label, pageId }), false);
           },
           'Agregar entrada',
+          { size: 'sm' },
         );
       };
       $$('[data-remove-entry]').forEach(
@@ -205,10 +206,9 @@ function extraTextControls(): void {
   $('#openIndexFromText').onclick = () => showTab('index');
   $('#glyphPanel').onclick = () => {
     const target = selectObject()!;
-    modal(
+    modal.info(
       'Glifos y caracteres especiales',
       `<p class="help">Elegí un carácter para agregarlo al final del cuadro seleccionado. Su disponibilidad depende de la tipografía.</p><div class="glyph-grid">${[...'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŒÙÚÛÜÝŸàáâãäåæçèéêëìíîïðñòóôõöøœùúûüýÿß¿¡«»“”‘’—–…•·©®™€£¥¢§¶†‡±×÷¼½¾¹²³←↑→↓'].map((c) => `<button type="button" data-glyph="${esc(c)}" style="font-family:${esc(target.font)}">${esc(c)}</button>`).join('')}</div>`,
-      () => true,
       'Cerrar',
     );
     $$('[data-glyph]').forEach(
@@ -230,7 +230,7 @@ function extraGuideControls(): void {
   box.innerHTML = `<details class="guide-controls"><summary>Guías individuales</summary><p class="help">Guías horizontales y verticales en todas las páginas. No se imprimen.</p><button class="btn wide" id="addGuide">Agregar guía</button><div class="guide-list">${(book.guides || []).map((g: BookGuide, i: number) => `<div class="field-row"><span>${g.axis === 'v' ? 'Vertical' : 'Horizontal'} · ${displayMeasure(g.position)} ${documentUnit()}</span><button class="icon-btn" data-remove-guide="${i}" aria-label="Quitar guía">${icon('close')}</button></div>`).join('')}</div></details>`;
   first.append(box);
   $('#addGuide').onclick = () => {
-    modal(
+    modal.sheet(
       'Nueva guía',
       `<div class="modal-grid"><div class="control"><label>Orientación</label><select id="guideAxis"><option value="v">Vertical</option><option value="h">Horizontal</option></select></div>${control('Posición desde el borde · mm', 'guidePosition', 20, 'number', 0, Math.max(book.width, book.height))}</div>`,
       () => {
@@ -244,6 +244,7 @@ function extraGuideControls(): void {
         }, false);
       },
       'Agregar guía',
+      { size: 'sm' },
     );
   };
   $$('[data-remove-guide]').forEach(

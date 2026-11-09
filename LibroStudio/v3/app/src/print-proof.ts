@@ -167,7 +167,7 @@ function coverSheetDialog(destination: string): void {
     crop: $('#coverSheetCrop').checked,
     fit: $('#coverSheetFit').checked,
   });
-  modal(
+  modal.workspace(
     title,
     `<div class="cover-sheet-layout"><aside>
     ${
@@ -191,29 +191,33 @@ function coverSheetDialog(destination: string): void {
     )}</p>
     <p id="outputError" class="inline-error"></p>
     </aside><div><div id="coverSheetPreview"></div><p id="coverSheetSummary" class="help" aria-live="polite"></p></div></div>`,
-    () => {
-      const options = config(),
-        copies = printing ? Number($('#coverSheetCopies').value) : 1;
-      const printer = printing ? $('#outPrinter').value : '';
-      if (printing && !printer) throw Error(w.unavailable);
-      if (!Number.isInteger(copies) || copies < 1 || copies > 99) throw Error('1–99');
-      if (coverOverflow(book.cover))
-        throw Error(
-          bw(
-            'Hay texto que no cabe en la cubierta.',
-            'Some cover text does not fit.',
-            'Há texto que não cabe na capa.',
-          ),
-        );
-      prepareOutput(options);
-      clearPrint();
-      $('#modal').close();
-      void sendOutput(destination, { options, copies, printer, duplex: 'one' });
-      return false;
+    {
+      variant: 'cover-sheet-dialog',
+      action: {
+        label: printing ? w.send : w.save,
+        run: () => {
+          const options = config(),
+            copies = printing ? Number($('#coverSheetCopies').value) : 1;
+          const printer = printing ? $('#outPrinter').value : '';
+          if (printing && !printer) throw Error(w.unavailable);
+          if (!Number.isInteger(copies) || copies < 1 || copies > 99) throw Error('1–99');
+          if (coverOverflow(book.cover))
+            throw Error(
+              bw(
+                'Hay texto que no cabe en la cubierta.',
+                'Some cover text does not fit.',
+                'Há texto que não cabe na capa.',
+              ),
+            );
+          prepareOutput(options);
+          clearPrint();
+          $('#modal').close();
+          void sendOutput(destination, { options, copies, printer, duplex: 'one' });
+          return false;
+        },
+      },
     },
-    printing ? w.send : w.save,
   );
-  dialogVariant('cover-sheet-dialog');
   function refresh(): void {
     const box = $('#coverSheetPreview'),
       options = config();

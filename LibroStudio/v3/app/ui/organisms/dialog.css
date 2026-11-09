@@ -1,6 +1,12 @@
-/* Organismo: diálogo. Una sola forma para todos (configuración, salida, fuentes, avisos…).
-   Hoja sólida (nunca vidrio sobre vidrio), título sobrio, cruz dibujada, acciones abajo a la derecha.
-   Sin etiqueta superior: el título se sostiene solo. */
+/* Organismo: diálogo. Tres tipos (D4, docs/INTERFAZ_08-nov_decisiones-etapa3.md); el tipo lo
+   pone modal.sheet / modal.info / modal.workspace / modal.confirm (studio.ts) en data-kind, y
+   nadie escribe su tamaño a mano:
+   - Confirmación (data-kind="confirm"): una pregunta, sin cruz, el verbo en el botón.
+   - Hoja (data-kind="sheet", data-size sm|md|lg): formulario corto, acciones abajo a la derecha.
+     Si sólo informa, un único botón (Listo / Cerrar).
+   - Ventana de trabajo (data-kind="workspace"): casi pantalla completa, sin pie; sus acciones van
+     en la barra del título, junto a la cruz, y el contenido se desplaza debajo.
+   Hoja sólida (nunca vidrio sobre vidrio), título sobrio, cruz dibujada. Sin etiqueta superior. */
 dialog {
   padding: 0;
   border: var(--border-width) solid var(--line-default);
@@ -10,44 +16,97 @@ dialog {
   box-shadow: var(--elevation-3);
   backdrop-filter: none;
 }
-/* Tamaño: apaisado por defecto; el contenido largo se desplaza dentro de la hoja.
-   Las variantes (clase puesta con dialogVariant) declaran su ancho; el selector de elemento
-   pesa menos que cualquier clase, así que una variante siempre le gana. */
+/* Hoja (y cualquier diálogo sin tipo): apaisada; el contenido largo se desplaza dentro. */
 dialog {
-  width: min(var(--dialog-width), 92vw);
-  max-height: var(--dialog-max-height);
+  width: min(var(--dialog-sheet-md-width), 92vw);
+  max-height: var(--dialog-sheet-max-height);
   overflow: auto;
 }
-.output-modal {
-  width: min(var(--dialog-output-width), 97vw);
-  max-width: 97vw;
-  max-height: 96vh;
+dialog[data-size='sm'] {
+  width: min(var(--dialog-sheet-sm-width), 92vw);
+}
+dialog[data-size='lg'] {
+  width: min(var(--dialog-sheet-lg-width), 94vw);
+}
+dialog[data-kind='confirm'] {
+  width: min(var(--dialog-confirm-width), 92vw);
+}
+/* Los botones que el tipo esconde (Cancelar en una Hoja que informa, la cruz en una confirmación). */
+dialog :is(.btn, .icon-btn)[hidden] {
+  display: none;
+}
+
+/* ── Ventana de trabajo ── */
+dialog[data-kind='workspace'] {
+  width: min(
+    var(--dialog-workspace-max-width),
+    calc(100vw - 2 * var(--dialog-workspace-inset))
+  );
+  max-width: none;
+  height: calc(100vh - 2 * var(--dialog-workspace-inset));
+  max-height: none;
   overflow: hidden;
 }
-.cover-modal {
-  width: min(var(--dialog-cover-width), 95vw);
+/* Una barra arriba (título · acciones · cruz) y el contenido debajo, que se desplaza solo. */
+dialog[data-kind='workspace'] .dialog-frame {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
 }
-.assistant-modal {
-  width: min(var(--dialog-assistant-width), 96vw);
+dialog[data-kind='workspace'] .dialog-frame::before {
+  content: '';
+  grid-area: 1 / 1 / 2 / 4;
+  border-bottom: var(--border-width) solid var(--line-subtle);
+  pointer-events: none;
 }
-.glossary-modal {
-  width: min(var(--dialog-glossary-width), 95vw);
+dialog[data-kind='workspace'] .modal-header {
+  display: contents;
 }
-.glyph-real-modal {
-  width: min(var(--dialog-glyph-width), 96vw);
+dialog[data-kind='workspace'] .modal-header > :first-child {
+  grid-area: 1 / 1;
+  align-self: center;
+  min-width: 0;
+  padding: var(--space-lg) var(--space-md) var(--space-lg) var(--space-xl);
 }
-.grid-gallery {
-  width: min(var(--dialog-grid-gallery-width), 94vw);
+dialog[data-kind='workspace'] .modal-actions {
+  position: static;
+  grid-area: 1 / 2;
+  align-self: center;
+  padding: var(--space-sm) var(--space-md);
+  border-top: 0;
+  background: transparent;
 }
-.editorial-rules-dialog {
-  width: min(var(--dialog-rules-width), 95vw);
+/* Sin acción propia (glosario, glifos, asistente): sólo el título y la cruz. */
+dialog[data-kind='workspace'] .modal-actions:not(:has(> :not([hidden]))) {
+  display: none;
 }
-.book-setup-dialog {
-  width: min(var(--dialog-book-setup-width), 94vw);
+dialog[data-kind='workspace'] .modal-header > .icon-btn {
+  grid-area: 1 / 3;
+  align-self: center;
+  margin-right: var(--space-lg);
 }
-/* Cerrar con cambios sin guardar: una pregunta, compacta como una confirmación. */
-.close-publication-modal {
-  width: min(var(--dialog-close-width), 94vw);
+dialog[data-kind='workspace'] .dialog-body {
+  grid-area: 2 / 1 / 3 / 4;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* ── Confirmación dentro de #modal (aviso de cierre): misma forma que #confirmDialog ── */
+dialog[data-kind='confirm'] .modal-header {
+  padding: var(--space-xl) var(--space-xl) 0;
+  border-bottom: 0;
+}
+dialog[data-kind='confirm'] .modal-header h1 {
+  font-size: var(--type-title3);
+}
+dialog[data-kind='confirm'] #modalBody {
+  padding: var(--space-sm) var(--space-xl) 0;
+}
+dialog[data-kind='confirm'] .modal-actions {
+  margin-top: var(--space-lg);
+  padding: 0 var(--space-xl) var(--space-lg);
+  border-top: 0;
 }
 dialog::backdrop {
   background: var(--material-scrim);
@@ -95,11 +154,7 @@ dialog .modal-actions {
   background: var(--material-sheet);
 }
 
-/* Confirmación: compacta, la pregunta es el título; sin cabecera ni cruz. */
-.confirm-dialog {
-  --confirm-width: 420px;
-  width: min(var(--confirm-width), 92vw);
-}
+/* Confirmación (#confirmDialog, data-kind="confirm"): la pregunta es el título; sin cabecera ni cruz. */
 .confirm-form {
   display: flex;
   flex-direction: column;
@@ -214,7 +269,3 @@ dialog .modal-actions {
   color: var(--text-primary);
 }
 
-/* ── Migrado de package-proof.css: ficha de medidas de la cubierta ── */
-.cover-sheet-dialog {
-  width: min(var(--dialog-cover-sheet-width), 94vw);
-}

@@ -180,22 +180,15 @@
   --template-panel-min: 165px;
   --template-heading-height: 44px;
   --tutorial-card-width: 420px;
-  --dialog-builder-width: 760px;
-  /* Diálogos: apaisados (más anchos que altos). Cada variante declara su ancho. */
-  --dialog-width: 820px;
-  --dialog-max-height: 90vh;
-  --dialog-settings-width: 980px;
-  --dialog-book-setup-width: 1040px;
-  --dialog-output-width: 1460px;
-  --dialog-cover-width: 1280px;
-  --dialog-cover-sheet-width: 940px;
-  --dialog-assistant-width: 1140px;
-  --dialog-glossary-width: 1100px;
-  --dialog-glyph-width: 1050px;
-  --dialog-grid-gallery-width: 900px;
-  --dialog-rules-width: 1260px;
-  --dialog-close-width: 460px;
-  --font-browser-width: 960px;
+  /* Diálogos: tres tipos (D4). Confirmación, Hoja (tres anchos, apaisada) y Ventana de trabajo
+     (casi pantalla completa: la ventana menos un margen, con un tope en pantallas muy anchas). */
+  --dialog-confirm-width: 420px;
+  --dialog-sheet-sm-width: 560px;
+  --dialog-sheet-md-width: 820px;
+  --dialog-sheet-lg-width: 1040px;
+  --dialog-sheet-max-height: 90vh;
+  --dialog-workspace-max-width: 1600px;
+  --dialog-workspace-inset: var(--space-xl);
   --builder-source-height: 190px;
   --builder-short-height: 55px;
   --shape-preview-width: 150px;

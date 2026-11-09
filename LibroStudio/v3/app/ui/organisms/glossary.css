@@ -115,10 +115,6 @@
   }
 }
 
-/* Es para leer: una sola acción para salir ("Volver al editor"); Cancelar no tiene nada que cancelar. */
-.glossary-modal .modal-actions button[value='cancel'] {
-  display: none;
-}
 .glossary-note {
   margin: var(--space-lg) 0 0;
   padding-top: var(--space-md);

@@ -473,7 +473,7 @@ globalThis.coverEditor = function (): void {
   finishEditing();
   coverDraft = M.clone(book.cover || defaultCover());
   coverPart = 'front';
-  modal(
+  modal.workspace(
     bw('Cubierta desplegada', 'Full cover spread', 'Capa aberta'),
     `<p class="builder-intro">${bw('Diseñá la pieza exterior en el mismo proyecto. El ancho de tapa y contratapa y el alto siguen al interior. El lomo se ingresa según la medida final de la imprenta. Poné 0 para quitar lomo o solapas.', 'Design the exterior in the same project. Front/back width and height follow the interior. Enter the final printer-supplied spine width. Set 0 to remove spine or flaps.', 'Crie o exterior no mesmo projeto. Largura e altura seguem o miolo. Informe a lombada final fornecida pela gráfica. Use 0 para remover lombada ou orelhas.')}</p><div class="cover-stage"><div id="coverPreview"></div><div class="cover-tabs">${Object.entries(
       coverNames(),
@@ -505,13 +505,17 @@ globalThis.coverEditor = function (): void {
       .join(
         '',
       )}<label>${bw('Fondo', 'Background', 'Fundo')}<input id="coverBackground" type="color" value="${coverDraft!.background}"></label></div><p class="help">${bw('Las guías no se exportan. El sangrado extiende el fondo; las imágenes deben cubrirlo si llegan al corte. La cubierta se exporta aparte del interior, en una sola pieza.', 'Guides are not exported. Bleed extends the background; images must cover it if they reach the trim. Export the cover separately as one spread.', 'Guias não são exportadas. A sangria estende o fundo; imagens devem cobri-la se chegam ao corte. A capa é exportada separada do miolo, em uma peça.')}</p></div>`,
-    () => {
-      validateCover(coverDraft!);
-      commit(() => (book.cover = M.clone(coverDraft)), false);
+    {
+      variant: 'cover-modal',
+      action: {
+        label: bw('Guardar cubierta', 'Save cover', 'Salvar capa'),
+        run: () => {
+          validateCover(coverDraft!);
+          commit(() => (book.cover = M.clone(coverDraft)), false);
+        },
+      },
     },
-    bw('Guardar cubierta', 'Save cover', 'Salvar capa'),
   );
-  dialogVariant('cover-modal');
   $$('[data-cover-size]').forEach(
     (el) =>
       (el.onchange = () => {

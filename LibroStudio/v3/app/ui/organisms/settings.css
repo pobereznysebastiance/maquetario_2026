@@ -1,14 +1,6 @@
-/* Organismo: Configuración. Apaisada, en dos columnas: a la izquierda las secciones cortas
+/* Organismo: Configuración. Hoja grande que sólo informa (modal.info, un botón "Listo"). Apaisada, en dos columnas: a la izquierda las secciones cortas
    (cuenta, interfaz, carpetas, acerca de) y a la derecha Espacio de trabajo, que es la más larga.
    Una fila por preferencia: etiqueta (y ayuda) a la izquierda, control a la derecha. Sin tarjetas. */
-.settings-modal {
-  width: min(var(--dialog-settings-width), 94vw);
-  max-width: none;
-}
-.settings-modal .modal-actions button[value='cancel'] {
-  display: none;
-}
-
 .settings {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);

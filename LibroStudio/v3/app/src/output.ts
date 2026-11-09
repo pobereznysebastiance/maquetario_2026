@@ -467,7 +467,7 @@ globalThis.readPrinters = async function () {
 globalThis.outputDialog = async function (destination) {
   const w = ow(),
     print = destination === 'print';
-  modal(
+  modal.workspace(
     print ? w.title : w.pdf,
     `${print ? `<div class="control"><label>${w.printer}</label><div class="printer-row"><select id="outPrinter"><option value="">${w.loading}</option></select><button type="button" id="refreshPrinters" class="btn" title="${bw('Volver a buscar', 'Refresh', 'Atualizar')}">${icon('refresh')}</button></div></div>` : ''}<div class="modal-grid output-grid"><div class="control"><label>${w.mode}</label><select id="outMode"><option value="reading">${w.reading}</option><option value="spreads">${bw('Pliegos en orden de lectura', 'Spreads in reading order', 'Duplas na ordem de leitura')}</option><option value="booklet">${w.booklet}</option></select></div><div class="control"><label>${w.paper}</label><select id="outPaper"><option value="book" ${!print ? 'selected' : ''}>${w.custom}</option><option value="A4" ${print ? 'selected' : ''}>A4</option><option value="A3">A3</option><option value="A5">A5</option><option value="Letter">Letter</option></select></div>${print ? `<div class="control"><label>${w.copies}</label><input id="outCopies" type="number" min="1" max="99" value="1"></div><div class="control"><label>${w.duplex}</label><select id="outDuplex"><option value="one">${w.one}</option><option value="short">${w.short}</option><option value="long">${w.long}</option></select></div>` : ''}</div><div class="output-options">${[
       ['Crop', w.trim, false],
@@ -486,23 +486,31 @@ globalThis.outputDialog = async function (destination) {
       .join(
         '',
       )}</div><p class="help">${w.guidesNote}</p><div class="output-preview-title">${w.preview}</div><div id="outputPreview"></div><p id="outputSummary" class="help"></p><p id="outputError" class="inline-error"></p><div class="notice">${w.note}${print ? '<br>' + w.safe : ''}</div>`,
-    () => {
-      if (print && !$('#outPrinter').value) throw Error(w.unavailable);
-      const options = outputConfigFromDialog(),
-        printer = print ? $('#outPrinter').value : '',
-        copies = print ? Number($('#outCopies').value) : 1,
-        duplex = print ? $('#outDuplex').value : 'one';
-      if (!Number.isInteger(copies) || copies < 1 || copies > 99) throw Error('1–99');
-      if (print && duplex !== 'one' && !installedPrinters.find((p) => p.name === printer)?.duplex)
-        throw Error(w.noDuplex);
-      outputGeometry(options);
-      $('#modal').close();
-      sendOutput(destination, { options, printer, copies, duplex });
-      return false;
+    {
+      variant: 'output-modal',
+      action: {
+        label: print ? w.send : w.save,
+        run: () => {
+          if (print && !$('#outPrinter').value) throw Error(w.unavailable);
+          const options = outputConfigFromDialog(),
+            printer = print ? $('#outPrinter').value : '',
+            copies = print ? Number($('#outCopies').value) : 1,
+            duplex = print ? $('#outDuplex').value : 'one';
+          if (!Number.isInteger(copies) || copies < 1 || copies > 99) throw Error('1–99');
+          if (
+            print &&
+            duplex !== 'one' &&
+            !installedPrinters.find((p) => p.name === printer)?.duplex
+          )
+            throw Error(w.noDuplex);
+          outputGeometry(options);
+          $('#modal').close();
+          sendOutput(destination, { options, printer, copies, duplex });
+          return false;
+        },
+      },
     },
-    print ? w.send : w.save,
   );
-  dialogVariant('output-modal');
   $('#modalBody')
     .querySelectorAll('select,input')
     .forEach((input) => input.addEventListener('change', outputPreview));

@@ -56,7 +56,8 @@ globalThis.fontBrowserVariant = '';
 globalThis.fontBrowserMatches = [];
 const fontBrowser = document.createElement('dialog');
 fontBrowser.id = 'fontBrowser';
-fontBrowser.innerHTML = `<div class="modal-header"><div><h1 id="fontBrowserTitle"></h1></div><button type="button" id="fontBrowserClose" class="icon-btn" aria-label="Cerrar">${icon('close')}</button></div><div class="font-browser-body"><input type="search" id="fontBrowserSearch"><div class="font-browser-columns"><div><p id="fontBrowserCount" class="help"></p><div id="fontBrowserList" role="listbox" tabindex="0"><div id="fontBrowserRows"></div></div></div><section class="font-browser-detail"><h2 id="fontBrowserFamily"></h2><label id="fontBrowserWeightLabel" for="fontBrowserStyle"></label><select id="fontBrowserStyle"></select><textarea id="fontBrowserSample" spellcheck="false">Aa Bb Gg · Maquetario 0123456789</textarea><div id="fontBrowserLarge" class="user-content"></div><p class="help" id="fontBrowserNotice"></p></section></div></div><div class="modal-actions"><button type="button" id="fontBrowserCancel" class="btn"></button><button type="button" id="fontBrowserApply" class="btn primary"></button></div>`;
+fontBrowser.dataset.kind = 'workspace';
+fontBrowser.innerHTML = `<div class="dialog-frame"><div class="modal-header"><div><h1 id="fontBrowserTitle"></h1></div><button type="button" id="fontBrowserClose" class="icon-btn" aria-label="Cerrar">${icon('close')}</button></div><div class="font-browser-body dialog-body"><input type="search" id="fontBrowserSearch"><div class="font-browser-columns"><div><p id="fontBrowserCount" class="help"></p><div id="fontBrowserList" role="listbox" tabindex="0"><div id="fontBrowserRows"></div></div></div><section class="font-browser-detail"><h2 id="fontBrowserFamily"></h2><label id="fontBrowserWeightLabel" for="fontBrowserStyle"></label><select id="fontBrowserStyle"></select><textarea id="fontBrowserSample" spellcheck="false">Aa Bb Gg · Maquetario 0123456789</textarea><div id="fontBrowserLarge" class="user-content"></div><p class="help" id="fontBrowserNotice"></p></section></div></div><div class="modal-actions"><button type="button" id="fontBrowserApply" class="btn primary"></button></div></div>`;
 document.body.append(fontBrowser);
 globalThis.fontBrowser = fontBrowser;
 function browserVariants(family: string): BrowserVariant[] {
@@ -193,7 +194,6 @@ function openFontBrowser(select: HTMLSelectElement): void {
   $('#fontBrowserSearch').placeholder = fw().search;
   $('#fontBrowserSearch').setAttribute('aria-label', fw().search);
   $('#fontBrowserWeightLabel').textContent = fw().weight;
-  $('#fontBrowserCancel').textContent = bw('Cancelar', 'Cancel', 'Cancelar');
   $('#fontBrowserApply').textContent = bw(
     'Aplicar tipografía',
     'Apply typeface',
@@ -201,6 +201,7 @@ function openFontBrowser(select: HTMLSelectElement): void {
   );
   $('#fontBrowserSearch').value = '';
   fontBrowserMatches = [...fontList];
+  hostFontBrowser();
   fontBrowser.showModal();
   filterFontBrowser();
   const index = fontBrowserMatches.indexOf(fontBrowserFamily);
@@ -210,7 +211,32 @@ function openFontBrowser(select: HTMLSelectElement): void {
   $('#fontBrowserSearch').focus();
 }
 globalThis.openFontBrowser = openFontBrowser;
-$('#fontBrowserClose').onclick = $('#fontBrowserCancel').onclick = () => fontBrowser.close();
+/**
+ * Nada de diálogo sobre diálogo: si el explorador se abre desde una Hoja (por ejemplo, el estilo de
+ * párrafo), ocupa el lugar de esa Hoja en vez de apilarse encima. #modal toma el tamaño de una
+ * Ventana de trabajo y esconde su contenido; el explorador queda justo encima, sin velo propio, así
+ * que se ve una sola ventana. Al cerrarlo (cruz, Escape o Aplicar) vuelve el contenido de la Hoja.
+ * "Ver glifos" se esconde: abriría otra pantalla en lugar de la Hoja.
+ */
+function hostFontBrowser(): void {
+  const host = $('#modal'),
+    glyphs = $('#openGlyphsFromBrowser');
+  const hosted = host.open;
+  if (glyphs) glyphs.hidden = hosted;
+  if (!hosted) return;
+  host.dataset.hosting = 'font-browser';
+  fontBrowser.dataset.hosted = '';
+  // Si la Hoja se cierra por su cuenta, el explorador se va con ella.
+  onDialogClose(() => {
+    if (fontBrowser.open) fontBrowser.close();
+  });
+}
+fontBrowser.addEventListener('beforetoggle', (event) => {
+  if ((event as ToggleEvent).newState !== 'closed') return;
+  delete $('#modal').dataset.hosting;
+  delete fontBrowser.dataset.hosted;
+});
+$('#fontBrowserClose').onclick = () => fontBrowser.close();
 $('#fontBrowserSearch').oninput = filterFontBrowser;
 $('#fontBrowserList').onscroll = renderFontBrowserRows;
 $('#fontBrowserStyle').onchange = (e) => {

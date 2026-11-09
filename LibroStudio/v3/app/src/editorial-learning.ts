@@ -441,7 +441,7 @@ globalThis.foldEditorial = foldEditorial;
 function showGlossary(term = 'grid'): void {
   if (!editorialTerms.some((t) => t[0] === term)) term = 'grid';
   glossaryTerm = term;
-  modal(
+  modal.workspace(
     bw('Aprender diseño editorial', 'Learn editorial design', 'Aprender design editorial'),
     `<p class="builder-intro">${bw('Un diccionario para entender lo que estás diseñando. Buscá un término o explorá una categoría.', 'A dictionary to understand what you are designing. Search a term or explore a category.', 'Um dicionário para entender o que você está criando. Busque um termo ou explore uma categoria.')}</p><div class="glossary-filters"><input id="glossarySearch" type="search" aria-label="${bw('Buscar término', 'Search term', 'Buscar termo')}" placeholder="${bw('Buscar: medianil, sangrado, lomo…', 'Search: gutter, bleed, spine…', 'Buscar: sangria, lombada, grade…')}"><select id="glossaryCategory"><option value="all">${bw('Todas las categorías', 'All categories', 'Todas as categorias')}</option>${Object.entries(
       glossaryCategory,
@@ -450,10 +450,8 @@ function showGlossary(term = 'grid'): void {
       .join(
         '',
       )}</select></div><div class="glossary-layout"><nav id="glossaryList" aria-label="${bw('Términos', 'Terms', 'Termos')}"></nav><article id="glossaryDefinition"></article></div><p class="help glossary-note">${bw('Glosario educativo. Las convenciones pueden variar según el país y la imprenta. Aprender un concepto no significa que exista una corrección automática para él.', 'Educational glossary. Conventions can vary by country and printer. Learning a concept does not imply automatic correction support.', 'Glossário educativo. Convenções podem variar conforme país e gráfica. Aprender um conceito não implica correção automática.')}</p>`,
-    () => true,
-    bw('Volver al editor', 'Back to editor', 'Voltar ao editor'),
+    { variant: 'glossary-modal' },
   );
-  dialogVariant('glossary-modal');
   $('#glossarySearch').oninput = renderGlossary;
   $('#glossaryCategory').onchange = renderGlossary;
   renderGlossary();
