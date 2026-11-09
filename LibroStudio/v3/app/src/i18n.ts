@@ -314,6 +314,67 @@ const labels: TranslationRow[] = [
     'Save the project to resume it later. You can also continue and discard these changes.',
     'Salve o projeto para retomá-lo depois. Você também pode continuar e descartar estas alterações.',
   ],
+  // ── Bienvenida (src/components/welcome/) ──
+  [
+    'Cada libro empieza con una idea.',
+    'Every book begins with an idea.',
+    'Todo livro começa com uma ideia.',
+  ],
+  [
+    'Dale forma a tus páginas. Componé, ajustá y prepará tu libro para compartirlo.',
+    'Shape your pages. Compose, refine and prepare your book to share.',
+    'Dê forma às suas páginas. Componha, ajuste e prepare seu livro para compartilhar.',
+  ],
+  ['Proyectos recientes', 'Recent projects', 'Projetos recentes'],
+  [
+    'Tus proyectos aparecerán acá cuando los guardes o abras.',
+    'Your projects will appear here after you save or open them.',
+    'Seus projetos aparecerão aqui depois de salvar ou abrir.',
+  ],
+  ['Crear un libro', 'Create a book', 'Criar um livro'],
+  ['Abrir proyecto', 'Open project', 'Abrir projeto'],
+  ['Explorar el ejemplo', 'Explore the example', 'Explorar o exemplo'],
+  [
+    'Abrí una novela ya maquetada para ver cómo está hecha.',
+    'Open a finished novel to see how it is built.',
+    'Abra um romance já diagramado para ver como foi feito.',
+  ],
+  ['Ayuda', 'Help', 'Ajuda'],
+  [
+    'Tutorial guiado y glosario editorial.',
+    'Guided tutorial and editorial glossary.',
+    'Tutorial guiado e glossário editorial.',
+  ],
+  ['Tutorial guiado', 'Guided tutorial', 'Tutorial guiado'],
+  ['Glosario editorial', 'Editorial glossary', 'Glossário editorial'],
+  ['Elegí por dónde empezar.', 'Choose where to start.', 'Escolha por onde começar.'],
+  ['Volver al libro', 'Back to the book', 'Voltar ao livro'],
+  [
+    'Creado por Sebastián Poberezny',
+    'Created by Sebastián Poberezny',
+    'Criado por Sebastián Poberezny',
+  ],
+  ['Archivo no disponible', 'File unavailable', 'Arquivo indisponível'],
+  ['Copia de recuperación', 'Recovery copy', 'Cópia de recuperação'],
+  ['Recuperar', 'Recover', 'Recuperar'],
+  ['Descartar', 'Discard', 'Descartar'],
+  [
+    'Descartar la copia de recuperación',
+    'Discard the recovery copy',
+    'Descartar a cópia de recuperação',
+  ],
+  [
+    'La copia se borra de este equipo. Tus archivos guardados no cambian.',
+    'The copy is deleted from this computer. Your saved files do not change.',
+    'A cópia é apagada deste computador. Seus arquivos salvos não mudam.',
+  ],
+  ['Inicio', 'Home', 'Início'],
+  ['Tutorial', 'Tutorial', 'Tutorial'],
+  [
+    'Atelier editorial de páginas y grillas',
+    'Editorial studio of pages and grids',
+    'Ateliê editorial de páginas e grades',
+  ],
 ];
 labels.push(...extraTranslations);
 const map = new Map(

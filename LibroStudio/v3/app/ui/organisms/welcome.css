@@ -23,19 +23,13 @@
   color: var(--text-primary);
 }
 
-/* "Para empezar": acciones secundarias como filas que explican qué hacen. */
-.welcome-links-title {
-  margin: var(--space-2xl) 0 var(--space-sm);
-  color: var(--text-tertiary);
-  font-size: var(--type-callout);
-  font-weight: var(--weight-semibold);
-}
-.welcome-links {
-  --welcome-action-min: 260px;
+/* Tercera acción (el ejemplo) y la única entrada a la Ayuda: filas que explican qué hacen. */
+.welcome-start {
+  --welcome-action-min: 240px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--welcome-action-min), 1fr));
   gap: var(--space-2xs) var(--space-md);
-  margin-top: 0;
+  margin-top: var(--space-xl);
 }
 
 /* Fondo, marca e ilustración. */
@@ -55,15 +49,6 @@
   background: var(--surface-selected);
   box-shadow: var(--material-edge), var(--elevation-3);
 }
-.art-swatches i {
-  background: var(--action);
-}
-.art-swatches i:nth-child(2) {
-  background: var(--text-mark);
-}
-.art-swatches i:nth-child(3) {
-  background: var(--text-primary);
-}
 .welcome-actions {
   flex-wrap: wrap;
 }
@@ -81,7 +66,6 @@
 .welcome-section-title h2 {
   font-size: var(--type-lg);
 }
-.welcome-links button,
 .welcome-footer,
 .recent-empty p {
   font-size: var(--type-md);
@@ -144,11 +128,14 @@
 /* El cuerpo crece para llenar la ventana pero no se achica por debajo de su contenido: en
    pantallas bajas (1366×768, 1150×700) la bienvenida se desplaza y el pie queda debajo, en vez de
    montarse sobre "Proyectos recientes". */
+/* La ilustración acompaña al costado, en una columna angosta: no se come la mitad. */
 .welcome-body {
   --welcome-body-top: 35px;
+  --welcome-art-width: 26vw;
+  --welcome-art-max: 360px;
   display: grid;
   flex: 1 0 auto;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) min(var(--welcome-art-width), var(--welcome-art-max));
   gap: 5vw;
   min-height: 0;
   padding: var(--welcome-body-top) 5.4vw var(--space-xl);
@@ -158,20 +145,18 @@
   flex-direction: column;
   min-width: 0;
 }
+/* Titular de herramienta, no de portada: el tamaño de las portadas internas. */
 .welcome-copy h1 {
-  --welcome-title-min: 34px;
-  --welcome-title-max: 59px;
-  margin: var(--space-2xs) 0 var(--space-lg);
-  font-size: clamp(var(--welcome-title-min), 3.7vw, var(--welcome-title-max));
-  font-weight: var(--weight-medium);
-  line-height: 1.09;
-  letter-spacing: -0.032em;
+  margin: var(--space-2xs) 0 var(--space-sm);
+  font-size: var(--type-large-title);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
 }
 .welcome-intro {
-  --welcome-intro-max: 390px;
+  --welcome-intro-max: 460px;
   max-width: var(--welcome-intro-max);
   margin: 0 0 var(--space-xl);
-  line-height: 1.7;
+  line-height: var(--leading-text);
 }
 .welcome-actions {
   display: flex;
@@ -212,45 +197,18 @@
   max-height: var(--recent-list-max);
   overflow: auto;
 }
-/* La ilustración acompaña el alto del texto, no lo define: sin tamaño propio (contain), se
-   estira a la fila y nunca baja de su mínimo. */
+/* La ilustración: arriba, con su proporción, sin estirarse al alto de la columna. */
 .welcome-art {
-  --welcome-art-min: 300px;
-  position: relative;
-  contain: size;
-  display: flex;
-  flex-direction: column;
-  align-self: stretch;
-  min-height: var(--welcome-art-min);
+  align-self: start;
+  aspect-ratio: 4 / 5;
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
 .welcome-art > img {
-  flex: 1 1 0%;
+  display: block;
   width: 100%;
   height: 100%;
-  min-height: 0;
   object-fit: cover;
-}
-.art-caption {
-  position: absolute;
-  right: var(--space-xl);
-  bottom: var(--space-xl);
-  left: var(--space-xl);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--text-on-accent);
-  font-size: var(--type-callout);
-  font-weight: var(--weight-semibold);
-}
-.art-swatches {
-  display: flex;
-  gap: var(--space-2xs);
-}
-.art-swatches i {
-  width: var(--icon-sm);
-  height: var(--icon-sm);
 }
 .welcome-footer {
   display: flex;
@@ -270,10 +228,6 @@
   .welcome-body {
     --welcome-body-top: 20px;
   }
-  .welcome-copy h1 {
-    --welcome-title-compact: 40px;
-    font-size: var(--welcome-title-compact);
-  }
   .welcome-recents {
     --welcome-recents-top: 22px;
   }
@@ -282,12 +236,17 @@
   }
 }
 @media (max-width: 1250px) {
-  .welcome-copy h1 {
-    --welcome-title-compact: 40px;
-    font-size: var(--welcome-title-compact);
-  }
   .welcome-body {
     gap: 3vw;
+  }
+}
+/* Ventana angosta: sin ilustración, todo el ancho para las acciones y los recientes. */
+@media (max-width: 1000px) {
+  .welcome-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .welcome-art {
+    display: none;
   }
 }
 
@@ -348,3 +307,18 @@
   opacity: 0.5;
 }
 
+/* Copia de recuperación: fila destacada arriba de los recientes (antes era un diálogo encima). */
+.recent-recovery {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--line-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-control);
+}
+.recent-recovery .recent-details small {
+  --recent-path-max: none;
+  white-space: normal;
+}

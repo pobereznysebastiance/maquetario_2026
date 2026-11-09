@@ -663,6 +663,17 @@ extend.result(
   },
   'book-workflow',
 );
+// La bienvenida es React (data-react) y el traductor del DOM no entra: este botón, que se agrega
+// desde acá, se traduce solo cuando cambia el idioma.
+document.addEventListener('maquetario:language', () => {
+  const button = $('#welcomeNovel');
+  if (button)
+    button.lastChild!.textContent = bw(
+      'Armar desde un manuscrito',
+      'Build from a manuscript',
+      'Montar a partir de um manuscrito',
+    );
+});
 // Publicado a propósito. bw: casi toda la interfaz. renderBookRoute: la extienden publications.js
 // y editorial-learning.js, y la llama tests/learning-tests.js. goToBookPage: editorial-assistant,
 // book-proof y cover-measurements. composeNovel, installNovel y preflightBook: book-proof y sus

@@ -41,7 +41,7 @@ export function takeRequestedProject(): string | null {
 
 /**
  * Lo que corre la interfaz para abrir el proyecto pedido. Es el mismo recorrido que un reciente
- * (src/welcome.ts → openRecentProject): con cambios sin guardar pregunta antes (confirmChanges),
+ * (src/components/welcome/welcome-service.tsx → openRecentProject): con cambios sin guardar pregunta antes (confirmChanges),
  * cierra la bienvenida y carga con loadOpenedProject, como Abrir (src/global/studio.ts → openBook).
  */
 export const OPEN_REQUESTED_SCRIPT = `(() => {
