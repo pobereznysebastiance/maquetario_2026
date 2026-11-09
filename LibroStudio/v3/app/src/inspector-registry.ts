@@ -41,6 +41,11 @@ declare global {
   ) => void;
   /** Mientras cond() sea verdadera, inspector() no redibuja. Devuelve la cantidad de pausas. */
   var pauseInspectorWhile: (cond: () => unknown, origin?: string) => number;
+  /**
+   * Monta en el acto el panel de React de un lugar (data-inspector-slot) que agregó un decorador,
+   * después de la pasada de montaje: misceláneas (book-workflow) y fuentes del equipo (fonts).
+   */
+  var mountInspectorSlot: (slot: HTMLElement) => void;
 }
 
 /** Raíces de React montadas en el inspector, con el nodo que las contiene. */
@@ -88,6 +93,13 @@ globalThis.registerInspectorPanel = (panelTab, render, origin = '') => {
   );
 };
 
+/** Monta el panel registrado para el lugar (pestaña actual), si no está montado ya. */
+function mountSlot(slot: HTMLElement): void {
+  if (slot.hasAttribute('data-react')) return;
+  const render = sectionPanels.get(tab + ':' + slot.dataset.inspectorSlot);
+  if (render) mountPanel(slot, render());
+}
+
 // Secciones de React: se montan apenas se dibuja la pestaña, antes que los decoradores (esta
 // extensión se registra primero).
 extend.after(
@@ -96,14 +108,13 @@ extend.after(
     sweepRoots();
     for (const slot of $('#inspectorContent').querySelectorAll<HTMLElement>(
       '[data-inspector-slot]',
-    )) {
-      if (slot.hasAttribute('data-react')) continue;
-      const render = sectionPanels.get(tab + ':' + slot.dataset.inspectorSlot);
-      if (render) mountPanel(slot, render());
-    }
+    ))
+      mountSlot(slot);
   },
   'inspector-registry',
 );
+// Un decorador que agrega su sección (en su lugar de siempre) la monta en el acto.
+globalThis.mountInspectorSlot = (slot) => mountSlot(slot);
 
 const pauses: { cond: () => unknown; origin: string }[] = [];
 globalThis.pauseInspectorWhile = (cond, origin = '') => pauses.push({ cond, origin });

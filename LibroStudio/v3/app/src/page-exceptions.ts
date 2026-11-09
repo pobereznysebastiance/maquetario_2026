@@ -1,58 +1,11 @@
-// Excepciones por página: en la pestaña Página del inspector, qué elementos automáticos (número,
-// cornisa, titulillo) se ocultan sólo en la página activa, y una marca en las miniaturas de las
-// páginas que tienen alguno oculto.
+// Excepciones por página: una marca en las miniaturas de las páginas que tienen algún elemento
+// automático (número, cornisa, titulillo) oculto. Qué se oculta en la página activa se elige en la
+// pestaña Página del inspector (src/components/inspector/PagePanel.tsx).
 //
-// No publica globales: se engancha con decorateInspector y extend.after('thumbs').
+// No publica globales: se engancha con extend.after('thumbs').
 //
 // Fuente TypeScript: se compila a build/page-exceptions.js (desktop/scripts/build.mjs).
 
-decorateInspector(() => {
-  if (tab !== 'pages') return;
-  const host = $('#inspectorContent'),
-    page = book.pages[active];
-  host.querySelector('.active-page-notice')?.remove();
-  host.querySelectorAll('input[data-page]').forEach((input) => input.closest('label')?.remove());
-  const section = document.createElement('section');
-  section.className = 'section individual-page-settings';
-  section.innerHTML = `<div class="section-heading active-page-notice">${icon('pages')} <strong>${bw('Página', 'Page', 'Página')} ${active + 1}</strong></div><span class="page-only-tag">${bw('Solo esta página', 'This page only', 'Somente esta página')}</span><p class="help">${bw('Elegí qué elementos automáticos aparecen en la página seleccionada. Las demás no se modifican.', 'Choose which automatic elements appear on the selected page. Other pages are unchanged.', 'Escolha quais elementos automáticos aparecem na página selecionada. As demais não mudam.')}</p>${[
-    [
-      'hideFolio',
-      bw('Mostrar número de página', 'Show page number', 'Mostrar número da página'),
-      'folio',
-    ],
-    ['hideHeader', bw('Mostrar cornisa', 'Show running header', 'Mostrar cabeçalho'), 'header'],
-    [
-      'hideTitle',
-      bw('Mostrar titulillo', 'Show running title', 'Mostrar título corrente'),
-      'titulillo',
-    ],
-  ]
-    .map(
-      ([key, label, global]) =>
-        `<label class="check-line page-visibility-control"><input type="checkbox" data-page-visible="${key}" ${page[key] ? '' : 'checked'}><span>${label}${!book[global].enabled ? `<small>${bw('Desactivado para todo el libro en la pestaña Libro.', 'Disabled for the whole book in the Book tab.', 'Desativado para o livro inteiro na aba Livro.')}</small>` : ''}</span></label>`,
-    )
-    .join(
-      '',
-    )}<div class="page-action">${UI.button({ id: 'pageHideAutomatic', label: bw('Ocultar los tres', 'Hide all three', 'Ocultar os três') })}${UI.button({ id: 'pageShowAutomatic', label: bw('Mostrar los tres', 'Show all three', 'Mostrar os três') })}</div><p class="help">${bw('Ocultar un número no elimina la página ni reinicia la numeración. Para ver un elemento, también tiene que estar activado en la pestaña Libro.', 'Hiding a number does not remove the page or restart numbering. To display an element, it must also be enabled in the Book tab.', 'Ocultar um número não remove a página nem reinicia a numeração. Para mostrar um elemento, ele também deve estar ativado na aba Livro.')}</p>`;
-  host.prepend(section);
-  section
-    .querySelectorAll<HTMLInputElement>('[data-page-visible]')
-    .forEach(
-      (input) =>
-        (input.onchange = () =>
-          commit(() => (book.pages[active][input.dataset.pageVisible!] = !input.checked), true)),
-    );
-  $('#pageHideAutomatic').onclick = () =>
-    commit(() => {
-      const p = book.pages[active];
-      p.hideFolio = p.hideHeader = p.hideTitle = true;
-    }, true);
-  $('#pageShowAutomatic').onclick = () =>
-    commit(() => {
-      const p = book.pages[active];
-      p.hideFolio = p.hideHeader = p.hideTitle = false;
-    }, true);
-}, 'page-exceptions');
 extend.after(
   'thumbs',
   function () {

@@ -176,99 +176,18 @@ extend.result(
   },
   'book-workflow',
 );
+/**
+ * Misceláneas y líneas: el panel es de React (src/components/inspector/RulesPanel.tsx). Acá se
+ * deja su lugar donde iba siempre (antes de la segunda sección de Libro) y se monta en el acto.
+ */
 function ruleControls(): void {
   const h = $('#inspectorContent'),
     box = document.createElement('section');
   box.className = 'section';
-  box.innerHTML = `<div class="section-heading">${icon('header')}${bw('Misceláneas y líneas', 'Rules and ornaments', 'Linhas e ornamentos')}</div><p class="help">${bw('Son opcionales. Cada línea acompaña a su elemento automático y se guarda en el libro.', 'Optional. Each rule follows its automatic element and is saved with the book.', 'Opcionais. Cada linha acompanha seu elemento automático e é salva no livro.')}</p>${[
-    'header',
-    'titulillo',
-    'folio',
-  ]
-    .map(
-      (type) =>
-        `<div class="rule-settings"><label class="check-line"><input type="checkbox" data-rule="${type}.rule" ${book[type].rule ? 'checked' : ''}>${bw('Línea de ', 'Rule for ', 'Linha de ')}${type === 'header' ? bw('cornisa', 'header', 'cabeçalho') : type === 'titulillo' ? bw('titulillo', 'running title', 'título corrente') : bw('folio', 'folio', 'fólio')}</label>${
-          book[type].rule
-            ? row(
-                bw('Grosor · mm', 'Weight · mm', 'Espessura · mm'),
-                `<input type="number" min="0.05" max="3" step="0.05" data-rule="${type}.ruleWidth" value="${book[type].ruleWidth ?? 0.25}">`,
-              ) +
-              row(
-                bw('Largo · %', 'Length · %', 'Comprimento · %'),
-                `<input type="number" min="1" max="100" data-rule="${type}.ruleLength" value="${book[type].ruleLength ?? 100}">`,
-              ) +
-              row(
-                bw('Separación · mm', 'Gap · mm', 'Distância · mm'),
-                `<input type="number" min="0" max="20" step="0.5" data-rule="${type}.ruleGap" value="${book[type].ruleGap ?? 1.5}">`,
-              ) +
-              row(
-                bw('Color', 'Color', 'Cor'),
-                `<input type="color" data-rule="${type}.ruleColor" value="${book[type].ruleColor || '#77716C'}">`,
-              ) +
-              row(
-                bw('Trazo', 'Stroke', 'Traço'),
-                `<select data-rule="${type}.ruleStyle">${[
-                  ['solid', bw('Continuo', 'Solid', 'Contínuo')],
-                  ['dashed', bw('Guiones', 'Dashed', 'Tracejado')],
-                  ['dotted', bw('Puntos', 'Dotted', 'Pontilhado')],
-                ]
-                  .map(
-                    ([v, l]) =>
-                      `<option value="${v}" ${book[type].ruleStyle === v ? 'selected' : ''}>${l}</option>`,
-                  )
-                  .join('')}</select>`,
-              )
-            : ''
-        }</div>`,
-    )
-    .join(
-      '',
-    )}<button id="insertFreeRule" class="btn wide">+ ${bw('Insertar línea libre en esta página', 'Insert a free rule on this page', 'Inserir linha livre nesta página')}</button>`;
+  box.dataset.inspectorSlot = 'rules';
   const sections = h.querySelectorAll(':scope>.section');
   (sections[1] || h.firstChild)?.before(box);
-  box.querySelectorAll<HTMLInputElement>('[data-rule]').forEach(
-    (el) =>
-      (el.onchange = () => {
-        if (
-          el.type === 'number' &&
-          (!Number.isFinite(Number(el.value)) ||
-            Number(el.value) < Number(el.min) ||
-            Number(el.value) > Number(el.max))
-        ) {
-          inspector();
-          return;
-        }
-        commit(
-          () =>
-            set(
-              el.dataset.rule!,
-              el.type === 'checkbox'
-                ? el.checked
-                : el.type === 'number'
-                  ? Number(el.value)
-                  : el.value,
-            ),
-          false,
-        );
-      }),
-  );
-  $('#insertFreeRule').onclick = () =>
-    commit(() => {
-      const o = {
-        id: M.uid(),
-        type: 'frame',
-        decoration: 'line',
-        name: bw('Línea libre', 'Free rule', 'Linha livre'),
-        x: book.margins.inside,
-        y: book.height / 2,
-        w: Math.min(65, book.width - 40),
-        h: 3,
-        lineWidth: 0.35,
-        lineColor: '#77716C',
-      };
-      book.pages[active].objects.push(o);
-      selected = o.id;
-    }, false);
+  mountInspectorSlot(box);
 }
 // Layout is measured with the very same paragraph renderer used by the editor and PDF.
 function measureBookText(b: Book, o: BookObject): boolean {

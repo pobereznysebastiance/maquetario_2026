@@ -45,6 +45,8 @@ declare global {
 
   /** Textos de la interfaz de fuentes en el idioma actual. */
   var fw: () => Record<string, string>;
+  /** Se está leyendo el catálogo de fuentes del equipo. */
+  var fontCatalogLoading: () => boolean;
   /** Catálogo efectivo: caras del paquete del proyecto y después las del sistema. */
   var nativeFaces: NativeFontFace[];
   /** Carpetas de fuentes agregadas por el usuario. */
@@ -153,6 +155,8 @@ const fontWords: Record<string, Record<string, string>> = {
 };
 const fw = () => fontWords[globalThis.LibroI18n?.language || 'es'];
 globalThis.fw = fw;
+/** Se está leyendo el catálogo de fuentes del equipo (lo muestra la biblioteca de fuentes). */
+globalThis.fontCatalogLoading = () => fontLoading;
 globalThis.nativeFaces = [];
 globalThis.fontFolders = [];
 let fontLoading = true;
@@ -401,15 +405,14 @@ decorateInspector(() => {
       if (styles && face) styles.remove();
     }
   }
-  // Las fuentes del equipo son del documento, no de la caja: van en Libro, al final.
+  // Las fuentes del equipo son del documento, no de la caja: van en Libro, al final. El panel es
+  // de React (src/components/inspector/FontLibraryPanel.tsx): acá se deja su lugar y se monta.
   if (tab === 'design') {
     const sectionNode = document.createElement('section');
     sectionNode.className = 'section font-library';
-    sectionNode.innerHTML = `<div class="section-heading">${icon('text')} ${w.library}</div><p class="help">${fontLoading ? w.loading : `${new Set(nativeFaces.map((f) => f.family)).size} ${w.families} · ${nativeFaces.length} ${w.faces}`}</p>${fontLoading ? UI.skeleton({ lines: 4, label: w.loading }) : ''}<details class="font-library-options"><summary>${w.manage}</summary>${UI.button({ id: 'addFontFolder', icon: 'folder', label: w.folder, wide: true })}${UI.button({ id: 'refreshFontCatalog', label: w.refresh, wide: true })}<p class="help">${w.hint}</p><details><summary>${w.folders}</summary><div class="font-folder-list user-content">${fontFolders.length ? fontFolders.map((f) => `<p>${esc(f)}</p>`).join('') : w.noFolders}</div></details><p class="help">${w.saved}</p></details>`;
+    sectionNode.dataset.inspectorSlot = 'fonts';
     host.append(sectionNode);
-    $('#addFontFolder').disabled = $('#refreshFontCatalog').disabled = fontLoading;
-    $('#addFontFolder').onclick = () => obtainFonts('chooseFontFolder');
-    $('#refreshFontCatalog').onclick = () => obtainFonts('refreshFonts');
+    mountInspectorSlot(sectionNode);
   }
 }, 'fonts');
 extend.result(

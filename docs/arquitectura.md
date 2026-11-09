@@ -245,6 +245,8 @@ El inspector muestra tres pestañas: **Libro**, **Página** y **Selección**. Lo
 
 **Hecho:** Foliado (`src/components/inspector/FolioPanel.tsx`), con los deslizadores de ajuste fino que antes agregaba `folio-position.ts`. Comparado en Chrome sin ventana contra la versión en HTML (Libro en castellano, inglés y centímetros, después de cambiar valores, deslizar, plegar y reordenar): el marcado es igual salvo `data-text-source` y el atributo `value` de los campos que React actualiza al redibujar.
 
+**Hecho (pasos 4 y 5):** Misceláneas y líneas (`RulesPanel.tsx`), Fuentes de tu equipo (`FontLibraryPanel.tsx`) y la pestaña Página entera (`PagePanel.tsx`: la página sola, Página N y Elementos automáticos). Misceláneas y fuentes las agregaba un decorador: ahora el decorador (`book-workflow.ts`, `fonts.ts`) deja el lugar vacío donde iba siempre y lo monta en el acto con `mountInspectorSlot(lugar)` (nuevo en `inspector-registry.ts`, para lugares que aparecen después de la pasada de montaje). La pestaña Página deja sus tres lugares en `studio.ts`; lo que hacían `page-exceptions.ts` (sacar las casillas de la base y anteponer su sección), el aviso de página activa de `review-workspace.ts` y `reshapePagePass` de `inspector-views.ts` (mover Agregar y Duplicar) quedó dentro del panel, y esos pasos se borraron. Comparado en Chrome sin ventana contra la versión en HTML (castellano, inglés, centímetros, con líneas activas y con excepciones de página): el marcado es igual salvo el orden de los atributos, `data-text-source` y el atributo `value`; las mismas acciones dan el mismo resultado.
+
 **Orden para los demás paneles**, de menos a más acoplado:
 
 | Paso | Panel | Qué hay que absorber o cuidar |

@@ -449,12 +449,6 @@ function alignSelection(axis: string): void {
 globalThis.alignSelection = alignSelection;
 decorateInspector(() => {
   const w = rw();
-  if (tab === 'pages') {
-    let banner = document.createElement('div');
-    banner.className = 'active-page-notice';
-    banner.innerHTML = `<strong>${w.active} ${active + 1} · ${active % 2 === 0 ? w.left : w.right}</strong><span>${w.selected}</span>`;
-    $('#inspectorContent').prepend(banner);
-  }
   if (tab === 'text' || tab === 'layers') {
     const block = document.createElement('section');
     block.className = 'section';

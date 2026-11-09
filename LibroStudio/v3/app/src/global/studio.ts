@@ -391,25 +391,13 @@ function inspector(): void {
         '<p class="help">Doble clic en el texto para escribir. Arrastrá para mover una caja, imagen o marco. Usá su esquina inferior derecha para cambiar el tamaño.<br><br>Cada caja conserva su propio texto. El símbolo rojo + indica desbordamiento: ampliá la caja o reducí el cuerpo.</p>',
       );
   }
-  if (tab === 'pages') {
-    const p = book.pages[active];
+  if (tab === 'pages')
+    // Pestaña Página: paneles de React (src/components/inspector/PagePanel.tsx). La página sola
+    // (qué elementos automáticos se ven) va primero, sin data-section, como antes.
     host.innerHTML =
-      section(
-        'Libro',
-        'pages',
-        `<div class="page-info">${icon('pages')}<div><strong>${book.pages.length}</strong><small>páginas · ${displayDimensions(book.width, book.height)}</small></div></div>${UI.button({ icon: 'settings', label: 'Formato y configuración', wide: true, data: { command: 'settings' } })}<div class="page-action">${UI.button({ icon: 'plus', label: 'Agregar', data: { command: 'addPage' } })}${UI.button({ label: 'Duplicar', data: { command: 'duplicate' } })}</div>`,
-      ) +
-      section(
-        'Página ' + (active + 1),
-        'file',
-        `<div class="sub-label" id="pageSectionLabel">Comenzar sección en esta página</div><input class="field-full" id="pageSection" aria-labelledby="pageSectionLabel" maxlength="250" value="${esc(p.section)}" placeholder="Ej.: Capítulo 2"><p class="help">La sección se mantiene en las páginas siguientes hasta el próximo comienzo.</p><label class="check-line"><input data-page="hideHeader" type="checkbox" ${p.hideHeader ? 'checked' : ''}> Ocultar cornisa en esta página</label><label class="check-line"><input data-page="hideTitle" type="checkbox" ${p.hideTitle ? 'checked' : ''}> Ocultar titulillo en esta página</label><label class="check-line"><input data-page="hideFolio" type="checkbox" ${p.hideFolio ? 'checked' : ''}> Ocultar folio en esta página</label><div class="page-action">${UI.button({ label: '← Antes', data: { command: 'earlier' }, disabled: active === 0 })}${UI.button({ label: 'Después →', data: { command: 'later' }, disabled: active === book.pages.length - 1 })}</div>${UI.button({ icon: 'trash', label: 'Eliminar página', variant: 'danger', wide: true, data: { command: 'deletePage' }, disabled: book.pages.length === 1 })}`,
-      ) +
-      section(
-        'Elementos automáticos',
-        'link',
-        '<p class="help">Cornisas, titulillos y folios se actualizan en todo el libro al cambiar una sección o reorganizar páginas.<br><br>Podés definir contenido distinto para pares e impares desde la pestaña Libro.</p>',
-      );
-  }
+      '<section class="section individual-page-settings" data-inspector-slot="exceptions"></section>' +
+      inspectorSlot('page', 'Página ' + (active + 1), 'file') +
+      inspectorSlot('auto', 'Elementos automáticos', 'link');
   bindInspector();
 }
 /**

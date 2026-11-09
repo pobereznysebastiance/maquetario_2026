@@ -116,20 +116,6 @@ function planFor(v: InspectorView): { passes: string[]; primary: string } {
 
 // ── Ajustes de cada pasada ──
 
-/** Página: la tarjeta del documento sale; Agregar y Duplicar pasan a la sección de la página. */
-function reshapePagePass(host: HTMLElement): void {
-  const summary = host.querySelector<HTMLElement>(':scope > [data-section="Libro"]');
-  if (!summary) return;
-  const actions = summary.querySelector('.page-action');
-  const page = host.querySelector<HTMLElement>(':scope > [data-key="file"]');
-  if (actions && page) {
-    const order = page.querySelector(':scope > .page-action');
-    if (order) order.before(actions);
-    else page.append(actions);
-  }
-  summary.remove();
-}
-
 /** Libro: el formato del libro se configura desde la estructura. */
 function addBookSettings(host: HTMLElement): void {
   const build = host.querySelector('#structureBuild');
@@ -198,7 +184,6 @@ extend(
       for (const pass of passes) {
         tab = pass;
         draw.apply(this, args);
-        if (pass === 'pages') reshapePagePass(host);
         if (pass === 'structure') addBookSettings(host);
         host.firstElementChild?.setAttribute('data-pass', pass);
         parts.append(...host.childNodes);
