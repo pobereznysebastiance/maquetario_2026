@@ -274,7 +274,7 @@ const GlyphWindow = () => {
                 refresh();
               }}
             >
-              <Icon name="chevron" />
+              <Icon name="previous" />
             </button>
             <span id="glyphPageInfo">
               {glyphStatus ||
@@ -291,7 +291,7 @@ const GlyphWindow = () => {
                 refresh();
               }}
             >
-              <Icon name="chevron" />
+              <Icon name="next" />
             </button>
           </div>
         </div>

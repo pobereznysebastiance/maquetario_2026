@@ -81,7 +81,9 @@ const LayerRow = ({ o, objects }: { o: BookObject; objects: BookObject[] }) => {
         dragging = null;
       }}
     >
-      <span className="layer-grip">⠿</span>
+      <span className="layer-grip" aria-hidden="true">
+        <Icon name="grip" />
+      </span>
       <span className="layer-type">
         <Icon name={o.type === 'text' ? 'text' : o.type === 'image' ? 'image' : 'frame'} />
       </span>

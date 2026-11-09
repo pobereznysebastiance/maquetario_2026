@@ -301,19 +301,19 @@
 }
 
 /* ── Migrado de editorial-learning.css: lectura del lomo (cubierta) ── */
+/* Una fila más del formulario (antes era una caja con borde dentro de la columna). */
 .spine-direction {
   --spine-select-min: 240px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-md);
-  padding: var(--space-md);
-  border: var(--border-width) solid var(--line-default);
-  border-radius: var(--radius-lg);
+  margin: var(--space-md) 0;
 }
 .spine-direction strong {
   color: var(--text-primary);
-  font-size: var(--type-title3);
+  font-size: var(--type-body);
+  font-weight: var(--weight-semibold);
 }
 .spine-direction select {
   flex: 1 1 0%;
@@ -679,16 +679,15 @@ dialog.output-modal .dialog-frame .dialog-body {
   margin-top: var(--space-md);
   font-size: var(--type-body);
 }
-/* Anterior y siguiente: la flecha del set de íconos, girada (antes, los caracteres ‹ y ›). */
-.glyph-pages .icon {
+/* Paginadores (glifos y caras de la revisión): íconos del set, no caracteres ‹ ›. */
+:is(.glyph-pages, #reviewFaces) button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+:is(.glyph-pages, #reviewFaces) .icon {
   width: var(--icon-sm);
   height: var(--icon-sm);
-}
-#glyphPrev .icon {
-  transform: rotate(90deg);
-}
-#glyphNext .icon {
-  transform: rotate(-90deg);
 }
 #glyphSelectedLarge {
   --glyph-large-size: 105px;
@@ -856,6 +855,21 @@ dialog.output-modal .dialog-frame .dialog-body {
 }
 .canvas-shortcut-table td {
   line-height: 1.6;
+}
+/* Teclas: el átomo kbd, al tamaño de la tabla (el átomo es chico, para pistas sobre el lienzo). */
+.canvas-shortcut-table kbd {
+  --kbd-size: var(--type-callout);
+  --kbd-pad-y: var(--space-3xs);
+  padding: var(--kbd-pad-y) var(--space-xs);
+  color: var(--text-primary);
+  background: var(--surface-control);
+  font-weight: var(--weight-semibold);
+}
+.canvas-shortcut-table th {
+  font-weight: var(--weight-regular);
+}
+.canvas-shortcut-table .key-separator {
+  color: var(--text-tertiary);
 }
 
 /* ── Migrado de package-proof.css: ficha de medidas ── */

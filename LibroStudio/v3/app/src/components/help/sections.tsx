@@ -93,7 +93,7 @@ const shortcutRows = (): [[string, string, string], string][] => [
     bw('Zoom alrededor del puntero.', 'Zoom around the pointer.', 'Zoom em torno do ponteiro.'),
   ],
   [
-    ['Ctrl + / Ctrl −', 'Ctrl + / Ctrl −', 'Ctrl + / Ctrl −'],
+    ['Ctrl + + / Ctrl + −', 'Ctrl + + / Ctrl + −', 'Ctrl + + / Ctrl + −'],
     bw('Acercar / alejar.', 'Zoom in / out.', 'Aproximar / afastar.'),
   ],
   [
@@ -112,6 +112,26 @@ const shortcutRows = (): [[string, string, string], string][] => [
   ],
 ];
 
+/** Teclas que van en <kbd>; lo demás (arrastrar, rueda, botón central) es texto. */
+const KEY = /^(Ctrl|Shift|Alt|Espacio|Space|Espaço|[A-Z0-9]|\+|−)$/;
+
+/** "Ctrl + 0" → <kbd>Ctrl</kbd> + <kbd>0</kbd>; los separadores " + " y " / " quedan como texto. */
+const Keys = ({ combo }: { combo: string }) => (
+  <>
+    {combo.split(/( \+ | \/ )/).map((part, i) =>
+      i % 2 ? (
+        <span key={i} className="key-separator">
+          {part}
+        </span>
+      ) : KEY.test(part) ? (
+        <kbd key={i}>{part}</kbd>
+      ) : (
+        <span key={i}>{part}</span>
+      ),
+    )}
+  </>
+);
+
 const ShortcutsSection = () => {
   useLanguage();
   return (
@@ -123,7 +143,9 @@ const ShortcutsSection = () => {
         <tbody>
           {shortcutRows().map(([keys, action]) => (
             <tr key={keys[0]}>
-              <th>{bw(...keys)}</th>
+              <th>
+                <Keys combo={bw(...keys)} />
+              </th>
               <td>{action}</td>
             </tr>
           ))}

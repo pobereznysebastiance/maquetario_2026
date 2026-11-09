@@ -69,6 +69,11 @@ const paths: Record<string, string> = {
   trash: 'M3 6h18 M9 6V3h6v3 M6 6l1 15h10l1-15 M10 10v7 M14 10v7',
   link: 'M9 9L6 12a4 4 0 0 0 6 6l3-3 M15 15l3-3a4 4 0 0 0-6-6L9 9 M8 16l8-8',
   chevron: 'M6 9l6 6 6-6',
+  // Paginadores (revisión de salida, glifos): primera, anterior, siguiente y última.
+  first: 'M7 6v12 M17 6l-6 6 6 6',
+  previous: 'M15 6l-6 6 6 6',
+  next: 'M9 6l6 6-6 6',
+  last: 'M17 6v12 M7 6l6 6-6 6',
   close: 'M6 6l12 12 M18 6L6 18',
   check: 'M5 12l5 5L20 7',
   alert:

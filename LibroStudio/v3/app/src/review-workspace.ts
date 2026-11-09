@@ -273,7 +273,7 @@ extend.replace(
       const w = rw();
       const first = reviewFace === 0,
         last = reviewFace === sheets.length - 1;
-      controls.innerHTML = `${UI.textButton({ id: 'reviewFirst', label: '|‹', aria: { label: w.first }, disabled: first })}${UI.textButton({ id: 'reviewPrev', label: '‹', aria: { label: w.previous }, disabled: first })}<label>${w.face} <input id="reviewFaceInput" type="number" min="1" max="${sheets.length}" value="${reviewFace + 1}"> ${w.of} ${sheets.length}</label>${UI.textButton({ id: 'reviewNext', label: '›', aria: { label: w.next }, disabled: last })}${UI.textButton({ id: 'reviewLast', label: '›|', aria: { label: w.last }, disabled: last })}`;
+      controls.innerHTML = `${UI.textButton({ id: 'reviewFirst', icon: 'first', title: w.first, aria: { label: w.first }, disabled: first })}${UI.textButton({ id: 'reviewPrev', icon: 'previous', title: w.previous, aria: { label: w.previous }, disabled: first })}<label>${w.face} <input id="reviewFaceInput" type="number" min="1" max="${sheets.length}" value="${reviewFace + 1}"> ${w.of} ${sheets.length}</label>${UI.textButton({ id: 'reviewNext', icon: 'next', title: w.next, aria: { label: w.next }, disabled: last })}${UI.textButton({ id: 'reviewLast', icon: 'last', title: w.last, aria: { label: w.last }, disabled: last })}`;
       const faces = outputGeometry(config).faces,
         pages = faces[reviewFace]
           .map((i) => (i < book.pages.length ? M.folio(book, i) : w.blank))

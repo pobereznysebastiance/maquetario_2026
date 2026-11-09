@@ -215,10 +215,11 @@ const CoverEditor = () => {
   return (
     <>
       <p className="builder-intro">
+        {/* Una sola explicación (antes, este párrafo y una caja aparte repetían lo mismo). */}
         {bw(
-          'Diseñá la pieza exterior en el mismo proyecto. El ancho de tapa y contratapa y el alto siguen al interior. El lomo se ingresa según la medida final de la imprenta. Poné 0 para quitar lomo o solapas.',
-          'Design the exterior in the same project. Front/back width and height follow the interior. Enter the final printer-supplied spine width. Set 0 to remove spine or flaps.',
-          'Crie o exterior no mesmo projeto. Largura e altura seguem o miolo. Informe a lombada final fornecida pela gráfica. Use 0 para remover lombada ou orelhas.',
+          'Diseñá la pieza exterior en el mismo proyecto: el ancho de tapa y contratapa y el alto siguen al interior, y el lomo se ingresa según la medida final de la imprenta (0 quita lomo o solapas). Guardar cubierta conserva el diseño en el proyecto; Exportar genera la Cubierta PDF, aparte del Interior PDF.',
+          'Design the exterior in the same project: front/back width and height follow the interior, and the spine uses the final printer-supplied width (0 removes spine or flaps). Save cover keeps the design in the project; Export creates the Cover PDF, separate from the Interior PDF.',
+          'Crie o exterior no mesmo projeto: largura e altura seguem o miolo, e a lombada usa a medida final da gráfica (0 remove lombada ou orelhas). Salvar capa mantém o desenho no projeto; Exportar gera a Capa PDF, separada do Miolo PDF.',
         )}
       </p>
       <div
@@ -228,13 +229,6 @@ const CoverEditor = () => {
           body.current = stage?.parentElement ?? null;
         }}
       >
-        <p className="notice">
-          {bw(
-            'Dos archivos: Interior PDF (páginas del libro) y Cubierta PDF (una pieza desplegada). Guardar cubierta conserva el diseño dentro del proyecto; Exportar genera el PDF.',
-            'Two files: Interior PDF (book pages) and Cover PDF (one spread). Save cover keeps the design inside the project; Export creates the PDF.',
-            'Dois arquivos: Miolo PDF (páginas) e Capa PDF (uma peça aberta). Salvar capa mantém o desenho no projeto; Exportar gera o PDF.',
-          )}
-        </p>
         {/* La pinta updateCoverPreview (coverArtwork). */}
         <div id="coverPreview"></div>
         <div className="cover-image-actions">
