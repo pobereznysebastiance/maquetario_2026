@@ -39,4 +39,13 @@ export const motiovaDir = (): string => join(app.getPath('appData'), 'Motiova');
 export const exeDir = (): string => dirname(app.getPath('exe'));
 
 export const appVersion = (): string => app.getVersion();
+/**
+ * Versión para mostrar: una beta ("0.1.0-beta") se lee "BETA 0.1"; una final, "3.24.0". La misma
+ * regla que versionLabel (LibroStudio/v3/app/src/version-label.ts), sin la v.
+ */
+export const appVersionLabel = (): string => {
+  const version = appVersion(),
+    beta = /^(\d+)\.(\d+)\.\d+-beta(?:\.\d+)?$/.exec(version);
+  return beta ? `BETA ${beta[1]}.${beta[2]}` : version;
+};
 export const APP_CREATOR = 'Sebastián Poberezny';

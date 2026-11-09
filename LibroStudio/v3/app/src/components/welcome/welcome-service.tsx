@@ -26,6 +26,7 @@ import { editor, M } from '../../core-api.ts';
 import { confirmAction } from '../dialog/dialogs.tsx';
 import { loadOpenedProject } from '../../project-package.tsx';
 import { openHelp } from '../help/help-center.tsx';
+import { versionLabel } from '../../version-label.ts';
 
 export type { RecentProject } from './WelcomeScreen.tsx';
 
@@ -298,8 +299,8 @@ async function initializeWelcome(): Promise<void> {
   if (!editor.native) return;
   try {
     welcomeInfo = await nativeCall('appInfo');
-    // Versión del panel izquierdo, en el mismo formato que la bienvenida (v3.24.0).
-    $('.version').textContent = 'v' + welcomeInfo.version;
+    // Versión del panel izquierdo, en el mismo formato que la bienvenida (BETA 0.1 o v3.24.0).
+    $('.version').textContent = versionLabel(welcomeInfo.version);
     if (!welcomeInfo.selftest) {
       void loadRecoveryCopy();
       await globalThis.showWelcome();

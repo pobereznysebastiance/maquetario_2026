@@ -17,6 +17,7 @@ import type { ChangeEvent, ReactNode } from 'react';
 import { Icon } from '../Icon.tsx';
 import type { Language } from '../../i18n.ts';
 import { bw } from '../../i18n/language.ts';
+import { versionLabel } from '../../version-label.ts';
 
 /** Proyecto reciente que informa el anfitrión (appInfo). */
 export interface RecentProject {
@@ -114,7 +115,7 @@ export const WelcomeScreen = (p: WelcomeScreenProps) => {
         <div className="welcome-brand">
           <img src="maquetario.svg" alt="" />
           <strong>Maquetario</strong>
-          <span>v{p.version}</span>
+          <span>{versionLabel(p.version)}</span>
         </div>
         {p.canResume && (
           <button type="button" id="welcomeResume" className="quiet" onClick={p.onResume}>

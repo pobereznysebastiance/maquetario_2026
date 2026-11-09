@@ -3,7 +3,7 @@ import { dialog } from 'electron';
 import { randomUUID } from 'node:crypto';
 import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
-import { appVersion } from '../env.ts';
+import { appVersionLabel } from '../env.ts';
 import { cleanName, exists, MAX_PROJECT_BYTES } from '../files.ts';
 import { availableFaces, PACKAGE_MANIFEST } from '../fonts/catalog.ts';
 import { canPackage, faceBytes, isOpenTypeCff } from '../fonts/opentype.ts';
@@ -133,7 +133,7 @@ export async function createProjectPackage(
       join(stage, 'LEEME.txt'),
       [
         'Maquetario',
-        `Abrí ${projectFile} con Maquetario ${appVersion()} o posterior. Llevá esta carpeta completa.`,
+        `Abrí ${projectFile} con Maquetario ${appVersionLabel()} o posterior. Llevá esta carpeta completa.`,
         'Las imágenes del proyecto están incorporadas en el .mqt. La carpeta Imágenes guarda copias reutilizables.',
         'Las fuentes incluidas se cargan al abrir el .mqt de esta carpeta.',
         `Fuentes sin copia en el paquete: ${missing.length === 0 ? 'ninguna' : missing.join(', ')}.`,

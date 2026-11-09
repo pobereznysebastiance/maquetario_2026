@@ -21,6 +21,7 @@ import { CheckItem, Select, SettingRow } from '../form/Form.tsx';
 import { bw, i18n } from '../../i18n/language.ts';
 import { confirmAction, openSheet } from '../dialog/dialogs.tsx';
 import { fontFolders, obtainFonts } from '../../font-catalog.ts';
+import { versionLabel } from '../../version-label.ts';
 
 /** Versión nueva del programa en Motiova (mismo formato que desktop/src/main/motiova/desktop.ts). */
 interface UpdateInfo {
@@ -470,7 +471,7 @@ const SettingsPanel = ({
       </Section>
       <Section title={t('about')}>
         <p className="settings-about">
-          Maquetario {info && info.version ? 'v' + info.version : ''}
+          Maquetario {info && info.version ? versionLabel(info.version) : ''}
           <br />
           {t('createdBy')} {(info && info.creator) || 'Sebastián Poberezny'}
         </p>
