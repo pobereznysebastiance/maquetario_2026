@@ -345,10 +345,16 @@ function updateActivePage(): void {
   $$('#spread .page').forEach((page) => {
     const chosen = Number(page.dataset.page) === active;
     page.classList.toggle('is-page-active', chosen);
+    // El rótulo se escribe al dibujar la página (paper); acá se reescribe para que siga al idioma
+    // sin redibujar. No sale en la impresión.
+    const label = page.querySelector('.page-active-badge');
+    if (label) label.textContent = `${w.active} ${Number(page.dataset.page) + 1}`;
   });
-  $$('.thumb-paper').forEach((page) =>
-    page.classList.toggle('thumb-page-active', Number(page.dataset.individualPage) === active),
-  );
+  $$('.thumb-paper').forEach((page) => {
+    const index = Number(page.dataset.individualPage);
+    page.classList.toggle('thumb-page-active', index === active);
+    page.title = `${w.active} ${index + 1}`;
+  });
   let badge: HTMLElement = $('#activePageStatus');
   if (!badge) {
     badge = document.createElement('span');
@@ -358,6 +364,7 @@ function updateActivePage(): void {
   badge.textContent = `${w.active} ${active + 1}`;
 }
 globalThis.updateActivePage = updateActivePage;
+document.addEventListener('maquetario:language', () => updateActivePage());
 extend.after(
   'thumbs',
   function () {

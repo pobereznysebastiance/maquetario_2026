@@ -200,27 +200,6 @@
   pointer-events: none;
 }
 
-/* ── Marca de página con excepción (sobre el papel, abajo a la izquierda) ── */
-.page-exception-mark {
-  --exception-mark-inset: 2px;
-  --exception-mark-pad-y: 2px;
-  --exception-mark-pad-x: 3px;
-  --exception-mark-radius: 3px;
-  --exception-mark-size: 10px;
-  position: absolute;
-  bottom: var(--exception-mark-inset);
-  left: var(--exception-mark-inset);
-  max-width: 95%;
-  padding: var(--exception-mark-pad-y) var(--exception-mark-pad-x);
-  border: var(--book-line) solid var(--book-exception-line);
-  border-radius: var(--exception-mark-radius);
-  background: var(--book-exception-fill);
-  color: var(--book-exception-text);
-  font: var(--exception-mark-size) var(--book-font-mark);
-  line-height: 1;
-  white-space: nowrap;
-}
-
 /* Sombra del pliego con la mesa de trabajo nueva. */
 .page-priority .spread {
   --spread-halo-priority: 7px;

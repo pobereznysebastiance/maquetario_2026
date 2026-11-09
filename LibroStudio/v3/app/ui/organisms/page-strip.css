@@ -78,6 +78,28 @@
   letter-spacing: 0.05em;
 }
 
+/* Excepciones del pliego (page-exceptions.ts): ícono junto al número; el detalle va en la ayuda
+   emergente y, para lectores de pantalla, en un texto oculto a la vista. */
+.thumb-exception {
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--space-xs);
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+.thumb-exception .icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+.thumb-exception-text {
+  position: absolute;
+  width: var(--visually-hidden-size);
+  height: var(--visually-hidden-size);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* ── Vistas del riel: Páginas · Índice · Capas (selector propio, debajo de las herramientas) ── */
 .pages-heading {
   gap: var(--space-xs);
