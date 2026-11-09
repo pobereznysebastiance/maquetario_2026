@@ -272,3 +272,9 @@ dialog .modal-actions {
   color: var(--text-primary);
 }
 
+
+/* El diálogo de React recibe el foco al abrir (src/components/dialog/Sheet.tsx): el marco no lleva
+   anillo; los controles de adentro sí, al llegar con Tab. */
+dialog[data-kind]:focus-visible {
+  outline: none;
+}

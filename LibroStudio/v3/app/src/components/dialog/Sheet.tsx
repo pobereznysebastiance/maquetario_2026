@@ -84,12 +84,19 @@ const DialogFrame = ({ kind, title, size, variant, children, actions, onClose }:
       <Dialog.Portal container={dialogLayer}>
         <Dialog.Content asChild aria-describedby={undefined}>
           <dialog
+            tabIndex={-1}
             data-kind={kind}
             data-size={kind === 'sheet' ? size || 'md' : undefined}
             className={variant}
             ref={(element) => {
               dialog.current = element;
-              showModalOnMount(element);
+              // showModal() deja el foco en el primer control (la cruz) y Radix no lo mueve si ya
+              // está adentro. Va al diálogo: no se ve un anillo de foco sin motivo y el primer Tab
+              // lleva al primer control, como en una ventana de macOS.
+              if (element && !element.open) {
+                showModalOnMount(element);
+                element.focus();
+              }
             }}
             onClose={onClose}
           >
