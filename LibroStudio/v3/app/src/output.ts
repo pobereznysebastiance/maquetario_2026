@@ -583,7 +583,8 @@ globalThis.sendOutput = async function (destination, config, report) {
   if (busy) return;
   busy = true;
   document.querySelector('main')!.inert = true;
-  $('#printButton').disabled = $('#export').disabled = true;
+  // La barra superior (React) deshabilita Imprimir, Vista previa y Exportar mientras dura.
+  globalThis.notifyEditorState?.();
   toast(w.wait, 'info');
   try {
     if (!native) throw Error('Esta función requiere la app de escritorio de Maquetario.');
@@ -616,17 +617,10 @@ globalThis.sendOutput = async function (destination, config, report) {
   } finally {
     busy = false;
     document.querySelector('main')!.inert = false;
-    $('#printButton').disabled = $('#export').disabled = false;
+    globalThis.notifyEditorState?.();
   }
 };
-const printButton = document.createElement('button');
-printButton.id = 'printButton';
-printButton.className = 'btn';
-printButton.innerHTML =
-  '<svg class="icon" viewBox="0 0 24 24"><path d="M6 8V3h12v5 M6 17H3V8h18v9h-3 M6 13h12v8H6z M17 10h1"/></svg><span>Imprimir</span>';
-printButton.onclick = () => outputDialog('print');
-$('#preview').before(printButton);
-$('#export').onclick = () => outputDialog('pdf');
+// Imprimir y Exportar PDF están en la barra superior (components/topbar/Topbar.tsx).
 document.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.key.toLowerCase() === 'p') {
     e.preventDefault();

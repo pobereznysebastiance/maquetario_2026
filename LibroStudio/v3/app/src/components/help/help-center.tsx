@@ -157,13 +157,7 @@ globalThis.refreshHelp = () => {
   notify();
 };
 
-// Entrada fija en la barra superior, a la izquierda de las acciones del documento.
-const helpButton = UI.element(
-  UI.toolAction({ id: 'helpCenter', title: 'Ayuda', icon: 'help', label: 'Ayuda' }),
-);
-helpButton.setAttribute('aria-keyshortcuts', 'F1');
-helpButton.onclick = () => openHelp();
-$('.topright').prepend(helpButton);
+// La entrada fija ("Ayuda", #helpCenter) está en la barra superior (components/topbar/Topbar.tsx).
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'F1') return;
   e.preventDefault();

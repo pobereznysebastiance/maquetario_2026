@@ -49,5 +49,13 @@ export function useEditorState(): number {
   return useSyncExternalStore(subscribe, () => version);
 }
 
+declare global {
+  /** Avisa a los componentes de React que el estado del editor cambió (busy, preview…). */
+  var notifyEditorState: () => void;
+}
+globalThis.notifyEditorState = notifyEditorState;
+
+// Los cambios de hasDocument (review-workspace → refreshEmptyCanvas) y de busy (salida) avisan
+// con notifyEditorState() directamente.
 for (const name of ['updateStatus', 'syncNative', 'checkOverflow'])
   extend.after(name, () => notifyEditorState(), 'editor-state');

@@ -144,10 +144,8 @@ function refreshEmptyCanvas(): void {
   const w = rw();
   document.body.classList.toggle('no-document', !hasDocument);
   emptyCanvas.hidden = hasDocument;
-  $('#export').disabled =
-    $('#printButton').disabled =
-    $('#preview').disabled =
-      !hasDocument || busy;
+  // Imprimir, Vista previa y Exportar: los habilita la barra superior (React) según hasDocument.
+  globalThis.notifyEditorState?.();
   emptyCanvas.innerHTML = `<div>${icon('pages')}<h2>${w.emptyTitle}</h2><p>${w.emptyBody}</p><button id="emptyNew" class="btn primary">${w.create}</button><button id="emptyOpen" class="btn">${w.open}</button></div>`;
   $('#emptyNew').onclick = () => settings(true);
   $('#emptyOpen').onclick = openBook;

@@ -7,7 +7,7 @@
 // Fuente TypeScript: viaja dentro de build/app.js (src/entries/app.ts).
 
 const ZONES =
-  '.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer';
+  '.topbar, .leftpanel, .documentbar, .template-panel, .statusbar, .inspector, #modal, dialog, .welcome-footer, .tutorial-card';
 
 const fit = (select: HTMLSelectElement): void => {
   if (

@@ -18,6 +18,8 @@ interface OpenedProject {
 declare global {
   /** Valida el proyecto abierto, suma las fuentes de su paquete al catálogo y lo carga. */
   var loadOpenedProject: (result: OpenedProject) => void;
+  /** "Empaquetar proyecto": carpeta con el .mqt, las imágenes, las fuentes que se pueden compartir y el PDF. */
+  var packageDialog: () => void;
 }
 
 function loadOpenedProject(result: OpenedProject): void {
@@ -117,20 +119,7 @@ function packageDialog(): void {
   );
 }
 
-const packageButton = document.createElement('button');
-packageButton.type = 'button';
-packageButton.className = 'tool-action';
-packageButton.id = 'packageProject';
-packageButton.innerHTML = icon('folder') + '<span></span>';
-packageButton.onclick = packageDialog;
-$('#saveAs').after(packageButton);
-function labelPackageButton(): void {
-  packageButton.querySelector('span')!.textContent = bw('Empaquetar', 'Package', 'Empacotar');
-  packageButton.title = bw('Empaquetar proyecto', 'Package project', 'Empacotar projeto');
-}
-labelPackageButton();
-document.addEventListener('maquetario:language', () => {
-  labelPackageButton();
-});
+// "Empaquetar" está en la barra superior (components/topbar/Topbar.tsx).
+globalThis.packageDialog = packageDialog;
 
 export {};

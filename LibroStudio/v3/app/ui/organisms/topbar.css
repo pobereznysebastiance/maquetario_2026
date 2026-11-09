@@ -99,13 +99,29 @@
   min-height: var(--control-sm);
 }
 
+/* En ancho chico, Asistente, Imprimir y Vista previa quedan como botones de ícono del mismo tamaño
+   que las acciones de archivo (antes, el Asistente quedaba como una pastilla ancha y vacía). El
+   nombre sigue en title y aria-label (components/topbar/Topbar.tsx). */
 @media (max-width: 1279px) {
   .topbar :is(#preview, #printButton, .assistant-entry) > span:not([data-icon]) {
     display: none;
   }
   .topbar :is(#preview, #printButton, .assistant-entry) {
-    padding-inline: var(--space-sm);
+    justify-content: center;
+    width: var(--control-md);
+    min-width: var(--control-md);
+    height: var(--control-md);
+    padding: 0;
   }
+}
+
+/* Contenedor de React (src/components/topbar): sus hijos son los elementos de la barra. */
+.topbar-root {
+  display: contents;
+}
+/* La marca vuelve al Inicio. */
+.topbar .brand {
+  cursor: pointer;
 }
 
 /* Marca: subtítulo y etiqueta de versión. */

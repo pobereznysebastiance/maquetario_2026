@@ -63,20 +63,8 @@ export const assistant = {
   service: { configured: false, serviceUrl: '' } as ClassServiceInfo,
 };
 const imageSizeCache = new Map<string, Promise<ImageSize | null>>();
-const assistantSpark =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 2.7 7.3L22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7Z"/><path d="m20 2 .6 1.4L22 4l-1.4.6L20 6l-.6-1.4L18 4l1.4-.6Z"/></svg>';
-const assistantButton = document.createElement('button');
-assistantButton.type = 'button';
-assistantButton.id = 'editorialAssistant';
-assistantButton.className = 'btn assistant-entry';
-assistantButton.innerHTML =
-  assistantSpark +
-  '<span>' +
-  bw('Asistente editorial', 'Editorial assistant', 'Assistente editorial') +
-  '</span>';
-assistantButton.title = bw('Revisar mi libro', 'Review my book', 'Revisar meu livro');
-$('#printButton').before(assistantButton);
-assistantButton.onclick = () => globalThis.openEditorialAssistant();
+// La entrada "Asistente editorial" (#editorialAssistant) está en la barra superior
+// (components/topbar/Topbar.tsx).
 function reviewStamp(): string {
   let hash = 2166136261;
   const text = JSON.stringify([
@@ -419,18 +407,6 @@ function classroomPayload(scope: string) {
     truncated: truncated,
   };
 }
-
-extend.after(
-  'render',
-  function (full = true) {
-    assistantButton.querySelector('span')!.textContent = bw(
-      'Asistente editorial',
-      'Editorial assistant',
-      'Assistente editorial',
-    );
-  },
-  'editorial-assistant',
-);
 
 // Publicado a propósito: las pruebas (tests/assistant-tests.js, paso "asistente editorial" de la
 // autoprueba) llaman a estas funciones. openEditorialAssistant y runAutomaticReview los publica

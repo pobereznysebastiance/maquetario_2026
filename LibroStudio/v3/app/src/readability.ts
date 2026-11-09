@@ -29,6 +29,8 @@ declare global {
   var gridPresets: GridPreset[];
   /** Aplica una retícula de la biblioteca (sin mover objetos). */
   var applyGridPreset: (id: string) => void;
+  /** Guarda una copia con otro nombre (Ctrl+Mayús+S y la barra superior). */
+  var saveProjectAs: () => Promise<boolean>;
 }
 
 async function saveProjectAs(): Promise<boolean> {
@@ -62,10 +64,8 @@ async function saveProjectAs(): Promise<boolean> {
     return false;
   }
 }
-// El nombre y el title los pone readabilityLabels() (cambian con el idioma).
-const saveAsButton = UI.element(UI.toolAction({ id: 'saveAs', icon: 'save', label: '' }));
-saveAsButton.onclick = saveProjectAs;
-$('#save').after(saveAsButton);
+// "Guardar como…" está en la barra superior (components/topbar/Topbar.tsx).
+globalThis.saveProjectAs = saveProjectAs;
 document.addEventListener(
   'keydown',
   (e) => {
@@ -260,25 +260,8 @@ extend.replace(
   },
   'readability',
 );
-function readabilityLabels(): void {
-  saveAsButton.querySelector('span')!.textContent = bw('Guardar como…', 'Save as…', 'Salvar como…');
-  saveAsButton.title = bw(
-    'Guardar como… · Ctrl+Mayús+S',
-    'Save as… · Ctrl+Shift+S',
-    'Salvar como… · Ctrl+Shift+S',
-  );
-  $('#save').title = bw('Guardar · Ctrl+S', 'Save · Ctrl+S', 'Salvar · Ctrl+S');
-}
-extend.after(
-  'render',
-  function (full = true) {
-    readabilityLabels();
-  },
-  'readability',
-);
+// Los nombres de Guardar y Guardar como… (con su atajo) los pone la barra superior (React).
 document.addEventListener('maquetario:language', () => {
-  readabilityLabels();
   renderTemplates();
 });
-readabilityLabels();
 renderTemplates();

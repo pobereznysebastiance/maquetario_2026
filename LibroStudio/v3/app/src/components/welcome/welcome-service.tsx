@@ -258,10 +258,7 @@ extend.replace(
   },
   'welcome',
 );
-const brandHome = $('.brand');
-brandHome.style.cursor = 'pointer';
-brandHome.title = ww().home;
-brandHome.onclick = () => globalThis.showWelcome();
+// La marca de la barra superior vuelve al Inicio (components/topbar/Topbar.tsx).
 // La ayuda tiene una sola puerta: "Ayuda" en la barra superior (help-center.ts). El botón
 // "Tutorial" de la barra del documento ya no existe; el tutorial se empieza desde la Ayuda.
 document.addEventListener(

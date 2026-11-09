@@ -23,6 +23,7 @@ import '../book-workflow.ts';
 import '../components/statusbar/StatusBar.tsx';
 import '../components/documentbar/DocumentBar.tsx';
 import '../components/rail/Rail.tsx';
+import '../components/topbar/Topbar.tsx';
 import '../book-proof.ts';
 import '../publications.ts';
 import '../components/cover/CoverEditor.tsx';

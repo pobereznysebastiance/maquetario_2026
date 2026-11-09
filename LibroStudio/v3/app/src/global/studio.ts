@@ -51,6 +51,7 @@ const paths: Record<string, string> = {
   settings: 'M4 6h16 M4 12h16 M4 18h16 M8 3v6 M16 9v6 M10 15v6',
   expand: 'M8 3H3v5 M16 3h5v5 M3 16v5h5 M16 21h5v-5',
   info: 'M12 11v6 M12 7h.01 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
+  print: 'M6 8V3h12v5 M6 17H3V8h18v9h-3 M6 13h12v8H6z M17 10h1',
   left: 'M4 5h16 M4 10h10 M4 15h16 M4 20h10',
   center: 'M4 5h16 M7 10h10 M4 15h16 M7 20h10',
   right: 'M4 5h16 M10 10h10 M4 15h16 M10 20h10',
@@ -774,8 +775,6 @@ function renderPages(): void {
 }
 /** Redibuja la pantalla. Nombre y formato del libro: barra del documento (React), vía updateStatus. */
 function render(full = true): void {
-  $('#undo').disabled = !undoStack.length;
-  $('#redo').disabled = !redoStack.length;
   renderPages();
   inspector();
   if (full) {
@@ -785,13 +784,11 @@ function render(full = true): void {
   updateStatus();
 }
 /**
- * Estado de la pantalla después de un cambio. La barra de estado y la del documento (React) se
- * redibujan después de esta función (src/react/editor-state.ts).
+ * Estado de la pantalla después de un cambio. Las barras superior, de estado y del documento
+ * (React) se redibujan después de esta función (src/react/editor-state.ts), que otros módulos
+ * extienden.
  */
-function updateStatus(): void {
-  $('#undo').disabled = !undoStack.length;
-  $('#redo').disabled = !redoStack.length;
-}
+function updateStatus(): void {}
 function checkOverflow(): void {
   let count = 0;
   $$('#spread .paper-object.text').forEach((el) => {
@@ -1568,7 +1565,7 @@ async function performExport(mode: string, paperName: string, fit: string): Prom
   if (busy) return;
   busy = true;
   document.querySelector('main')!.inert = true;
-  $('#export').disabled = true;
+  globalThis.notifyEditorState?.();
   toast('Preparando tu PDF…', 'info');
   try {
     await document.fonts.ready;
@@ -1588,7 +1585,7 @@ async function performExport(mode: string, paperName: string, fit: string): Prom
   } finally {
     busy = false;
     document.querySelector('main')!.inert = false;
-    $('#export').disabled = false;
+    globalThis.notifyEditorState?.();
   }
 }
 async function recoveryDb(): Promise<IDBDatabase> {
@@ -1633,36 +1630,21 @@ async function offerRecovery(): Promise<void> {
     };
   } catch {}
 }
+/**
+ * Íconos de lo que quedó en HTML. La barra superior (components/topbar/Topbar.tsx) y las
+ * herramientas del riel (components/rail/: registerTool) las dibuja React.
+ */
 function buildToolbar(): void {
-  let actions: [string, string, string, () => unknown][] = [
-    ['new', 'Nuevo', 'file', () => settings(true)],
-    ['open', 'Abrir', 'folder', openBook],
-    ['save', 'Guardar', 'save', saveProject],
-    ['undo', 'Deshacer', 'undo', undo],
-    ['redo', 'Rehacer', 'redo', redo],
-    ['openSettings', 'Configuración', 'settings', () => openSettings()],
-    ['workspace', 'Espacio de trabajo', 'layout', () => MaquetarioWorkspace.toggleMenu()],
-  ];
-  $('#fileActions').innerHTML = actions
-    .map(
-      ([id, label, key], i) =>
-        (i === 3 || id === 'openSettings' ? '<span class="divider"></span>' : '') +
-        UI.toolAction({ id, title: label, icon: key, label }),
-    )
-    .join('');
-  for (const [id, , , fn] of actions) $('#' + id).onclick = fn;
-  // Las herramientas del riel las dibuja React (src/components/rail/): registerTool.
   icons();
 }
 buildToolbar();
 $$('.tab').forEach((el) => (el.onclick = () => showTab(el.dataset.tab!)));
-$('#preview').onclick = () => {
+/** Vista previa (sin guías ni controles): la alterna "Vista previa" de la barra superior. */
+function togglePreview(): void {
   finishEditing();
   preview = !preview;
   document.body.classList.toggle('preview-mode', preview);
-  $('#preview').classList.toggle('primary', preview);
-};
-$('#export').onclick = exportDialog;
+}
 $('#addPage').onclick = () => command('addPage');
 $('#zoom').oninput = (e: Event) => {
   zoom = Number((e.target as HTMLInputElement).value) / 100;
