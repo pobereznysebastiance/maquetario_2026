@@ -15,6 +15,17 @@
   vertical-align: middle;
   transition: color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out);
 }
+/* Zona para apuntar más grande que el dibujo: en los títulos el "?" mide 22 px y se ve en proporción
+   con el texto; la zona suma 4 px por lado (30 px) sin mover nada. */
+.term-help {
+  position: relative;
+}
+.term-help::after {
+  content: '';
+  position: absolute;
+  inset: calc(var(--space-2xs) * -1);
+  border-radius: var(--radius-pill);
+}
 .term-help:hover {
   background: var(--surface-control);
   color: var(--action);
