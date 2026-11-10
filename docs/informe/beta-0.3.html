@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Maquetario BETA 0.3 · Qué se sumó y qué probar</title>
+<style>
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-400.ttf'); font-weight: 400; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-500.ttf'); font-weight: 500; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-600.ttf'); font-weight: 600; }
+@font-face { font-family: 'DM Sans'; src: url('../../LibroStudio/v3/app/fonts/DM-Sans-700.ttf'); font-weight: 700; }
+
+@page { size: A4; margin: 22mm 20mm 20mm 22mm; }
+
+:root {
+  --ink: #1d2a2f;
+  --ink-soft: #4b5b60;
+  --ink-faint: #7a8a8d;
+  --rule: #d5dcdc;
+  --petrol: #17272d;
+  --teal: #1f9e8d;
+  --gold: #b9823e;
+  --shade: #f2f4f2;
+}
+
+* { box-sizing: border-box; }
+html { font-family: 'DM Sans', 'Segoe UI', sans-serif; color: var(--ink); font-size: 10.2pt; line-height: 1.52; }
+body { margin: 0; }
+h1, h2, h3 { font-weight: 600; color: var(--petrol); line-height: 1.2; break-after: avoid; }
+h1 { font-size: 22pt; margin: 0 0 4mm; letter-spacing: -0.015em; }
+h2 { font-size: 13.5pt; margin: 9mm 0 3mm; padding-top: 3mm; border-top: 0.6pt solid var(--rule); }
+h3 { font-size: 10.8pt; margin: 5mm 0 1.5mm; }
+p { margin: 0 0 2.6mm; text-wrap: pretty; }
+ul, ol { margin: 0 0 2.6mm; padding-left: 5mm; }
+li { margin-bottom: 1.2mm; text-wrap: pretty; }
+strong { font-weight: 600; }
+
+.cover { height: 247mm; display: flex; flex-direction: column; break-after: page; }
+.cover-brand { display: flex; align-items: center; gap: 3.5mm; font-weight: 600; font-size: 13pt; color: var(--petrol); }
+.cover-brand img { width: 12mm; height: 12mm; }
+.cover-title { margin-top: 52mm; }
+.cover-title h1 { font-size: 30pt; max-width: 150mm; }
+.cover-title p { font-size: 12pt; color: var(--ink-soft); max-width: 140mm; }
+.cover-rule { width: 22mm; height: 0.9mm; background: var(--gold); margin: 7mm 0; }
+.cover-meta { margin-top: auto; display: grid; grid-template-columns: 38mm 1fr; row-gap: 1.6mm; font-size: 9.4pt; }
+.cover-meta dt { color: var(--ink-faint); }
+.cover-meta dd { margin: 0; }
+
+.lead { font-size: 11pt; color: var(--ink-soft); }
+.group { break-inside: avoid; margin-bottom: 4mm; }
+
+figure { margin: 3mm 0 5mm; break-inside: avoid; }
+figure .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+figure img { width: 100%; border: 0.5pt solid var(--rule); display: block; }
+figcaption { font-size: 8.6pt; color: var(--ink-faint); margin-top: 1.6mm; }
+.label { font-size: 8.4pt; color: var(--ink-soft); margin-bottom: 1mm; }
+
+ol.checks { counter-reset: check; list-style: none; padding-left: 0; }
+ol.checks > li { counter-increment: check; position: relative; padding-left: 8mm; margin-bottom: 2.4mm; break-inside: avoid; }
+ol.checks > li::before { content: counter(check); position: absolute; left: 0; top: 0.2mm; width: 5mm; height: 5mm; border-radius: 50%; background: var(--teal); color: #fff; font-size: 7.6pt; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+ol.checks .how { display: block; color: var(--ink-soft); font-size: 9.3pt; }
+
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9pt; break-inside: avoid; }
+th, td { text-align: left; vertical-align: top; padding: 1.6mm 2mm; border-bottom: 0.5pt solid var(--rule); }
+th { font-weight: 600; color: var(--petrol); border-bottom: 0.9pt solid var(--petrol); }
+
+.note { font-size: 9.2pt; color: var(--ink-soft); }
+.page-break { break-before: page; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="cover-brand"><img src="../../LibroStudio/v3/app/maquetario.svg" alt=""> Maquetario</div>
+  <div class="cover-title">
+    <h1>Maquetario BETA 0.3</h1>
+    <div class="cover-rule"></div>
+    <p>Lo que se sumó desde la BETA 0.2: la segunda tanda de pedidos, las respuestas de la cátedra sobre la pauta y la primera versión para Mac. Qué probar y qué devolución nos sirve.</p>
+  </div>
+  <dl class="cover-meta">
+    <dt>Para</dt><dd>Sebastián Poberezny</dd>
+    <dt>De</dt><dd>Juan Cruz Canteros · Tiny Studio</dd>
+    <dt>Fecha</dt><dd>10 de noviembre de 2026</dd>
+    <dt>Versión a probar</dt><dd>BETA 0.3 (instalador <em>Maquetario BETA 0.3.exe</em>; en Mac, ver más abajo)</dd>
+    <dt>Comparada con</dt><dd>BETA 0.2</dd>
+  </dl>
+</section>
+
+<h2 style="border-top:0;padding-top:0;margin-top:0">En pocas palabras</h2>
+<p class="lead">BETA 0.3 trae lo que pidieron después de probar la BETA 0.2: el clic derecho con las funciones de siempre, flechitas para ajustar los valores y la Cubierta en el panel de la izquierda. Suma los dos ajustes que respondió la cátedra sobre la pauta y deja lista la versión para Mac. Todo lo de la BETA 0.2 sigue igual.</p>
+<ul>
+  <li><strong>Clic derecho</strong> sobre objetos, textos, imágenes, la página y las miniaturas, con sus atajos.</li>
+  <li><strong>Copiar, cortar, pegar y duplicar objetos</strong> con Ctrl+C, Ctrl+X, Ctrl+V y Ctrl+D.</li>
+  <li><strong>Flechitas en los campos de medidas:</strong> de a 0,1, o de a 1 con Mayúscula.</li>
+  <li><strong>Cubierta y solapas</strong> pasa al panel de la izquierda; arriba quedan las acciones del programa.</li>
+  <li><strong>Pauta:</strong> el interlineado en puntos con su leyenda, y la operación tipográfica como campo libre para el estudiante.</li>
+  <li><strong>Mac:</strong> los atajos usan ⌘ y ya se puede armar el instalador.</li>
+</ul>
+
+<figure>
+  <img src="img/beta03-menu.png" alt="">
+  <figcaption>BETA 0.3: clic derecho sobre una caja de texto, con el submenú Rol abierto. A la izquierda, debajo de las herramientas, el ícono de Cubierta y solapas junto a las vistas del libro. Arriba, sólo las acciones del programa.</figcaption>
+</figure>
+
+<h2>Lo que se pidió</h2>
+
+<div class="group">
+<h3>1. Cubierta y solapas, en el panel de la izquierda</h3>
+<ul>
+  <li>Es un ícono más del panel izquierdo, junto a Páginas, Estructura, Índice y Capas. Abre la cubierta desplegada, como antes.</li>
+  <li>Arriba quedan las acciones del programa: crear, abrir, guardar, imprimir, vista previa y exportar. A la izquierda, todo lo que forma el libro.</li>
+  <li>Dentro de la cubierta sigue el conmutador Interior | Cubierta y solapas para volver a las páginas.</li>
+  <li>Como la barra de arriba quedó más liviana, en notebooks de 1366 px Imprimir, Vista previa y el Asistente vuelven a mostrar su nombre.</li>
+</ul>
+</div>
+
+<div class="group">
+<h3>2. Flechitas para ajustar los valores</h3>
+<ul>
+  <li>Aparecen al pasar el puntero o al hacer clic en un campo de medidas; el resto del tiempo el panel queda limpio.</li>
+  <li>Cada clic cambia <strong>0,1</strong> (de 22 a 22,1); con <strong>Mayúscula</strong>, de a 1. Lo mismo con las flechas del teclado y con la rueda del mouse sobre el campo.</li>
+  <li>Si se deja apretada, el valor sigue subiendo, y <strong>Deshacer vuelve atrás de una sola vez</strong>.</li>
+  <li>En los campos de números enteros (columnas, filas, número de la primera página) cambian de a 1, y de a 10 con Mayúscula.</li>
+  <li>Son las mismas en todo el programa, también en la ventana de libro nuevo, donde antes aparecían las del sistema.</li>
+</ul>
+</div>
+
+<figure style="max-width:80mm">
+  <img src="img/beta03-flechitas.png" alt="">
+  <figcaption>Las flechitas en el margen Inferior, al pasar el puntero.</figcaption>
+</figure>
+
+<div class="group">
+<h3>3. Clic derecho con las funciones de siempre</h3>
+<table>
+  <tr><th style="width:42mm">Dónde</th><th>Qué ofrece</th></tr>
+  <tr><td>Un campo, o un texto mientras se escribe</td><td>Cortar, copiar, pegar, seleccionar todo, deshacer y rehacer. Si una palabra está mal escrita, las sugerencias de ortografía y "Agregar al diccionario".</td></tr>
+  <tr><td>Cualquier objeto</td><td>Cortar, copiar, pegar, duplicar y eliminar; traer al frente y enviar al fondo; bloquear y ocultar; alinear.</td></tr>
+  <tr><td>Una caja de texto, además</td><td>Editar el texto, ajustar la caja al texto, elegir el rol, insertar una nota al pie y marcar como cita.</td></tr>
+  <tr><td>Una imagen, además</td><td>Reemplazar la imagen (en un marco vacío, colocar una).</td></tr>
+  <tr><td>La página vacía</td><td>Pegar, también en el mismo lugar; agregar, duplicar o eliminar la página; agregar una guía; mostrar u ocultar la grilla.</td></tr>
+  <tr><td>Una miniatura de página</td><td>Insertar una página antes o después, duplicarla o eliminarla.</td></tr>
+</table>
+<ul>
+  <li>Atajos para objetos: <strong>Ctrl+C</strong> copiar, <strong>Ctrl+X</strong> cortar, <strong>Ctrl+V</strong> pegar y <strong>Ctrl+D</strong> duplicar. La copia aparece corrida 5 mm para que se vea; desde el menú de la página se pega donde se hizo clic o en el mismo lugar.</li>
+  <li>Una caja con notas al pie, al copiarse, lleva sus propias notas.</li>
+  <li>Pegar una imagen o un SVG copiado de otro programa funciona como antes.</li>
+  <li>Todo se puede deshacer.</li>
+</ul>
+</div>
+
+<figure style="max-width:100mm">
+  <img src="img/beta03-miniatura.png" alt="">
+  <figcaption>Clic derecho sobre una miniatura: insertar una página antes o después, duplicarla o eliminarla.</figcaption>
+</figure>
+
+<h2>Las respuestas de la cátedra sobre la pauta, aplicadas</h2>
+<table>
+  <tr><th style="width:62mm">Respuesta</th><th>Qué hicimos</th></tr>
+  <tr><td>Interlineado: el valor en puntos, con la leyenda "ajustado", "normal" o "amplio".</td><td>En la pauta descargada el interlineado se lee en puntos y, debajo, su leyenda. En la planilla CSV, "19,6 pt · Normal".</td></tr>
+  <tr><td>Operación tipográfica: un campo para que el estudiante complete lo que falta, porque lo experimental (forma y contraforma, ocultar, reemplazar) se hace en Illustrator.</td><td>Es un campo libre de tres líneas, con esos ejemplos como guía. Lo que el programa detecta solo (color aplicado, interletrado) sigue apareciendo debajo.</td></tr>
+</table>
+
+<figure>
+  <img src="img/beta03-pauta.png" alt="">
+  <figcaption>La pauta en el programa: el interlineado con su valor y su leyenda, y la operación tipográfica como texto libre (completada en el Título; en el Texto principal se ve la guía).</figcaption>
+</figure>
+
+<h2>Maquetario en Mac</h2>
+<ul>
+  <li>Los atajos usan <strong>⌘</strong>: ⌘S, ⌘Z, ⇧⌘Z para rehacer, ⌘P, ⌘C, ⌘X, ⌘V y ⌘D, y ⌘ + rueda o el pellizco del trackpad para el zoom. La tecla "delete" borra el objeto elegido. Las ayudas y los botones muestran ⌘ en lugar de Ctrl.</li>
+  <li>El instalador se arma en una Mac (o en una Mac de GitHub, sin tener una), para Apple Silicon y para Intel.</li>
+  <li>Sin la cuenta de Apple Developer (USD 99 por año), la primera vez macOS pide permiso: Ajustes del Sistema → Privacidad y seguridad → "Abrir igual". Con la cuenta, abre sin avisos.</li>
+  <li>Todavía no se probó en una Mac real: es lo primero que conviene mirar.</li>
+</ul>
+
+<h2>Qué probar</h2>
+<p>Lo ideal sigue siendo una novela real, como las que están armando los alumnos.</p>
+<ol class="checks">
+  <li><strong>Instalar.</strong> <span class="how">Abrir <em>Maquetario BETA 0.3.exe</em>. La bienvenida dice "BETA 0.3".</span></li>
+  <li><strong>Clic derecho.</strong> <span class="how">Sobre una caja de texto, una imagen, la página vacía y una miniatura. ¿Están las acciones que se esperan?</span></li>
+  <li><strong>Copiar y pegar objetos.</strong> <span class="how">Copiar una caja, pegarla en otra página, duplicar con Ctrl+D y deshacer.</span></li>
+  <li><strong>Ortografía.</strong> <span class="how">Escribir una palabra mal en una caja y hacer clic derecho sobre ella: ¿aparecen las sugerencias en castellano?</span></li>
+  <li><strong>Flechitas.</strong> <span class="how">Ajustar los márgenes con clics, con Mayúscula y dejando apretado; después, un solo Deshacer.</span></li>
+  <li><strong>Cubierta.</strong> <span class="how">Abrirla desde el panel izquierdo y volver al interior.</span></li>
+  <li><strong>La pauta.</strong> <span class="how">Completar la operación tipográfica y descargar el PDF.</span></li>
+  <li><strong>En una Mac.</strong> <span class="how">Si hay una a mano: instalar, abrir un proyecto y probar los atajos con ⌘.</span></li>
+</ol>
+
+<h2>Qué devolución nos sirve</h2>
+<ul>
+  <li>¿Falta alguna acción en el clic derecho, o sobra alguna?</li>
+  <li>¿El paso de 0,1 es el que usan en clase, o hace falta otro para algún campo?</li>
+  <li>¿La pauta descargada ya sirve tal cual como entrega?</li>
+  <li>Si se prueba en Mac: qué no anda o se ve distinto.</li>
+</ul>
+
+<h3>Lo que todavía no hace</h3>
+<ul>
+  <li>"Pegar" desde el menú del clic derecho pega sólo los objetos copiados en Maquetario. Las imágenes y los SVG de otros programas se pegan con Ctrl+V.</li>
+  <li>Una nota que no entra en su página no pasa a la siguiente (no hay reflujo de texto entre cajas).</li>
+</ul>
+
+<p class="note" style="margin-top:8mm">Gracias por la devolución de la BETA 0.2 y por pasarle las preguntas a la cátedra. Cualquier cosa, por el canal de siempre.</p>
+
+</body>
+</html>

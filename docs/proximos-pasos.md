@@ -259,7 +259,10 @@ Llegó el 09-nov por Seba (pedido de Tomás), con la planilla "Pauta de uso tipo
 - Citas: Selección → Notas al pie y citas → "Marcar como cita" (estilo Cita, sangrado y un punto menor, en el rol Otros si está libre).
 - Interior | Cubierta y solapas pasó a la barra principal (en 1366 Imprimir, Vista previa y Asistente quedan de ícono para que entre).
 
-## 6. Segunda tanda de la cátedra (09-nov, noche): plan, sin código todavía
+## 6. Segunda tanda de la cátedra (09-nov, noche)
+
+**Hecho el 10-nov (BETA 0.3):** ver "Devolución de la BETA 0.2" más arriba. Diferencias con el plan: las flechitas no son un componente `Stepper` dentro de cada campo sino una sola pieza flotante para toda la app (`src/number-stepper.ts`), que alcanza también a los campos sueltos y a los de los diálogos sin tocarlos; mantener apretado aplica cada paso en vivo y se deshace de una vez (en lugar de grabar al soltar); el menú del lienzo es un `DropdownMenu` de Radix anclado en el clic (`src/context-menu.tsx`) en lugar de `ContextMenu` con registro. En 1366 Imprimir, Vista previa y Asistente vuelven a tener nombre (corte en 1280 px, como antes de la 0.2).
+
 
 ### 6.1 Cubierta y solapas pasa al riel izquierdo
 
@@ -323,7 +326,13 @@ Pago único con actualizaciones (`maxMajor: null`), edición `estandar`, 2 compu
 
 ## Informes
 
-PDF con la tipografía de la app (`scripts/render-pdf.cjs`). BETA 0.2 (09-nov, noche; las capturas están en `docs/informe/img/beta02-*.png`), para Seba y para quienes prueban:
+PDF con la tipografía de la app (`scripts/render-pdf.cjs`). BETA 0.3 (10-nov; capturas en `docs/informe/img/beta03-*.png`), para Seba:
+
+```bash
+npx electron scripts/render-pdf.cjs docs/informe/beta-0.3.html "Maquetario BETA 0.3 - Para Seba.pdf" "Maquetario BETA 0.3 · Qué se sumó y qué probar"
+```
+
+BETA 0.2 (09-nov, noche; las capturas están en `docs/informe/img/beta02-*.png`), para Seba y para quienes prueban:
 
 ```bash
 npx electron scripts/render-pdf.cjs docs/informe/beta-0.2.html "Maquetario BETA 0.2 - Para Seba.pdf" "Maquetario BETA 0.2 · Qué se sumó y qué probar"
