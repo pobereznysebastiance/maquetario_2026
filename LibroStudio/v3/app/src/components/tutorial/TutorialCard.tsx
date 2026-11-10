@@ -22,6 +22,7 @@ import { mount, useLanguage } from '../../react/mount.tsx';
 import { Icon } from '../Icon.tsx';
 import type { GuideLesson } from '../../tutorial.ts';
 import { guideLessons, tutorialIndex } from '../../tutorial-lessons.ts';
+import { shortcutLabel } from '../../keys.ts';
 
 const words = {
   es: {
@@ -169,7 +170,7 @@ const TutorialCard = ({ onAction }: { onAction: (step: GuideLesson) => void }) =
           {last ? w.finish : w.next}
         </button>
       </div>
-      <div className="tutorial-note">{w.note}</div>
+      <div className="tutorial-note">{shortcutLabel(w.note)}</div>
     </>
   );
 };

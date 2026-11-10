@@ -1,8 +1,10 @@
 // Pauta de uso tipográfico (pedido de la cátedra de Tipografía I): la tabla donde se deciden las
 // pautas del libro. Una fila por rol (src/roles.ts), en el orden de la planilla, con las columnas de
 // la planilla de la cátedra: tipografía y cuerpo; variable (escritura, peso, rendimiento,
-// inclinación); alineación; ancho de caja; interlineado (amplio, normal o ajustado, con el valor);
-// operación tipográfica; y zonas activas de la grilla en tres dobles páginas representativas. Folio
+// inclinación); alineación; ancho de caja; interlineado (el valor en puntos, con la leyenda Ajustado,
+// Normal o Amplio); operación tipográfica (un campo libre que completa el estudiante: la cátedra la
+// usa para lo experimental que se hace fuera del programa, como forma y contraforma, ocultar o
+// reemplazar signos); y zonas activas de la grilla en tres dobles páginas representativas. Folio
 // y cornisa van en Otros. Lleva la leyenda de la cátedra en la vista y en lo que se descarga.
 //
 // - Se edita: tipografía, cuerpo, alineación, ancho de caja, interlineado y operación cambian el rol,
@@ -538,27 +540,38 @@ const GuideTable = ({ rows, editable }: { rows: RoleRow[]; editable: boolean }) 
                     </select>
                   </>
                 ) : (
+                  // El valor en puntos, con su leyenda (devolución de la cátedra, 10-nov).
                   <>
-                    {leadingNames()[shownClass]}
-                    <small>{points(format.leading)} pt</small>
+                    {points(format.leading) + ' pt'}
+                    <small data-pauta-leading-class>{leadingNames()[shownClass]}</small>
                   </>
                 )}
               </td>
               <td>
                 {editable ? (
-                  <input
+                  // Campo libre para el estudiante: lo que hizo con los signos y el programa no ve.
+                  <textarea
                     data-pauta="operation"
-                    type="text"
-                    maxLength={250}
+                    rows={3}
+                    maxLength={500}
                     aria-label={bw(
                       'Operación tipográfica',
                       'Typographic treatment',
                       'Operação tipográfica',
                     )}
+                    placeholder={bw(
+                      'Forma y contraforma, ocultar, reemplazar…',
+                      'Form and counterform, hide, replace…',
+                      'Forma e contraforma, ocultar, substituir…',
+                    )}
                     defaultValue={note?.operation || ''}
                   />
+                ) : note?.operation ? (
+                  <span className="guide-operation">{note.operation}</span>
+                ) : operationAuto(format, ink).length ? (
+                  ''
                 ) : (
-                  note?.operation || (operationAuto(format, ink).length ? '' : '—')
+                  '—'
                 )}
                 {operationAuto(format, ink).length ? (
                   <small data-pauta-operation-auto>{operationAuto(format, ink).join(' · ')}</small>
@@ -771,6 +784,7 @@ const EXPORT_CSS = [
   '.guide-doc .guide-spread{width:72px;height:auto;display:block}',
   '.guide-doc figcaption{font-size:10px;color:#555}',
   '.guide-doc .guide-unused{color:#999}',
+  '.guide-doc .guide-operation{white-space:pre-line}',
   '.guide-doc .guide-legend{display:flex;gap:18px;align-items:center;margin-top:20px;font-size:12px}',
   '.guide-doc .guide-logo{display:block;width:150px;height:60px;visibility:hidden}',
   '.guide-doc .guide-legend p{margin:0}',
@@ -896,7 +910,7 @@ function guideCsv(rows: RoleRow[]): string {
           caseName(format, writing),
           alignName(format.align),
           columnsName(style.columns),
-          `${leadingNames()[notes[style.id]?.leading || leadingClass(format.size, format.leading)]} · ${points(format.leading)} pt`,
+          `${points(format.leading)} pt · ${leadingNames()[notes[style.id]?.leading || leadingClass(format.size, format.leading)]}`,
           notes[style.id]?.operation || '',
           exceptions,
         ]

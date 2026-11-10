@@ -29,6 +29,7 @@ npm test             # pruebas + control de diseño + deuda + formato
 npm run format       # prettier sobre todo el código propio
 npm run self-test    # autoprueba completa sobre la app real
 npm run dist         # instalador y zip para el launcher (desktop/release)
+npm run dist:mac-unsigned  # en una Mac: .dmg y .zip sin certificado (o el workflow .github/workflows/mac.yml)
 ```
 
 Este archivo lo lee cualquier sesión que trabaje en esta carpeta; mantenerlo al día.

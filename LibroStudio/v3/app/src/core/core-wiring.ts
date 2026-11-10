@@ -88,7 +88,7 @@ declare global {
   /** Avisa al anfitrión si hay cambios sin guardar. */
   var syncNative: () => void;
   /** Deshacer y cambios (src/core/history.ts). */
-  var snapshot: () => void;
+  var snapshot: () => boolean;
   var changed: () => void;
   /** Cambio en el libro con deshacer y redibujo (extensible). */
   var commit: (fn: () => void, full?: boolean) => void;

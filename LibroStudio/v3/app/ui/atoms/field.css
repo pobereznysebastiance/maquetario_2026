@@ -171,13 +171,13 @@ textarea {
   pointer-events: none;
 }
 
-/* Campo con unidad: sin las flechas del navegador, que se montaban sobre la unidad.
-   El valor se cambia igual con las flechas del teclado. */
-.unit-wrap input[type='number'] {
+/* Campos numéricos: sin las flechas del navegador, que se veían distintas en cada sistema y se
+   montaban sobre la unidad. Las flechitas son las propias (molecules/number-stepper.css). */
+input[type='number'] {
   appearance: textfield;
 }
-.unit-wrap input[type='number']::-webkit-inner-spin-button,
-.unit-wrap input[type='number']::-webkit-outer-spin-button {
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
   margin: 0;
   appearance: none;
 }

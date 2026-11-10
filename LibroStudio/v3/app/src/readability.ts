@@ -10,6 +10,7 @@
 import { refreshCanvasBar } from './components/canvas-bar/canvas-bar-state.ts';
 import { bw } from './i18n/language.ts';
 import { saveProjectAs } from './save-as.ts';
+import { commandKey } from './keys.ts';
 ('use strict');
 
 /** Retícula de la biblioteca: columnas (c), filas (r) y medianiles (gx, gy) en mm. */
@@ -37,7 +38,7 @@ declare global {
 document.addEventListener(
   'keydown',
   (e) => {
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
+    if (commandKey(e) && e.shiftKey && e.key.toLowerCase() === 's') {
       e.preventDefault();
       e.stopImmediatePropagation();
       if (!welcomeVisible && !document.querySelector('#dialogLayer dialog[open]')) saveProjectAs();

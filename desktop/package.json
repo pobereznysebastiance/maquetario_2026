@@ -13,7 +13,9 @@
     "self-test": "node scripts/build.mjs && electron . --self-test",
     "typecheck": "tsc -p tsconfig.json",
     "test": "node --test \"test/*.test.ts\"",
-    "dist": "node scripts/build.mjs && electron-builder"
+    "dist": "node scripts/build.mjs && electron-builder",
+    "dist:mac": "node scripts/build.mjs && electron-builder --mac --arm64 --x64",
+    "dist:mac-unsigned": "node scripts/build.mjs && electron-builder --mac --arm64 --x64 --config scripts/mac-unsigned.cjs"
   },
   "devDependencies": {
     "@maquetario/license": "*",

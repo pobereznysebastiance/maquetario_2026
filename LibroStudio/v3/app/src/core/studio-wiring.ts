@@ -7,6 +7,7 @@
 import { $, $$ } from './utils.ts';
 import { icons } from './icons.ts';
 import { canvasHit, imageInputChange } from './editing.ts';
+import { anyCommandKey, commandKey, isDeleteKey, isRedoKey } from '../keys.ts';
 
 // ── Eventos del lienzo, delegados en #spread ──
 // El papel no lleva oyentes propios: un solo oyente por evento en #spread busca la página y el
@@ -69,23 +70,24 @@ document.addEventListener('keydown', (e) => {
   // Ctrl+Z o Supr no tienen que tocar el libro por detrás de una Hoja.
   if (document.querySelector('#dialogLayer dialog[open]')) return;
   const input = (e.target as Element).closest?.('input,textarea,select,[contenteditable="true"]');
-  if (e.ctrlKey && e.key.toLowerCase() === 's') {
+  if (commandKey(e) && !e.shiftKey && e.key.toLowerCase() === 's') {
     e.preventDefault();
     saveProject();
     return;
   }
   if (input) return;
-  if (e.ctrlKey && e.key.toLowerCase() === 'z') {
-    e.preventDefault();
-    undo();
-    return;
-  }
-  if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+  // Rehacer primero: en macOS es ⇧⌘Z.
+  if (isRedoKey(e)) {
     e.preventDefault();
     redo();
     return;
   }
-  if (e.key === 'Delete') {
+  if (commandKey(e) && e.key.toLowerCase() === 'z') {
+    e.preventDefault();
+    undo();
+    return;
+  }
+  if (isDeleteKey(e)) {
     e.preventDefault();
     command('deleteObject');
   }
@@ -95,7 +97,8 @@ document.addEventListener('keydown', (e) => {
     tool = 'select';
     render(false);
   }
-  if (!e.ctrlKey && !e.altKey) {
+  // Teclas sueltas: con Ctrl, ⌘ o Alt son otro atajo (⌘V no elige Seleccionar).
+  if (!anyCommandKey(e) && !e.altKey) {
     const t = { v: 'select', t: 'text', i: 'image', f: 'frame' }[e.key.toLowerCase()];
     if (t) setTool(t);
   }

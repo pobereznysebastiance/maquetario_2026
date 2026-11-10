@@ -1,0 +1,59 @@
+/* Organismo: menú del clic derecho (src/context-menu.tsx), sobre el material de .menu
+   (organisms/menu.css). Radix lo ubica junto al ancla, que está donde se hizo clic. Filas compactas
+   como un menú contextual de macOS: el nombre a la izquierda y el atajo a la derecha. */
+.context-menu-anchor {
+  position: fixed;
+  top: var(--menu-y);
+  left: var(--menu-x);
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.context-menu {
+  --menu-width: auto;
+  --context-menu-min: 200px;
+  z-index: var(--layer-popover);
+  min-width: var(--context-menu-min);
+  max-height: var(--radix-dropdown-menu-content-available-height);
+  overflow-y: auto;
+  font-size: var(--type-callout);
+}
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  min-height: var(--control-sm);
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: default;
+  outline: none;
+  user-select: none;
+  white-space: nowrap;
+}
+.context-menu-item[data-highlighted],
+.context-menu-item[data-state='open'] {
+  background: var(--surface-selected-strong);
+}
+.context-menu-item[data-disabled] {
+  color: var(--text-disabled);
+}
+.context-menu-item[data-danger]:not([data-disabled]) {
+  color: var(--danger);
+}
+.context-menu-item > .icon {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  margin-left: auto;
+  color: var(--text-tertiary);
+  transform: rotate(-90deg);
+}
+/* El atajo: sin la caja de tecla, en el tono terciario, alineado a la derecha. */
+.context-menu-shortcut {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  color: var(--text-tertiary);
+  font-size: var(--type-callout);
+  font-variant-numeric: tabular-nums;
+}

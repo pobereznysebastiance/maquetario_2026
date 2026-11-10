@@ -41,6 +41,20 @@ Hoja de ruta para retomar. Estado al cierre (09-nov, noche): todo subido, `npm t
   - 1 botón creado a mano;
   - 244 globales publicados con `globalThis.x =`. La mayoría los publica `src/core/core-wiring.ts` para los módulos, las pruebas y el lienzo, que todavía los leen por nombre; `node scripts/globals-report.mjs` dice quién usa cada uno.
 
+## Devolución de la BETA 0.2 (10-nov)
+
+Lo que pidieron Juan Cruz y la cátedra después de probar la BETA 0.2, hecho:
+
+- **Cubierta y solapas al panel izquierdo.** Es el quinto ícono de `.rail-switch`, junto a Páginas, Estructura, Índice y Capas (`#coverTool`, `components/rail/Rail.tsx`); abre la cubierta desplegada, no es una vista. Arriba quedan sólo las acciones del programa. El conmutador Interior | Cubierta quedó en la cabecera de la cubierta, para volver.
+- **Flechitas en los campos numéricos** (`src/number-stepper.ts`, `ui/molecules/number-stepper.css`). Una sola pieza para toda la app (popover en la capa superior, dentro del `<dialog>` del campo si está en uno), así no hay que tocar cada panel. Aparecen al apuntar o editar; 0,1 por clic y 1 con Mayúscula (enteros: 1 y 10); lo mismo con ↑/↓ y la rueda. Apretada repite, y lo que cambia mientras está apretada (o con la flecha del teclado mantenida) se deshace de una vez: `editor.historyGroup` en `src/core/history.ts`. Los campos de paso fraccionario pasan a `step="any"` (si no, 22,1 quedaba inválido con paso 0,5). Sin flechas del sistema en ningún campo.
+- **Clic derecho** (`src/context-menu.tsx`, `ui/organisms/context-menu.css`): DropdownMenu de Radix anclado en el clic. Objeto (cortar, copiar, pegar, duplicar, eliminar, frente/fondo, bloquear, ocultar, alinear), caja de texto (editar, ajustar al texto, rol, nota al pie, cita), imagen o marco (reemplazar/colocar), página vacía (pegar y pegar en el mismo lugar, agregar/duplicar/eliminar página, guía, grilla) y miniatura (insertar antes/después, duplicar, eliminar). Sobre texto (campos o caja en edición) el menú es del proceso principal, con las sugerencias del corrector del sistema (`desktop/src/main/context-menu.ts` y `text-menu.ts`; ortografía prendida salvo en la autoprueba).
+- **Atajos de objetos:** Ctrl+C/X/V/D (⌘ en Mac). Copiar y cortar van por los eventos `copy`/`cut` y dejan una marca en el portapapeles; el `paste` con esa marca pega los objetos (en captura, antes del pegado de imágenes de `placed-artwork.ts`), y con otra cosa sigue como antes. Las notas al pie de una caja copiada se duplican con clave propia (`adoptPastedNotes`).
+- **Pauta:** el interlineado se lee como valor en puntos con la leyenda Ajustado/Normal/Amplio; "Operación tipográfica" es un campo libre de tres líneas para el estudiante (lo experimental se hace en Illustrator), con lo que el programa detecta solo (color, interletrado) debajo.
+- **macOS:** atajos con ⌘ (`src/keys.ts`), rótulos con ⌘/⌥/⇧, la tecla "delete" borra objetos, ⇧⌘Z rehace. Instalador: `npm run dist:mac-unsigned` en una Mac o el workflow `.github/workflows/mac.yml` (ver `docs/MAC_10-nov_instalador.md`).
+- Pruebas: `tests/context-menu-tests.js` (menús, portapapeles, insertar páginas, flechitas y deshacer agrupado) y `desktop/test/text-menu.test.ts`.
+
+**Pendiente:** probar todo en una Mac real; decidir si "Pegar" del menú debe leer también imágenes del portapapeles del sistema (hoy pega sólo objetos copiados en Maquetario; con el teclado sí pega imágenes y SVG).
+
 ## BETA 0.1 (09-nov, tarde)
 
 - **Versión:** `desktop/package.json` → `0.1.0-beta`. Lo que se lee dice "BETA 0.1" (`src/version-label.ts` en la interfaz, `appVersionLabel()` en `desktop/src/main/env.ts`); los metadatos del PDF guardan la versión técnica. Como la licencia usa `maxMajor: null`, el cambio de número no la afecta.

@@ -11,6 +11,7 @@ import type { HelpSection } from './help-center.tsx';
 import { bw, i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
 import { guideLessons } from '../../tutorial-lessons.ts';
+import { shortcutLabel } from '../../keys.ts';
 
 const tr = (text: string) => i18n.tr(text);
 
@@ -113,10 +114,46 @@ const shortcutRows = (): [[string, string, string], string][] => [
     ['Shift + rueda', 'Shift + wheel', 'Shift + roda'],
     bw('Desplazamiento horizontal.', 'Horizontal scrolling.', 'Deslocamento horizontal.'),
   ],
+  [
+    [
+      'Ctrl + C / Ctrl + X / Ctrl + V',
+      'Ctrl + C / Ctrl + X / Ctrl + V',
+      'Ctrl + C / Ctrl + X / Ctrl + V',
+    ],
+    bw(
+      'Copiar, cortar y pegar los objetos elegidos.',
+      'Copy, cut and paste the selected objects.',
+      'Copiar, recortar e colar os objetos selecionados.',
+    ),
+  ],
+  [
+    ['Ctrl + D', 'Ctrl + D', 'Ctrl + D'],
+    bw(
+      'Duplicar los objetos elegidos.',
+      'Duplicate the selected objects.',
+      'Duplicar os objetos selecionados.',
+    ),
+  ],
+  [
+    ['Clic derecho', 'Right-click', 'Clique direito'],
+    bw(
+      'Las acciones del objeto, de la página o de la miniatura que está debajo.',
+      'Actions for the object, page or thumbnail under the pointer.',
+      'As ações do objeto, da página ou da miniatura sob o ponteiro.',
+    ),
+  ],
+  [
+    ['↑ / ↓', '↑ / ↓', '↑ / ↓'],
+    bw(
+      'En un campo numérico: sube o baja 0,1 (con Mayúscula, 1).',
+      'In a number field: up or down by 0.1 (with Shift, 1).',
+      'Em um campo numérico: sobe ou desce 0,1 (com Shift, 1).',
+    ),
+  ],
 ];
 
 /** Teclas que van en <kbd>; lo demás (arrastrar, rueda, botón central) es texto. */
-const KEY = /^(Ctrl|Shift|Alt|Espacio|Space|Espaço|[A-Z0-9]|\+|−)$/;
+const KEY = /^(Ctrl|Shift|Alt|⌘|⌥|Espacio|Space|Espaço|[A-Z0-9]|↑|↓|\+|−)$/;
 
 /** "Ctrl + 0" → <kbd>Ctrl</kbd> + <kbd>0</kbd>; los separadores " + " y " / " quedan como texto. */
 const Keys = ({ combo }: { combo: string }) => (
@@ -140,14 +177,14 @@ const ShortcutsSection = () => {
   return (
     <>
       <h2 className="help-heading">
-        {bw('Moverse por la maqueta', 'Navigate the layout', 'Navegar pela diagramação')}
+        {bw('Moverse y editar', 'Navigate and edit', 'Navegar e editar')}
       </h2>
       <table className="canvas-shortcut-table">
         <tbody>
           {shortcutRows().map(([keys, action]) => (
             <tr key={keys[0]}>
               <th>
-                <Keys combo={bw(...keys)} />
+                <Keys combo={shortcutLabel(bw(...keys))} />
               </th>
               <td>{action}</td>
             </tr>

@@ -1,7 +1,6 @@
-// Controles del editor: las flechas arriba y abajo (y la rueda, con el campo enfocado) suben o
-// bajan los campos numéricos respetando mínimo, máximo y paso, y conservan el foco si el
-// inspector se redibuja. También ilumina el objetivo de cada paso del tutorial (oscurece el resto
-// de la ventana) y aparta la tarjeta del tutorial si lo tapa.
+// Controles del editor: ilumina el objetivo de cada paso del tutorial (oscurece el resto de la
+// ventana) y aparta la tarjeta del tutorial si lo tapa. Las flechas, la rueda y las flechitas de
+// los campos numéricos están en number-stepper.ts.
 //
 // spotlight es global porque tests/feedback-tests.js revisa la iluminación.
 //
@@ -14,69 +13,6 @@ declare global {
   /** Capa que oscurece la ventana y deja a la vista el objetivo del tutorial. */
   var spotlight: SVGSVGElement;
 }
-
-function stepNumberField(event: Event, direction: number): void {
-  const field = event.target;
-  if (
-    !(field instanceof HTMLInputElement) ||
-    field.type !== 'number' ||
-    field.disabled ||
-    field.readOnly
-  )
-    return;
-  event.preventDefault();
-  const previous = field.value;
-  const container = field.closest('#inspectorContent');
-  const index = container
-    ? Array.from(container.querySelectorAll('input[type=number]')).indexOf(field)
-    : -1;
-  const fieldKeys = JSON.stringify(field.dataset);
-  // stepUp and stepDown retain the field's min, max and configured precision.
-  if (field.step === 'any') {
-    const delta = (Number(field.value) || 0) + direction * 0.1;
-    // String() da el mismo texto que el campo al recibir un número.
-    field.value = String(
-      Math.min(
-        field.max === '' ? Infinity : Number(field.max),
-        Math.max(field.min === '' ? -Infinity : Number(field.min), Number(delta.toFixed(8))),
-      ),
-    );
-  } else if (direction > 0) field.stepUp();
-  else field.stepDown();
-  if (previous === field.value) return;
-  field.dispatchEvent(new Event('input', { bubbles: true }));
-  if (field.isConnected) field.dispatchEvent(new Event('change', { bubbles: true }));
-  if (!field.isConnected) {
-    const replacement = field.id
-      ? document.getElementById(field.id)
-      : container?.querySelectorAll<HTMLInputElement>('input[type=number]')[index];
-    if (replacement && JSON.stringify(replacement.dataset) === fieldKeys)
-      replacement.focus({ preventScroll: true });
-  }
-}
-document.addEventListener(
-  'keydown',
-  (event) => {
-    if (
-      !event.altKey &&
-      !event.ctrlKey &&
-      !event.metaKey &&
-      ['ArrowUp', 'ArrowDown'].includes(event.key)
-    ) {
-      stepNumberField(event, event.key === 'ArrowUp' ? 1 : -1);
-    }
-  },
-  true,
-);
-document.addEventListener(
-  'wheel',
-  (event) => {
-    if (!event.ctrlKey && event.target === document.activeElement && event.deltaY) {
-      stepNumberField(event, event.deltaY < 0 ? 1 : -1);
-    }
-  },
-  { capture: true, passive: false },
-);
 
 const spotlight = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 spotlight.id = 'tutorialSpotlight';

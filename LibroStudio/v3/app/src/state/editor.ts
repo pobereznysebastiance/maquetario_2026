@@ -48,6 +48,12 @@ export interface EditorState {
   /** Copias del libro (JSON) para deshacer y rehacer. */
   undoStack: string[];
   redoStack: string[];
+  /**
+   * Cambios que se deshacen juntos (mantener apretada una flechita de un campo): mientras no es
+   * null, sólo el primer cambio guarda el estado para deshacer (lo presta src/number-stepper.ts
+   * mientras corre cada paso).
+   */
+  historyGroup: { snapshotTaken: boolean } | null;
   /** Elemento de texto que se está editando en el lienzo, o null. */
   editing: HTMLElement | null;
   /** Arrastre en curso de una caja. */
@@ -92,6 +98,7 @@ export const editor: EditorState = {
   native: false,
   undoStack: [],
   redoStack: [],
+  historyGroup: null,
   editing: null,
   drag: null,
   overflowCount: 0,

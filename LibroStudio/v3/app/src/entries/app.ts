@@ -52,6 +52,7 @@ import '../page-exceptions.ts';
 import '../app-notices.tsx';
 import '../placed-artwork.ts';
 import '../editor-controls.ts';
+import '../number-stepper.ts';
 import '../print-proof.ts';
 import '../project-package-wiring.ts';
 import '../document-units.ts';
@@ -80,6 +81,7 @@ import '../components/settings/settings-panel.tsx';
 import '../workspace.ts';
 import '../rulers.ts';
 import '../inspector-views.tsx';
+import '../context-menu.tsx';
 import '../compose-loader.ts';
 // El contrato con el proceso principal (window.maquetarioMain), al final: usa lo de todos los módulos.
 import '../contract/main-contract.ts';

@@ -22,6 +22,7 @@ import { bw, i18n } from '../../i18n/language.ts';
 import { confirmAction, openSheet } from '../dialog/dialogs.tsx';
 import { fontFolders, obtainFonts } from '../../font-catalog.ts';
 import { versionLabel } from '../../version-label.ts';
+import { shortcutLabel } from '../../keys.ts';
 
 /** Versión nueva del programa en Motiova (mismo formato que desktop/src/main/motiova/desktop.ts). */
 interface UpdateInfo {
@@ -448,7 +449,7 @@ const SettingsPanel = ({
             onChange={(value) => setReadability(value)}
           />
         </SettingRow>
-        <SettingRow label={t('rulers')} help={t('rulersHelp')}>
+        <SettingRow label={t('rulers')} help={shortcutLabel(t('rulersHelp'))}>
           <CheckItem
             id="settingsRulers"
             label=""

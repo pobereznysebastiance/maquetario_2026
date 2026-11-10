@@ -33,6 +33,7 @@ import {
 } from '../../footnote-model.ts';
 import type { FootnoteSettings } from '../../model.ts';
 import { markAsQuote } from '../../roles.ts';
+import { shortcutLabel } from '../../keys.ts';
 
 const title = () => bw('Notas al pie', 'Footnotes', 'Notas de rodapé');
 
@@ -65,17 +66,19 @@ export const NotesPanel = () => {
         onClick={insertFootnote}
       />
       <p className="help">
-        {keys.length
-          ? bw(
-              'Ctrl+Alt+F mientras escribís pone la nota donde está el cursor. El formato de las notas está en Libro.',
-              'Ctrl+Alt+F while typing places the note at the cursor. Note formatting is in Book.',
-              'Ctrl+Alt+F enquanto escreve coloca a nota no cursor. O formato das notas está em Livro.',
-            )
-          : bw(
-              'Escribiendo en la caja, la nota va donde está el cursor (también con Ctrl+Alt+F); si no, al final del párrafo.',
-              'While typing in the box, the note goes at the cursor (also Ctrl+Alt+F); otherwise, at the end of the paragraph.',
-              'Escrevendo na caixa, a nota vai no cursor (também com Ctrl+Alt+F); se não, no fim do parágrafo.',
-            )}
+        {shortcutLabel(
+          keys.length
+            ? bw(
+                'Ctrl+Alt+F mientras escribís pone la nota donde está el cursor. El formato de las notas está en Libro.',
+                'Ctrl+Alt+F while typing places the note at the cursor. Note formatting is in Book.',
+                'Ctrl+Alt+F enquanto escreve coloca a nota no cursor. O formato das notas está em Livro.',
+              )
+            : bw(
+                'Escribiendo en la caja, la nota va donde está el cursor (también con Ctrl+Alt+F); si no, al final del párrafo.',
+                'While typing in the box, the note goes at the cursor (also Ctrl+Alt+F); otherwise, at the end of the paragraph.',
+                'Escrevendo na caixa, a nota vai no cursor (também com Ctrl+Alt+F); se não, no fim do parágrafo.',
+              ),
+        )}
       </p>
       <Btn
         id="markQuote"

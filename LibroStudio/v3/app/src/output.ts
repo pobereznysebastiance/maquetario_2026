@@ -23,6 +23,7 @@ import { notifyEditorState } from './react/editor-state.ts';
 import { cropSvg, outputPaperDimensions, ow } from './output-words.ts';
 import { setOutputReviewScale } from './output-review-scale.ts';
 import { installedPrinters, readPrinters, sendOutput } from './output-send.ts';
+import { commandKey } from './keys.ts';
 // modal: por el nombre global. Importar modal.ts desde acá adelantaría la capa de diálogos
 // (components/dialog/native.ts agrega #dialogLayer al cargar), porque output.ts carga antes.
 
@@ -401,7 +402,7 @@ globalThis.outputDialog = async function (destination) {
 };
 // Imprimir y Exportar PDF están en la barra superior (components/topbar/Topbar.tsx).
 document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.key.toLowerCase() === 'p') {
+  if (commandKey(e) && e.key.toLowerCase() === 'p') {
     e.preventDefault();
     if (!document.querySelector('#dialogLayer dialog[open]')) outputDialog('print');
   }

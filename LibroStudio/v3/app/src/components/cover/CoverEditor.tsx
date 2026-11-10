@@ -508,7 +508,7 @@ const CoverActions = () => {
   useLanguage();
   return (
     <div id="coverPersistentActions" className="cover-persistent-actions">
-      <PieceSwitch piece="cover" />
+      <PieceSwitch />
       <button
         type="button"
         className="btn"

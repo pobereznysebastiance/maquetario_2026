@@ -259,14 +259,3 @@
   height: var(--icon-md);
 }
 
-/* Interior | Cubierta y solapas en la barra principal: del alto de los botones de la barra y con
-   la letra de sus acciones (en la cabecera de la cubierta queda el tamaño de la molécula). */
-.topbar .piece-switch button {
-  min-height: var(--control-md);
-  padding: 0 var(--space-md);
-  font-size: var(--type-md);
-}
-.topbar .piece-switch .icon {
-  width: var(--icon-md);
-  height: var(--icon-md);
-}

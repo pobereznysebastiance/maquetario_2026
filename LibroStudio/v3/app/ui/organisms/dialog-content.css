@@ -762,9 +762,13 @@ dialog.output-modal .dialog-frame .dialog-body {
 .guide-table td {
   vertical-align: top;
 }
-.guide-table :is(select, input[type='text']) {
+.guide-table :is(select, input[type='text'], textarea) {
   width: 100%;
   min-width: var(--guide-field-min);
+}
+/* Operación tipográfica: texto libre del estudiante, de varias líneas. */
+.guide-table textarea[data-pauta='operation'] {
+  resize: vertical;
 }
 .guide-table [data-pauta='font'] {
   min-width: var(--guide-font-min);

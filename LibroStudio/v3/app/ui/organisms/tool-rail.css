@@ -59,10 +59,9 @@
   color: var(--text-secondary);
 }
 
-/* Herramientas que abren vistas (índice, capas, cubierta): separadas por una línea. */
+/* Herramientas que abren vistas (índice, capas): separadas por una línea. */
 .tool#indexTool,
-#layersTool,
-#coverTool {
+#layersTool {
   color: var(--text-secondary);
 }
 .tool#indexTool {

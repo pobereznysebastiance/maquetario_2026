@@ -13,6 +13,7 @@
 import { shortcutsHelpSection } from './components/help/sections.tsx';
 import { refreshCanvasBar } from './components/canvas-bar/canvas-bar-state.ts';
 import { bw } from './i18n/language.ts';
+import { commandKey, shortcutLabel } from './keys.ts';
 
 /** Punto del lienzo: posición en el pliego (sin escala) y en la mesa (relativa al visor). */
 export interface CanvasAnchor {
@@ -230,7 +231,8 @@ canvasStage.addEventListener(
   'wheel',
   (e) => {
     if (canvasUnavailable()) return;
-    if (e.ctrlKey) {
+    // Ctrl + rueda (y el pellizco del trackpad, que llega con ctrlKey); en macOS también ⌘ + rueda.
+    if (e.ctrlKey || commandKey(e)) {
       e.preventDefault();
       e.stopImmediatePropagation();
       const delta =
@@ -266,7 +268,7 @@ document.addEventListener(
       setTool('hand');
       return;
     }
-    if (e.ctrlKey && !e.altKey) {
+    if (commandKey(e) && !e.altKey) {
       if (['+', '='].includes(key) || e.code === 'NumpadAdd') {
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -329,10 +331,12 @@ registerHelpSection(shortcutsHelpSection);
 extend.after(
   'updateStatus',
   function () {
-    $('#canvasHint').textContent = bw(
-      'Espacio + arrastrar: mano · Ctrl + rueda: zoom · Ctrl + 0: ajustar',
-      'Space + drag: hand · Ctrl + wheel: zoom · Ctrl + 0: fit',
-      'Espaço + arrastar: mão · Ctrl + roda: zoom · Ctrl + 0: ajustar',
+    $('#canvasHint').textContent = shortcutLabel(
+      bw(
+        'Espacio + arrastrar: mano · Ctrl + rueda: zoom · Ctrl + 0: ajustar',
+        'Space + drag: hand · Ctrl + wheel: zoom · Ctrl + 0: fit',
+        'Espaço + arrastar: mão · Ctrl + roda: zoom · Ctrl + 0: ajustar',
+      ),
     );
   },
   'canvas-navigation',

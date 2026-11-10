@@ -10,6 +10,8 @@
     "dev": "npm run dev --workspace desktop",
     "build": "npm run build --workspace desktop",
     "dist": "npm run dist --workspace desktop",
+    "dist:mac": "npm run dist:mac --workspace desktop",
+    "dist:mac-unsigned": "npm run dist:mac-unsigned --workspace desktop",
     "self-test": "npm run self-test --workspace desktop --",
     "typecheck": "npm run typecheck --workspaces --if-present && tsc -p LibroStudio/v3/app/src/tsconfig.json && npm run typecheck:app",
     "test": "npm run test --workspaces --if-present && npm run lint:design && npm run format:check",

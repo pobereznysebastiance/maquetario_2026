@@ -8,14 +8,25 @@
 //
 // Fuente TypeScript: viaja dentro de build/core.js (src/entries/core.ts).
 import { scheduleRecovery } from './recovery.ts';
+import { editor } from '../state/editor.ts';
 
-/** Guarda el estado para deshacer. */
-export function snapshot(): void {
+/**
+ * Guarda el estado para deshacer. Dentro de un grupo (editor.historyGroup) sólo lo guarda el primer
+ * cambio: los siguientes se deshacen con él. Devuelve si guardó.
+ */
+export function snapshot(): boolean {
+  const group = editor.historyGroup;
+  if (group?.snapshotTaken) {
+    redoStack = [];
+    return false;
+  }
+  if (group) group.snapshotTaken = true;
   undoStack.push(JSON.stringify(book));
   let sum = undoStack.reduce((a, b) => a + b.length, 0);
   while (undoStack.length > 1 && (sum > 40000000 || undoStack.length > 40))
     sum -= undoStack.shift()!.length;
   redoStack = [];
+  return true;
 }
 /** Marca cambios sin guardar y programa la copia de recuperación. */
 export function changed(): void {
@@ -31,13 +42,15 @@ export function changed(): void {
  */
 export function commitChange(fn: () => void, full = true): void {
   if (busy) return;
-  snapshot();
+  // En un grupo ya abierto no se guarda otro estado: si fn falla, se vuelve a esta copia.
+  const before = editor.historyGroup?.snapshotTaken ? JSON.stringify(book) : null;
+  const saved = snapshot();
   try {
     fn();
     changed();
     render(full);
   } catch (error) {
-    book = JSON.parse(undoStack.pop()!);
+    book = JSON.parse(saved ? undoStack.pop()! : before!);
     toast((error as Error).message, 'error');
     render(true);
   }

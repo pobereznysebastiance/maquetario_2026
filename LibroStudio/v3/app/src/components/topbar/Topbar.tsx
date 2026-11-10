@@ -29,7 +29,7 @@ import { editor } from '../../core-api.ts';
 import { saveProjectAs } from '../../save-as.ts';
 import { packageDialog } from '../../project-package.tsx';
 import { openHelp } from '../help/help-center.tsx';
-import { PieceSwitch } from '../documentbar/PieceSwitch.tsx';
+import { shortcutLabel } from '../../keys.ts';
 
 const tr = (text: string) => i18n.tr(text);
 
@@ -105,7 +105,9 @@ export const Topbar = () => {
           id="save"
           icon="save"
           label={tr('Guardar')}
-          title={bookTitle(bw('Guardar · Ctrl+S', 'Save · Ctrl+S', 'Salvar · Ctrl+S'))}
+          title={bookTitle(
+            shortcutLabel(bw('Guardar · Ctrl+S', 'Save · Ctrl+S', 'Salvar · Ctrl+S')),
+          )}
           disabled={!editor.hasDocument}
           run={() => saveProject()}
         />
@@ -114,10 +116,12 @@ export const Topbar = () => {
           icon="save"
           label={bw('Guardar como…', 'Save as…', 'Salvar como…')}
           title={bookTitle(
-            bw(
-              'Guardar como… · Ctrl+Mayús+S',
-              'Save as… · Ctrl+Shift+S',
-              'Salvar como… · Ctrl+Shift+S',
+            shortcutLabel(
+              bw(
+                'Guardar como… · Ctrl+Mayús+S',
+                'Save as… · Ctrl+Shift+S',
+                'Salvar como… · Ctrl+Shift+S',
+              ),
             ),
           )}
           disabled={!editor.hasDocument}
@@ -166,9 +170,6 @@ export const Topbar = () => {
         </button>
       </div>
       <div className="topright">
-        {/* Interior | Cubierta y solapas (pedido de la cátedra): la función propia de Maquetario, a la
-            vista en la barra principal con su ícono (PieceSwitch.tsx). */}
-        <PieceSwitch piece="interior" />
         {/* Aprender (pedido de la cátedra): tutoriales, glosario y bibliografía siempre a la vista,
             con su nombre también en ancho chico. Es el centro de Ayuda (F1). */}
         <button

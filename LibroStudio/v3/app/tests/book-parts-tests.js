@@ -117,8 +117,8 @@ registerNavigationTest(async function (result) {
 
     // Interior | Cubierta.
     check(
-      $('#interiorTool').classList.contains('active') && !!$('.topbar #coverTool'),
-      'La barra principal muestra Interior | Cubierta y solapas',
+      !!$('.leftpanel #coverTool') && !$('.topbar .piece-switch'),
+      'Cubierta y solapas está en el panel izquierdo, no en la barra principal',
     );
     $('#coverTool').click();
     await until(() => $('#coverPieceTool'));

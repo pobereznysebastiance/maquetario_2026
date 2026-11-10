@@ -10,6 +10,8 @@ import {
 } from 'electron';
 import { join } from 'node:path';
 import { attachBridge } from './bridge.ts';
+import { attachTextMenu } from './context-menu.ts';
+import { spellCheckerLanguages } from './text-menu.ts';
 import {
   APP_ORIGIN,
   args,
@@ -169,6 +171,13 @@ function lockDown(): void {
   const ses = electronSession.defaultSession;
   ses.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
   ses.setPermissionCheckHandler(() => false);
+  // macOS usa el corrector del sistema con sus idiomas; en Windows y Linux se eligen.
+  if (process.platform !== 'darwin') {
+    const languages = spellCheckerLanguages(ses.availableSpellCheckerLanguages);
+    if (languages.length) ses.setSpellCheckerLanguages(languages);
+  }
+  // Sin descargas de diccionarios (Linux): la app no sale a buscar nada que no sea Motiova.
+  ses.setSpellCheckerDictionaryDownloadURL('https://localhost.invalid/');
   app.on('web-contents-created', (_event, contents) => {
     contents.setWindowOpenHandler(() => ({ action: 'deny' }));
     const allowed = (url: string) =>
@@ -242,7 +251,9 @@ function createWindow(): Session {
       sandbox: true,
       nodeIntegration: false,
       webSecurity: true,
-      spellcheck: false,
+      // Ortografía para el menú del clic derecho (context-menu.ts); en la autoprueba no, así las
+      // capturas no dependen del corrector del sistema.
+      spellcheck: !isSelfTest,
       devTools: isDev,
       // El self-test captura la ventana aunque no esté visible. En desarrollo, --no-throttle hace lo
       // mismo para las herramientas que miden la interfaz por CDP (scripts/app-cdp.mjs) con la ventana minimizada.
@@ -251,6 +262,7 @@ function createWindow(): Session {
   });
   const session = createSession(win);
   attachBridge(session);
+  attachTextMenu(session);
 
   // En la autoprueba la ventana también se muestra (sin robar el foco): con la página
   // oculta Chromium demora eventos como el cierre de <dialog> y las pruebas fallan.

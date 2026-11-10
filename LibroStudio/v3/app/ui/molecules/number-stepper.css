@@ -1,0 +1,49 @@
+/* Molécula: flechitas de los campos numéricos (src/number-stepper.ts). Una sola pieza para toda la
+   página, en la capa superior (popover): se ubica dentro del borde del campo que se apunta o se
+   edita, a la izquierda de su unidad. La posición la escribe el módulo en las variables. */
+.number-stepper {
+  --stepper-width: var(--size-16);
+  position: fixed;
+  inset: auto;
+  top: calc(var(--stepper-top) + var(--border-width) * 2);
+  right: calc(var(--stepper-right) + var(--space-3xs));
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  width: var(--stepper-width);
+  height: calc(var(--stepper-height) - var(--border-width) * 4);
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface-control);
+  color: var(--text-secondary);
+  user-select: none;
+  touch-action: none;
+}
+.number-stepper-arrow {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  border-radius: var(--radius-sm);
+  cursor: default;
+  transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+.number-stepper-arrow:hover {
+  background: var(--surface-control-hover);
+  color: var(--text-primary);
+}
+.number-stepper[data-pressed='1'] [data-direction='1'],
+.number-stepper[data-pressed='-1'] [data-direction='-1'] {
+  background: var(--surface-control-active);
+  color: var(--text-primary);
+}
+.number-stepper svg {
+  width: var(--size-8);
+  height: auto;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

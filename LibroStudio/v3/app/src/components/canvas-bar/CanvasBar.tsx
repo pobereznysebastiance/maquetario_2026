@@ -30,6 +30,7 @@ import { useCanvasBar } from './canvas-bar-state.ts';
 import { bw, i18n } from '../../i18n/language.ts';
 import { editor } from '../../core-api.ts';
 import { openHelp } from '../help/help-center.tsx';
+import { shortcutLabel } from '../../keys.ts';
 
 /** Porcentaje real del lienzo (antes de que cargue canvas-navigation, 100). */
 const canvasPercent = (): number =>
@@ -106,7 +107,9 @@ const ZoomControls = () => {
         type="button"
         id="fitZoom"
         className="quiet"
-        title={bw('Ajustar pliego · Ctrl+0', 'Fit spread · Ctrl+0', 'Ajustar páginas · Ctrl+0')}
+        title={shortcutLabel(
+          bw('Ajustar pliego · Ctrl+0', 'Fit spread · Ctrl+0', 'Ajustar páginas · Ctrl+0'),
+        )}
         onClick={() => fitCanvas()}
       >
         {bw('Ajustar', 'Fit', 'Ajustar')}

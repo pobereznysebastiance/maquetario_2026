@@ -27,6 +27,7 @@ import { confirmAction } from '../dialog/dialogs.tsx';
 import { loadOpenedProject } from '../../project-package.tsx';
 import { openHelp } from '../help/help-center.tsx';
 import { versionLabel } from '../../version-label.ts';
+import { commandKey } from '../../keys.ts';
 
 export type { RecentProject } from './WelcomeScreen.tsx';
 
@@ -273,7 +274,7 @@ async function loadRecoveryCopy(): Promise<void> {
 document.addEventListener(
   'keydown',
   (e) => {
-    if (welcomeVisible && e.ctrlKey && ['p', 's', 'z', 'y'].includes(e.key.toLowerCase())) {
+    if (welcomeVisible && commandKey(e) && ['p', 's', 'z', 'y'].includes(e.key.toLowerCase())) {
       e.preventDefault();
       e.stopImmediatePropagation();
     }

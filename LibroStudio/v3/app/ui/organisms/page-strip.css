@@ -100,7 +100,24 @@
   white-space: nowrap;
 }
 
-/* ── Vistas del riel: Páginas · Índice · Capas (selector propio, debajo de las herramientas) ── */
+/* ── Lo que forma el libro: vistas del riel (Páginas · Estructura · Índice · Capas) y la cubierta,
+   debajo de las herramientas. El tablist no tiene caja propia: sus pestañas son hijas de la fila. ── */
+.rail-tablist {
+  display: contents;
+}
+/* Cubierta y solapas: abre una ventana, no es una vista; una línea la separa de las pestañas. */
+.rail-piece {
+  position: relative;
+  margin-inline-start: var(--space-3xs);
+}
+.rail-piece::before {
+  content: '';
+  position: absolute;
+  inset-block: var(--space-2xs);
+  left: calc(var(--space-3xs) * -2);
+  width: var(--border-width);
+  background: var(--line-default);
+}
 .pages-heading {
   gap: var(--space-xs);
 }

@@ -1,5 +1,5 @@
 /* Molécula: conmutador Interior | Cubierta (src/components/documentbar/PieceSwitch.tsx), en la
-   barra del documento y en la cabecera de la cubierta. Dos botones unidos; el elegido se marca. */
+   cabecera de la cubierta. Dos botones unidos; el elegido se marca. */
 .piece-switch {
   display: inline-flex;
   flex: none;

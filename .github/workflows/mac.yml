@@ -1,0 +1,62 @@
+# Instalador de macOS (.dmg y .zip, Apple Silicon e Intel) armado en una Mac de GitHub.
+# Desde Windows no se puede: electron-builder necesita macOS para el .dmg.
+#
+# Se corre a mano: GitHub → Actions → "Instalador de macOS" → Run workflow (elegir la rama).
+# Lo armado queda en la corrida, en "Artifacts" (se guarda 14 días).
+#
+# Firma:
+# - Con los secretos de Apple cargados en el repo (MAC_CSC_LINK, MAC_CSC_KEY_PASSWORD, APPLE_ID,
+#   APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID) firma con el Developer ID y notariza: abre sin avisos.
+# - Sin ellos, firma ad-hoc (desktop/scripts/mac-unsigned.cjs): abre, pero la primera vez macOS pide
+#   permiso. Ver docs/MAC_10-nov_instalador.md.
+name: Instalador de macOS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  mac:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Pruebas
+        run: npm test
+
+      - name: Armar con firma de Apple
+        if: ${{ env.CSC_LINK != '' }}
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: npm run dist:mac -- --publish never
+
+      - name: Armar sin certificado (firma ad-hoc)
+        if: ${{ env.CSC_LINK == '' }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run dist:mac-unsigned -- --publish never
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Maquetario-mac
+          path: |
+            desktop/release/*.dmg
+            desktop/release/*.zip
+          if-no-files-found: error
+          retention-days: 14
+
+    env:
+      # Para decidir el paso: el secreto no se puede leer en un "if", una variable sí.
+      CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
